@@ -11,4 +11,6 @@ class Publisher(Protocol):
     name: str            # facebook | instagram | tiktok | youtube
     mode: str            # auto | draft | manual
 
-    def publish(self, reel: Reel) -> PublishResult: ...
+    def publish(self, reel: Reel, dry_run: bool = False) -> PublishResult:
+        """dry_run: go as far as the platform allows without anything becoming public."""
+        ...

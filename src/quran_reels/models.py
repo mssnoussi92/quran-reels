@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -26,14 +27,41 @@ class AyahRef:
         return f"{self.surah:03d}{self.ayah:03d}"
 
 
+_PASSAGE = re.compile(r"^\s*(\d{1,3})\s*:\s*(\d{1,3})(?:\s*-\s*(\d{1,3}))?\s*$")
+
+
+def parse_passage(key: str) -> tuple[int, int, int]:
+    """'93:1-3' -> (93, 1, 3); '93:2' -> (93, 2, 2)."""
+    m = _PASSAGE.match(key)
+    if not m:
+        raise ValueError(f"invalid passage {key!r}, expected e.g. 93:1-3")
+    surah, start = int(m[1]), int(m[2])
+    end = int(m[3]) if m[3] else start
+    if not 1 <= surah <= 114 or start < 1 or end < start:
+        raise ValueError(f"invalid passage {key!r}")
+    return surah, start, end
+
+
+@dataclass(frozen=True)
+class GlossEntry:
+    """One entry of a gloss book for an ayah, as published (editor footnotes removed)."""
+
+    ref: AyahRef
+    lemma: str         # the Quran words the author quotes, in the book's own spelling
+    text: str          # the author's explanation, verbatim
+    edition: str
+
+
 @dataclass(frozen=True)
 class WordGloss:
     """Explanation of a difficult word, quoted verbatim from a published source."""
 
     ref: AyahRef
     word: str          # the word as written in the Uthmani text
-    gloss: str         # verbatim explanation (Arabic)
+    gloss: str         # verbatim explanation (Arabic), possibly cut at a sentence end
     edition: str       # e.g. ar-ghareeb-ibn-qutaybah
+    lemma: str = ""    # what the source quotes, verbatim, for traceability
+    positions: tuple[int, ...] = ()   # indexes of the highlighted words in the ayah
 
 
 @dataclass
@@ -60,6 +88,15 @@ class Passage:
         return f"{self.surah}:{self.start}-{self.end}"
 
     @property
+    def slug(self) -> str:
+        """File-system friendly key, e.g. 093_001-003."""
+        return f"{self.surah:03d}_{self.start:03d}-{self.end:03d}"
+
+    @property
+    def refs(self) -> list[AyahRef]:
+        return [AyahRef(self.surah, a) for a in range(self.start, self.end + 1)]
+
+    @property
     def seconds(self) -> float:
         return sum(a.seconds or 0 for a in self.ayahs)
 
@@ -70,11 +107,13 @@ class Reel:
     video: Path
     caption: str
     cover: Path | None = None
+    cover_ms: int | None = None      # frame used as cover, in ms from the start
 
 
 class PublishStatus(str, Enum):
     PUBLISHED = "published"   # live on the platform
-    DRAFT = "draft"           # sent to the owner's inbox (TikTok before audit)
+    DRAFT = "draft"           # unpublished draft (Facebook dry run, TikTok inbox before audit)
+    READY = "ready"           # uploaded and processed, not published (Instagram dry run)
     MANUAL = "manual"         # file ready, owner uploads by hand (YouTube before audit)
     FAILED = "failed"
 

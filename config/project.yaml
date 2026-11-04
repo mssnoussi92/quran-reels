@@ -11,19 +11,29 @@ project:
 content:
   quran_text:
     edition: ar-uthmani-hafs          # canonical text, never generated
+    source: quran.com                 # text_uthmani of the Quran.com API v4
   translation:
-    edition: en-sahih-international
+    edition: en-sahih-international   # Quran.com translation slug
+    source: quran.com
     label: Sahih International
   glosses:
     edition: ar-ghareeb-ibn-qutaybah
+    source: tafsir.app
+    source_id: ghareeb-ibn-qutaybah   # tafsir.app book id
     label: "ابن قتيبة، تفسير غريب القرآن"
+    max_per_ayah: 2                   # entries shown under one ayah
+    max_chars: 170                    # whole sentences only, an entry longer than this is left out
   reciter:
     id: Alafasy_128kbps               # EveryAyah folder name
     label: Mishary Rashid Alafasy
+    timings_id: 7                     # Quran.com chapter recitation, same recording (planning)
   passage:
     mode: complete                    # never cut a passage mid-sentence
-    min_seconds: 20
-    max_seconds: 90
+    target_seconds: 60                # about one minute
+    min_seconds: 40
+    max_seconds: 90                   # Facebook Reels API limit
+    whole_surah: true                 # a surah that fits in max_seconds is one video, any length
+    groups: en-tafisr-ibn-kathir      # Quran.com tafsir whose ayah groups are never split (sic)
 
 video:
   width: 1080
@@ -31,9 +41,15 @@ video:
   fps: 30
   safe_area: { top: 250, bottom: 420, sides: 90 }
   highlight_color: "#f6c86b"
+  lead_seconds: 0.4                   # first ayah on screen before the recitation starts
+  tail_seconds: 1.2                   # last ayah stays after it ends
+  fade_seconds: 0.25                  # ayah text fades in and out
   handle: "@quran_words_daily"        # page signature shown on every frame
 
 platforms:
+  meta:
+    graph_version: v24.0              # Graph API version, Facebook and Instagram
+    min_days_left: 14                 # fail when the token's data access expires sooner
   facebook:  { enabled: true,  mode: auto }
   instagram: { enabled: true,  mode: auto }
   tiktok:    { enabled: false, mode: draft }   # inbox draft until the TikTok audit
