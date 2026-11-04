@@ -93,6 +93,19 @@ def anchor(ref: AyahRef, entries: list[GlossEntry], text: str, cfg: Config) -> l
     return out
 
 
+BASMALA = AyahRef(1, 1)
+
+
+def needs_basmala(cfg: Config, surah: int, start: int) -> bool:
+    """Basmala before every passage, even mid-surah; never for At-Tawbah, nor before 1:1."""
+    b = cfg.content.get("basmala") or {}
+    if not b.get("enabled", False):
+        return False
+    if surah in (b.get("skip_surahs") or []):
+        return False
+    return not (surah == BASMALA.surah and start == BASMALA.ayah)
+
+
 def build(cfg: Config, key: str, src: Sources | None = None) -> Passage:
     src = src or Sources.from_config(cfg)
     surah, start, end = parse_passage(key)
@@ -108,6 +121,13 @@ def build(cfg: Config, key: str, src: Sources | None = None) -> Passage:
 
     passage = Passage(surah=surah, start=start, end=end,
                       surah_name_ar=chapter["name_arabic"], surah_name_en=chapter["name_simple"])
+    if needs_basmala(cfg, surah, start):
+        passage.basmala = Ayah(
+            ref=BASMALA,
+            text=src.quran.text([BASMALA])[BASMALA],
+            translation=src.quran.translate(src.translation_slug, [BASMALA])[BASMALA],
+            audio=src.audio.fetch_file(cfg.content["basmala"].get("audio", "bismillah")),
+        )
     for r in refs:
         passage.ayahs.append(Ayah(
             ref=r,

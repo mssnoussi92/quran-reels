@@ -15,7 +15,7 @@
     surah_name_ar    "سورة الضحى"
     ref              "93:2"
     tokens           [{text, hl}]   Uthmani words, hl=true for glossed words
-    ayah_number      "٢"
+    ayah_number      "٢" (empty on the basmala frame, like ref)
     translation      verbatim translation
     glosses          [{word, gloss}]  verbatim from the gloss edition
     gloss_source     "ابن قتيبة، تفسير غريب القرآن"
@@ -89,12 +89,12 @@
   {% if layer in ("content", "preview") %}
   <div class="content">
     <div class="stack">
-      <div class="ref">{{ surah_name_ar }} <span>· {{ ref }}</span></div>
+      <div class="ref">{{ surah_name_ar }}{% if ref %} <span>· {{ ref }}</span>{% endif %}</div>
       <div class="ayah">
         {%- for t in tokens -%}
-          {% if t.hl %}<span class="hl">{{ t.text }}</span>{% else %}{{ t.text }}{% endif %}{{ " " if not loop.last else " " }}
+          {% if t.hl %}<span class="hl">{{ t.text }}</span>{% else %}{{ t.text }}{% endif %}{{ " " if not loop.last else (" " if ayah_number else "") }}
         {%- endfor -%}
-        <span class="num">﴿{{ ayah_number }}﴾</span>
+        {% if ayah_number %}<span class="num">﴿{{ ayah_number }}﴾</span>{% endif %}
       </div>
       <div class="tr">{{ translation }}</div>
       {% if glosses %}

@@ -12,6 +12,7 @@ e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis 
 | Sujet | Choix |
 |---|---|
 | Format | **≈ 1 minute** (cible 60 s, 40–90 s), jamais coupé au milieu d'une phrase ; **sourate courte entière** (≤ 90 s, même très courte) |
+| Basmala | **Au début de chaque vidéo**, même pour quelques versets ; sauf sourate 9 et avant 1:1 (qui est la basmala) |
 | Texte arabe | Uthmani (Hafs), police **Amiri Quran** (OFL) |
 | Traduction | **Sahih International** (anglais), créditée dans chaque légende |
 | Mots difficiles | **Ibn Qutaybah, *Tafsir Gharib al-Qur'an*** (`ar-ghareeb-ibn-qutaybah`), glose en arabe |
@@ -150,6 +151,10 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   `content` par ayah (référence, ayah, traduction, gloses) en fondu de 0,25 s. Fond provisoire
   tant que `backgrounds.yaml` est vide : boucle de 12 s générée (numpy) dans la palette de la
   maquette, ciel de nuit vers l'aube, étoiles qui scintillent, mise en cache.
+- Basmala (`content.basmala`) : `bismillah.mp3` d'EveryAyah (≈ 6 s), texte uthmani et
+  traduction de 1:1 (Quran.com), premier segment du minutage ; écran sans référence ni numéro.
+  Comptée dans le découpage (93 entière : 62 s). Pas pour la sourate 9 (`skip_surahs`) ni
+  quand la vidéo commence à 1:1. Ligne arabe en tête de la légende.
 - MP4 : H.264 High sans B-frames, AAC 48 kHz, `faststart`, **sans edit list** (`-use_editlist 0`) :
   Instagram Reels refuse les edit lists que ffmpeg écrit par défaut.
 - Texte réduit automatiquement (`--k`) s'il dépasse la zone sûre ; avertissement sous 70 %.

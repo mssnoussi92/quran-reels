@@ -26,13 +26,14 @@ def base_context(cfg: Config) -> dict[str, Any]:
     }
 
 
-def ayah_context(passage: Passage, ayah: Ayah) -> dict[str, Any]:
+def ayah_context(passage: Passage, ayah: Ayah, basmala: bool = False) -> dict[str, Any]:
+    """basmala: the opening frame, surah name only, no reference or ayah number."""
     highlighted = {p for g in ayah.glosses for p in g.positions}
     return {
         "surah_name_ar": f"سورة {passage.surah_name_ar}",
-        "ref": str(ayah.ref),
+        "ref": "" if basmala else str(ayah.ref),
         "tokens": [{"text": t, "hl": i in highlighted} for i, t in enumerate(words(ayah.text))],
-        "ayah_number": arabic_digits(ayah.ref.ayah),
+        "ayah_number": "" if basmala else arabic_digits(ayah.ref.ayah),
         "translation": ayah.translation,
         "glosses": [{"word": g.word, "gloss": g.gloss} for g in ayah.glosses],
     }

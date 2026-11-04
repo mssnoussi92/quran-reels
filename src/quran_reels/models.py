@@ -82,6 +82,12 @@ class Passage:
     surah_name_ar: str
     surah_name_en: str
     ayahs: list[Ayah] = field(default_factory=list)
+    basmala: Ayah | None = None      # recited before the passage (text and translation of 1:1)
+
+    @property
+    def segments(self) -> list[Ayah]:
+        """What is recited, in order: the basmala if any, then the ayahs."""
+        return ([self.basmala] if self.basmala else []) + self.ayahs
 
     @property
     def key(self) -> str:
@@ -98,7 +104,7 @@ class Passage:
 
     @property
     def seconds(self) -> float:
-        return sum(a.seconds or 0 for a in self.ayahs)
+        return sum(a.seconds or 0 for a in self.segments)
 
 
 @dataclass
