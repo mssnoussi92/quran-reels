@@ -118,7 +118,7 @@ def test_errors_never_contain_the_token():
         Graph(TOKEN, "v24.0", session=Broken({})).get("debug_token", input_token=TOKEN)
     assert TOKEN not in str(e.value)
     g = graph({("GET", "/me"): Resp({"error": {"message": "Invalid OAuth", "code": 190}}, 400)})
-    with pytest.raises(GraphError, match="Invalid OAuth .code 190") as e:
+    with pytest.raises(GraphError, match=r"Invalid OAuth \(HTTP 400, code 190\)") as e:
         g.get("me")
     assert TOKEN not in str(e.value)
 
@@ -219,3 +219,25 @@ def test_status_polling_survives_a_transient_error(reel):
     routes = instagram_routes() | {("GET", "/222"): lambda f: next(answers)}
     r = InstagramPublisher(graph(routes), IG, poll_interval=0).publish(reel, dry_run=True)
     assert r.status is PublishStatus.READY
+
+
+def test_rupload_errors_are_explained(reel):
+    routes = instagram_routes() | {("POST", "/ig-api-upload/v24.0/222"): Resp(
+        {"debug_info": {"retriable": False, "type": "ProcessingFailedError",
+                        "message": "Request processing failed"}}, 400)}
+    r = InstagramPublisher(graph(routes), IG, poll_interval=0).publish(reel, dry_run=True)
+    assert r.status is PublishStatus.FAILED
+    assert "Request processing failed (HTTP 400, type ProcessingFailedError)" in r.error
+
+
+def test_non_json_error_body_never_shows_the_token():
+    class Text(Resp):
+        text = f"<html>bad request for {TOKEN}</html>"
+
+        def json(self):
+            raise ValueError
+
+    g = graph({("GET", "/me"): Text(None, 400)})
+    with pytest.raises(GraphError) as e:
+        g.get("me")
+    assert "bad request for ***" in str(e.value) and TOKEN not in str(e.value)

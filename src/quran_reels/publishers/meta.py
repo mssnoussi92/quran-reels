@@ -58,15 +58,30 @@ class Graph:
             body = r.json()
         except ValueError:
             body = {}
-        err = body.get("error") if isinstance(body, dict) else None
+        body = body if isinstance(body, dict) else {}
+        err = body.get("error")
         if r.status_code >= 400 or err:
             err = err if isinstance(err, dict) else {}
-            detail = err.get("error_user_msg") or err.get("message") or f"HTTP {r.status_code}"
-            codes = ", ".join(f"{k} {err[k]}" for k in ("code", "error_subcode", "fbtrace_id")
-                              if err.get(k))
-            raise GraphError(f"{what}: {detail}" + (f" ({codes})" if codes else ""),
-                             transient=r.status_code >= 500 or bool(err.get("is_transient")))
+            # rupload.facebook.com answers {"debug_info": {"type": ..., "message": ...}}
+            debug = body.get("debug_info") if isinstance(body.get("debug_info"), dict) else {}
+            detail = (err.get("error_user_msg") or err.get("message") or debug.get("message")
+                      or self._snippet(r) or "no details")
+            codes = ", ".join(f"{k} {v}" for k, v in (
+                ("HTTP", r.status_code), ("type", debug.get("type")), ("code", err.get("code")),
+                ("error_subcode", err.get("error_subcode")), ("fbtrace_id", err.get("fbtrace_id")))
+                if v)
+            raise GraphError(f"{what}: {detail} ({codes})",
+                             transient=r.status_code >= 500 or bool(err.get("is_transient"))
+                             or bool(debug.get("retriable")))
         return body
+
+    def _snippet(self, r: requests.Response) -> str:
+        """Start of a non-JSON error body, with the token blanked out should it appear."""
+        try:
+            text = r.text or ""
+        except Exception:  # noqa: BLE001
+            return ""
+        return " ".join(text.replace(self.token, "***").split())[:300]
 
     def _auth(self, scheme: str = "Bearer") -> dict[str, str]:
         return {"Authorization": f"{scheme} {self.token}"}
