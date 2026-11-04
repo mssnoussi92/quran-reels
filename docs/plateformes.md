@@ -103,6 +103,9 @@ Le bouton « Run workflow » n'apparaît que pour un workflow présent sur `main
   une notification et termine la publication dans l'app (légende : `caption.txt` de l'artefact).
   TikTok garde au plus 5 brouillons en attente par 24 h.
 - Dry-run = même envoi dans la boîte : rien n'est jamais public en mode brouillon.
+- **Vérifié le 2026-11-04 :** connexion `tiktok-auth` OK (compte `quran_words_daily`, scopes
+  `user.info.basic,video.upload`, refresh token enregistré par `GH_SECRETS_TOKEN`), et l'envoi
+  dans la boîte **fonctionne en Sandbox** (publish-test run #8 → `SEND_TO_USER_INBOX`).
 
 ### Connexion TikTok (une fois, puis ≈ 1 fois par an)
 

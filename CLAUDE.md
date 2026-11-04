@@ -197,7 +197,7 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
 - [x] Dry-run Facebook (run #3, brouillon créé) et Instagram (run #7, conteneur FINISHED, non
       publié). [ ] Première publication réelle (`publish-test`, mode publish + PUBLIER).
       Pas encore d'état anti-doublon (`state/`).
-- [x] App TikTok Sandbox · [ ] connexion (`tiktok-login.html` + `tiktok-auth`) · [ ] test
-      brouillon en Sandbox (`publish-test`, plateforme tiktok)
+- [x] App TikTok Sandbox · [x] connexion (`tiktok-auth`, compte quran_words_daily, refresh
+      token jusqu'à ≈ 2027-11-04) · [x] brouillon dans la boîte TikTok en Sandbox (run #8)
 - [ ] Demande d'audit YouTube
 - [ ] Workflow quotidien
