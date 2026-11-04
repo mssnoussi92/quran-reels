@@ -15,9 +15,30 @@ Published on Facebook, Instagram, TikTok and YouTube Shorts as `@quran_words_dai
 - Every video credits the reciter, the translation and the word-meaning source.
 - Free and open-source tooling only: Python, ffmpeg, Chromium, GitHub Actions.
 
+## Usage
+
+Requires Python 3.11+, ffmpeg and Chromium for Playwright.
+
+```bash
+pip install -e ".[dev]"
+python -m playwright install chromium
+quran-reels ingest                 # Quran text, translation, chapters, gloss index → .cache/
+quran-reels render 93:1-3          # → out/093_001-003.mp4
+```
+
+`render` downloads whatever is missing from the cache (glosses and recitation of the passage).
+`quran-reels ingest --all-glosses` fetches every Ibn Qutaybah entry at once (about 2,400
+requests, throttled and resumable). Next to the video, `out/093_001-003/` holds the image
+layers, previews, the caption and a `manifest.json` that lists every text shown with its
+edition and source.
+
+Data sources: [Quran.com API](https://api.quran.com/api/v4) (Uthmani text, Sahih
+International), [tafsir.app](https://tafsir.app) (Ibn Qutaybah, *Tafsir Gharib al-Qur'an*),
+[EveryAyah](https://everyayah.com) (recitations).
+
 ## Status
 
-Work in progress. See [`CLAUDE.md`](CLAUDE.md) for the architecture and decisions
+Work in progress: rendering works, publishing does not yet. See [`CLAUDE.md`](CLAUDE.md) for the architecture and decisions
 (in French) and [`docs/plateformes.md`](docs/plateformes.md) for platform constraints.
 
 ## Credits

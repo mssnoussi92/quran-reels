@@ -3,12 +3,15 @@
 <head>
 <meta charset="utf-8">
 <!--
-  One frame per ayah, rendered to a transparent PNG and overlaid on the background video
-  by ffmpeg. With preview=true a gradient stands in for the video (mockups only).
+  Rendered to transparent PNGs and overlaid on the background video by ffmpeg.
+
+  layer:
+    static   scrim + handle + credits, constant for the whole video
+    content  one per ayah (reference, ayah, translation, glosses), faded in and out
+    preview  both, on a gradient standing in for the video (mockups only)
 
   Variables:
     fonts_dir        file:// URI of assets/fonts
-    preview          bool
     surah_name_ar    "سورة الضحى"
     ref              "93:2"
     tokens           [{text, hl}]   Uthmani words, hl=true for glossed words
@@ -16,10 +19,13 @@
     translation      verbatim translation
     glosses          [{word, gloss}]  verbatim from the gloss edition
     gloss_source     "ابن قتيبة، تفسير غريب القرآن"
-    credit           "Mishary Alafasy · Sahih International"
+    credit           "Mishary Rashid Alafasy · Sahih International"
     handle           "@quran_words_daily"  page signature, on every frame
     safe             {top, bottom, sides}
     highlight        "#f6c86b"
+
+  Text that does not fit between the safe margins is scaled down (--k) by the script below;
+  window.__fit holds the final factor.
 -->
 <style>
   @font-face { font-family: "AmiriQuran"; src: url("{{ fonts_dir }}/AmiriQuran-Regular.ttf"); }
@@ -27,40 +33,47 @@
   @font-face { font-family: "Amiri"; src: url("{{ fonts_dir }}/Amiri-Bold.ttf"); font-weight: 700; }
   @font-face { font-family: "Lora"; src: url("{{ fonts_dir }}/Lora.ttf"); }
 
+  :root { --k: 1; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { width: 1080px; height: 1920px; background: transparent; }
   body { position: relative; overflow: hidden; color: #fff; }
 
-  {% if preview %}
+  {% if layer == "preview" %}
   body { background: linear-gradient(180deg, #0b1026 0%, #1a2350 45%, #3b3a6b 72%, #8a5a5a 100%); }
   {% endif %}
   .scrim { position: absolute; inset: 0;
       background: linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.15) 30%, rgba(0,0,0,.15) 70%, rgba(0,0,0,.45)); }
 
-  .content { position: absolute; top: {{ safe.top }}px; bottom: {{ safe.bottom }}px;
+  /* Between the safe margins, above the footer. */
+  .content { position: absolute; top: {{ safe.top }}px; bottom: {{ safe.bottom + 150 }}px;
       left: {{ safe.sides }}px; right: {{ safe.sides }}px;
-      display: flex; flex-direction: column; justify-content: center; align-items: center;
-      text-align: center; gap: 56px; }
+      display: flex; flex-direction: column; justify-content: center; align-items: center; }
+  .stack { width: 100%; display: flex; flex-direction: column; align-items: center;
+      text-align: center; gap: calc(56px * var(--k)); }
 
-  .ref { font-family: "Amiri"; font-weight: 700; font-size: 40px; opacity: .85; direction: rtl; }
-  .ref span { font-family: "Lora"; font-size: 30px; opacity: .8; margin-inline-start: 14px; }
+  .ref { font-family: "Amiri"; font-weight: 700; font-size: calc(40px * var(--k)); opacity: .85;
+      direction: rtl; }
+  .ref span { font-family: "Lora"; font-size: calc(30px * var(--k)); opacity: .8;
+      margin-inline-start: 14px; }
 
-  .ayah { font-family: "AmiriQuran"; font-size: 112px; line-height: 1.9; direction: rtl;
-      text-shadow: 0 4px 30px rgba(0,0,0,.55); }
+  .ayah { font-family: "AmiriQuran"; font-size: calc(112px * var(--k)); line-height: 1.9;
+      direction: rtl; text-wrap: balance; text-shadow: 0 4px 30px rgba(0,0,0,.55); }
   .ayah .hl { color: {{ highlight }}; }
-  .ayah .num { font-size: 72px; opacity: .9; }
+  .ayah .num { font-size: calc(72px * var(--k)); opacity: .9; }
 
-  .tr { font-family: "Lora"; font-style: italic; font-size: 46px; line-height: 1.45;
-      max-width: 860px; text-shadow: 0 2px 16px rgba(0,0,0,.6); }
+  .tr { font-family: "Lora"; font-style: italic; font-size: calc(46px * var(--k)); line-height: 1.45;
+      max-width: 860px; text-wrap: balance; text-shadow: 0 2px 16px rgba(0,0,0,.6); }
 
   .gloss { direction: rtl; width: 100%; background: rgba(10,14,35,.6);
-      border: 1px solid rgba(246,200,107,.35); border-radius: 28px; padding: 34px 44px 28px;
-      text-align: right; }
-  .gloss h3 { font-family: "Amiri"; font-weight: 700; font-size: 34px; color: {{ highlight }};
-      margin-bottom: 14px; }
-  .gloss p { font-family: "Amiri"; font-size: 44px; line-height: 1.6; }
+      border: 1px solid rgba(246,200,107,.35); border-radius: 28px;
+      padding: calc(34px * var(--k)) 44px calc(28px * var(--k)); text-align: right; }
+  .gloss h3 { font-family: "Amiri"; font-weight: 700; font-size: calc(34px * var(--k));
+      color: {{ highlight }}; margin-bottom: calc(14px * var(--k)); }
+  .gloss p { font-family: "Amiri"; font-size: calc(44px * var(--k)); line-height: 1.6; }
+  .gloss p + p { margin-top: calc(10px * var(--k)); }
   .gloss p b { font-family: "AmiriQuran"; font-weight: 400; color: {{ highlight }}; }
-  .gloss .src { font-family: "Amiri"; font-size: 26px; opacity: .7; margin-top: 10px; }
+  .gloss .src { font-family: "Amiri"; font-size: calc(26px * var(--k)); opacity: .7;
+      margin-top: calc(10px * var(--k)); }
 
   .footer { position: absolute; bottom: {{ safe.bottom + 20 }}px; left: 0; right: 0;
       text-align: center; font-family: "Lora"; }
@@ -70,27 +83,48 @@
 </style>
 </head>
 <body>
+  {% if layer in ("static", "preview") %}
   <div class="scrim"></div>
+  {% endif %}
+  {% if layer in ("content", "preview") %}
   <div class="content">
-    <div class="ref">{{ surah_name_ar }} <span>· {{ ref }}</span></div>
-    <div class="ayah">
-      {%- for t in tokens -%}
-        {% if t.hl %}<span class="hl">{{ t.text }}</span>{% else %}{{ t.text }}{% endif %}{{ " " if not loop.last else "\u00a0" }}
-      {%- endfor -%}
-      <span class="num">﴿{{ ayah_number }}﴾</span>
+    <div class="stack">
+      <div class="ref">{{ surah_name_ar }} <span>· {{ ref }}</span></div>
+      <div class="ayah">
+        {%- for t in tokens -%}
+          {% if t.hl %}<span class="hl">{{ t.text }}</span>{% else %}{{ t.text }}{% endif %}{{ " " if not loop.last else " " }}
+        {%- endfor -%}
+        <span class="num">﴿{{ ayah_number }}﴾</span>
+      </div>
+      <div class="tr">{{ translation }}</div>
+      {% if glosses %}
+      <div class="gloss">
+        <h3>معاني الكلمات</h3>
+        {% for g in glosses %}<p><b>{{ g.word }}</b> : {{ g.gloss }}</p>{% endfor %}
+        <div class="src">— {{ gloss_source }}</div>
+      </div>
+      {% endif %}
     </div>
-    <div class="tr">{{ translation }}</div>
-    {% if glosses %}
-    <div class="gloss">
-      <h3>معاني الكلمات</h3>
-      {% for g in glosses %}<p><b>{{ g.word }}</b> : {{ g.gloss }}</p>{% endfor %}
-      <div class="src">— {{ gloss_source }}</div>
-    </div>
-    {% endif %}
   </div>
+  {% endif %}
+  {% if layer in ("static", "preview") %}
   <div class="footer">
     <div class="handle">{{ handle }}</div>
     <div class="credit">{{ credit }}</div>
   </div>
+  {% endif %}
+<script>
+  document.fonts.ready.then(() => {
+    const box = document.querySelector(".content"), stack = document.querySelector(".stack");
+    let k = 1;
+    if (box && stack) {
+      for (let i = 0; i < 60 && stack.offsetHeight > box.clientHeight; i++) {
+        k *= 0.97;
+        document.documentElement.style.setProperty("--k", k);
+      }
+    }
+    window.__fit = k;
+  });
+</script>
 </body>
 </html>

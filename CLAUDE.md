@@ -37,27 +37,56 @@ e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis 
 ## Architecture
 
 ```
-config/            project.yaml (choix éditoriaux), backgrounds.yaml (fonds sélectionnés)
+config/            project.yaml (choix éditoriaux), backgrounds.yaml (fonds sélectionnés),
+                   glosses.yaml (corrections éditoriales : mot surligné par glose)
 src/quran_reels/
-  models.py        AyahRef, Ayah, WordGloss, Passage, Reel, PublishResult
-  sources/         une interface par source (texte, traduction, gloses, audio, fonds)
+  models.py        AyahRef, Ayah, GlossEntry, WordGloss, Passage, Reel, PublishResult
+  config.py        chargement de config/, chemins (.cache/, out/)
+  arabic.py        normalisation uthmani/imla'i, ancrage d'une glose sur un mot de l'ayah
+  ingest.py        `quran-reels ingest` : jeux de données → .cache/
+  passage.py       assemble un passage : texte + traduction + gloses ancrées + audio
+  sources/         quran_com (texte, sourates, traduction), tafsir_app (gloses),
+                   everyayah (audio), backgrounds (clip ou fond provisoire généré), http
   selector/        quel passage aujourd'hui (calendrier, séries, historique)
-  render/          template HTML → PNG (Chromium/Playwright) + ffmpeg → MP4
+  render/          frames.py (template HTML → PNG, Chromium/Playwright),
+                   video.py (minutage audio + ffmpeg → MP4), __init__ (orchestration)
   publishers/      un adaptateur par plateforme, interface commune `Publisher`
   state/           ce qui a été publié où (évite doublons, reprise après échec)
-  cli.py           `quran-reels render|publish|run`
-.github/workflows/ daily.yml
+  cli.py           `quran-reels ingest|render|publish|run`
+tests/             pytest, sans réseau
+.github/workflows/ daily.yml (lancement manuel avec un passage → rendu + artefact)
 ```
 
 Flux : `selector` → `sources` (texte + traduction + gloses + audio par ayah + fond) →
 `render` (une image par ayah, durée = durée du MP3 de l'ayah) → MP4 → `publishers` → `state`.
 
+Commandes :
+
+```bash
+quran-reels ingest                  # texte, traduction, sourates, index des gloses (4 requêtes)
+quran-reels ingest --all-glosses    # + toutes les gloses d'Ibn Qutaybah (2 394 requêtes, reprise)
+quran-reels render 93:1-3           # → out/093_001-003.mp4 (complète le cache au besoin)
+```
+
+`out/093_001-003/` contient aussi les calques PNG, des aperçus (`preview/`), la légende
+(`caption.txt`) et `manifest.json` : chaque texte affiché avec son édition, sa source et son
+minutage. Le cache se remplit à la demande : `render` télécharge ce qui manque.
+
 ## Sources de données
 
-- Texte, traduction, tafsir : API Quran.com / Quran Foundation (`*.quran.com`,
-  `*.quran.foundation`) ou QUL (`qul.tarteel.ai`). Gloses Ibn Qutaybah : voir `tafsir.app`.
-  **À trancher :** la source en masse de l'édition Ibn Qutaybah.
+- Texte uthmani, sourates, Sahih International : API Quran.com v4, sans clé, tout le Coran en
+  une requête par ressource (`/quran/verses/uthmani`, `/chapters`,
+  `/quran/translations/{id}?fields=verse_key`, id résolu depuis le slug
+  `en-sahih-international`). Les marques de notes `<sup foot_note>` sont retirées.
+- Gloses Ibn Qutaybah (tranché) : `tafsir.app` (Nuqayah). `/sources/sources.json` liste, pour
+  `ghareeb-ibn-qutaybah`, les ayahs qui ont une entrée (`keys`, index global 1–6236 ;
+  `keys_flag: 1`) : 2 394 ayahs. `/get.php?src=ghareeb-ibn-qutaybah&s=93&a=2&ver=1` renvoie
+  `{"data": "﴿وَاللَّيْلِ إِذَا سَجَى﴾ إذا سكَن. …"}`. Stockage brut par sourate dans
+  `.cache/tafsir.app/ghareeb-ibn-qutaybah/SSS.json`. À l'affichage : notes de l'éditeur
+  `[[…]]` retirées, phrases entières seulement (`max_chars`), sinon la glose est omise.
+  Absente de QUL et de Quran.com.
 - Audio : EveryAyah, un MP3 par ayah, `https://everyayah.com/data/Alafasy_128kbps/SSSAAA.mp3`.
+  Décodé en PCM 48 kHz pour un minutage exact à l'échantillon.
 - Fonds : l'**émission de nouvelles clés API Pexels est en pause** (nov. 2026). On utilise donc
   une liste sélectionnée à la main (`config/backgrounds.yaml`) d'URL directes de fichiers
   Pexels/Pixabay, ce qui ne demande pas de clé.
@@ -75,11 +104,22 @@ Flux : `selector` → `sources` (texte + traduction + gloses + audio par ayah + 
 
 - Maquette validée : `docs/mockup/apercu-reel-93-2.png`, template `render/templates/reel.html.j2`.
 - Zone sûre (boutons Reels/TikTok) : haut 250 px, bas 420 px, côtés 90 px.
-- Taille du texte arabe à ajuster selon la longueur de l'ayah. Les ayahs trop longues pour un écran
-  seront découpées en segments synchronisés (timings par mot de QUL) ou évitées par le sélecteur.
+- Deux calques PNG transparents sur le fond : `static` (voile, signature, crédits, fixe) et un
+  `content` par ayah (référence, ayah, traduction, gloses) en fondu de 0,25 s. Fond provisoire
+  tant que `backgrounds.yaml` est vide : boucle de 12 s générée (numpy) dans la palette de la
+  maquette, ciel de nuit vers l'aube, étoiles qui scintillent, mise en cache.
+- Texte réduit automatiquement (`--k`) s'il dépasse la zone sûre ; avertissement sous 70 %.
+  Les ayahs trop longues pour un écran seront découpées en segments synchronisés (timings par
+  mot de QUL) ou évitées par le sélecteur.
 - Mot glosé surligné dans l'ayah (or `#f6c86b`). La glose d'Ibn Qutaybah est en orthographe
-  imla'i alors que le texte est uthmani : normaliser avant correspondance (supprimer
-  diacritiques et marques coraniques, unifier alif/ya).
+  imla'i alors que le texte est uthmani : correspondance sur formes normalisées (diacritiques
+  et marques coraniques supprimés, alif/ya unifiés, puis squelette sans alif + similarité).
+  Ibn Qutaybah cite souvent plusieurs mots («وَاللَّيْلِ إِذَا سَجَى», «حَبِطَتْ أَعْمَالُهُمْ»).
+  Par défaut on surligne toute la citation, particules de bord retirées («فَإِنْ عُثِرَ» →
+  عُثِرَ) : deviner un seul mot s'est révélé faux une fois sur deux sur le corpus. Réduire à un
+  mot est un choix éditorial dans `config/glosses.yaml` (93:2 → سجى, comme la maquette).
+  Sur le corpus : ~97 % des entrées s'ancrent ; les autres (entrée rattachée à une autre ayah
+  dans la source, citation à cheval sur deux ayahs « * ») sont omises, jamais devinées.
 
 ## Secrets (jamais dans le code ni dans la conversation)
 
@@ -91,7 +131,7 @@ GitHub Actions secrets : `META_PAGE_ID`, `META_PAGE_TOKEN`, `IG_USER_ID`, `TIKTO
 - [x] Comptes créés (Gmail, Page FB, IG Créateur reliés, TikTok, YouTube)
 - [x] Squelette du dépôt, polices, maquette
 - [ ] Environnement cloud `quran-reels` (accès réseau Custom)
-- [ ] Ingestion des données + rendu v1 avec audio
+- [x] Ingestion des données + rendu v1 avec audio (`quran-reels render 93:1-3`, fond provisoire)
 - [ ] App Meta + publication FB/IG
 - [ ] App TikTok (brouillons) · demande d'audit YouTube
 - [ ] Workflow quotidien

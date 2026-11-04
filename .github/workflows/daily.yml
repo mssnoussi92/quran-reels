@@ -30,11 +30,19 @@ jobs:
           sudo apt-get update && sudo apt-get install -y ffmpeg
           pip install -e .
           python -m playwright install --with-deps chromium
+      # The cache fills up as passages are rendered: restore the latest, save a new one.
       - uses: actions/cache@v4
         with:
           path: .cache
-          key: data-${{ hashFiles('config/project.yaml') }}
+          key: data-${{ hashFiles('config/project.yaml') }}-${{ github.run_id }}
+          restore-keys: data-${{ hashFiles('config/project.yaml') }}-
+      - name: Render a given passage
+        if: inputs.passage != ''
+        env:
+          PASSAGE: ${{ inputs.passage }}
+        run: quran-reels render "$PASSAGE"
       - name: Run
+        if: inputs.passage == ''
         env:
           META_PAGE_ID: ${{ secrets.META_PAGE_ID }}
           META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN }}
@@ -45,6 +53,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: reel
-          path: out/*.mp4
+          path: |
+            out/*.mp4
+            out/*/caption.txt
+            out/*/manifest.json
+            out/*/preview/*.png
           if-no-files-found: ignore
           retention-days: 14
