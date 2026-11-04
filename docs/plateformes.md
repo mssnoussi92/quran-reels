@@ -68,6 +68,15 @@ Le bouton « Run workflow » n'apparaît que pour un workflow présent sur `main
   → On utilise `MEDIA_UPLOAD` : la vidéo arrive dans la boîte TikTok et le propriétaire la
   publie à la main dans les 24 h.
 - L'audit demande un site, des CGU et une politique de confidentialité.
+- **Limite importante :** les App Review Guidelines refusent les apps « à usage privé ou
+  personnel ». Notre outil ne publie que sur notre propre compte, donc une demande de mise en
+  production serait probablement refusée. Plan : rester en **Sandbox** (utilisateur test
+  `quran_words_daily`, scopes `user.info.basic` + `video.upload`) et envoyer des brouillons
+  dans la boîte TikTok. **À vérifier en test :** que l'upload vers la boîte fonctionne en
+  Sandbox. Sinon : MP4 du jour publié à la main (artefact GitHub Actions), ou service tiers
+  déjà audité (payant).
+- Site requis (GitHub Pages, dossier `docs/`) : préfixe d'URL
+  `https://mssnoussi92.github.io/quran-reels/` vérifié par fichier de signature.
 - Jeton d'accès 24 h, refresh token à faire tourner et à stocker.
 
 ## YouTube Shorts — manuel puis automatique après audit
