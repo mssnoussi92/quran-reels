@@ -7,6 +7,8 @@ posted, and Instagram drops it after 24 hours.
 
 from __future__ import annotations
 
+import sys
+
 from quran_reels.models import PublishResult, PublishStatus, Reel
 from quran_reels.publishers.meta import RUPLOAD, Graph, GraphError, wait
 
@@ -61,7 +63,13 @@ class InstagramPublisher:
             try:
                 self.graph.upload(url, reel.video, f"upload instagram container {cid}")
             except GraphError as e:
-                raise GraphError(f"{e}; container: {self._explain(cid)}") from None
+                # Seen on real uploads: rupload answers 400 ProcessingFailedError although
+                # Instagram received the video and is processing it. Trust the container.
+                state = self._explain(cid)
+                if not state.startswith(("IN_PROGRESS", "FINISHED")):
+                    raise GraphError(f"{e}; container: {state}") from None
+                print(f"warning: {e}; container is {state}, waiting for it",
+                      file=sys.stderr)
             wait(lambda: self._status(cid), f"instagram container {cid}",
                  self.timeout, self.poll_interval)
             if dry_run:
