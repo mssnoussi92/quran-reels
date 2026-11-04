@@ -51,11 +51,14 @@ src/quran_reels/
                    quel passage aujourd'hui (calendrier, séries, historique) : à faire
   render/          frames.py (template HTML → PNG, Chromium/Playwright),
                    video.py (minutage audio + ffmpeg → MP4), __init__ (orchestration)
-  publishers/      un adaptateur par plateforme, interface commune `Publisher`
+  publishers/      un adaptateur par plateforme, interface commune `Publisher` (dry_run) :
+                   meta.py (client Graph, contrôle du jeton), facebook.py, instagram.py
+  publish.py       `quran-reels publish|meta-check` : contrôle, publication, résumé
   state/           ce qui a été publié où (évite doublons, reprise après échec)
   cli.py           `quran-reels ingest|render|publish|run`
 tests/             pytest, sans réseau
-.github/workflows/ daily.yml (lancement manuel avec un passage → rendu + artefact)
+.github/workflows/ daily.yml (lancement manuel avec un passage → rendu + artefact),
+                   publish-test.yml (manuel : dry-run, ou publication réelle avec PUBLIER)
 ```
 
 Flux : `selector` → `sources` (texte + traduction + gloses + audio par ayah + fond) →
@@ -72,6 +75,14 @@ quran-reels render 2:1-5            # un passage → out/002_001-005.mp4 (compl�
 ```
 
 `render 78` sur une sourate trop longue pour une vidéo ne rend rien et liste ses passages.
+
+```bash
+quran-reels meta-check              # jeton de Page : valide, permissions, accès aux données
+quran-reels publish 93 --dry-run    # rendu + brouillon Facebook + conteneur Instagram
+quran-reels publish out/093_001-011.mp4 --platform facebook   # publication réelle
+```
+
+Secrets lus dans l'environnement (`META_PAGE_ID`, `META_PAGE_TOKEN`, `IG_USER_ID`).
 
 `out/093_001-003/` contient aussi les calques PNG, des aperçus (`preview/`), la légende
 (`caption.txt`) et `manifest.json` : chaque texte affiché avec son édition, sa source et son
@@ -155,9 +166,9 @@ GitHub Actions secrets : `META_PAGE_ID`, `META_PAGE_TOKEN`, `IG_USER_ID`, `TIKTO
 
 Jeton de Page Meta : expiration « Jamais », mais **l'accès aux données expire le 2027-02-02**
 (90 jours). Pour le renouveler : explorateur Graph → jeton utilisateur → prolonger →
-`me/accounts` → nouveau `META_PAGE_TOKEN`. Le publisher Meta doit lire
-`data_access_expires_at` via `GET /debug_token` à chaque exécution et faire échouer le job
-(message clair) à moins de 14 jours de l'échéance.
+`me/accounts` → nouveau `META_PAGE_TOKEN`. Fait : `meta-check` (et chaque `publish`) lit
+`data_access_expires_at` via `GET /debug_token` et fait échouer le job (message clair, marche à
+suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
 
 ## État
 
@@ -166,6 +177,8 @@ Jeton de Page Meta : expiration « Jamais », mais **l'accès aux données expir
 - [ ] Environnement cloud `quran-reels` (accès réseau Custom)
 - [x] Ingestion des données + rendu v1 avec audio (`quran-reels render 93:1-3`, fond provisoire)
 - [x] Passages d'≈ 1 min, sourate courte entière (`quran-reels passages`, `render 93`)
-- [ ] App Meta + publication FB/IG
+- [x] App Meta (voir docs/plateformes.md)
+- [ ] Publication FB/IG : code et tests prêts (faux serveur Graph) ; à valider avec
+      `publish-test` en dry-run puis en réel. Pas encore d'état anti-doublon (`state/`).
 - [ ] App TikTok (brouillons) · demande d'audit YouTube
 - [ ] Workflow quotidien

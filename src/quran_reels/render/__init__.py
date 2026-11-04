@@ -35,19 +35,36 @@ class RenderResult:
     seconds: float
 
 
-def caption(cfg: Config, passage: Passage) -> str:
+CAPTION_LIMIT = 2200   # Instagram
+
+
+def caption(cfg: Config, passage: Passage, limit: int = CAPTION_LIMIT) -> str:
+    """Reference, Arabic and translation of each ayah, credits, handle.
+
+    Too long for Instagram: the Arabic goes first, then the translation. Credits always stay.
+    """
     c = cfg.content
-    lines = [f"Surah {passage.surah_name_en} ({passage.key}) · سورة {passage.surah_name_ar}", ""]
-    for a in passage.ayahs:
-        lines += [f"{a.text} ﴿{arabic_digits(a.ref.ayah)}﴾", f"{a.ref.ayah}. {a.translation}", ""]
-    lines += [
+    head = [f"Surah {passage.surah_name_en} ({passage.key}) · سورة {passage.surah_name_ar}", ""]
+    tail = [
         f"Recitation: {c['reciter']['label']}",
         f"Translation: {c['translation']['label']}",
         f"Word meanings: {c['glosses']['label']}",
         "",
         cfg.video["handle"],
     ]
-    return "\n".join(lines) + "\n"
+    for with_arabic, with_translation in ((True, True), (False, True), (False, False)):
+        body = []
+        for a in passage.ayahs:
+            if with_arabic:
+                body.append(f"{a.text} ﴿{arabic_digits(a.ref.ayah)}﴾")
+            if with_translation:
+                body.append(f"{a.ref.ayah}. {a.translation}")
+            if with_arabic or with_translation:
+                body.append("")
+        text = "\n".join(head + body + tail) + "\n"
+        if len(text) <= limit:
+            break
+    return text
 
 
 def manifest(cfg: Config, src: Sources, passage: Passage, timeline: video.Timeline,

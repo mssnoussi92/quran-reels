@@ -104,3 +104,17 @@ def plan_surah(cfg: Config, surah: int, src: Sources | None = None) -> list[Plan
     parts = split(seconds, sentence_ends(translations), groups, target, low, high, overhead)
     return [Planned(surah, a, b, round(sum(seconds[a - 1:b]) + overhead, 1), relaxed=r)
             for a, b, r in parts]
+
+
+def resolve(cfg: Config, key: str) -> str:
+    """'93' → '93:1-11' when the surah fits in one video; a passage key is returned as is."""
+    key = key.strip()
+    if not key.isdigit():
+        return key
+    plan = plan_surah(cfg, int(key))
+    if len(plan) > 1:
+        total = sum(p.seconds for p in plan)
+        lines = [f"surah {key} is too long for one video ({total:.0f} s). Its passages:"]
+        lines += [f"  {p.key:<10} # {p.seconds:.0f} s" for p in plan]
+        raise SystemExit("\n".join(lines))
+    return plan[0].key

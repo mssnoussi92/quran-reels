@@ -24,8 +24,15 @@ def main(argv: list[str] | None = None) -> int:
     passages = sub.add_parser("passages", help="split a surah into passages of about a minute")
     passages.add_argument("surah", type=int)
 
-    publish = sub.add_parser("publish", help="publish an already rendered reel")
-    publish.add_argument("video")
+    publish = sub.add_parser("publish", help="publish a reel on Facebook and Instagram")
+    publish.add_argument("target", help="out/093_001-011.mp4, or a passage/surah to render first")
+    publish.add_argument("--dry-run", action="store_true",
+                         help="stop before publishing: Facebook draft, Instagram container")
+    publish.add_argument("--platform", action="append", choices=["facebook", "instagram"],
+                         help="repeat for several; default: enabled platforms in project.yaml")
+
+    check = sub.add_parser("meta-check", help="check the Meta Page token (fails < 14 days)")
+    check.add_argument("--platform", action="append", choices=["facebook", "instagram"])
 
     sub.add_parser("run", help="select today's passage, render and publish")
 
@@ -50,22 +57,36 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "render":
         from quran_reels.render import render_passage
+        from quran_reels.selector.plan import resolve
 
-        key = args.passage.strip()
-        if key.isdigit():
-            from quran_reels.selector.plan import plan_surah
-
-            plan = plan_surah(cfg, int(key))
-            if len(plan) > 1:
-                print(f"surah {key} is too long for one video ({sum(p.seconds for p in plan):.0f} s)."
-                      f" Its passages (quran-reels passages {key}):", file=sys.stderr)
-                for p in plan:
-                    print(f"  quran-reels render {p.key:<10} # {p.seconds:.0f} s", file=sys.stderr)
-                return 2
-            key = plan[0].key
-        result = render_passage(cfg, key)
-        print(result.video)
+        print(render_passage(cfg, resolve(cfg, args.passage)).video)
         return 0
+
+    if args.command == "meta-check":
+        from quran_reels.publish import meta_check, platforms_for
+
+        _, _, report = meta_check(cfg, platforms_for(cfg, args.platform))
+        print(report.summary())
+        return 0
+
+    if args.command == "publish":
+        from pathlib import Path
+
+        from quran_reels import publish as publish_mod
+
+        platforms = publish_mod.platforms_for(cfg, args.platform)
+        if not platforms:
+            raise SystemExit("no platform to publish to (see platforms in config/project.yaml)")
+        checked = publish_mod.meta_check(cfg, platforms)    # before rendering: fail fast
+        video = Path(args.target)
+        if video.suffix != ".mp4":
+            from quran_reels.render import render_passage
+            from quran_reels.selector.plan import resolve
+
+            video = render_passage(cfg, resolve(cfg, args.target)).video
+        elif not video.is_file():
+            raise SystemExit(f"{video}: no such file")
+        return publish_mod.run(cfg, video, platforms, dry_run=args.dry_run, checked=checked)
 
     print(f"'{args.command}' is not implemented yet", file=sys.stderr)
     return 2

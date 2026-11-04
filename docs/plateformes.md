@@ -30,6 +30,37 @@
 - Secrets GitHub configurés : `META_PAGE_ID`, `META_PAGE_TOKEN` (jeton de Page, sans expiration,
   accès aux données jusqu'au 2027-02-02), `IG_USER_ID`.
 
+### Publication (implémentée, `src/quran_reels/publishers/`)
+
+- Un seul jeton, `META_PAGE_TOKEN` (jeton de Page), pour Facebook et Instagram. Envoyé dans
+  l'en-tête `Authorization`, jamais dans l'URL ; les messages d'erreur ne contiennent jamais le
+  jeton. Version de l'API Graph : `platforms.meta.graph_version` (`v24.0`).
+- Contrôle à chaque exécution (`quran-reels meta-check`, et au début de `publish`) :
+  `GET /debug_token` → jeton valide, de type PAGE, de la bonne Page, permissions requises,
+  `data_access_expires_at` à plus de 14 jours (`platforms.meta.min_days_left`) sinon le job
+  échoue avec la marche à suivre ; avertissement sous 30 jours. Puis
+  `GET /{page}?fields=instagram_business_account` doit renvoyer `IG_USER_ID`.
+- Facebook : `video_reels` start → upload `rupload.facebook.com/video-upload/…` (en-têtes
+  `offset`, `file_size`) → finish avec `video_state=PUBLISHED`, ou `DRAFT` en dry-run → attente
+  du traitement (`GET /{video_id}?fields=status`).
+- Instagram : `POST /{ig}/media` (`media_type=REELS`, `upload_type=resumable`, légende,
+  `thumb_offset` = milieu de la première ayah glosée) → upload `rupload…/ig-api-upload/…` →
+  attente `status_code=FINISHED` → contrôle du quota (`content_publishing_limit`) →
+  `media_publish`. En dry-run on s'arrête avant `media_publish`.
+- Légende : celle du rendu (`caption.txt`), raccourcie automatiquement sous 2 200 caractères
+  (l'arabe d'abord, puis la traduction ; les crédits restent).
+- Résultats : `out/<passage>/publish.json` et résumé sur la page de l'exécution GitHub.
+
+### Tester depuis le téléphone : workflow `publish-test`
+
+Actions → **publish-test** → Run workflow :
+1. `mode: dry-run`, passage `93` → vérifier dans Meta Business Suite → Contenu → Brouillons
+   (reel Facebook non publié) ; le conteneur Instagram n'est visible nulle part et disparaît
+   après 24 h. Supprimer le brouillon ensuite.
+2. `mode: publish`, `confirm: PUBLIER` → publication réelle sur la Page et Instagram.
+
+Le bouton « Run workflow » n'apparaît que pour un workflow présent sur `main`.
+
 ## TikTok — brouillon puis automatique après audit
 
 - API : Content Posting API (`open.tiktokapis.com`).

@@ -28,6 +28,11 @@ quran-reels passages 2             # a long one, split into passages of about a 
 quran-reels render 2:1-5           # → out/002_001-005.mp4
 ```
 
+`quran-reels publish 93 --dry-run` renders and uploads to Facebook (left as a draft) and
+Instagram (container not published); without `--dry-run` it posts. It reads `META_PAGE_ID`,
+`META_PAGE_TOKEN` and `IG_USER_ID` from the environment and first checks that the Page token
+can still access data for at least 14 days.
+
 Passages last about a minute (40–90 s) and are only cut where a sentence ends and where
 Ibn Kathir's commentary does not group ayahs together. A surah that fits in 90 s is rendered
 whole.

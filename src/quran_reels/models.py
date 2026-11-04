@@ -107,11 +107,13 @@ class Reel:
     video: Path
     caption: str
     cover: Path | None = None
+    cover_ms: int | None = None      # frame used as cover, in ms from the start
 
 
 class PublishStatus(str, Enum):
     PUBLISHED = "published"   # live on the platform
-    DRAFT = "draft"           # sent to the owner's inbox (TikTok before audit)
+    DRAFT = "draft"           # unpublished draft (Facebook dry run, TikTok inbox before audit)
+    READY = "ready"           # uploaded and processed, not published (Instagram dry run)
     MANUAL = "manual"         # file ready, owner uploads by hand (YouTube before audit)
     FAILED = "failed"
 

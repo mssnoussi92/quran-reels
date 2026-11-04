@@ -47,6 +47,9 @@ video:
   handle: "@quran_words_daily"        # page signature shown on every frame
 
 platforms:
+  meta:
+    graph_version: v24.0              # Graph API version, Facebook and Instagram
+    min_days_left: 14                 # fail when the token's data access expires sooner
   facebook:  { enabled: true,  mode: auto }
   instagram: { enabled: true,  mode: auto }
   tiktok:    { enabled: false, mode: draft }   # inbox draft until the TikTok audit

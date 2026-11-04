@@ -1,0 +1,93 @@
+name: publish-test
+
+# Manual test of the Facebook and Instagram publishers.
+#   dry-run  Facebook: reel left as a draft (Meta Business Suite → Content → Drafts).
+#            Instagram: container uploaded and processed, not published (dropped after 24 h).
+#   publish  really posts. Type PUBLIER in "confirm" to allow it.
+# Every run checks the Page token first and fails if its data access expires in < 14 days.
+
+on:
+  workflow_dispatch:
+    inputs:
+      passage:
+        description: "Surah or passage, e.g. 93 or 2:1-5"
+        required: true
+        default: "93"
+      mode:
+        description: "dry-run (nothing public) or publish (really posts)"
+        type: choice
+        options: [dry-run, publish]
+        default: dry-run
+      platforms:
+        description: "Where"
+        type: choice
+        options: [facebook+instagram, facebook, instagram]
+        default: facebook+instagram
+      confirm:
+        description: "For mode publish only: type PUBLIER"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: meta-publish        # never two uploads to the same accounts at once
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      META_PAGE_ID: ${{ secrets.META_PAGE_ID }}
+      META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN }}
+      IG_USER_ID: ${{ secrets.IG_USER_ID }}
+      PASSAGE: ${{ inputs.passage }}
+      MODE: ${{ inputs.mode }}
+      PLATFORMS: ${{ inputs.platforms }}
+      CONFIRM: ${{ inputs.confirm }}
+    steps:
+      - name: Confirm a real publication
+        if: inputs.mode == 'publish'
+        run: |
+          if [ "$CONFIRM" != "PUBLIER" ]; then
+            echo "::error::mode publish: type PUBLIER in the confirm field to post for real."
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: pip install -e .
+      - name: Check the Meta token
+        run: |
+          set -- $(echo "$PLATFORMS" | tr '+' ' ' | sed 's/[^ ]*/--platform &/g')
+          quran-reels meta-check "$@"
+      - name: Install ffmpeg and Chromium
+        run: |
+          sudo apt-get update && sudo apt-get install -y ffmpeg
+          python -m playwright install --with-deps chromium
+      - uses: actions/cache@v4
+        with:
+          path: .cache
+          key: data-${{ hashFiles('config/project.yaml') }}-${{ github.run_id }}
+          restore-keys: data-${{ hashFiles('config/project.yaml') }}-
+      - name: Render and publish
+        run: |
+          set -- $(echo "$PLATFORMS" | tr '+' ' ' | sed 's/[^ ]*/--platform &/g')
+          if [ "$MODE" = "dry-run" ]; then set -- "$@" --dry-run; fi
+          quran-reels publish "$PASSAGE" "$@"
+      - name: Keep the video and the results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: publish-${{ inputs.mode }}
+          path: |
+            out/*.mp4
+            out/*/caption.txt
+            out/*/manifest.json
+            out/*/publish.json
+          if-no-files-found: ignore
+          retention-days: 14
