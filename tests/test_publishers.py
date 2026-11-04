@@ -267,3 +267,50 @@ def test_upload_error_while_instagram_is_processing_is_not_a_failure(reel):
     }
     r = InstagramPublisher(graph(routes), IG, poll_interval=0).publish(reel, dry_run=True)
     assert (r.status, r.remote_id) == (PublishStatus.READY, "222")
+
+
+def failing_upload():
+    return Resp({"debug_info": {"type": "ProcessingFailedError",
+                                "message": "Request processing failed"}}, 400)
+
+
+def stuck_routes(stuck: int):
+    """Containers 222, 223, 224: the first `stuck` ones never leave IN_PROGRESS."""
+    ids = iter(["222", "223", "224"])
+    routes = instagram_routes() | {
+        ("POST", f"/{IG}/media"): lambda f: {
+            "id": (c := next(ids)), "uri": f"https://rupload.facebook.com/ig-api-upload/v24.0/{c}"}}
+    for n, cid in enumerate(["222", "223", "224"]):
+        if n < stuck:
+            routes[("POST", f"/ig-api-upload/v24.0/{cid}")] = failing_upload()
+            routes[("GET", f"/{cid}")] = {"status_code": "IN_PROGRESS",
+                                          "status": "In Progress: Media is still being processed."}
+        else:
+            routes[("POST", f"/ig-api-upload/v24.0/{cid}")] = {"success": True}
+            routes[("GET", f"/{cid}")] = {"status_code": "FINISHED"}
+    return routes
+
+
+def test_container_stuck_after_an_upload_error_is_replaced(reel):
+    # Real run #9: 400 ProcessingFailedError, then IN_PROGRESS for more than 15 minutes.
+    g = graph(stuck_routes(stuck=1))
+    r = InstagramPublisher(g, IG, poll_interval=0, stuck_after=0).publish(reel)
+    assert (r.status, r.remote_id) == (PublishStatus.PUBLISHED, "333")
+    assert len(g.session.find("POST", f"/{IG}/media")) == 2
+    assert g.session.find("POST", f"/{IG}/media_publish")[0][2] == {"creation_id": "223"}
+
+
+def test_gives_up_after_three_stuck_containers(reel):
+    g = graph(stuck_routes(stuck=3))
+    r = InstagramPublisher(g, IG, poll_interval=0, stuck_after=0).publish(reel, dry_run=True)
+    assert r.status is PublishStatus.FAILED and "224: still processing" in r.error
+    assert len(g.session.find("POST", f"/{IG}/media")) == 3
+    assert not g.session.find("POST", f"/{IG}/media_publish")
+
+
+def test_slow_processing_after_a_clean_upload_is_not_retried(reel):
+    routes = instagram_routes() | {("GET", "/222"): {"status_code": "IN_PROGRESS"}}
+    g = graph(routes)
+    r = InstagramPublisher(g, IG, poll_interval=0, timeout=0).publish(reel, dry_run=True)
+    assert r.status is PublishStatus.FAILED and "222: still processing" in r.error
+    assert len(g.session.find("POST", f"/{IG}/media")) == 1

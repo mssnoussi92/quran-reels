@@ -51,9 +51,12 @@
   `thumb_offset` = milieu de la première ayah glosée) → upload `rupload…/ig-api-upload/…` →
   attente `status_code=FINISHED` → contrôle du quota (`content_publishing_limit`) →
   `media_publish`. En dry-run on s'arrête avant `media_publish`.
-- **Constaté (2026-11-04, runs #4–#7) :** l'upload Instagram répond toujours
-  `400 ProcessingFailedError` alors que le conteneur passe `IN_PROGRESS` puis `FINISHED`. Après
-  une erreur d'upload, on lit donc le conteneur et on n'échoue que s'il est en `ERROR`.
+- **Constaté (2026-11-04, runs #4–#9) :** l'upload Instagram répond presque toujours
+  `400 ProcessingFailedError`. Parfois Instagram a quand même la vidéo (run #7 : conteneur
+  `FINISHED` aussitôt), parfois le conteneur reste `IN_PROGRESS` pour de bon (run #9 : encore
+  après 15 min). Après cette erreur, on lit donc le conteneur : `ERROR` → échec ; sinon on attend
+  4 min, puis on abandonne ce conteneur et on renvoie la vidéo dans un nouveau (3 essais au
+  plus). Un conteneur non publié ne coûte rien : rien n'est posté, il expire après 24 h.
   Le MP4 est aussi encodé sans edit list ni B-frames, AAC 128 kb/s (spécifications Reels).
 - **Dry-runs validés :** Facebook (run #3, brouillon) et Instagram (run #7, conteneur prêt).
 - Légende : celle du rendu (`caption.txt`), raccourcie automatiquement sous 2 200 caractères
