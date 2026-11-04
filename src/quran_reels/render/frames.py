@@ -26,10 +26,13 @@ def base_context(cfg: Config) -> dict[str, Any]:
     }
 
 
-def ayah_context(passage: Passage, ayah: Ayah, basmala: bool = False) -> dict[str, Any]:
-    """basmala: the opening frame, surah name only, no reference or ayah number."""
+def ayah_context(passage: Passage, ayah: Ayah, basmala: bool = False,
+                 first: bool = False) -> dict[str, Any]:
+    """basmala: the opening frame, surah name only, no reference or ayah number.
+    first: the video's first frame, which also names the series (passage.label_ar)."""
     highlighted = {p for g in ayah.glosses for p in g.positions}
     return {
+        "series": passage.label_ar if first else "",
         "surah_name_ar": f"سورة {passage.surah_name_ar}",
         "ref": "" if basmala else str(ayah.ref),
         "tokens": [{"text": t, "hl": i in highlighted} for i, t in enumerate(words(ayah.text))],

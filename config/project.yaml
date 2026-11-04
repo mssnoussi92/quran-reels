@@ -57,10 +57,9 @@ platforms:
   facebook:  { enabled: true,  mode: auto }
   instagram: { enabled: true,  mode: auto }
   tiktok:
-    enabled: false                    # true once tiktok-auth has saved TIKTOK_REFRESH_TOKEN
+    enabled: true                     # tiktok-auth saved TIKTOK_REFRESH_TOKEN (2026-11-04)
     mode: draft                       # inbox upload, posted by hand from the TikTok app
     redirect_uri: https://mssnoussi92.github.io/quran-reels/tiktok-callback.html
   youtube:   { enabled: false, mode: manual }  # locked private until the YouTube audit
 
-schedule:
-  per_day: 1
+# When and what to publish: config/schedule.yaml (slots) and config/series/ (series).

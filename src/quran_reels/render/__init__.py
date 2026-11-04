@@ -45,6 +45,8 @@ def caption(cfg: Config, passage: Passage, limit: int = CAPTION_LIMIT) -> str:
     """
     c = cfg.content
     head = [f"Surah {passage.surah_name_en} ({passage.key}) · سورة {passage.surah_name_ar}", ""]
+    if passage.label_en:
+        head = [passage.label_en, *head]
     tail = [
         f"Recitation: {c['reciter']['label']}",
         f"Translation: {c['translation']['label']}",
@@ -95,6 +97,8 @@ def manifest(cfg: Config, src: Sources, passage: Passage, timeline: video.Timeli
             "audio": f"https://everyayah.com/data/{src.audio.reciter}/",
         },
         "background": background,
+        "series": {"ar": passage.label_ar, "en": passage.label_en} if passage.label_en
+        or passage.label_ar else None,
         "basmala": basmala,
         "ayahs": [
             {
@@ -118,9 +122,11 @@ def _warn(msg: str) -> None:
     print(f"warning: {msg}", file=sys.stderr)
 
 
-def render_passage(cfg: Config, key: str) -> RenderResult:
+def render_passage(cfg: Config, key: str, label_ar: str = "", label_en: str = "") -> RenderResult:
+    """label_ar / label_en: the series the passage belongs to, on the first frame and caption."""
     src = Sources.from_config(cfg)
     passage = build(cfg, key, src)
+    passage.label_ar, passage.label_en = label_ar, label_en
     v = cfg.video
     work = cfg.out / passage.slug
     if work.exists():
@@ -143,7 +149,9 @@ def render_passage(cfg: Config, key: str) -> RenderResult:
                                     tail=float(v.get("tail_seconds", 1.2)))
     p = cfg.content["passage"]
     whole = passage.start == 1 and passage.end == src.quran.chapters[passage.surah]["verses_count"]
-    if timeline.seconds > p["max_seconds"] or (timeline.seconds < p["min_seconds"] and not whole):
+    themed = bool(label_ar or label_en)       # a theme passage may be one short du'a
+    if timeline.seconds > p["max_seconds"] or (
+            timeline.seconds < p["min_seconds"] and not whole and not themed):
         _warn(f"{passage.key} lasts {timeline.seconds:.1f} s, outside "
               f"{p['min_seconds']}–{p['max_seconds']} s (rendered anyway)")
 
@@ -152,7 +160,8 @@ def render_passage(cfg: Config, key: str) -> RenderResult:
         static = frames_dir / "static.png"
         fr.render("static", static)
         for a in passage.segments:
-            ctx = ayah_context(passage, a, basmala=a is passage.basmala)
+            ctx = ayah_context(passage, a, basmala=a is passage.basmala,
+                               first=a is passage.segments[0])
             png = frames_dir / f"{name(a)}.png"
             fit = fr.render("content", png, **ctx)
             if fit < 0.7:

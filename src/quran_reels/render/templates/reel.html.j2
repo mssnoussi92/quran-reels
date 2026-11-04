@@ -12,6 +12,7 @@
 
   Variables:
     fonts_dir        file:// URI of assets/fonts
+    series           "آيات الدعاء · ٣ من ٣٨" on the first frame of a series, else empty
     surah_name_ar    "سورة الضحى"
     ref              "93:2"
     tokens           [{text, hl}]   Uthmani words, hl=true for glossed words
@@ -51,6 +52,10 @@
   .stack { width: 100%; display: flex; flex-direction: column; align-items: center;
       text-align: center; gap: calc(56px * var(--k)); }
 
+  .series { font-family: "Amiri"; font-weight: 700; font-size: calc(38px * var(--k));
+      color: {{ highlight }}; direction: rtl; padding: calc(6px * var(--k)) 28px;
+      border: 1px solid rgba(246,200,107,.45); border-radius: 999px;
+      background: rgba(10,14,35,.45); margin-bottom: calc(-24px * var(--k)); }
   .ref { font-family: "Amiri"; font-weight: 700; font-size: calc(40px * var(--k)); opacity: .85;
       direction: rtl; }
   .ref span { font-family: "Lora"; font-size: calc(30px * var(--k)); opacity: .8;
@@ -89,6 +94,7 @@
   {% if layer in ("content", "preview") %}
   <div class="content">
     <div class="stack">
+      {% if series %}<div class="series">{{ series }}</div>{% endif %}
       <div class="ref">{{ surah_name_ar }}{% if ref %} <span>· {{ ref }}</span>{% endif %}</div>
       <div class="ayah">
         {%- for t in tokens -%}

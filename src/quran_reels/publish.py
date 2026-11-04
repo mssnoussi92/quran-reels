@@ -115,8 +115,10 @@ def tiktok_publisher() -> TikTokPublisher:
                            save_refresh=lambda value: save_secret(REFRESH_SECRET, value))
 
 
-def run(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
-        checked: tuple[Graph, MetaEnv, TokenReport] | None = None) -> int:
+def publish_reel(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
+                 checked: tuple[Graph, MetaEnv, TokenReport] | None = None
+                 ) -> list[PublishResult]:
+    """Send a rendered reel to each platform; results also in publish.json and the summary."""
     token = None
     if any(p in META for p in platforms):
         graph, env, token = checked or meta_check(cfg, [p for p in platforms if p in META])
@@ -145,6 +147,12 @@ def run(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
                                            for r in results]},
                               ensure_ascii=False, indent=2), encoding="utf-8")
     _summary(_report(reel, results, dry_run, token))
+    return results
+
+
+def run(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
+        checked: tuple[Graph, MetaEnv, TokenReport] | None = None) -> int:
+    results = publish_reel(cfg, video, platforms, dry_run, checked)
     return 1 if any(r.status is PublishStatus.FAILED for r in results) else 0
 
 

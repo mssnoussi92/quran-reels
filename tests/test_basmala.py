@@ -52,3 +52,21 @@ def test_passage_segments_start_with_the_basmala():
                 basmala=Ayah(AyahRef(1, 1), BASMALA, "t", seconds=6.0))
     assert [a.ref for a in p.segments] == [AyahRef(1, 1), AyahRef(93, 1), AyahRef(93, 2)]
     assert p.seconds == 11.0
+
+
+def test_series_title_on_the_first_frame_and_first_caption_line():
+    from quran_reels.render import caption
+
+    passage = Passage(2, 201, 201, "البقرة", "Al-Baqarah",
+                      ayahs=[Ayah(AyahRef(2, 201), "رَبَّنَآ ءَاتِنَا", "Our Lord, give us")],
+                      basmala=Ayah(AyahRef(1, 1), BASMALA, "In the name of Allāh"),
+                      label_ar="آيات الدعاء · ٤ من ٣٨",
+                      label_en="Supplications from the Quran · 4/38")
+    assert ayah_context(passage, passage.basmala, basmala=True, first=True)["series"] == \
+        "آيات الدعاء · ٤ من ٣٨"
+    assert ayah_context(passage, passage.ayahs[0])["series"] == ""     # only the first frame
+    content = {"reciter": {"label": "R"}, "translation": {"label": "T"},
+               "glosses": {"label": "G"}}
+    c = Config(root=Path("."), project={"content": content, "video": {"handle": "@h"}},
+               backgrounds=[], gloss_headwords={})
+    assert caption(c, passage).splitlines()[0] == "Supplications from the Quran · 4/38"

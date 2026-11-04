@@ -1,7 +1,8 @@
 # quran-reels
 
-Open-source pipeline behind **Quran Words Daily**: one Quran passage every day as a vertical
-reel, with Mishary Alafasy's recitation, the Uthmani text, the Sahih International English
+Open-source pipeline behind **Quran Words Daily**: two Quran passages a day as vertical reels
+(reading in order in the morning, a theme such as the Quran's supplications in the evening,
+Surah Al-Kahf on Fridays), with Mishary Alafasy's recitation, the Uthmani text, the Sahih International English
 translation and the meaning of its difficult words from Ibn Qutaybah's *Tafsir Gharib al-Qur'an*.
 
 Published on Facebook, Instagram, TikTok and YouTube Shorts as `@quran_words_daily`.

@@ -1,0 +1,46 @@
+# PROPOSAL, to be validated by the owner: remove a line to drop a passage, reorder freely.
+# Made from the ayahs that contain «رَبَّنَا» or a supplication with «رَبِّ», keeping those
+# where prophets, angels or believers ask (not the people of the Fire, not «Our Lord is
+# Allah»), plus two ayahs about du'a itself at the start. Mushaf order after those.
+# Each passage is whole ayahs ending a sentence (`quran-reels series-check`).
+title_ar: آيات الدعاء
+title_en: Supplications from the Quran
+passages:
+  - "2:186"        # «I am near»: about du'a
+  - "40:60"        # «Call upon Me; I will respond to you»
+  - "2:127-129"    # Ibrahim and Isma'il
+  - "2:201"        # «give us in this world good and in the Hereafter good»
+  - "2:250"        # Talut's army
+  - "2:285"        # the end of Al-Baqara (1/2)
+  - "2:286"        # the end of Al-Baqara (2/2)
+  - "3:8-9"        # those firm in knowledge
+  - "3:15-17"      # the righteous
+  - "3:38"         # Zakariyya
+  - "3:53"         # the disciples of 'Isa
+  - "3:147"        # the companions of the prophets
+  - "3:190-191"    # people of understanding (1/2)
+  - "3:192-194"    # people of understanding (2/2)
+  - "5:83"         # those who weep on hearing the Quran
+  - "5:114"        # 'Isa
+  - "7:23"         # Adam and his wife
+  - "7:47"         # the people of Al-A'raf
+  - "7:126"        # Pharaoh's magicians, once believers
+  - "10:85-86"     # the people of Musa
+  - "14:40-41"     # Ibrahim
+  - "17:24"        # for one's parents
+  - "18:10"        # the youths of the cave
+  - "20:25-28"     # Musa
+  - "21:83-84"     # Ayyub
+  - "21:87-88"     # Yunus
+  - "21:89-90"     # Zakariyya
+  - "23:97-98"     # refuge from the devils
+  - "23:109"       # a party of My servants
+  - "23:118"       # «My Lord, forgive and have mercy»
+  - "25:63-66"     # the servants of the Most Merciful
+  - "25:74"        # the servants of the Most Merciful
+  - "27:19"        # Sulayman
+  - "28:24"        # Musa
+  - "40:7-9"       # the angels who carry the Throne
+  - "59:10"        # those who came after them
+  - "60:4-5"       # Ibrahim and those with him
+  - "66:8"         # the believers on the Day
