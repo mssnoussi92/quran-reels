@@ -26,10 +26,14 @@ content:
   reciter:
     id: Alafasy_128kbps               # EveryAyah folder name
     label: Mishary Rashid Alafasy
+    timings_id: 7                     # Quran.com chapter recitation, same recording (planning)
   passage:
     mode: complete                    # never cut a passage mid-sentence
-    min_seconds: 20
-    max_seconds: 90
+    target_seconds: 60                # about one minute
+    min_seconds: 40
+    max_seconds: 90                   # Facebook Reels API limit
+    whole_surah: true                 # a surah that fits in max_seconds is one video, any length
+    groups: en-tafisr-ibn-kathir      # Quran.com tafsir whose ayah groups are never split (sic)
 
 video:
   width: 1080

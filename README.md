@@ -23,8 +23,14 @@ Requires Python 3.11+, ffmpeg and Chromium for Playwright.
 pip install -e ".[dev]"
 python -m playwright install chromium
 quran-reels ingest                 # Quran text, translation, chapters, gloss index → .cache/
-quran-reels render 93:1-3          # → out/093_001-003.mp4
+quran-reels render 93              # a short surah, whole → out/093_001-011.mp4
+quran-reels passages 2             # a long one, split into passages of about a minute
+quran-reels render 2:1-5           # → out/002_001-005.mp4
 ```
+
+Passages last about a minute (40–90 s) and are only cut where a sentence ends and where
+Ibn Kathir's commentary does not group ayahs together. A surah that fits in 90 s is rendered
+whole.
 
 `render` downloads whatever is missing from the cache (glosses and recitation of the passage).
 `quran-reels ingest --all-glosses` fetches every Ibn Qutaybah entry at once (about 2,400

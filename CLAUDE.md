@@ -11,7 +11,7 @@ e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis 
 
 | Sujet | Choix |
 |---|---|
-| Format | **Passage complet** (2–5 versets qui forment un sens), 20–90 s |
+| Format | **≈ 1 minute** (cible 60 s, 40–90 s), jamais coupé au milieu d'une phrase ; **sourate courte entière** (≤ 90 s, même très courte) |
 | Texte arabe | Uthmani (Hafs), police **Amiri Quran** (OFL) |
 | Traduction | **Sahih International** (anglais), créditée dans chaque légende |
 | Mots difficiles | **Ibn Qutaybah, *Tafsir Gharib al-Qur'an*** (`ar-ghareeb-ibn-qutaybah`), glose en arabe |
@@ -47,7 +47,8 @@ src/quran_reels/
   passage.py       assemble un passage : texte + traduction + gloses ancrées + audio
   sources/         quran_com (texte, sourates, traduction), tafsir_app (gloses),
                    everyayah (audio), backgrounds (clip ou fond provisoire généré), http
-  selector/        quel passage aujourd'hui (calendrier, séries, historique)
+  selector/        plan.py : découpe d'une sourate en passages d'≈ 1 min (fait) ;
+                   quel passage aujourd'hui (calendrier, séries, historique) : à faire
   render/          frames.py (template HTML → PNG, Chromium/Playwright),
                    video.py (minutage audio + ffmpeg → MP4), __init__ (orchestration)
   publishers/      un adaptateur par plateforme, interface commune `Publisher`
@@ -65,8 +66,12 @@ Commandes :
 ```bash
 quran-reels ingest                  # texte, traduction, sourates, index des gloses (4 requêtes)
 quran-reels ingest --all-glosses    # + toutes les gloses d'Ibn Qutaybah (2 394 requêtes, reprise)
-quran-reels render 93:1-3           # → out/093_001-003.mp4 (complète le cache au besoin)
+quran-reels passages 2              # découpe la sourate 2 en passages d'≈ 1 min
+quran-reels render 93               # sourate courte entière → out/093_001-011.mp4
+quran-reels render 2:1-5            # un passage → out/002_001-005.mp4 (complète le cache)
 ```
+
+`render 78` sur une sourate trop longue pour une vidéo ne rend rien et liste ses passages.
 
 `out/093_001-003/` contient aussi les calques PNG, des aperçus (`preview/`), la légende
 (`caption.txt`) et `manifest.json` : chaque texte affiché avec son édition, sa source et son
@@ -87,6 +92,10 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   Absente de QUL et de Quran.com.
 - Audio : EveryAyah, un MP3 par ayah, `https://everyayah.com/data/Alafasy_128kbps/SSSAAA.mp3`.
   Décodé en PCM 48 kHz pour un minutage exact à l'échantillon.
+- Découpage (par sourate, à la demande, petits fichiers) : durées par ayah depuis
+  `/chapter_recitations/7/{s}?segments=true` (même enregistrement d'Alafasy, ±2 %, sans
+  télécharger les MP3) ; groupes d'ayahs d'Ibn Kathir abrégé (`en-tafisr-ibn-kathir`, id 169 :
+  les ayahs commentées avec la précédente ont un texte vide).
 - Fonds : l'**émission de nouvelles clés API Pexels est en pause** (nov. 2026). On utilise donc
   une liste sélectionnée à la main (`config/backgrounds.yaml`) d'URL directes de fichiers
   Pexels/Pixabay, ce qui ne demande pas de clé.
@@ -99,6 +108,18 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   (MEDIA_UPLOAD vers la boîte TikTok) en attendant l'audit.
 - YouTube : sans audit, les uploads API sont verrouillés en privé → **upload manuel** du MP4
   en attendant ; demander l'audit tôt. Quota ≈ 6 uploads/jour.
+
+## Découpage des passages (`selector/plan.py`)
+
+- Sourate qui tient dans `max_seconds` (90 s, attente et queue comprises) → une seule vidéo,
+  même très courte (108 : 17 s, 1 : 48 s, 93 : 56 s).
+- Sinon, coupure seulement après une ayah qui **termine une phrase** dans Sahih International
+  (`.` `?` `!` ; une virgule ou rien = la phrase continue) **et** termine un groupe d'Ibn Kathir.
+  Programmation dynamique : passages les plus proches de 60 s, entre 40 et 90 s. Exemple
+  sourate 2 : 2:1-5 (57 s), 2:6-9 (52 s), 2:10-13 (60 s)…
+- Bloc entre deux coupures plus long que 90 s (78:37-40) : on coupe à une fin de phrase à
+  l'intérieur du groupe, passage signalé « cut inside a tafsir group ». Une ayah seule de plus
+  de 90 s (2:282) dépasse : à éviter par le sélecteur ou à segmenter plus tard.
 
 ## Rendu
 
@@ -138,6 +159,7 @@ GitHub Actions secrets : `META_PAGE_ID`, `META_PAGE_TOKEN`, `IG_USER_ID`, `TIKTO
 - [x] Squelette du dépôt, polices, maquette
 - [ ] Environnement cloud `quran-reels` (accès réseau Custom)
 - [x] Ingestion des données + rendu v1 avec audio (`quran-reels render 93:1-3`, fond provisoire)
+- [x] Passages d'≈ 1 min, sourate courte entière (`quran-reels passages`, `render 93`)
 - [ ] App Meta + publication FB/IG
 - [ ] App TikTok (brouillons) · demande d'audit YouTube
 - [ ] Workflow quotidien

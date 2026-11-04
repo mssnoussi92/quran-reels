@@ -115,7 +115,8 @@ def render_passage(cfg: Config, key: str) -> RenderResult:
     timeline = video.build_timeline(samples, fps=v["fps"], lead=float(v.get("lead_seconds", 0.4)),
                                     tail=float(v.get("tail_seconds", 1.2)))
     p = cfg.content["passage"]
-    if not p["min_seconds"] <= timeline.seconds <= p["max_seconds"]:
+    whole = passage.start == 1 and passage.end == src.quran.chapters[passage.surah]["verses_count"]
+    if timeline.seconds > p["max_seconds"] or (timeline.seconds < p["min_seconds"] and not whole):
         _warn(f"{passage.key} lasts {timeline.seconds:.1f} s, outside "
               f"{p['min_seconds']}–{p['max_seconds']} s (rendered anyway)")
 

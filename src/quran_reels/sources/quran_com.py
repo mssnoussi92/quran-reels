@@ -84,3 +84,46 @@ class QuranCom:
         """1-based position of the ayah in the mushaf (1:1 = 1, 114:6 = 6236)."""
         before = sum(self.chapters[s]["verses_count"] for s in range(1, ref.surah))
         return before + ref.ayah
+
+    # ---- passage planning ------------------------------------------------------------
+    # Small per-surah files, fetched on demand: only what the planner needs is kept.
+
+    def timings(self, surah: int, recitation_id: int) -> dict[int, float]:
+        """Seconds per ayah in the reciter's chapter recording (same recording as EveryAyah's
+        files, within about 2 %): enough to plan passages without downloading the MP3s."""
+        path = self.dir / f"timings-{recitation_id}" / f"{surah:03d}.json"
+        if not path.is_file():
+            url = f"{API}/chapter_recitations/{recitation_id}/{surah}"
+            stamps = self.http.json(url, segments="true")["audio_file"]["timestamps"]
+            write_json(path, {"source": f"{url}?segments=true", "seconds": {
+                t["verse_key"].split(":")[1]: (t["timestamp_to"] - t["timestamp_from"]) / 1000
+                for t in stamps}})
+        return {int(a): s for a, s in read_json(path)["seconds"].items()}
+
+    def tafsir_groups(self, surah: int, slug: str) -> list[tuple[int, int]]:
+        """Ayah groups a tafsir explains together, e.g. Ibn Kathir 2:8-9: never split.
+
+        Quran.com leaves the text of the second and following ayahs of a group empty.
+        """
+        path = self.dir / f"tafsir-groups-{slug}" / f"{surah:03d}.json"
+        if not path.is_file():
+            tid = self._tafsir_id(slug)
+            url = f"{API}/tafsirs/{tid}/by_chapter/{surah}"
+            starts, page = [], 1
+            while page:
+                data = self.http.json(url, per_page=50, page=page)
+                starts += [int(t["verse_key"].split(":")[1]) for t in data["tafsirs"]
+                           if (t.get("text") or "").strip()]
+                page = data["pagination"].get("next_page")
+            write_json(path, {"source": url, "group_starts": sorted(set(starts))})
+        starts = read_json(path)["group_starts"]
+        n = self.chapters[surah]["verses_count"]
+        starts = sorted({1, *starts})
+        return [(a, b - 1) for a, b in zip(starts, [*starts[1:], n + 1], strict=True)]
+
+    def _tafsir_id(self, slug: str) -> int:
+        index = read_json(self._fetch("tafsirs-index.json", f"{API}/resources/tafsirs", False))
+        for t in index["tafsirs"]:
+            if t.get("slug") == slug:
+                return int(t["id"])
+        raise SystemExit(f"tafsir {slug!r} not found on Quran.com")
