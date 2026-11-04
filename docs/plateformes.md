@@ -47,6 +47,9 @@
 - Site requis (GitHub Pages, dossier `docs/`) : préfixe d'URL
   `https://mssnoussi92.github.io/quran-reels/` vérifié par fichier de signature.
 - Jeton d'accès 24 h, refresh token à faire tourner et à stocker.
+- **État (2026-11-04) :** app « Quran Words Daily Publisher » créée, URL vérifiée, Sandbox
+  `qwd-sandbox` avec l'utilisateur test `quran_words_daily`. Secrets GitHub : `TIKTOK_CLIENT_KEY`,
+  `TIKTOK_CLIENT_SECRET` (identifiants **Sandbox**). Production non soumise.
 
 ## YouTube Shorts — manuel puis automatique après audit
 
@@ -56,6 +59,9 @@
   → Demander l'audit (formulaire YouTube API Services) dès que le projet Google Cloud existe.
   En attendant, le MP4 du jour est mis à disposition et mis en ligne à la main.
 - Shorts : vertical, 3 min maximum.
+- OAuth Google : un projet en statut **« Test »** reçoit des refresh tokens qui expirent au bout
+  de 7 jours. Il faut passer l'écran de consentement en **« En production »** (écran « app non
+  validée » accepté pour un usage personnel) pour garder un refresh token durable.
 
 ## Format vidéo commun
 
