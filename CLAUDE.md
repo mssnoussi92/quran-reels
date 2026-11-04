@@ -63,6 +63,8 @@ tests/             pytest, sans réseau
 .github/workflows/ daily.yml (lancement manuel avec un passage → rendu + artefact),
                    publish-test.yml (manuel : dry-run, ou publication réelle avec PUBLIER),
                    tiktok-auth.yml (manuel : échange du code TikTok → TIKTOK_REFRESH_TOKEN)
+                   Runners épinglés sur `ubuntu-24.04` (même ffmpeg 6.1 que les tests ;
+                   `ubuntu-latest` passe à 26.04), actions en versions Node.js 24.
 docs/              site GitHub Pages (CGU, confidentialité, tiktok-login.html, tiktok-callback.html)
 ```
 
