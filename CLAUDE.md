@@ -19,12 +19,14 @@ e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis 
 | Fond | vidéos nature libres (Pexels/Pixabay), **sans personnes ni animaux** |
 | Exécution | GitHub Actions (dépôt public → gratuit), migrable sur le homelab (Docker) |
 | Comptes pro | Page Facebook + Instagram en type **Créateur**, reliés |
+| Signature | **@quran_words_daily** sur chaque image, dans la zone sûre (repartages) |
 
 ## Règles de contenu (non négociables)
 
 1. **Aucun texte coranique, traduction ou explication n'est généré par une IA.** Tout vient de
    sources publiées, référencées par identifiant d'édition, et se vérifie.
-2. Chaque vidéo crédite le récitateur, la traduction et la source des gloses.
+2. Chaque vidéo crédite le récitateur, la traduction et la source des gloses, et porte la
+   signature de la page (`video.handle`).
 3. L'IA intervient seulement en amont (préparer le calendrier des passages et les séries) et,
    plus tard en option, pour les légendes. Le pipeline quotidien reste **déterministe**.
 4. On ne coupe jamais un passage au milieu d'une phrase. Découpage candidat : regroupements

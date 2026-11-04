@@ -17,6 +17,7 @@
     glosses          [{word, gloss}]  verbatim from the gloss edition
     gloss_source     "ابن قتيبة، تفسير غريب القرآن"
     credit           "Mishary Alafasy · Sahih International"
+    handle           "@quran_words_daily"  page signature, on every frame
     safe             {top, bottom, sides}
     highlight        "#f6c86b"
 -->
@@ -61,8 +62,11 @@
   .gloss p b { font-family: "AmiriQuran"; font-weight: 400; color: {{ highlight }}; }
   .gloss .src { font-family: "Amiri"; font-size: 26px; opacity: .7; margin-top: 10px; }
 
-  .credit { position: absolute; bottom: {{ safe.bottom + 30 }}px; left: 0; right: 0;
-      text-align: center; font-family: "Lora"; font-size: 28px; opacity: .65; }
+  .footer { position: absolute; bottom: {{ safe.bottom + 20 }}px; left: 0; right: 0;
+      text-align: center; font-family: "Lora"; }
+  .handle { font-size: 36px; font-weight: 600; letter-spacing: .03em; color: {{ highlight }};
+      text-shadow: 0 2px 12px rgba(0,0,0,.6); }
+  .credit { font-size: 26px; opacity: .65; margin-top: 6px; }
 </style>
 </head>
 <body>
@@ -84,6 +88,9 @@
     </div>
     {% endif %}
   </div>
-  <div class="credit">{{ credit }}</div>
+  <div class="footer">
+    <div class="handle">{{ handle }}</div>
+    <div class="credit">{{ credit }}</div>
+  </div>
 </body>
 </html>

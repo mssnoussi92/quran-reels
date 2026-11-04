@@ -31,6 +31,7 @@ video:
   fps: 30
   safe_area: { top: 250, bottom: 420, sides: 90 }
   highlight_color: "#f6c86b"
+  handle: "@quran_words_daily"        # page signature shown on every frame
 
 platforms:
   facebook:  { enabled: true,  mode: auto }
