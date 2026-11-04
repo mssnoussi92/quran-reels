@@ -10,7 +10,7 @@ on:
   #   - cron: "17 5 * * *"
 
 permissions:
-  contents: write        # commit state/ after publishing
+  contents: read         # write only once state/ (what was published where) is committed
 
 concurrency:
   group: daily-reel
