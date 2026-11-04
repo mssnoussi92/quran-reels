@@ -7,6 +7,8 @@ posted, and Instagram drops it after 24 hours.
 
 from __future__ import annotations
 
+import sys
+
 from quran_reels.models import PublishResult, PublishStatus, Reel
 from quran_reels.publishers.meta import RUPLOAD, Graph, GraphError, wait
 
@@ -31,6 +33,14 @@ class InstagramPublisher:
             raise GraphError(f"instagram container {container_id}: {code} {c.get('status', '')}")
         return code in ("FINISHED", "PUBLISHED"), code
 
+    def _explain(self, container_id: str) -> str:
+        """What Instagram says about a container, often more precise than the upload error."""
+        try:
+            c = self.graph.get(container_id, fields="status_code,status")
+        except GraphError as e:
+            return f"status unavailable ({e})"
+        return f"{c.get('status_code', '?')} {c.get('status', '')}".strip()
+
     def _quota(self) -> None:
         data = (self.graph.get(f"{self.ig_user_id}/content_publishing_limit",
                                fields="quota_usage,config").get("data") or [{}])[0]
@@ -50,7 +60,16 @@ class InstagramPublisher:
             container = self.graph.post(f"{self.ig_user_id}/media", **params)
             cid = str(container["id"])
             url = container.get("uri") or f"{RUPLOAD}/ig-api-upload/{self.graph.version}/{cid}"
-            self.graph.upload(url, reel.video, f"upload instagram container {cid}")
+            try:
+                self.graph.upload(url, reel.video, f"upload instagram container {cid}")
+            except GraphError as e:
+                # Seen on real uploads: rupload answers 400 ProcessingFailedError although
+                # Instagram received the video and is processing it. Trust the container.
+                state = self._explain(cid)
+                if not state.startswith(("IN_PROGRESS", "FINISHED")):
+                    raise GraphError(f"{e}; container: {state}") from None
+                print(f"warning: {e}; container is {state}, waiting for it",
+                      file=sys.stderr)
             wait(lambda: self._status(cid), f"instagram container {cid}",
                  self.timeout, self.poll_interval)
             if dry_run:

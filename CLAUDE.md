@@ -52,13 +52,17 @@ src/quran_reels/
   render/          frames.py (template HTML → PNG, Chromium/Playwright),
                    video.py (minutage audio + ffmpeg → MP4), __init__ (orchestration)
   publishers/      un adaptateur par plateforme, interface commune `Publisher` (dry_run) :
-                   meta.py (client Graph, contrôle du jeton), facebook.py, instagram.py
-  publish.py       `quran-reels publish|meta-check` : contrôle, publication, résumé
+                   meta.py (client Graph, contrôle du jeton), facebook.py, instagram.py,
+                   tiktok.py (brouillon dans la boîte TikTok, connexion OAuth)
+  publish.py       `quran-reels publish|meta-check|tiktok-auth` : contrôle, publication, résumé
+  gh_secrets.py    réécrit un secret Actions (refresh token TikTok) via gh + GH_SECRETS_TOKEN
   state/           ce qui a été publié où (évite doublons, reprise après échec)
   cli.py           `quran-reels ingest|render|publish|run`
 tests/             pytest, sans réseau
 .github/workflows/ daily.yml (lancement manuel avec un passage → rendu + artefact),
-                   publish-test.yml (manuel : dry-run, ou publication réelle avec PUBLIER)
+                   publish-test.yml (manuel : dry-run, ou publication réelle avec PUBLIER),
+                   tiktok-auth.yml (manuel : échange du code TikTok → TIKTOK_REFRESH_TOKEN)
+docs/              site GitHub Pages (CGU, confidentialité, tiktok-login.html, tiktok-callback.html)
 ```
 
 Flux : `selector` → `sources` (texte + traduction + gloses + audio par ayah + fond) →
@@ -82,7 +86,13 @@ quran-reels publish 93 --dry-run    # rendu + brouillon Facebook + conteneur Ins
 quran-reels publish out/093_001-011.mp4 --platform facebook   # publication réelle
 ```
 
-Secrets lus dans l'environnement (`META_PAGE_ID`, `META_PAGE_TOKEN`, `IG_USER_ID`).
+```bash
+quran-reels publish 93 --platform tiktok      # brouillon dans la boîte TikTok
+quran-reels tiktok-auth --code …              # connexion (en pratique : workflow tiktok-auth)
+```
+
+Secrets lus dans l'environnement (`META_PAGE_ID`, `META_PAGE_TOKEN`, `IG_USER_ID`,
+`TIKTOK_CLIENT_KEY`, `TIKTOK_CLIENT_SECRET`, `TIKTOK_REFRESH_TOKEN`, `GH_SECRETS_TOKEN`).
 
 `out/093_001-003/` contient aussi les calques PNG, des aperçus (`preview/`), la légende
 (`caption.txt`) et `manifest.json` : chaque texte affiché avec son édition, sa source et son
@@ -140,6 +150,8 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   `content` par ayah (référence, ayah, traduction, gloses) en fondu de 0,25 s. Fond provisoire
   tant que `backgrounds.yaml` est vide : boucle de 12 s générée (numpy) dans la palette de la
   maquette, ciel de nuit vers l'aube, étoiles qui scintillent, mise en cache.
+- MP4 : H.264 High sans B-frames, AAC 48 kHz, `faststart`, **sans edit list** (`-use_editlist 0`) :
+  Instagram Reels refuse les edit lists que ffmpeg écrit par défaut.
 - Texte réduit automatiquement (`--k`) s'il dépasse la zone sûre ; avertissement sous 70 %.
   Les ayahs trop longues pour un écran seront découpées en segments synchronisés (timings par
   mot de QUL) ou évitées par le sélecteur.
@@ -161,8 +173,12 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
 
 ## Secrets (jamais dans le code ni dans la conversation)
 
-GitHub Actions secrets : `META_PAGE_ID`, `META_PAGE_TOKEN`, `IG_USER_ID`, `TIKTOK_*`,
-`YOUTUBE_*`. Le refresh token TikTok tourne : prévoir sa mise à jour (`gh secret set`).
+GitHub Actions secrets : `META_PAGE_ID`, `META_PAGE_TOKEN`, `IG_USER_ID`, `TIKTOK_CLIENT_KEY`,
+`TIKTOK_CLIENT_SECRET`, `TIKTOK_REFRESH_TOKEN` (écrit par le workflow `tiktok-auth` puis à
+chaque rotation), `GH_SECRETS_TOKEN` (jeton fin GitHub, Secrets : lecture/écriture sur ce dépôt
+seulement, voir docs/plateformes.md ; noter sa date d'expiration), `YOUTUBE_*`.
+Jamais un jeton dans un log : en-têtes `Authorization`, erreurs reconstruites, `::add-mask::`.
+Les logs Actions d'un dépôt public sont publics : rien d'identifiant n'y est imprimé.
 
 Jeton de Page Meta : expiration « Jamais », mais **l'accès aux données expire le 2027-02-02**
 (90 jours). Pour le renouveler : explorateur Graph → jeton utilisateur → prolonger →
@@ -178,7 +194,10 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
 - [x] Ingestion des données + rendu v1 avec audio (`quran-reels render 93:1-3`, fond provisoire)
 - [x] Passages d'≈ 1 min, sourate courte entière (`quran-reels passages`, `render 93`)
 - [x] App Meta (voir docs/plateformes.md)
-- [ ] Publication FB/IG : code et tests prêts (faux serveur Graph) ; à valider avec
-      `publish-test` en dry-run puis en réel. Pas encore d'état anti-doublon (`state/`).
-- [ ] App TikTok (brouillons) · demande d'audit YouTube
+- [x] Dry-run Facebook (run #3, brouillon créé) et Instagram (run #7, conteneur FINISHED, non
+      publié). [ ] Première publication réelle (`publish-test`, mode publish + PUBLIER).
+      Pas encore d'état anti-doublon (`state/`).
+- [x] App TikTok Sandbox · [ ] connexion (`tiktok-login.html` + `tiktok-auth`) · [ ] test
+      brouillon en Sandbox (`publish-test`, plateforme tiktok)
+- [ ] Demande d'audit YouTube
 - [ ] Workflow quotidien

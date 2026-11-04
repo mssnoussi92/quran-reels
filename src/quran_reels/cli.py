@@ -24,15 +24,22 @@ def main(argv: list[str] | None = None) -> int:
     passages = sub.add_parser("passages", help="split a surah into passages of about a minute")
     passages.add_argument("surah", type=int)
 
-    publish = sub.add_parser("publish", help="publish a reel on Facebook and Instagram")
+    publish = sub.add_parser("publish", help="publish a reel (Facebook, Instagram, TikTok draft)")
     publish.add_argument("target", help="out/093_001-011.mp4, or a passage/surah to render first")
     publish.add_argument("--dry-run", action="store_true",
                          help="stop before publishing: Facebook draft, Instagram container")
-    publish.add_argument("--platform", action="append", choices=["facebook", "instagram"],
+    publish.add_argument("--platform", action="append",
+                         choices=["facebook", "instagram", "tiktok"],
                          help="repeat for several; default: enabled platforms in project.yaml")
 
     check = sub.add_parser("meta-check", help="check the Meta Page token (fails < 14 days)")
     check.add_argument("--platform", action="append", choices=["facebook", "instagram"])
+
+    auth_url = sub.add_parser("tiktok-auth-url",
+                              help="print the TikTok sign-in URL (needs TIKTOK_CLIENT_KEY)")
+    auth_url.add_argument("--state", default="quran-reels")
+    auth = sub.add_parser("tiktok-auth", help="exchange the TikTok code, save the refresh token")
+    auth.add_argument("--code", help="default: $TIKTOK_AUTH_CODE or the workflow input")
 
     sub.add_parser("run", help="select today's passage, render and publish")
 
@@ -77,7 +84,8 @@ def main(argv: list[str] | None = None) -> int:
         platforms = publish_mod.platforms_for(cfg, args.platform)
         if not platforms:
             raise SystemExit("no platform to publish to (see platforms in config/project.yaml)")
-        checked = publish_mod.meta_check(cfg, platforms)    # before rendering: fail fast
+        meta = [p for p in platforms if p in publish_mod.META]
+        checked = publish_mod.meta_check(cfg, meta) if meta else None  # before rendering
         video = Path(args.target)
         if video.suffix != ".mp4":
             from quran_reels.render import render_passage
@@ -87,6 +95,22 @@ def main(argv: list[str] | None = None) -> int:
         elif not video.is_file():
             raise SystemExit(f"{video}: no such file")
         return publish_mod.run(cfg, video, platforms, dry_run=args.dry_run, checked=checked)
+
+    if args.command == "tiktok-auth-url":
+        import os
+
+        from quran_reels.publishers.tiktok import auth_url
+
+        if not os.environ.get("TIKTOK_CLIENT_KEY"):
+            raise SystemExit("TIKTOK_CLIENT_KEY not set; on a phone use docs/tiktok-login.html")
+        conf = cfg.project["platforms"]["tiktok"]
+        print(auth_url(os.environ["TIKTOK_CLIENT_KEY"], conf["redirect_uri"], args.state))
+        return 0
+
+    if args.command == "tiktok-auth":
+        from quran_reels import publish as publish_mod
+
+        return publish_mod.tiktok_auth(cfg, args.code)
 
     print(f"'{args.command}' is not implemented yet", file=sys.stderr)
     return 2

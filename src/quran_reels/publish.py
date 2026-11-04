@@ -1,7 +1,8 @@
-"""quran-reels publish / meta-check: send a rendered reel to Facebook and Instagram.
+"""quran-reels publish / meta-check / tiktok-auth: send a rendered reel to the platforms.
 
-Every run checks the Page token first (validity, permissions, data access expiry) and stops
-with a clear message if it cannot publish for at least platforms.meta.min_days_left days.
+Facebook and Instagram: every run checks the Page token first (validity, permissions, data
+access expiry) and stops with a clear message if it cannot publish for at least
+platforms.meta.min_days_left days. TikTok: draft mode, the reel goes to the TikTok inbox.
 Results go to out/<passage>/publish.json and, on GitHub Actions, to the run summary.
 """
 
@@ -14,6 +15,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 from quran_reels.config import Config
+from quran_reels.gh_secrets import save_secret
 from quran_reels.models import Passage, PublishResult, PublishStatus, Reel, parse_passage
 from quran_reels.publishers.facebook import FacebookPublisher
 from quran_reels.publishers.instagram import InstagramPublisher
@@ -25,8 +27,16 @@ from quran_reels.publishers.meta import (
     TokenReport,
     check_token,
 )
+from quran_reels.publishers.tiktok import (
+    REFRESH_SECRET,
+    TikTok,
+    TikTokEnv,
+    TikTokError,
+    TikTokPublisher,
+)
 
-PLATFORMS = ("facebook", "instagram")
+PLATFORMS = ("facebook", "instagram", "tiktok")
+META = ("facebook", "instagram")
 
 _LABELS = {
     PublishStatus.PUBLISHED: "publié",
@@ -34,14 +44,15 @@ _LABELS = {
     PublishStatus.READY: "conteneur prêt, non publié (Instagram le supprime après 24 h)",
     PublishStatus.FAILED: "échec",
 }
+_TIKTOK_DRAFT = "dans la boîte TikTok : notification dans l'app, à publier à la main"
 
 
 def platforms_for(cfg: Config, requested: list[str] | None) -> list[str]:
     if requested:
         return list(dict.fromkeys(requested))
     conf = cfg.project.get("platforms") or {}
-    return [p for p in PLATFORMS
-            if (conf.get(p) or {}).get("enabled") and (conf.get(p) or {}).get("mode") == "auto"]
+    return [p for p in PLATFORMS if (conf.get(p) or {}).get("enabled")
+            and (conf.get(p) or {}).get("mode") in ("auto", "draft")]
 
 
 def _meta(cfg: Config) -> dict:
@@ -85,28 +96,42 @@ def load_reel(video: Path) -> Reel:
                 cover_ms=int((cover["start"] + cover["seconds"] / 2) * 1000))
 
 
-def _report(reel: Reel, results: list[PublishResult], dry_run: bool, token: TokenReport) -> str:
+def _report(reel: Reel, results: list[PublishResult], dry_run: bool,
+            token: TokenReport | None) -> str:
     title = f"## {'🧪 Dry run' if dry_run else '📣 Publication'} {reel.passage.key}"
     rows = ["| Plateforme | Résultat | Identifiant / lien |", "|---|---|---|"]
     for r in results:
-        label = _LABELS[r.status] + (f" : {r.error}" if r.error else "")
+        label = _TIKTOK_DRAFT if (r.platform, r.status) == ("tiktok", PublishStatus.DRAFT) \
+            else _LABELS[r.status]
+        label += f" : {r.error}" if r.error else ""
         where = r.url or (f"`{r.remote_id}`" if r.remote_id else "")
         rows.append(f"| {r.platform} | {label} | {where} |")
-    return "\n".join([title, "", *rows, "", token.summary()])
+    return "\n".join([title, "", *rows, "", token.summary() if token else ""]).rstrip()
+
+
+def tiktok_publisher() -> TikTokPublisher:
+    env = TikTokEnv.from_environ()
+    return TikTokPublisher(TikTok(env.client_key, env.client_secret), str(env.refresh_token),
+                           save_refresh=lambda value: save_secret(REFRESH_SECRET, value))
 
 
 def run(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
         checked: tuple[Graph, MetaEnv, TokenReport] | None = None) -> int:
-    graph, env, token = checked or meta_check(cfg, platforms)
-    print(token.summary(), file=sys.stderr)
+    token = None
+    if any(p in META for p in platforms):
+        graph, env, token = checked or meta_check(cfg, [p for p in platforms if p in META])
+        print(token.summary(), file=sys.stderr)
+    tiktok = tiktok_publisher() if "tiktok" in platforms else None
     reel = load_reel(video)
 
     results = []
     for name in platforms:
         if name == "facebook":
             publisher = FacebookPublisher(graph, env.page_id)
-        else:
+        elif name == "instagram":
             publisher = InstagramPublisher(graph, str(env.ig_user_id))
+        else:
+            publisher = tiktok
         print(f"{name}: uploading {reel.video.name}{' (dry run)' if dry_run else ''}",
               file=sys.stderr)
         result = publisher.publish(reel, dry_run=dry_run)
@@ -121,3 +146,49 @@ def run(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
                               ensure_ascii=False, indent=2), encoding="utf-8")
     _summary(_report(reel, results, dry_run, token))
     return 1 if any(r.status is PublishStatus.FAILED for r in results) else 0
+
+
+def _event_input(name: str) -> str | None:
+    """A workflow_dispatch input read from the event file: never printed in the step's log."""
+    path = os.environ.get("GITHUB_EVENT_PATH")
+    if not path or not os.path.isfile(path):
+        return None
+    with open(path, encoding="utf-8") as f:
+        return ((json.load(f).get("inputs") or {}).get(name) or "").strip() or None
+
+
+def tiktok_auth(cfg: Config, code: str | None) -> int:
+    """Exchange the one-time code from tiktok-callback.html; save the refresh token."""
+    from datetime import UTC, datetime, timedelta
+
+    from quran_reels.gh_secrets import SecretSaveError, mask
+
+    code = code or os.environ.get("TIKTOK_AUTH_CODE") or _event_input("code")
+    if not code:
+        raise SystemExit("no authorization code: pass --code or run the tiktok-auth workflow")
+    mask(code)
+    conf = (cfg.project.get("platforms") or {}).get("tiktok") or {}
+    env = TikTokEnv.from_environ(need_refresh=False)
+    client = TikTok(env.client_key, env.client_secret)
+    try:
+        t = client.exchange(code, conf["redirect_uri"])
+        user = client.user(t["access_token"])
+    except TikTokError as e:
+        _summary(f"## ❌ Connexion TikTok\n\n{e}\n\nLe code ne sert qu'une fois et expire en "
+                 "quelques minutes : recommencer depuis tiktok-login.html.")
+        raise SystemExit(f"TikTok sign-in failed: {e}") from None
+    scopes = sorted(s for s in (t.get("scope") or "").split(",") if s)
+    if "video.upload" not in scopes:
+        raise SystemExit(f"TikTok granted {scopes}, video.upload is missing: authorize it again")
+    try:
+        save_secret(REFRESH_SECRET, t["refresh_token"])
+    except SecretSaveError as e:
+        _summary(f"## ❌ Connexion TikTok\n\nJeton obtenu mais non enregistré : {e}")
+        raise SystemExit(str(e)) from None
+    until = datetime.now(UTC) + timedelta(seconds=int(t.get("refresh_expires_in", 0)))
+    lines = [f"Compte : {user.get('display_name', '?')}", f"Autorisations : {', '.join(scopes)}",
+             (f"{REFRESH_SECRET} enregistré, valable jusqu'au {until:%Y-%m-%d} environ "
+              "(renouvelé à chaque publication).")]
+    _summary("## ✅ TikTok connecté\n\n" + "\n\n".join(lines))
+    print("\n".join(lines), file=sys.stderr)
+    return 0
