@@ -194,9 +194,9 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
 - [x] Ingestion des données + rendu v1 avec audio (`quran-reels render 93:1-3`, fond provisoire)
 - [x] Passages d'≈ 1 min, sourate courte entière (`quran-reels passages`, `render 93`)
 - [x] App Meta (voir docs/plateformes.md)
-- [ ] Publication FB/IG. Dry-run #3 (jeton de Page corrigé) : **Facebook OK** (brouillon
-      créé) ; Instagram refusé à l'upload (`ProcessingFailedError`) → MP4 désormais sans edit
-      list ni B-frames (exigence Reels), à revalider. Pas encore d'état anti-doublon (`state/`).
+- [x] Dry-run Facebook (run #3, brouillon créé) et Instagram (run #7, conteneur FINISHED, non
+      publié). [ ] Première publication réelle (`publish-test`, mode publish + PUBLIER).
+      Pas encore d'état anti-doublon (`state/`).
 - [x] App TikTok Sandbox · [ ] connexion (`tiktok-login.html` + `tiktok-auth`) · [ ] test
       brouillon en Sandbox (`publish-test`, plateforme tiktok)
 - [ ] Demande d'audit YouTube
