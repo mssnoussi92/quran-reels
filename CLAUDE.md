@@ -153,6 +153,12 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
 GitHub Actions secrets : `META_PAGE_ID`, `META_PAGE_TOKEN`, `IG_USER_ID`, `TIKTOK_*`,
 `YOUTUBE_*`. Le refresh token TikTok tourne : prévoir sa mise à jour (`gh secret set`).
 
+Jeton de Page Meta : expiration « Jamais », mais **l'accès aux données expire le 2027-02-02**
+(90 jours). Pour le renouveler : explorateur Graph → jeton utilisateur → prolonger →
+`me/accounts` → nouveau `META_PAGE_TOKEN`. Le publisher Meta doit lire
+`data_access_expires_at` via `GET /debug_token` à chaque exécution et faire échouer le job
+(message clair) à moins de 14 jours de l'échéance.
+
 ## État
 
 - [x] Comptes créés (Gmail, Page FB, IG Créateur reliés, TikTok, YouTube)

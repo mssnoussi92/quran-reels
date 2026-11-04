@@ -1,0 +1,30 @@
+@font-face { font-family: "Amiri"; src: url("fonts/Amiri-Regular.ttf"); }
+@font-face { font-family: "Lora"; src: url("fonts/Lora.ttf"); }
+
+:root { --bg: #0d1330; --card: #161d42; --text: #eef0fa; --muted: #aab0cf; --gold: #f6c86b; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text);
+  font: 17px/1.65 "Lora", Georgia, serif; }
+main { max-width: 760px; margin: 0 auto; padding: 48px 22px 72px; }
+header.site { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap;
+  gap: 8px 20px; margin-bottom: 36px; }
+header.site a.brand { color: var(--gold); font-size: 22px; text-decoration: none; letter-spacing: .02em; }
+nav a { color: var(--muted); margin-left: 16px; text-decoration: none; font-size: 15px; }
+nav a:hover, a:hover { color: var(--gold); }
+h1 { font-size: 34px; line-height: 1.25; margin: 0 0 12px; }
+h2 { font-size: 22px; margin: 36px 0 8px; color: var(--gold); }
+p, li { color: var(--text); }
+.muted { color: var(--muted); font-size: 15px; }
+a { color: var(--gold); }
+.ar { font-family: "Amiri", serif; direction: rtl; font-size: 28px; }
+.hero { display: grid; grid-template-columns: 1fr 220px; gap: 32px; align-items: center; }
+.hero img { width: 100%; border-radius: 18px; box-shadow: 0 10px 40px rgba(0,0,0,.4); }
+.card { background: var(--card); border: 1px solid rgba(246,200,107,.25); border-radius: 16px;
+  padding: 20px 22px; }
+.code { font-family: ui-monospace, Menlo, monospace; font-size: 15px; word-break: break-all;
+  background: #0a0f26; padding: 14px; border-radius: 10px; margin: 12px 0; }
+button { background: var(--gold); color: #1a1a1a; border: 0; border-radius: 10px; padding: 10px 18px;
+  font: 600 15px "Lora", serif; cursor: pointer; }
+footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.1);
+  color: var(--muted); font-size: 14px; }
+@media (max-width: 640px) { .hero { grid-template-columns: 1fr; } .hero img { max-width: 240px; } }

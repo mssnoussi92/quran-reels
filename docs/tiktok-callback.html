@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<title>TikTok sign-in · Quran Words Daily</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <header class="site">
+    <a class="brand" href="./">Quran Words Daily</a>
+    <nav><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></nav>
+  </header>
+
+  <h1>TikTok sign-in</h1>
+  <div class="card" id="result"><p class="muted">Reading the response…</p></div>
+  <p class="muted">This page only shows the one-time authorization code returned by TikTok. It runs
+    entirely in your browser and sends nothing anywhere. The code expires within minutes and can be
+    used only once, together with the application's secret key.</p>
+
+  <footer>Quran Words Daily · <a href="privacy.html">Privacy Policy</a> · <a href="terms.html">Terms of Service</a></footer>
+</main>
+<script>
+  (function () {
+    var q = new URLSearchParams(window.location.search);
+    var box = document.getElementById("result");
+    var code = q.get("code");
+    var error = q.get("error");
+    box.textContent = "";
+    if (error) {
+      var p = document.createElement("p");
+      p.textContent = "TikTok returned an error: " + error + " " + (q.get("error_description") || "");
+      box.appendChild(p);
+    } else if (code) {
+      var label = document.createElement("p");
+      label.textContent = "Authorization code (state: " + (q.get("state") || "none") + ")";
+      var pre = document.createElement("div");
+      pre.className = "code";
+      pre.textContent = code;
+      var btn = document.createElement("button");
+      btn.textContent = "Copy the code";
+      btn.onclick = function () {
+        navigator.clipboard.writeText(code).then(function () { btn.textContent = "Copied"; });
+      };
+      box.appendChild(label); box.appendChild(pre); box.appendChild(btn);
+    } else {
+      var n = document.createElement("p");
+      n.textContent = "No authorization code in this address.";
+      box.appendChild(n);
+    }
+    // Remove the code from the address bar and browser history.
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+  })();
+</script>
+</body>
+</html>

@@ -19,6 +19,17 @@
 - Permissions : `instagram_basic`, `instagram_content_publish`, `pages_show_list`,
   `pages_read_engagement`, `pages_manage_posts`.
 
+### État de la configuration Meta (2026-11-04)
+
+- App Meta `Quran Words Daily Publisher` (ID `1673453344149749`), non publiée (mode développement,
+  accès standard). Cas d'utilisation : « Tout gérer sur votre Page » + « Gérer les messages et les
+  contenus sur Instagram » (configuration Facebook Login).
+- Page `1494879297031390` · compte Instagram pro `17841475111287268`.
+- La liaison Instagram ↔ Page doit être faite depuis la Page (Paramètres → Comptes liés). Une liaison
+  faite seulement via l'Espace Comptes n'expose pas `instagram_business_account` à l'API.
+- Secrets GitHub configurés : `META_PAGE_ID`, `META_PAGE_TOKEN` (jeton de Page, sans expiration,
+  accès aux données jusqu'au 2027-02-02), `IG_USER_ID`.
+
 ## TikTok — brouillon puis automatique après audit
 
 - API : Content Posting API (`open.tiktokapis.com`).
