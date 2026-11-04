@@ -1,0 +1,12 @@
+# Hand-picked background clips. Direct file URLs, no API key needed.
+# Rules: nature only, no people, no animals, no text or logos, vertical or croppable to 9:16,
+# calm motion, at least 1080 px wide after crop.
+#
+# - id: night-sky-01
+#   source: pexels            # pexels | pixabay
+#   page: https://www.pexels.com/video/...
+#   file: https://videos.pexels.com/video-files/...
+#   mood: [night, calm]       # used to match a passage's theme
+#   seconds: 20
+
+clips: []

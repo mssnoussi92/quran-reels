@@ -1,0 +1,42 @@
+# Editorial and technical choices. Change here, not in the code.
+
+project:
+  name: Quran Words Daily
+  handles:
+    facebook: quranwordsdaily
+    instagram: quran_words_daily
+    tiktok: quran_words_daily
+    youtube: "@quran_words_daily"
+
+content:
+  quran_text:
+    edition: ar-uthmani-hafs          # canonical text, never generated
+  translation:
+    edition: en-sahih-international
+    label: Sahih International
+  glosses:
+    edition: ar-ghareeb-ibn-qutaybah
+    label: "ابن قتيبة، تفسير غريب القرآن"
+  reciter:
+    id: Alafasy_128kbps               # EveryAyah folder name
+    label: Mishary Rashid Alafasy
+  passage:
+    mode: complete                    # never cut a passage mid-sentence
+    min_seconds: 20
+    max_seconds: 90
+
+video:
+  width: 1080
+  height: 1920
+  fps: 30
+  safe_area: { top: 250, bottom: 420, sides: 90 }
+  highlight_color: "#f6c86b"
+
+platforms:
+  facebook:  { enabled: true,  mode: auto }
+  instagram: { enabled: true,  mode: auto }
+  tiktok:    { enabled: false, mode: draft }   # inbox draft until the TikTok audit
+  youtube:   { enabled: false, mode: manual }  # locked private until the YouTube audit
+
+schedule:
+  per_day: 1
