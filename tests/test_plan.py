@@ -30,3 +30,12 @@ def test_block_longer_than_a_video_is_cut_at_a_sentence_end():
     seconds = [20.0] * 6                          # one tafsir group of 120 s
     parts = split(seconds, {1, 3, 6}, [(1, 6)], **KW)
     assert [(a, b, r) for a, b, r in parts] == [(1, 3, True), (4, 6, True)]
+
+
+def test_an_ayah_too_long_on_its_own_does_not_swallow_its_neighbours():
+    # Real case, surah 24: 24:31 (121 s) and 24:61 (111 s) became one passage 24:31-61.
+    seconds = [121.0] + [20.0] * 9 + [111.0]
+    n = len(seconds)
+    parts = split(seconds, set(range(1, n + 1)), [(a, a) for a in range(1, n + 1)], **KW)
+    assert parts[0][:2] == (1, 1) and parts[-1][:2] == (n, n)
+    assert all(b - a + 1 <= 4 for a, b, _ in parts[1:-1])

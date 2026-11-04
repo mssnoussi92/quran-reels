@@ -62,7 +62,9 @@ def split(seconds: list[float], ends: set[int], groups: list[tuple[int, int]],
     def cost(d: float) -> float:
         video = d + overhead
         if video > high:
-            return 1e6 + (video - high) * 1e3
+            # Every second over the limit costs more than any number of passages within it:
+            # an ayah too long on its own stays alone instead of swallowing its neighbours.
+            return 1e6 + (video - high) * 1e5
         if video < low:
             return 1e4 + (low - video) ** 2
         return (video - target) ** 2
