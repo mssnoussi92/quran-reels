@@ -150,6 +150,8 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   `content` par ayah (référence, ayah, traduction, gloses) en fondu de 0,25 s. Fond provisoire
   tant que `backgrounds.yaml` est vide : boucle de 12 s générée (numpy) dans la palette de la
   maquette, ciel de nuit vers l'aube, étoiles qui scintillent, mise en cache.
+- MP4 : H.264 High sans B-frames, AAC 48 kHz, `faststart`, **sans edit list** (`-use_editlist 0`) :
+  Instagram Reels refuse les edit lists que ffmpeg écrit par défaut.
 - Texte réduit automatiquement (`--k`) s'il dépasse la zone sûre ; avertissement sous 70 %.
   Les ayahs trop longues pour un écran seront découpées en segments synchronisés (timings par
   mot de QUL) ou évitées par le sélecteur.
@@ -192,9 +194,9 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
 - [x] Ingestion des données + rendu v1 avec audio (`quran-reels render 93:1-3`, fond provisoire)
 - [x] Passages d'≈ 1 min, sourate courte entière (`quran-reels passages`, `render 93`)
 - [x] App Meta (voir docs/plateformes.md)
-- [ ] Publication FB/IG : code et tests prêts (faux serveur Graph). Dry-run #1 : arrêté au
-      contrôle, `META_PAGE_TOKEN` est un jeton USER → remplacer par le jeton de Page, relancer.
-      Pas encore d'état anti-doublon (`state/`).
+- [ ] Publication FB/IG. Dry-run #3 (jeton de Page corrigé) : **Facebook OK** (brouillon
+      créé) ; Instagram refusé à l'upload (`ProcessingFailedError`) → MP4 désormais sans edit
+      list ni B-frames (exigence Reels), à revalider. Pas encore d'état anti-doublon (`state/`).
 - [x] App TikTok Sandbox · [ ] connexion (`tiktok-login.html` + `tiktok-auth`) · [ ] test
       brouillon en Sandbox (`publish-test`, plateforme tiktok)
 - [ ] Demande d'audit YouTube

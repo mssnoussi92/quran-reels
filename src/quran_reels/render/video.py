@@ -132,7 +132,10 @@ def compose(background: Path, static: Path, frames: list[Path], timeline: Timeli
             "-c:v", "libx264", "-preset", "medium", "-crf", str(crf),
             "-profile:v", "high", "-pix_fmt", "yuv420p", "-r", str(fps), "-g", str(fps * 2),
             "-c:a", "aac", "-b:a", "192k", "-ar", str(SAMPLE_RATE), "-ac", str(CHANNELS),
-            "-frames:v", str(total), "-movflags", "+faststart", str(dest)]
+            "-frames:v", str(total), "-movflags", "+faststart",
+            # Instagram Reels: moov atom first and no edit list (ffmpeg writes one by default).
+            # Without B-frames the video needs no edit list to start at 0, in sync with audio.
+            "-use_editlist", "0", "-bf", "0", str(dest)]
     dest.parent.mkdir(parents=True, exist_ok=True)
     _run(cmd)
     return dest
