@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+from itertools import pairwise
 
 from quran_reels.arabic import locate, normalize, quoted_words, similarity, trim, words
 from quran_reels.config import Config
@@ -15,53 +16,78 @@ def _warn(msg: str) -> None:
     print(f"warning: {msg}", file=sys.stderr)
 
 
-def _override(entry: GlossEntry, overrides: dict[str, dict[str, str]]) -> list[int] | None:
-    """Indexes, among the quoted words, chosen by the editor in config/glosses.yaml."""
-    for lemma, chosen in (overrides.get(str(entry.ref)) or {}).items():
-        if normalize(lemma) != normalize(entry.lemma):
-            continue
-        quoted = quoted_words(entry.lemma)
-        picked = []
-        for word in words(chosen):
-            scores = [similarity(word, q) for q in quoted]
-            best = max(range(len(quoted)), key=scores.__getitem__)
-            if scores[best] < 0.7:
-                raise SystemExit(f"config/glosses.yaml, {entry.ref}: «{word}» is not in «{lemma}»")
-            picked.append(best)
-        return sorted(set(picked))
-    return None
+# A chosen word must clearly be one of the quotation's words, spelling aside (سجى = سَجَىٰ).
+CHOICE_SIMILARITY = 0.9
 
 
-def anchor(entries: list[GlossEntry], text: str, cfg: Config) -> list[WordGloss]:
+def pick(choice: tuple[str, ...], quoted: list[str]) -> list[int] | None:
+    """Indexes, among the quoted words, of the one or two chosen words; None if one is missing."""
+    picked: list[int] = []
+    for word in choice:
+        scores = [similarity(word, q) for q in quoted]
+        best = max(range(len(quoted)), key=scores.__getitem__)
+        if scores[best] < CHOICE_SIMILARITY or best in picked:
+            return None
+        picked.append(best)
+    return sorted(picked)
+
+
+def shown_words(tokens: list[str], positions: tuple[int, ...]) -> str:
+    """The highlighted words as the box shows them; «…» where words of the ayah are skipped."""
+    out = tokens[positions[0]]
+    for prev, cur in pairwise(positions):
+        skipped = any(normalize(t) for t in tokens[prev + 1:cur])
+        out += (" … " if skipped else " ") + tokens[cur]
+    return out
+
+
+def anchor(ref: AyahRef, entries: list[GlossEntry], text: str, cfg: Config) -> list[WordGloss]:
     """Tie each gloss entry to the Uthmani words it explains; keep what fits on screen.
 
-    The highlighted words are the source's quotation, minus the particles at its edges, or the
-    words chosen in config/glosses.yaml.
+    Highlighted: the one or two words chosen in config/glosses.yaml for that gloss, otherwise
+    the source's whole quotation minus the particles at its edges.
     """
     g = cfg.content["glosses"]
     max_per_ayah, max_chars = int(g.get("max_per_ayah", 2)), int(g.get("max_chars", 170))
     tokens = words(text)
-    out: list[WordGloss] = []
-    used: set[int] = set()
+
+    located: list[tuple[GlossEntry, list[int], str]] = []
     for e in entries:
         span = locate(e.lemma, tokens)
         if span is None:
-            _warn(f"{e.ref}: «{e.lemma}» not found in the ayah, gloss left out")
+            _warn(f"{ref}: «{e.lemma}» not found in the ayah, gloss left out")
             continue
         gloss = excerpt(e.text, max_chars)
         if gloss is None:
-            _warn(f"{e.ref}: gloss of «{e.lemma}» longer than {max_chars} chars, left out")
+            _warn(f"{ref}: gloss of «{e.lemma}» longer than {max_chars} chars, left out")
             continue
-        chosen = _override(e, cfg.gloss_headwords)
-        if chosen is None:
+        located.append((e, span, gloss))
+
+    # Each editorial choice goes to the first gloss whose quotation holds its words.
+    chosen: dict[int, list[int]] = {}
+    for choice in cfg.gloss_headwords.get(str(ref), []):
+        for k, (e, _, _) in enumerate(located):
+            if k not in chosen and (idx := pick(choice, quoted_words(e.lemma))) is not None:
+                chosen[k] = idx
+                break
+        else:
+            _warn(f"config/glosses.yaml, {ref}: «{' '.join(choice)}» is in no quotation of this "
+                  "ayah, whole quotation kept")
+
+    out: list[WordGloss] = []
+    used: set[int] = set()
+    for k, (e, span, gloss) in enumerate(located):
+        if k in chosen:
+            indexes = chosen[k]
+        else:
             start, end = trim(quoted_words(e.lemma))
-            chosen = list(range(start, end))
-        positions = tuple(span[j] for j in chosen)
+            indexes = list(range(start, end))
+        positions = tuple(span[j] for j in indexes)
         if used.intersection(positions):
             continue
         used.update(positions)
-        out.append(WordGloss(ref=e.ref, word=" ".join(tokens[p] for p in positions),
-                             gloss=gloss, edition=e.edition, lemma=e.lemma, positions=positions))
+        out.append(WordGloss(ref=ref, word=shown_words(tokens, positions), gloss=gloss,
+                             edition=e.edition, lemma=e.lemma, positions=positions))
         if len(out) >= max_per_ayah:
             break
     return out
@@ -87,7 +113,7 @@ def build(cfg: Config, key: str, src: Sources | None = None) -> Passage:
             ref=r,
             text=texts[r],
             translation=translations[r],
-            glosses=anchor(entries[r], texts[r], cfg),
+            glosses=anchor(r, entries[r], texts[r], cfg),
             audio=src.audio.fetch(r),
         ))
     return passage

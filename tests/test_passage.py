@@ -1,45 +1,98 @@
 from pathlib import Path
 
-from quran_reels.config import Config
+import pytest
+
+from quran_reels.config import Config, parse_headwords
 from quran_reels.models import AyahRef, GlossEntry
 from quran_reels.passage import anchor
 
 ED = "ar-ghareeb-ibn-qutaybah"
+AYAH_93_2 = "وَٱلَّيْلِ إِذَا سَجَىٰ"
+AYAH_2_7 = ("خَتَمَ ٱللَّهُ عَلَىٰ قُلُوبِهِمْ وَعَلَىٰ سَمْعِهِمْ ۖ وَعَلَىٰٓ أَبْصَـٰرِهِمْ غِشَـٰوَةٌ ۖ "
+            "وَلَهُمْ عَذَابٌ عَظِيمٌ")
 
 
 def cfg(headwords=None) -> Config:
     content = {"glosses": {"max_per_ayah": 2, "max_chars": 170}}
     return Config(root=Path("."), project={"content": content}, backgrounds=[],
-                  gloss_headwords=headwords or {})
+                  gloss_headwords=parse_headwords(headwords))
 
 
 def entry(ref, lemma, text):
     return GlossEntry(ref=AyahRef.parse(ref), lemma=lemma, text=text, edition=ED)
 
 
+R93_2 = AyahRef(93, 2)
+E93_2 = entry("93:2", "وَاللَّيْلِ إِذَا سَجَى", "إذا سكَن. وذلك عند تناهي ظلامِه ورُكودِه.")
+E2_7 = entry("2:7", "خَتَمَ اللَّهُ عَلَى قُلُوبِهِمْ وَعَلَى سَمْعِهِمْ", "بمنزلة طَبَعَ الله عليها.")
+
+
 def test_whole_quotation_is_highlighted_by_default():
-    e = entry("93:2", "وَاللَّيْلِ إِذَا سَجَى", "إذا سكَن. وذلك عند تناهي ظلامِه ورُكودِه.")
-    [g] = anchor([e], "وَٱلَّيْلِ إِذَا سَجَىٰ", cfg())
+    [g] = anchor(R93_2, [E93_2], AYAH_93_2, cfg())
     assert g.positions == (0, 1, 2)
-    assert g.word == "وَٱلَّيْلِ إِذَا سَجَىٰ"
+    assert g.word == AYAH_93_2
     assert g.gloss == "إذا سكَن. وذلك عند تناهي ظلامِه ورُكودِه."
     assert g.lemma == "وَاللَّيْلِ إِذَا سَجَى"
 
 
-def test_editor_can_narrow_the_highlight():
-    e = entry("93:2", "وَاللَّيْلِ إِذَا سَجَى", "إذا سكَن.")
-    [g] = anchor([e], "وَٱلَّيْلِ إِذَا سَجَىٰ",
-                 cfg({"93:2": {"وَاللَّيْلِ إِذَا سَجَى": "سَجَى"}}))
+def test_one_chosen_word_without_diacritics():
+    [g] = anchor(R93_2, [E93_2], AYAH_93_2, cfg({"93:2": "سجى"}))
     assert (g.positions, g.word) == ((2,), "سَجَىٰ")
+
+
+def test_two_chosen_words_next_to_each_other():
+    [g] = anchor(AyahRef(2, 7), [E2_7], AYAH_2_7, cfg({"2:7": "ختم الله"}))
+    assert (g.positions, g.word) == ((0, 1), "خَتَمَ ٱللَّهُ")
+
+
+def test_two_chosen_words_apart_are_shown_with_an_ellipsis():
+    [g] = anchor(AyahRef(2, 7), [E2_7], AYAH_2_7, cfg({"2:7": "قلوبهم ختم"}))
+    assert (g.positions, g.word) == ((0, 3), "خَتَمَ … قُلُوبِهِمْ")
+
+
+def test_choice_not_in_the_quotation_keeps_the_default(capsys):
+    [g] = anchor(R93_2, [E93_2], AYAH_93_2, cfg({"93:2": "الضحى"}))
+    assert g.positions == (0, 1, 2)
+    assert "«الضحى» is in no quotation" in capsys.readouterr().err
+
+
+def test_one_choice_per_gloss_of_the_same_ayah():
+    ayah = "ذَٰلِكَ ٱلْكِتَٰبُ لَا رَيْبَ ۛ فِيهِ ۛ هُدًى لِّلْمُتَّقِينَ"
+    entries = [entry("2:2", "لا رَيْبَ فِيهِ", "لا شكَّ فيه."),
+               entry("2:2", "هُدًى لِلْمُتَّقِينَ", "أي: رُشدًا لهم إلى الحق.")]
+    g1, g2 = anchor(AyahRef(2, 2), entries, ayah, cfg({"2:2": ["هدى", "ريب"]}))
+    assert (g1.word, g2.word) == ("رَيْبَ", "هُدًى")
 
 
 def test_particles_trimmed_and_uthmani_word_shown():
     e = entry("93:3", "وَمَا قَلَى", "ما أبْغَضك.")
-    [g] = anchor([e], "مَا وَدَّعَكَ رَبُّكَ وَمَا قَلَىٰ", cfg())
+    [g] = anchor(AyahRef(93, 3), [e], "مَا وَدَّعَكَ رَبُّكَ وَمَا قَلَىٰ", cfg())
     assert (g.positions, g.word, g.gloss) == ((4,), "قَلَىٰ", "ما أبْغَضك.")
 
 
 def test_entry_for_another_ayah_is_left_out():
     e = entry("17:30", "فَلا تُسْرِفْ فِي الْقَتْلِ", "...")
     text = "إِنَّ رَبَّكَ يَبْسُطُ ٱلرِّزْقَ لِمَن يَشَآءُ وَيَقْدِرُ ۚ إِنَّهُۥ كَانَ بِعِبَادِهِۦ خَبِيرًۢا بَصِيرًا"
-    assert anchor([e], text, cfg()) == []
+    assert anchor(AyahRef(17, 30), [e], text, cfg()) == []
+
+
+def test_headwords_config_forms():
+    parsed = parse_headwords({"93:2": "سجى", "20:131": "زهرة الحياة", "2:2": ["ريب", "هدى"],
+                              5582: "x"})
+    assert parsed["93:2"] == [("x",)]          # 93:2 written without quotes reads as 5582
+    assert parsed["20:131"] == [("زهرة", "الحياة")]
+    assert parsed["2:2"] == [("ريب",), ("هدى",)]
+
+
+@pytest.mark.parametrize("bad", [{"93:2": "ثلاث كلمات هنا"}, {"93:2": ""}, {"sajā": "سجى"},
+                                 {"93:2": {"وَاللَّيْلِ إِذَا سَجَى": "سَجَى"}}])
+def test_headwords_config_errors(bad):
+    with pytest.raises(SystemExit):
+        parse_headwords(bad)
+
+
+def test_repository_glosses_yaml_is_valid():
+    from quran_reels import config
+
+    root = Path(__file__).resolve().parents[1]
+    assert config.load(root).gloss_headwords["93:2"] == [("سجى",)]

@@ -38,7 +38,7 @@ e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis 
 
 ```
 config/            project.yaml (choix éditoriaux), backgrounds.yaml (fonds sélectionnés),
-                   glosses.yaml (corrections éditoriales : mot surligné par glose)
+                   glosses.yaml (choix éditoriaux : 1 ou 2 mots surlignés par glose)
 src/quran_reels/
   models.py        AyahRef, Ayah, GlossEntry, WordGloss, Passage, Reel, PublishResult
   config.py        chargement de config/, chemins (.cache/, out/)
@@ -116,10 +116,16 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   et marques coraniques supprimés, alif/ya unifiés, puis squelette sans alif + similarité).
   Ibn Qutaybah cite souvent plusieurs mots («وَاللَّيْلِ إِذَا سَجَى», «حَبِطَتْ أَعْمَالُهُمْ»).
   Par défaut on surligne toute la citation, particules de bord retirées («فَإِنْ عُثِرَ» →
-  عُثِرَ) : deviner un seul mot s'est révélé faux une fois sur deux sur le corpus. Réduire à un
-  mot est un choix éditorial dans `config/glosses.yaml` (93:2 → سجى, comme la maquette).
-  Sur le corpus : ~97 % des entrées s'ancrent ; les autres (entrée rattachée à une autre ayah
-  dans la source, citation à cheval sur deux ayahs « * ») sont omises, jamais devinées.
+  عُثِرَ) : deviner un seul mot s'est révélé faux une fois sur deux sur le corpus.
+- Choix éditorial (validé) : **1 ou 2 mots** de la citation dans `config/glosses.yaml`,
+  `"93:2": سجى` (comme la maquette), `"20:131": زهرة الحياة`, ou une liste pour deux gloses
+  d'une même ayah `"2:2": [ريب, هدى]`. Diacritiques facultatifs, imla'i ou uthmani. Plus de
+  2 mots → erreur ; mot absent de la citation → avertissement et citation entière gardée.
+  Deux mots non contigus s'affichent « خَتَمَ … قُلُوبِهِمْ ». Clé sans guillemets (`93:2:`)
+  acceptée (YAML la lit en base 60, on la décode).
+- Sur le corpus complet (2 394 ayahs, 3 561 entrées) : 96 % des entrées s'ancrent, 2 301 ayahs
+  affichent au moins une glose. Les autres (entrée rattachée à une autre ayah dans la source,
+  citation à cheval sur deux ayahs « * ») sont omises, jamais devinées.
 
 ## Secrets (jamais dans le code ni dans la conversation)
 

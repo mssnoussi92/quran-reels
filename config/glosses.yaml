@@ -1,13 +1,15 @@
 # Editorial choices for word meanings. The gloss text itself is never edited here.
 #
-# headwords: which words of the source's quotation are highlighted in the ayah and shown in
-# the box. By default it is the whole quotation, minus the particles at its edges
-# («فَإِنْ عُثِرَ» → عُثِرَ). Ibn Qutaybah often quotes some context before the difficult word;
-# to highlight only that word, write the quotation as the source gives it and the word(s):
+# By default the whole quotation of Ibn Qutaybah is highlighted, minus the particles at its
+# edges («فَإِنْ عُثِرَ» → عُثِرَ). To highlight one or two of its words instead:
 #
-#   "S:A":
-#     "<quotation, as in the source>": "<word(s) to highlight>"
+#   "93:2": سجى                  one word
+#   "20:131": زهرة الحياة         two words
+#   "2:2": [ريب, هدى]             two glosses in the same ayah, one choice each
+#
+# Diacritics are optional and either spelling works (سجى = سَجَىٰ). A word that is not in the
+# quotation is reported when rendering, and the whole quotation is kept. Two words that are
+# not next to each other are shown with «…» between them in the box.
 
 headwords:
-  "93:2":                                   # as in the validated mockup
-    "وَاللَّيْلِ إِذَا سَجَى": "سَجَى"
+  "93:2": سجى                    # as in the validated mockup
