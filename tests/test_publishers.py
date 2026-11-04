@@ -241,3 +241,14 @@ def test_non_json_error_body_never_shows_the_token():
     with pytest.raises(GraphError) as e:
         g.get("me")
     assert "bad request for ***" in str(e.value) and TOKEN not in str(e.value)
+
+
+def test_failed_upload_reports_the_container_status(reel):
+    routes = instagram_routes() | {
+        ("POST", "/ig-api-upload/v24.0/222"): Resp(
+            {"debug_info": {"type": "ProcessingFailedError", "message": "Request processing failed"}},
+            400),
+        ("GET", "/222"): {"status_code": "ERROR", "status": "Error: 2207026"},
+    }
+    r = InstagramPublisher(graph(routes), IG, poll_interval=0).publish(reel, dry_run=True)
+    assert r.status is PublishStatus.FAILED and "container: ERROR Error: 2207026" in r.error

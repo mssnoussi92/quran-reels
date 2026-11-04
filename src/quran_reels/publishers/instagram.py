@@ -31,6 +31,14 @@ class InstagramPublisher:
             raise GraphError(f"instagram container {container_id}: {code} {c.get('status', '')}")
         return code in ("FINISHED", "PUBLISHED"), code
 
+    def _explain(self, container_id: str) -> str:
+        """What Instagram says about a container, often more precise than the upload error."""
+        try:
+            c = self.graph.get(container_id, fields="status_code,status")
+        except GraphError as e:
+            return f"status unavailable ({e})"
+        return f"{c.get('status_code', '?')} {c.get('status', '')}".strip()
+
     def _quota(self) -> None:
         data = (self.graph.get(f"{self.ig_user_id}/content_publishing_limit",
                                fields="quota_usage,config").get("data") or [{}])[0]
@@ -50,7 +58,10 @@ class InstagramPublisher:
             container = self.graph.post(f"{self.ig_user_id}/media", **params)
             cid = str(container["id"])
             url = container.get("uri") or f"{RUPLOAD}/ig-api-upload/{self.graph.version}/{cid}"
-            self.graph.upload(url, reel.video, f"upload instagram container {cid}")
+            try:
+                self.graph.upload(url, reel.video, f"upload instagram container {cid}")
+            except GraphError as e:
+                raise GraphError(f"{e}; container: {self._explain(cid)}") from None
             wait(lambda: self._status(cid), f"instagram container {cid}",
                  self.timeout, self.poll_interval)
             if dry_run:
