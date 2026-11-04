@@ -1,10 +1,12 @@
 name: publish-test
 
-# Manual test of the Facebook and Instagram publishers.
+# Manual test of the publishers.
 #   dry-run  Facebook: reel left as a draft (Meta Business Suite → Content → Drafts).
 #            Instagram: container uploaded and processed, not published (dropped after 24 h).
-#   publish  really posts. Type PUBLIER in "confirm" to allow it.
-# Every run checks the Page token first and fails if its data access expires in < 14 days.
+#            TikTok: draft mode either way, the reel goes to the TikTok inbox, never public.
+#   publish  really posts on Facebook and Instagram. Type PUBLIER in "confirm" to allow it.
+# Every run checks the Meta Page token first and fails if its data access expires in < 14 days.
+# TikTok needs the tiktok-auth workflow to have run once (TIKTOK_REFRESH_TOKEN).
 
 on:
   workflow_dispatch:
@@ -21,7 +23,7 @@ on:
       platforms:
         description: "Where"
         type: choice
-        options: [facebook+instagram, facebook, instagram]
+        options: [facebook+instagram, facebook, instagram, tiktok, facebook+instagram+tiktok]
         default: facebook+instagram
       confirm:
         description: "For mode publish only: type PUBLIER"
@@ -32,7 +34,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: meta-publish        # never two uploads to the same accounts at once
+  group: accounts            # never two runs using the same accounts or tokens at once
   cancel-in-progress: false
 
 jobs:
@@ -43,6 +45,10 @@ jobs:
       META_PAGE_ID: ${{ secrets.META_PAGE_ID }}
       META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN }}
       IG_USER_ID: ${{ secrets.IG_USER_ID }}
+      TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
+      TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
+      TIKTOK_REFRESH_TOKEN: ${{ secrets.TIKTOK_REFRESH_TOKEN }}
+      GH_SECRETS_TOKEN: ${{ secrets.GH_SECRETS_TOKEN }}     # saves TikTok's new refresh token
       PASSAGE: ${{ inputs.passage }}
       MODE: ${{ inputs.mode }}
       PLATFORMS: ${{ inputs.platforms }}
@@ -62,8 +68,9 @@ jobs:
       - name: Install
         run: pip install -e .
       - name: Check the Meta token
+        if: contains(inputs.platforms, 'facebook') || contains(inputs.platforms, 'instagram')
         run: |
-          set -- $(echo "$PLATFORMS" | tr '+' ' ' | sed 's/[^ ]*/--platform &/g')
+          set -- $(echo "$PLATFORMS" | tr '+' '\n' | grep -v tiktok | sed 's/^/--platform /')
           quran-reels meta-check "$@"
       - name: Install ffmpeg and Chromium
         run: |

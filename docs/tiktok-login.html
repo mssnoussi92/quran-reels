@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<title>Connect TikTok · Quran Words Daily</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  label { display: block; margin: 6px 0; color: var(--muted); font-size: 15px; }
+  input { width: 100%; font: 15px ui-monospace, Menlo, monospace; padding: 12px; border-radius: 10px;
+    border: 1px solid rgba(246,200,107,.35); background: #0a0f26; color: var(--text); }
+  button { margin-top: 14px; }
+  button[disabled] { opacity: .5; cursor: default; }
+  ol li { margin: 4px 0; }
+</style>
+</head>
+<body>
+<main>
+  <header class="site">
+    <a class="brand" href="./">Quran Words Daily</a>
+    <nav><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></nav>
+  </header>
+
+  <h1>Connect TikTok</h1>
+  <p class="muted">For the owner of this project. Connects the TikTok account that receives the daily
+    drafts. The page runs in your browser only: the client key is not stored and is sent nowhere
+    except to TikTok, inside the sign-in address.</p>
+
+  <div class="card">
+    <label for="key">Client key (TikTok for Developers → app → Sandbox → Credentials)</label>
+    <input id="key" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="text">
+    <button id="go" disabled>Continue to TikTok</button>
+  </div>
+
+  <h2>Then</h2>
+  <ol>
+    <li>Sign in with the test account and allow <em>user info</em> and <em>video upload</em>.</li>
+    <li>TikTok sends you back to the callback page: copy the code.</li>
+    <li>Within a few minutes, on GitHub: Actions → <strong>tiktok-auth</strong> → Run workflow →
+      paste the code.</li>
+  </ol>
+
+  <footer>Quran Words Daily · <a href="privacy.html">Privacy Policy</a> · <a href="terms.html">Terms of Service</a></footer>
+</main>
+<script>
+  (function () {
+    var REDIRECT = "https://mssnoussi92.github.io/quran-reels/tiktok-callback.html";
+    var SCOPES = "user.info.basic,video.upload";
+    var key = document.getElementById("key"), go = document.getElementById("go");
+    key.addEventListener("input", function () { go.disabled = !key.value.trim(); });
+    go.addEventListener("click", function () {
+      var bytes = new Uint8Array(12);
+      crypto.getRandomValues(bytes);
+      var state = Array.from(bytes, function (b) { return b.toString(16).padStart(2, "0"); }).join("");
+      var params = [
+        ["client_key", key.value.trim()], ["scope", SCOPES], ["response_type", "code"],
+        ["redirect_uri", REDIRECT], ["state", state]
+      ].map(function (kv) {
+        return kv[0] + "=" + encodeURIComponent(kv[1]).replace(/%2C/g, ",");
+      }).join("&");
+      window.location.href = "https://www.tiktok.com/v2/auth/authorize/?" + params;
+    });
+  })();
+</script>
+</body>
+</html>

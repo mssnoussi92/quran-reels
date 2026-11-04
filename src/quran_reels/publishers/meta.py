@@ -7,8 +7,6 @@ Graph error, never from the request URL, so it cannot end up in a log.
 from __future__ import annotations
 
 import os
-import time
-from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -17,6 +15,7 @@ from typing import Any
 import requests
 
 from quran_reels import __version__
+from quran_reels.publishers.base import PublisherError, wait  # noqa: F401 (re-export)
 
 GRAPH = "https://graph.facebook.com"
 RUPLOAD = "https://rupload.facebook.com"
@@ -33,10 +32,8 @@ RENEW = (
 )
 
 
-class GraphError(RuntimeError):
-    def __init__(self, message: str, transient: bool = False):
-        super().__init__(message)
-        self.transient = transient      # network error or HTTP 5xx: worth asking again
+class GraphError(PublisherError):
+    pass
 
 
 class TokenProblem(RuntimeError):
@@ -89,31 +86,6 @@ class Graph:
                    "Content-Type": "application/octet-stream"}
         with video.open("rb") as f:
             return self._call("POST", url, what, data=f, headers=headers)
-
-
-def wait(check: Callable[[], tuple[bool, Any]], what: str, timeout: float = 900,
-         interval: float = 10) -> Any:
-    """Call check() until it reports done; check raises on a terminal error.
-
-    Up to 3 transient errors in a row are tolerated: the upload is already done and the
-    platform keeps processing it, whatever happens to one status request.
-    """
-    deadline = time.monotonic() + timeout
-    transient = 0
-    while True:
-        try:
-            done, value = check()
-            transient = 0
-        except GraphError as e:
-            transient += 1
-            if not e.transient or transient > 3:
-                raise
-            done, value = False, None
-        if done:
-            return value
-        if time.monotonic() > deadline:
-            raise GraphError(f"{what}: still processing after {timeout:.0f} s")
-        time.sleep(interval)
 
 
 @dataclass

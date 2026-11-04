@@ -29,6 +29,10 @@
   faite seulement via l'Espace Comptes n'expose pas `instagram_business_account` à l'API.
 - Secrets GitHub configurés : `META_PAGE_ID`, `META_PAGE_TOKEN` (jeton de Page, sans expiration,
   accès aux données jusqu'au 2027-02-02), `IG_USER_ID`.
+- **Dry-run du 2026-11-04 (run #1) : échec au contrôle**, `META_PAGE_TOKEN` contient un jeton
+  **USER**, pas un jeton de Page. À refaire : jeton utilisateur prolongé → `me/accounts` →
+  `access_token` de la Page 1494879297031390 (le débogueur doit afficher Type : Page,
+  Expiration : Jamais) → mettre à jour le secret.
 
 ### Publication (implémentée, `src/quran_reels/publishers/`)
 
@@ -81,6 +85,44 @@ Le bouton « Run workflow » n'apparaît que pour un workflow présent sur `main
 - **État (2026-11-04) :** app « Quran Words Daily Publisher » créée, URL vérifiée, Sandbox
   `qwd-sandbox` avec l'utilisateur test `quran_words_daily`. Secrets GitHub : `TIKTOK_CLIENT_KEY`,
   `TIKTOK_CLIENT_SECRET` (identifiants **Sandbox**). Production non soumise.
+
+### Publication TikTok (implémentée, `publishers/tiktok.py`, mode brouillon)
+
+- À chaque publication : `POST /v2/oauth/token/` (`grant_type=refresh_token`) → jeton d'accès
+  24 h. Si TikTok renvoie un **nouveau refresh token**, il remplace aussitôt le secret
+  `TIKTOK_REFRESH_TOKEN` (avant l'envoi de la vidéo), via `gh secret set` et `GH_SECRETS_TOKEN`.
+  Les jetons obtenus en cours de route sont masqués dans les logs (`::add-mask::`).
+- Envoi : `POST /v2/post/publish/inbox/video/init/` (`FILE_UPLOAD`, un seul morceau jusqu'à
+  64 Mo, sinon morceaux de 10 Mo) → `PUT` de la vidéo (`Content-Range`) →
+  `POST /v2/post/publish/status/fetch/` jusqu'à `SEND_TO_USER_INBOX`. Le propriétaire reçoit
+  une notification et termine la publication dans l'app (légende : `caption.txt` de l'artefact).
+  TikTok garde au plus 5 brouillons en attente par 24 h.
+- Dry-run = même envoi dans la boîte : rien n'est jamais public en mode brouillon.
+
+### Connexion TikTok (une fois, puis ≈ 1 fois par an)
+
+1. Ouvrir `https://mssnoussi92.github.io/quran-reels/tiktok-login.html`, coller la *client key*
+   (TikTok for Developers → app → Sandbox → Credentials ; c'est un identifiant public, la page
+   ne l'enregistre ni ne l'envoie ailleurs qu'à TikTok) → Continue to TikTok.
+   Pourquoi une page et pas un workflow : les logs Actions d'un dépôt public sont publics.
+2. Se connecter avec `quran_words_daily`, accepter → `tiktok-callback.html` affiche le code.
+3. Dans les minutes qui suivent : Actions → **tiktok-auth** → coller le code → Run. Le code est
+   lu dans le fichier d'événement (jamais affiché), échangé avec `TIKTOK_CLIENT_SECRET`, et le
+   refresh token est enregistré dans `TIKTOK_REFRESH_TOKEN`. Le résumé affiche le compte.
+4. Tester : **publish-test**, plateforme `tiktok`.
+
+`quran-reels tiktok-auth-url` donne la même adresse en ligne de commande (homelab).
+
+### `GH_SECRETS_TOKEN` (jeton fin GitHub, pour écrire le secret TikTok)
+
+github.com → photo de profil → Settings → Developer settings → Personal access tokens →
+**Fine-grained tokens** → Generate new token :
+- Token name `quran-reels-secrets` ; Expiration : la plus longue proposée (noter la date) ;
+- Resource owner `mssnoussi92` ; Repository access : **Only select repositories** → `quran-reels` ;
+- Permissions → Repository permissions → **Secrets : Read and write** (Metadata : lecture seule,
+  ajouté d'office). Rien d'autre.
+- Generate token → copier (affiché une seule fois) → dépôt → Settings → Secrets and variables →
+  Actions → New repository secret → nom `GH_SECRETS_TOKEN`.
 
 ## YouTube Shorts — manuel puis automatique après audit
 

@@ -1,0 +1,40 @@
+name: tiktok-auth
+
+# One-time TikTok sign-in (again if the refresh token is lost or expires, about once a year).
+# 1. https://mssnoussi92.github.io/quran-reels/tiktok-login.html → TikTok → copy the code.
+# 2. Run this workflow within a few minutes with that code.
+# The code is exchanged here with TIKTOK_CLIENT_SECRET; the refresh token is saved into the
+# TIKTOK_REFRESH_TOKEN secret with GH_SECRETS_TOKEN (fine-grained token, Secrets: read and
+# write on this repository). The code is read from the event file and never shown in the log.
+
+on:
+  workflow_dispatch:
+    inputs:
+      code:
+        description: "Code shown by tiktok-callback.html"
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: accounts            # one run at a time touching the platform tokens
+  cancel-in-progress: false
+
+jobs:
+  exchange:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: pip install -e .
+      - name: Exchange the code and save the refresh token
+        env:
+          TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
+          TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
+          GH_SECRETS_TOKEN: ${{ secrets.GH_SECRETS_TOKEN }}
+        run: quran-reels tiktok-auth
