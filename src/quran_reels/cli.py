@@ -60,6 +60,23 @@ def main(argv: list[str] | None = None) -> int:
         d.add_argument("--check", action="store_true", help="only say whether a slot is due")
         d.add_argument("--force", action="store_true", help="even if schedule.enabled is false")
 
+    img = sub.add_parser("images", help="daily image posts (docs/images.md)")
+    img_sub = img.add_subparsers(dest="images_command", required=True)
+    b = img_sub.add_parser("build", help="rules 1-4 → config/image-candidates.yaml")
+    b.add_argument("--surah", type=int, action="append", help="only this surah (repeatable)")
+    for name, text in (("next", "what the next days post (nothing is published)"),
+                       ("render", "render the next days' posts into out/images/ (preview)")):
+        n = img_sub.add_parser(name, help=text)
+        n.add_argument("--days", type=int, default=7)
+        n.add_argument("--kind", default="word", choices=["word", "ayah"])
+        n.add_argument("--from", dest="start", help="first day, YYYY-MM-DD (default: today)")
+        n.add_argument("--state", default="state/images.json")
+    r = img_sub.add_parser("run", help="post the image formats due now (config/images.yaml)")
+    r.add_argument("--state", default="state/images.json")
+    r.add_argument("--now", help="ISO date-time instead of now, for tests")
+    r.add_argument("--dry-run", action="store_true", help="nothing posted, state unchanged")
+    r.add_argument("--check", action="store_true", help="only say whether a post is due")
+
     note = sub.add_parser("notify", help="GitHub issues: failure alert, captions to copy")
     note.add_argument("--outcome", required=True, help="the job status: success or failure")
     note.add_argument("--run-url", required=True)
@@ -188,6 +205,9 @@ def main(argv: list[str] | None = None) -> int:
                          check=args.check, force=args.force,
                          report=cfg.out / "daily-report.json")
 
+    if args.command == "images":
+        return _images(cfg, args)
+
     if args.command == "notify":
         from pathlib import Path
 
@@ -202,3 +222,69 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+def _images(cfg: config.Config, args) -> int:
+    from datetime import UTC, date, datetime
+    from pathlib import Path
+
+    from quran_reels.images import candidates as cand_mod
+    from quran_reels.images import daily as images_daily
+    from quran_reels.images.select import ImageState, load_exclusions, upcoming
+    from quran_reels.sources import Sources
+
+    if args.images_command == "build":
+        src = Sources.from_config(cfg)
+        words_out, ayahs_out, left_out = cand_mod.build(cfg, src, surahs=args.surah)
+        if args.surah:
+            print(f"{len(words_out)} words, {len(ayahs_out)} ayahs (not written: --surah)")
+            for c in words_out:
+                print(c.row())
+            return 0
+        path = cand_mod.write(cfg, words_out, ayahs_out, left_out)
+        print(f"{path}: {len(words_out)} words, {len(ayahs_out)} ayahs")
+        for reason, n in sorted(left_out.items()):
+            print(f"  left out, {reason}: {n}")
+        return 0
+
+    if args.images_command == "run":
+        now = datetime.fromisoformat(args.now) if args.now else None
+        return images_daily.run(cfg, Path(args.state), now=now, dry_run=args.dry_run,
+                                check=args.check, report=cfg.out / "images-report.json")
+
+    # next / render: the coming days, from the state, nothing published
+    settings = images_daily.settings(cfg)
+    conf = (settings.get("formats") or {}).get(args.kind) or {}
+    start = date.fromisoformat(args.start) if args.start else datetime.now(UTC).date()
+    picks = upcoming(cand_mod.load(cfg, args.kind), ImageState.load(Path(args.state)),
+                     args.kind, conf.get("seed", "quran-words-daily"), load_exclusions(cfg),
+                     start, args.days)
+    if not conf.get("enabled"):
+        print(f"({args.kind} is disabled in config/images.yaml: this is what it would post)")
+    src = Sources.from_config(cfg)
+    src.quran.ensure(src.translation_slug)
+    if args.images_command == "next":
+        from quran_reels.arabic import words
+        from quran_reels.models import AyahRef
+        from quran_reels.passage import shown_words
+
+        for day, c in picks:
+            name = src.quran.chapters[c.surah]["name_simple"]
+            what = ""
+            if c.kind == "word":
+                ref = AyahRef(c.surah, c.ayah)
+                what = shown_words(words(src.quran.text([ref])[ref]), c.positions)
+            a, b = c.context
+            shown = f"{c.surah}:{a}" if a == b else f"{c.surah}:{a}-{b}"
+            print(f"{day:%a %Y-%m-%d}  {c.key:<9} {name:<16} {what:<18} image 2: {shown}")
+        return 0
+
+    from quran_reels.images.cards import CardRenderer
+
+    with CardRenderer(cfg) as renderer:
+        for day, c in picks:
+            post = images_daily.render(cfg, src, args.kind, day, c, cfg.out / "images",
+                                       renderer=renderer)
+            print(f"{day}  {c.key}  {post.folder}")
+    return 0
+
