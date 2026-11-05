@@ -128,7 +128,9 @@ publier, sur la vidéo non publiée :
   `copyright_check_information` sur la vidéo **publiée** pendant les minutes qui suivent, et
   retirer le post + alerter en cas de correspondance.
 
-### Contrôle après publication (2026-11-05)
+### Contrôle après publication (2026-11-05, désactivé pour l'instant)
+
+**État : `platforms.meta.rights_after_timeout: 0` (désactivé), le propriétaire vérifie lui-même chaque nouveau reel sur Facebook avant Instagram.** Revendiqués le 2026-11-05 : Ar-Rifai (24 territoires) et Al-Ghamdi (UMG, Russie), quelques minutes après la publication. Mettre une durée (300) pour l'activer.
 
 La vérification avant publication n'a vu ni Alafasy (93:1-11) ni Nabil Ar-Rifai (2:255, rendue
 muette par Facebook dans 24 territoires « où Meta ne dispose pas des droits musicaux » : Iran,
