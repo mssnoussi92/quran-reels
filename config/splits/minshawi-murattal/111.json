@@ -1,0 +1,38 @@
+{
+ "source": "https://cdn.mp3quran.net/audio/muhammad-minshawi/r1/111.mp3",
+ "method": "ayah starts from mp3quran.net (read 112), cut at the quietest moment nearby; each segment recognised by tarteel-ai/whisper-base-ar-quran",
+ "segments": {
+  "basmala": [
+   0.0,
+   4.95
+  ],
+  "1": [
+   4.95,
+   12.178
+  ],
+  "2": [
+   12.259,
+   19.445
+  ],
+  "3": [
+   19.445,
+   24.583
+  ],
+  "4": [
+   24.583,
+   30.019
+  ],
+  "5": [
+   30.019,
+   35.958
+  ]
+ },
+ "match": {
+  "basmala": 1.0,
+  "1": 1.0,
+  "2": 1.0,
+  "3": 1.0,
+  "4": 1.0,
+  "5": 1.0
+ }
+}
