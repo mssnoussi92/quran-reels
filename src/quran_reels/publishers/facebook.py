@@ -3,7 +3,10 @@
 prepare: start → binary upload to rupload.facebook.com → finish with video_state=DRAFT → wait
 for processing. The reel is then a draft in Meta Business Suite (Content → Drafts).
 rights: copyright_check_information of the draft (publishers/rights.py).
-commit: finish again with video_state=PUBLISHED, wait until it is live.
+commit: the same file uploaded again, finished with video_state=PUBLISHED, then the draft
+deleted. A draft reel cannot be published through the API: its upload session ended with the
+draft, and finishing it again fails («The video was not uploaded», code 6000, subcode 1363130,
+publish-test run #18, 2026-11-05).
 A dry run stops after the check: the draft stays unpublished.
 """
 
@@ -42,14 +45,18 @@ class FacebookPublisher:
         live = (status.get("publishing_phase") or {}).get("status") == "complete"
         return processed and (live or not published), status
 
-    def prepare(self, reel: Reel) -> str:
-        """Id of a processed, unpublished draft reel."""
+    def _upload(self, reel: Reel, state: str) -> str:
         start = self.graph.post(f"{self.page_id}/video_reels", upload_phase="start")
         video_id = str(start["video_id"])
         url = start.get("upload_url") or f"{RUPLOAD}/video-upload/{self.graph.version}/{video_id}"
         self.graph.upload(url, reel.video, f"upload facebook reel {video_id}")
         self.graph.post(f"{self.page_id}/video_reels", upload_phase="finish", video_id=video_id,
-                        video_state="DRAFT", description=reel.text(self.max_hashtags))
+                        video_state=state, description=reel.text(self.max_hashtags))
+        return video_id
+
+    def prepare(self, reel: Reel) -> str:
+        """Id of a processed, unpublished draft reel."""
+        video_id = self._upload(reel, "DRAFT")
         wait(lambda: self._status(video_id, published=False), f"facebook reel {video_id}",
              self.timeout, self.poll_interval)
         return video_id
@@ -58,18 +65,21 @@ class FacebookPublisher:
         return rights.check(self.graph, self.name, video_id, self.rights_timeout,
                             self.poll_interval)
 
-    def commit(self, video_id: str, reel: Reel) -> PublishResult:
-        """Publish the checked draft."""
+    def commit(self, draft_id: str, reel: Reel) -> PublishResult:
+        """Publish the checked video: uploaded again straight to PUBLISHED, draft deleted."""
         try:
-            self.graph.post(f"{self.page_id}/video_reels", upload_phase="finish",
-                            video_id=video_id, video_state="PUBLISHED",
-                            description=reel.text(self.max_hashtags))
+            video_id = self._upload(reel, "PUBLISHED")
             wait(lambda: self._status(video_id, published=True), f"facebook reel {video_id}",
                  self.timeout, self.poll_interval)
         except (PublisherError, KeyError) as e:
-            return PublishResult(self.name, PublishStatus.FAILED, remote_id=video_id,
+            return PublishResult(self.name, PublishStatus.FAILED, remote_id=draft_id,
                                  error=f"{e} (draft checked but not published: Meta Business "
                                        "Suite → Content → Drafts)")
+        try:
+            if draft_id != video_id:
+                self.graph.delete(draft_id)
+        except GraphError:
+            pass                        # a leftover draft in Business Suite, harmless
         link = None
         try:
             link = self.graph.get(video_id, fields="permalink_url").get("permalink_url")
