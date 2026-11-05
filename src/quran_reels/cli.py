@@ -46,6 +46,12 @@ def main(argv: list[str] | None = None) -> int:
     split.add_argument("passages", nargs="*", help="surahs (114) or passages (2:255-257): "
                                                    "only their ayahs are checked")
     split.add_argument("--force", action="store_true", help="check again what is checked")
+    split.add_argument("--audit", action="store_true",
+                       help="check the cuts of the committed splits of these surahs (each ayah "
+                            "keeps its words) and add the word times of long ayahs")
+    split.add_argument("--fix", action="store_true",
+                       help="with --audit: split again the surahs with a bad cut, checking "
+                            "again every ayah that was checked")
     split.add_argument("--upcoming", type=int, metavar="DAYS",
                        help="the passages of the next DAYS days, for every reciter of "
                             "content.rotation (the prepare workflow)")
@@ -194,6 +200,28 @@ def main(argv: list[str] | None = None) -> int:
         from quran_reels.sources.surah_audio import MIN_MATCH
 
         src.quran.ensure(src.translation_slug)
+        if args.audit:
+            bad = 0
+            for key in args.passages:
+                surah = parse_passage(key if ":" in key else f"{key}:1-1")[0]
+                if not src.audio.split_path(surah).is_file():
+                    continue
+                problems = src.audio.audit(surah)
+                for label, problem in problems.items():
+                    print(f"{src.audio.reciter} {surah}:{label}: {problem}")
+                if problems and args.fix:
+                    checked = {k for k, v in src.audio.matches(surah).items() if v >= MIN_MATCH}
+                    try:
+                        src.audio.make_split(surah, checked)
+                        problems = src.audio.audit(surah)
+                    except SystemExit as e:
+                        print(e, file=sys.stderr)
+                    for label, problem in problems.items():
+                        print(f"{src.audio.reciter} {surah}:{label}: still {problem}")
+                bad += bool(problems)
+                print(f"{src.audio.reciter} {surah}: "
+                      + ("cuts ok" if not problems else f"{len(problems)} segments to fix"))
+            return 1 if bad else 0
         failed = []
         for key in args.passages:
             surah, start, end = parse_passage(key if ":" in key else f"{key}:1-999")

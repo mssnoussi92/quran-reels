@@ -42,6 +42,20 @@ def ayah_context(passage: Passage, ayah: Ayah, basmala: bool = False,
     }
 
 
+def part_context(passage: Passage, ayah: Ayah, first_token: int, end_token: int,
+                 translation: str, first: bool = False) -> dict[str, Any]:
+    """One screen of a long ayah (render/screens.py): its words, their translation, the glosses
+    of its words; the ayah number on the last screen only."""
+    ctx = ayah_context(passage, ayah, first=first)
+    ctx["tokens"] = ctx["tokens"][first_token:end_token]
+    if end_token < len(words(ayah.text)):
+        ctx["ayah_number"] = ""
+    ctx["translation"] = translation
+    ctx["glosses"] = [{"word": g.word, "gloss": g.gloss} for g in ayah.glosses
+                      if g.positions and first_token <= min(g.positions) < end_token]
+    return ctx
+
+
 class FrameRenderer:
     """One browser for all the frames of a reel. Use as a context manager."""
 

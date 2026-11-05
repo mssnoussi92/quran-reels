@@ -38,6 +38,7 @@ class Timeline:
     ayah_samples: list[int]     # recitation length of each ayah
     lead_samples: int           # silence before the first ayah
     total_frames: int
+    screens: list[int] | None = None   # samples of each content screen (a long ayah: several)
 
     @property
     def samples_per_frame(self) -> int:
@@ -48,10 +49,11 @@ class Timeline:
         return self.total_frames / self.fps
 
     def frame_counts(self) -> list[int]:
-        """Video frames for each ayah's image; the first absorbs the lead, the last the tail."""
+        """Video frames for each screen's image (one per ayah, or the parts of a long one);
+        the first absorbs the lead, the last the tail."""
         spf = self.samples_per_frame
         bounds, acc = [0], self.lead_samples
-        for n in self.ayah_samples[:-1]:
+        for n in (self.screens or self.ayah_samples)[:-1]:
             acc += n
             bounds.append(round(acc / spf))
         bounds.append(self.total_frames)
@@ -66,14 +68,17 @@ class Timeline:
         return out
 
 
-def build_timeline(ayah_samples: list[int], fps: int, lead: float, tail: float) -> Timeline:
+def build_timeline(ayah_samples: list[int], fps: int, lead: float, tail: float,
+                   screens: list[int] | None = None) -> Timeline:
     if SAMPLE_RATE % fps:
         raise ValueError(f"fps {fps} must divide {SAMPLE_RATE}")
     spf = SAMPLE_RATE // fps
     lead_samples = round(lead * SAMPLE_RATE)
     end = lead_samples + sum(ayah_samples) + round(tail * SAMPLE_RATE)
+    if screens is not None and sum(screens) != sum(ayah_samples):
+        raise ValueError("screens must split the ayahs' samples")
     return Timeline(fps=fps, ayah_samples=ayah_samples, lead_samples=lead_samples,
-                    total_frames=-(-end // spf))
+                    total_frames=-(-end // spf), screens=screens)
 
 
 def write_audio(wavs: list[Path], timeline: Timeline, dest: Path) -> Path:
