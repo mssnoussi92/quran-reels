@@ -222,7 +222,8 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   seul atteignait 22 Mb/s, 180 Mo la minute). Scènes générées (`sources/scenes/*.frag`,
   `vec3 scene(uv, t)`) : dessinées par WebGL dans Chromium lancé directement (pas Playwright,
   dont la surveillance réseau copie chaque image), 540×960, boucle de 30 s dont les 5 premières
-  secondes fondent t + 30 dans t, ≈ 3–4 min la première fois, puis en cache.
+  secondes fondent t + 30 dans t, ≈ 3–4 min la première fois (4 min 30 sur un runner
+  GitHub, run #4 du 2026-11-05), puis en cache. Fichier temporaire propre à chaque processus.
   Sans aucun fond listé : boucle de 12 s générée (numpy) dans la palette de la
   maquette, ciel de nuit vers l'aube, étoiles qui scintillent, mise en cache.
 - Hashtags (`render.hashtags`, déterministes) : `captions.brand`/`broad` et

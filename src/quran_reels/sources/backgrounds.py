@@ -18,6 +18,7 @@ Without any background listed, a provisional night sky is generated with numpy.
 from __future__ import annotations
 
 import hashlib
+import os
 import re
 import subprocess
 from collections import Counter
@@ -110,7 +111,7 @@ def clip(cfg: Config, bg: Background, http: Http | None = None) -> Path:
     dest = cfg.cache / "backgrounds" / f"clip-{bg.id}-{digest.hexdigest()[:10]}.mp4"
     if dest.is_file():
         return dest
-    raw = dest.with_name(f".raw-{bg.id}.mp4")
+    raw = dest.with_name(f".raw-{bg.id}-{os.getpid()}.mp4")
     (http or Http(timeout=120)).download(bg.file, raw, min_bytes=200_000)
     try:
         make_loop(raw, dest, w, h, fps, bg.focus, blur=blur, dim=dim)
@@ -145,7 +146,7 @@ def make_loop(src: Path, dest: Path, w: int, h: int, fps: int, focus: float = .5
          "setpts=PTS-STARTPTS[mix]"),
         "[mix][rest]concat=n=2:v=1:a=0[v]",
     ])
-    tmp = dest.with_name(f".{dest.name}")
+    tmp = dest.with_name(f".{dest.stem}-{os.getpid()}.mp4")   # own file per process
     tmp.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run(
         ["ffmpeg", "-v", "error", "-y", "-i", str(src), "-filter_complex", graph, "-map", "[v]",

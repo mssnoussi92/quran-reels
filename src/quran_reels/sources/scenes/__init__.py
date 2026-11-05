@@ -18,6 +18,7 @@ from __future__ import annotations
 import hashlib
 import http.server
 import json
+import os
 import subprocess
 import tempfile
 import threading
@@ -154,7 +155,7 @@ def render(cfg: Config, name: str, loop: float = 30.0, fade: float = 5.0, width:
     if dest.is_file():
         return dest
     dest.parent.mkdir(parents=True, exist_ok=True)
-    tmp = dest.with_name(f".{dest.name}")
+    tmp = dest.with_name(f".{dest.stem}-{os.getpid()}.mp4")   # own file per process
     total = round(seconds * fps)
 
     encoder = subprocess.Popen(
@@ -188,10 +189,11 @@ def render(cfg: Config, name: str, loop: float = 30.0, fade: float = 5.0, width:
             server.shutdown()
             server.server_close()
             encoder.stdin.close()
-    if encoder.wait() != 0 or server.error or server.frames != total:
+    code = encoder.wait()
+    if code != 0 or server.error or server.frames != total:
         tmp.unlink(missing_ok=True)
-        raise RuntimeError(f"scene {name}: {server.error or 'stopped'} "
-                           f"({server.frames}/{total} frames)")
+        why = server.error or (f"ffmpeg exited with {code}" if code else "Chromium stopped")
+        raise RuntimeError(f"scene {name}: {why} ({server.frames}/{total} frames)")
     tmp.replace(dest)
     return dest
 
