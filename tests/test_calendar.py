@@ -309,6 +309,7 @@ def test_later_runs_take_down_a_reel_claimed_after_its_check(world, two_reciters
     clear = RightsCheck("instagram", "complete", False)
     monkeypatch.setattr(daily.publish_mod, "meta_check", lambda cfg, p: (
         None, SimpleNamespace(page_id="p", ig_user_id="i"), None))
+    monkeypatch.setattr(daily.publish_mod, "after_timeout", lambda cfg: 300)
     monkeypatch.setattr(daily.publish_mod, "meta_publishers", lambda cfg, g, env, p: {
         "facebook": Fake("facebook", muted), "instagram": Fake("instagram", clear)})
     assert daily.run(None, path, now=paris(2026, 11, 5, 19, 20)) == 1    # evening run

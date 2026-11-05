@@ -21,6 +21,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+import time
 from dataclasses import asdict
 from pathlib import Path
 
@@ -136,6 +137,14 @@ def _report(reel: Reel, results: list[PublishResult], dry_run: bool,
     return "\n".join([title, "", *rows, "", token.summary() if token else ""]).rstrip()
 
 
+def after_timeout(cfg: Config | None) -> float:
+    """platforms.meta.rights_after_timeout: how long Meta's check is read on the published
+    reels (publish.after_check, daily.recheck); 0: off, the owner checks by hand."""
+    if getattr(cfg, "project", None) is None:
+        return 0.0
+    return float(_meta(cfg).get("rights_after_timeout", 0))
+
+
 def meta_publishers(cfg: Config, graph: Graph, env: MetaEnv, platforms: list[str]) -> dict:
     rights_timeout = float(_meta(cfg).get("rights_timeout", 600))
     out: dict = {}
@@ -165,17 +174,25 @@ def take_down(publishers: dict, results: dict[str, dict], reason: str) -> None:
             r["error"] = f"ne publie pas ce brouillon TikTok : {reason}"
 
 
-def after_check(publishers: dict, results: dict[str, PublishResult], timeout: float
-                ) -> str | None:
-    """Meta's check read on the published reels; a claim that mutes or blocks one takes the
-    passage down everywhere. The reason, or None when nothing was claimed."""
-    checks = {}
-    for name, r in results.items():
-        if name in publishers and r.status == PublishStatus.PUBLISHED and r.remote_id:
-            checks[name] = publishers[name].rights_after(r.remote_id, timeout)
+def after_check(publishers: dict, results: dict[str, PublishResult], timeout: float,
+                interval: float = 30, clock=time.monotonic, sleep=time.sleep) -> str | None:
+    """Meta's check read on the published reels, again and again for `timeout` seconds: the
+    claims on Ar-Rifai and Al-Ghamdi came minutes after publication, while the field may say
+    complete without a match at once. A claim that mutes or blocks one reel takes the passage
+    down everywhere. The reason, or None when nothing was claimed."""
+    live = {n: r for n, r in results.items()
+            if n in publishers and r.status == PublishStatus.PUBLISHED and r.remote_id}
+    checks: dict = {}
+    start = clock()
+    while live:
+        for name, r in live.items():
+            checks[name] = publishers[name].rights_after(r.remote_id)
             r.rights_after = checks[name].as_dict()
-            print(f"{name}: rights after publication {checks[name].status}: "
-                  f"{checks[name].describe()}", file=sys.stderr)
+            print(f"{name}: rights after publication (+{clock() - start:.0f} s) "
+                  f"{checks[name].status}: {checks[name].describe()}", file=sys.stderr)
+        if any(c.restricted for c in checks.values()) or clock() - start + interval > timeout:
+            break
+        sleep(interval)
     claimed = {n: c for n, c in checks.items() if c.restricted}
     if not claimed:
         return None
@@ -254,10 +271,11 @@ def publish_reel(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
               .rstrip(), file=sys.stderr)
     # 3. Meta's check read again on what went live (it missed Alafasy and Ar-Rifai). Never
     #    lets a publication fail: what went out must still be recorded.
-    if not dry_run:
+    seconds = after_timeout(cfg)                # 0: off
+    if not dry_run and seconds > 0:
         try:
             after_check({n: p for n, p in publishers.items() if n in META}, results,
-                        float(_meta(cfg).get("rights_after_timeout", 300)))
+                        seconds)
         except Exception as e:      # noqa: BLE001
             print(f"warning: rights check after publication failed: {type(e).__name__}: {e}",
                   file=sys.stderr)

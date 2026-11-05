@@ -201,7 +201,7 @@ def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
     meta = [x for x in platforms if x in publish_mod.META]
     checked = publish_mod.meta_check(cfg, meta) if meta else None     # before rendering
     failed = False
-    if checked and not dry_run:
+    if checked and not dry_run and publish_mod.after_timeout(cfg) > 0:
         graph, env, _ = checked
         try:
             failed |= recheck(cfg, sched, state,

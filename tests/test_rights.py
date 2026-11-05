@@ -133,7 +133,7 @@ def world(monkeypatch, tmp_path):
             return PublishResult("tiktok", PublishStatus.DRAFT)
 
     monkeypatch.setattr(publish_mod, "tiktok_publisher", lambda: TikTok())
-    cfg = SimpleNamespace(project={})
+    cfg = SimpleNamespace(project={"platforms": {"meta": {"rights_after_timeout": 1}}})
 
     def go(dry_run=False):
         return {r.platform: r for r in publish_mod.publish_reel(
@@ -210,3 +210,34 @@ def test_dry_run_reports_each_check(world):
     assert results["instagram"].rights["summary"] == "aucune correspondance"
     assert results["tiktok"].status is PublishStatus.BLOCKED       # no TikTok draft either
     assert not [c for c in log if c[0] in ("commit", "publish")]
+
+
+def test_the_check_after_publication_keeps_reading_until_a_late_claim():
+    # Al-Ghamdi, 2026-11-05: complete without a match at first, claimed by UMG minutes later
+    log, t = [], [0.0]
+
+    answers = [CLEAR_AFTER, CLEAR_AFTER, MUTED]
+
+    class Seq(FakeMeta):
+        def rights_after(self, remote_id, timeout=0):
+            return answers.pop(0)
+
+    fb = Seq("facebook", CLEAR, log)
+    results = {"facebook": PublishResult("facebook", PublishStatus.PUBLISHED, remote_id="v1")}
+
+    def sleep(s):
+        t[0] += s
+
+    reason = publish_mod.after_check({"facebook": fb}, results, 300, 30,
+                                     clock=lambda: t[0], sleep=sleep)
+    assert t[0] == 60 and "MUTE" in reason
+    assert results["facebook"].status == PublishStatus.REMOVED and ("remove", "facebook") in log
+
+
+def test_the_check_after_publication_stops_at_its_timeout():
+    t = [0.0]
+    fb = FakeMeta("facebook", CLEAR, [])
+    results = {"facebook": PublishResult("facebook", PublishStatus.PUBLISHED, remote_id="v1")}
+    assert publish_mod.after_check({"facebook": fb}, results, 300, 30, clock=lambda: t[0],
+                                   sleep=lambda s: t.__setitem__(0, t[0] + s)) is None
+    assert t[0] == 300 and results["facebook"].status == PublishStatus.PUBLISHED
