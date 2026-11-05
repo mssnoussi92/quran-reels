@@ -182,8 +182,9 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   et validées par le propriétaire en PR. Les textes viennent toujours des sources au rendu.
   « السبع آيات المنجيات » : la liste du propriétaire (9:51, 6:17, 11:6, 11:56, 29:60, 35:2,
   29:61) ; 11:6 et 29:60 retirées de la série rizq pour ne pas les publier deux fois.
-- Workflow `daily` : cron `13 5,6,7` et `13 17,18,19` UTC (heure d'été et d'hiver, GitHub est
-  souvent en retard) ; `daily --check` décide sans installer ffmpeg ; un créneau commencé ne
+- Workflow `daily` : cron `17 5,6,7` et `17 17,18,19` UTC (heure d'été et d'hiver, GitHub est
+  souvent en retard ; le 2026-11-05, les trois premiers passages à :13 n'ont jamais été lancés
+  par GitHub, minute changée pour réenregistrer le planning) ; `daily --check` décide sans installer ffmpeg ; un créneau commencé ne
   réessaie que les plateformes en échec, avec le même passage ; fenêtre de 3 h.
 - État : `published.json` sur la branche `state` (créée au premier passage du workflow),
   commit après chaque créneau. Un passage compte comme publié dès qu'une plateforme l'a.

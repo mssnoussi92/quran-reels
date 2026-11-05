@@ -6,8 +6,10 @@ name: daily-reel
 # platforms that failed. Nothing is published while schedule.yaml says enabled: false.
 on:
   schedule:
-    - cron: "13 5,6,7 * * *"      # morning slot: 07:13 Paris + two retries, winter or summer
-    - cron: "13 17,18,19 * * *"   # evening slot: 19:13 Paris + two retries
+    # Changed from :13 on 2026-11-05: GitHub never fired the first schedule (05:13, 06:13 and
+    # 07:13 UTC skipped); editing the cron line registers it again.
+    - cron: "17 5,6,7 * * *"      # morning slot: 07:17 Paris + two retries, winter or summer
+    - cron: "17 17,18,19 * * *"   # evening slot: 19:17 Paris + two retries
   workflow_dispatch:
     inputs:
       passage:
