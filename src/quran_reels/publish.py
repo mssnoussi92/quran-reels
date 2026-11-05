@@ -9,6 +9,11 @@ Rights (publishers/rights.py): the reel is first uploaded unpublished to every M
 (Facebook draft, Instagram container) and Meta's copyright check is read on each. Nothing is
 published, TikTok included, unless every check is complete without a match: a recitation
 that Rights Manager recognises gets the reel cut or muted after publication.
+
+That check missed Alafasy and Nabil Ar-Rifai, claimed once published. So the check is read
+again on the published reels (platforms.meta.rights_after_timeout, 300 s): a claim that mutes
+or blocks one takes it down from Facebook and Instagram (status `removed`), and the TikTok
+draft must not be posted (owner's choice, 2026-11-05). daily.py reads it again at later runs.
 """
 
 from __future__ import annotations
@@ -16,6 +21,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+import time
 from dataclasses import asdict
 from pathlib import Path
 
@@ -49,6 +55,7 @@ _LABELS = {
     PublishStatus.DRAFT: "brouillon, non publié (Meta Business Suite → Contenu → Brouillons)",
     PublishStatus.READY: "conteneur prêt, non publié (Instagram le supprime après 24 h)",
     PublishStatus.BLOCKED: "non publié : vérification des droits",
+    PublishStatus.REMOVED: "retiré après publication : Meta l'a rendu muet ou bloqué",
     PublishStatus.FAILED: "échec",
 }
 _TIKTOK_DRAFT = "dans la boîte TikTok : notification dans l'app, à publier à la main"
@@ -122,9 +129,80 @@ def _report(reel: Reel, results: list[PublishResult], dry_run: bool,
             else _LABELS[r.status]
         label += f" : {r.error}" if r.error else ""
         rights = (("✅ " if r.rights["clear"] else "⛔ ") + r.rights["summary"]) if r.rights else ""
+        if r.rights_after:
+            ok = not (r.rights_after.get("matches_found") and r.status == PublishStatus.REMOVED)
+            rights += f" · après publication : {'✅' if ok else '⛔'} {r.rights_after['summary']}"
         where = r.url or (f"`{r.remote_id}`" if r.remote_id else "")
         rows.append(f"| {r.platform} | {label} | {rights} | {where} |")
     return "\n".join([title, "", *rows, "", token.summary() if token else ""]).rstrip()
+
+
+def after_timeout(cfg: Config | None) -> float:
+    """platforms.meta.rights_after_timeout: how long Meta's check is read on the published
+    reels (publish.after_check, daily.recheck); 0: off, the owner checks by hand."""
+    if getattr(cfg, "project", None) is None:
+        return 0.0
+    return float(_meta(cfg).get("rights_after_timeout", 0))
+
+
+def meta_publishers(cfg: Config, graph: Graph, env: MetaEnv, platforms: list[str]) -> dict:
+    rights_timeout = float(_meta(cfg).get("rights_timeout", 600))
+    out: dict = {}
+    if "facebook" in platforms:
+        out["facebook"] = FacebookPublisher(graph, env.page_id,
+                                            max_hashtags=max_hashtags(cfg, "facebook"),
+                                            rights_timeout=rights_timeout)
+    if "instagram" in platforms:
+        out["instagram"] = InstagramPublisher(graph, str(env.ig_user_id),
+                                              max_hashtags=max_hashtags(cfg, "instagram"),
+                                              rights_timeout=rights_timeout)
+    return out
+
+
+def take_down(publishers: dict, results: dict[str, dict], reason: str) -> None:
+    """Remove every published Meta reel of a claimed passage. results: platform → {status,
+    id, error} (a slot record's, or PublishResult fields); changed in place."""
+    for name, r in results.items():
+        if name in publishers and r.get("status") == PublishStatus.PUBLISHED.value and r.get("id"):
+            try:
+                publishers[name].remove(r["id"])
+                r["status"] = PublishStatus.REMOVED.value
+                r["error"] = f"retiré après publication : {reason}"
+            except GraphError as e:
+                r["error"] = f"À RETIRER À LA MAIN ({e}) : {reason}"
+        elif name == "tiktok" and r.get("status") == PublishStatus.DRAFT.value:
+            r["error"] = f"ne publie pas ce brouillon TikTok : {reason}"
+
+
+def after_check(publishers: dict, results: dict[str, PublishResult], timeout: float,
+                interval: float = 30, clock=time.monotonic, sleep=time.sleep) -> str | None:
+    """Meta's check read on the published reels, again and again for `timeout` seconds: the
+    claims on Ar-Rifai and Al-Ghamdi came minutes after publication, while the field may say
+    complete without a match at once. A claim that mutes or blocks one reel takes the passage
+    down everywhere. The reason, or None when nothing was claimed."""
+    live = {n: r for n, r in results.items()
+            if n in publishers and r.status == PublishStatus.PUBLISHED and r.remote_id}
+    checks: dict = {}
+    start = clock()
+    while live:
+        for name, r in live.items():
+            checks[name] = publishers[name].rights_after(r.remote_id)
+            r.rights_after = checks[name].as_dict()
+            print(f"{name}: rights after publication (+{clock() - start:.0f} s) "
+                  f"{checks[name].status}: {checks[name].describe()}", file=sys.stderr)
+        if any(c.restricted for c in checks.values()) or clock() - start + interval > timeout:
+            break
+        sleep(interval)
+    claimed = {n: c for n, c in checks.items() if c.restricted}
+    if not claimed:
+        return None
+    reason = "; ".join(f"{n} : {c.describe()}" for n, c in claimed.items())
+    plain = {n: {"status": r.status.value, "id": r.remote_id, "error": r.error}
+             for n, r in results.items()}
+    take_down(publishers, plain, reason)
+    for name, r in results.items():
+        r.status, r.error = PublishStatus(plain[name]["status"]), plain[name]["error"]
+    return reason
 
 
 def tiktok_publisher() -> TikTokPublisher:
@@ -144,19 +222,9 @@ def publish_reel(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
     tiktok = tiktok_publisher() if "tiktok" in platforms else None
     reel = load_reel(video)
 
-    rights_timeout = float(_meta(cfg).get("rights_timeout", 600))
-    publishers = {}
-    for name in platforms:
-        if name == "facebook":
-            publishers[name] = FacebookPublisher(graph, env.page_id,
-                                                 max_hashtags=max_hashtags(cfg, name),
-                                                 rights_timeout=rights_timeout)
-        elif name == "instagram":
-            publishers[name] = InstagramPublisher(graph, str(env.ig_user_id),
-                                                  max_hashtags=max_hashtags(cfg, name),
-                                                  rights_timeout=rights_timeout)
-        else:
-            publishers[name] = tiktok
+    publishers = meta_publishers(cfg, graph, env, platforms) if token else {}
+    if tiktok:
+        publishers["tiktok"] = tiktok
 
     # 1. Meta: upload unpublished everywhere, then read every copyright check.
     results: dict[str, PublishResult] = {}
@@ -201,6 +269,16 @@ def publish_reel(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
         r = results[name]
         print(f"{name}: {r.status.value} {r.remote_id or ''} {r.url or ''} {r.error or ''}"
               .rstrip(), file=sys.stderr)
+    # 3. Meta's check read again on what went live (it missed Alafasy and Ar-Rifai). Never
+    #    lets a publication fail: what went out must still be recorded.
+    seconds = after_timeout(cfg)                # 0: off
+    if not dry_run and seconds > 0:
+        try:
+            after_check({n: p for n, p in publishers.items() if n in META}, results,
+                        seconds)
+        except Exception as e:      # noqa: BLE001
+            print(f"warning: rights check after publication failed: {type(e).__name__}: {e}",
+                  file=sys.stderr)
     results_list = [results[n] for n in platforms]
 
     out = video.with_suffix("") / "publish.json"
@@ -218,8 +296,8 @@ def publish_reel(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
 def run(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
         checked: tuple[Graph, MetaEnv, TokenReport] | None = None) -> int:
     results = publish_reel(cfg, video, platforms, dry_run, checked)
-    return 1 if any(r.status in (PublishStatus.FAILED, PublishStatus.BLOCKED)
-                    for r in results) else 0
+    return 1 if any(r.status in (PublishStatus.FAILED, PublishStatus.BLOCKED,
+                                 PublishStatus.REMOVED) for r in results) else 0
 
 
 def _event_input(name: str) -> str | None:

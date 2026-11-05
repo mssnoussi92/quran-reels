@@ -255,3 +255,68 @@ def test_a_slot_blocked_by_the_rights_check_is_not_retried(world):
     assert daily.run(None, path, now=paris(2026, 11, 5, 8, 20)) == 0       # no new upload
     assert len(calls["publish"]) == 1
     assert State.load(path).queue("reading")["done"] == []                 # still first
+
+
+# ---- claims after publication (Meta mutes or blocks a reel) -------------------------------
+
+@pytest.fixture
+def two_reciters(monkeypatch):
+    from quran_reels import reciters
+    monkeypatch.setattr(reciters, "rotation", lambda cfg: ["rifai", "ghamdi"])
+    monkeypatch.setattr(reciters, "with_reciter", lambda cfg, name: cfg)
+    monkeypatch.setattr(reciters, "choose", lambda cfg, key, recent, claimed=(): (
+        "ghamdi" if "rifai" in claimed else "rifai", []))
+
+
+def test_a_reel_taken_down_after_publication_comes_back_with_another_reciter(world,
+                                                                             two_reciters):
+    calls, answers, path = world
+    answers["facebook"] = [PublishStatus.REMOVED]
+    answers["instagram"] = [PublishStatus.REMOVED]
+    assert daily.run(None, path, now=paris(2026, 11, 5, 7, 20)) == 1
+    state = State.load(path)
+    morning = state.slot(date(2026, 11, 5), "morning")
+    assert morning["claimed"] and state.queue("reading")["done"] == []
+    assert list(state.data["claimed"]) == ["rifai"]
+    assert daily.run(None, path, now=paris(2026, 11, 5, 8, 20)) == 0     # not retried
+    daily.run(None, path, now=paris(2026, 11, 7, 7, 20))                  # Saturday
+    assert [c[0] for c in calls["publish"]] == ["114:1-6", "114:1-6"]
+    assert State.load(path).slot(date(2026, 11, 7), "morning")["reciter"] == "ghamdi"
+
+
+def test_later_runs_take_down_a_reel_claimed_after_its_check(world, two_reciters, monkeypatch):
+    from types import SimpleNamespace
+
+    from quran_reels.publishers.rights import RightsCheck
+
+    calls, _, path = world
+    daily.run(None, path, now=paris(2026, 11, 5, 7, 20))                 # published, clear
+    assert State.load(path).queue("reading")["done"] == ["juz-amma/114:1-6"]
+    removed = []
+    muted = RightsCheck("facebook", "complete", True, [{"owner_copyright_policy": {
+        "name": "Recitations Ltd", "actions": [{"action": "MUTE", "geos": ["Iran"]}]}}])
+
+    class Fake:
+        def __init__(self, name, answer):
+            self.name, self.answer = name, answer
+
+        def rights_after(self, remote_id, timeout=0):
+            return self.answer
+
+        def remove(self, remote_id):
+            removed.append(self.name)
+
+    clear = RightsCheck("instagram", "complete", False)
+    monkeypatch.setattr(daily.publish_mod, "meta_check", lambda cfg, p: (
+        None, SimpleNamespace(page_id="p", ig_user_id="i"), None))
+    monkeypatch.setattr(daily.publish_mod, "after_timeout", lambda cfg: 300)
+    monkeypatch.setattr(daily.publish_mod, "meta_publishers", lambda cfg, g, env, p: {
+        "facebook": Fake("facebook", muted), "instagram": Fake("instagram", clear)})
+    assert daily.run(None, path, now=paris(2026, 11, 5, 19, 20)) == 1    # evening run
+    state = State.load(path)
+    morning = state.slot(date(2026, 11, 5), "morning")
+    assert removed == ["facebook", "instagram"]                          # both taken down
+    assert {r["status"] for r in morning["results"].values()} == {"removed"}
+    assert "Iran" in morning["claimed"] and list(state.data["claimed"]) == ["rifai"]
+    assert state.queue("reading")["done"] == []                          # back at the head
+    assert calls["publish"][-1][0] == "2:255-255"                        # the evening went on

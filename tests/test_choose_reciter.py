@@ -18,8 +18,9 @@ class Cfg:
 def seconds(monkeypatch):
     table = {}
     monkeypatch.setattr(reciters, "options",
-                        lambda cfg, key: [Option(n, s, "" if s else "not split")
-                                          for n, s in table[key].items()])
+                        lambda cfg, key, claimed=(): [
+                            Option(n, None if n in claimed else s, "" if s else "not split")
+                            for n, s in table[key].items()])
     return table
 
 
@@ -59,3 +60,19 @@ def test_the_configured_rotation_names_known_reciters():
 
     cfg = load()
     assert set(reciters.rotation(cfg)) <= set(cfg.content["reciters"])
+
+
+def test_a_claimed_reciter_is_never_chosen_again(seconds):
+    # Meta muted one of its reels (state `claimed`, daily.py): out of the rotation for good
+    seconds["2:255"] = {"ghamdi": 56.6, "sayegh": 49.6, "budair": 45.5}
+    assert reciters.choose(Cfg(), "2:255", [])[0] == "ghamdi"
+    assert reciters.choose(Cfg(), "2:255", [], claimed={"ghamdi"})[0] == "sayegh"
+
+
+def test_options_mark_claimed_reciters_not_ready(monkeypatch):
+    monkeypatch.setattr(reciters, "rotation", lambda cfg: ["rifai", "budair"])
+    monkeypatch.setattr(reciters, "with_reciter", lambda cfg, name: name)
+    monkeypatch.setattr(reciters, "passage_seconds", lambda cfg, key: Option(cfg, 50.0))
+    opts = reciters.options(None, "2:255", claimed={"rifai"})
+    assert [(o.name, o.seconds) for o in opts] == [("rifai", None), ("budair", 50.0)]
+    assert "revendiqué" in opts[0].why

@@ -112,6 +112,15 @@ class InstagramPublisher:
         return rights.check(self.graph, self.name, container_id, self.rights_timeout,
                             self.poll_interval)
 
+    def rights_after(self, remote_id: str, timeout: float = 0) -> rights.RightsCheck:
+        """The copyright check of the published media (timeout 0: read once)."""
+        return rights.check(self.graph, self.name, remote_id, timeout, self.poll_interval,
+                            field_name=rights.AFTER)
+
+    def remove(self, remote_id: str) -> None:
+        """Take the published media down (GraphError if Meta refuses: the token needs instagram_manage_contents)."""
+        self.graph.delete(remote_id)
+
     def commit(self, container_id: str, reel: Reel | None = None) -> PublishResult:
         try:
             self._quota()

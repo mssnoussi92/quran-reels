@@ -81,7 +81,8 @@ backgrounds:
 
   # Pixabay clips (approved by the owner on 2026-11-05 after a frame-by-frame check: no
   # people, no animals, no text). File URL from the API by id, downloaded on first use.
-  # 21 of 38 candidates; 213423 (aurora) declined by the owner.
+  # 21 of 38 candidates; 213423 (aurora) declined by the owner. 95188 (pb-moving-clouds)
+  # removed after its first use (2:255, 2026-11-05): clouds move too fast, hard on the eyes.
   - id: pb-alpine-peak
     source: pixabay
     pixabay_id: 22512
@@ -215,13 +216,6 @@ backgrounds:
     page: https://pixabay.com/videos/id-116167/
     tags: [sky]
     note: white cumulus on blue, timelapse 4K (30 s)
-  - id: pb-moving-clouds
-    source: pixabay
-    pixabay_id: 95188
-    author: NickyPe
-    page: https://pixabay.com/videos/id-95188/
-    tags: [sky, rain]
-    note: clouds passing on blue, timelapse 4K (20 s)
   - id: pb-sunset-clouds
     source: pixabay
     pixabay_id: 190332

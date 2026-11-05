@@ -28,7 +28,9 @@ content:
     max_words: 3                      # highlighted words of one meaning (related words, a phrase)
   reciter: alafasy                    # one of `reciters`; QURAN_REELS_RECITER overrides it
   rotation:                           # reciter chosen per passage (src/quran_reels/reciters.py)
-    reciters: [omar_hisham, minshawi, ghamdi, rifai, sayegh, budair]   # ties: this order
+    # Removed (2026-11-05), their 2:255 reel muted by Facebook (recording claimed), like
+    # Alafasy before: Nabil Ar-Rifai (24 territories), Saad Al-Ghamdi (UMG, Russia).
+    reciters: [omar_hisham, minshawi, sayegh, budair]   # ties: this order
     avoid_last: 2                     # not one of the last 2 published, unless none else fits
   # One MP3 per ayah from EveryAyah (id: its folder), so the text follows the recitation
   # exactly. Planning durations: Quran.com timings of the same recording (timings_id), or the
@@ -146,6 +148,9 @@ platforms:
   meta:
     graph_version: v24.0              # Graph API version, Facebook and Instagram
     min_days_left: 14                 # fail when the token's data access expires sooner
+    rights_after_timeout: 0           # > 0: read Meta's check on the published reels this
+                                      # long, muted or blocked → taken down. 0: off, the owner
+                                      # checks by hand for now (2026-11-05)
   facebook:  { enabled: true,  mode: auto, max_hashtags: 8 }
   instagram: { enabled: true,  mode: auto, max_hashtags: 5 }   # Instagram's cap since 12/2025
   tiktok:

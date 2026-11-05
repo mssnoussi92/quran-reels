@@ -32,7 +32,8 @@ _MONTHS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "
            "nov.", "déc."]
 _STATUS = {"published": "publié", "draft": "brouillon", "ready": "prêt (dry run)",
            "manual": "à publier à la main", "failed": "échec",
-           "blocked": "bloqué par la vérification des droits"}
+           "blocked": "bloqué par la vérification des droits",
+           "removed": "retiré après publication (Meta l'a rendu muet ou bloqué)"}
 
 
 def _when(item: dict) -> str:
@@ -69,6 +70,15 @@ def failure_text(report: dict | None, run_url: str) -> str:
                        "publié, sur aucune plateforme, et le créneau n'est pas réessayé. Le passage "
                        "reste en tête de sa file : changer de récitateur (config/project.yaml → "
                        "content.reciter) avant la prochaine publication.")]
+    claimed = any(r.get("status") == "removed" or "À RETIRER À LA MAIN" in (r.get("error") or "")
+                  for i in (report or {}).get("items", []) for r in i["results"].values())
+    if claimed:
+        lines += ["", ("🔇 Meta a rendu muet ou bloqué ce reel après sa publication (revendication "
+                       "d'un ayant droit, détail ci-dessus) : il est retiré de Facebook et "
+                       "d'Instagram (sauf mention « À RETIRER À LA MAIN »), **ne publie pas le "
+                       "brouillon TikTok**. Le récitateur est écarté pour de bon (branche `state`, "
+                       "`claimed`) et le passage sera republié au prochain créneau de sa file avec "
+                       "un autre récitateur.")]
     lines += ["", ("Un créneau en échec est réessayé à chaque passage du workflow pendant 3 h "
                    "(une fois par heure). Ce ticket se ferme tout seul à la prochaine "
                    "publication réussie.")]
@@ -89,8 +99,9 @@ _ENTRY = re.compile(r"<!-- entry (\S+) -->")
 def _has_caption(item: dict) -> bool:
     """A caption to copy, for a video that went out somewhere (not one stopped by the rights
     check)."""
-    return bool(item.get("caption")) and any(
-        r.get("status") in ("published", "draft", "ready") for r in item["results"].values())
+    results = item["results"].values()
+    return bool(item.get("caption")) and not any(r.get("status") == "removed" for r in results) \
+        and any(r.get("status") in ("published", "draft", "ready") for r in results)
 
 
 def merge_captions(body: str, report: dict, keep: int = KEEP_CAPTIONS) -> str:

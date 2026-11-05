@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import copy
 import dataclasses
+from collections.abc import Iterable
 from dataclasses import dataclass
 
 from quran_reels.config import Config
@@ -79,17 +80,23 @@ def passage_seconds(cfg: Config, key: str) -> Option:
     return Option(name, round(total, 1))
 
 
-def options(cfg: Config, key: str) -> list[Option]:
-    return [passage_seconds(with_reciter(cfg, name), key) for name in rotation(cfg)]
+def options(cfg: Config, key: str, claimed: Iterable[str] = ()) -> list[Option]:
+    """Each reciter of the rotation for key; a claimed one (Meta muted or blocked one of its
+    reels: state `claimed`, daily.py) is never ready again."""
+    claimed = set(claimed)
+    return [Option(name, None, "écarté : un de ses reels a été revendiqué sur Meta")
+            if name in claimed else passage_seconds(with_reciter(cfg, name), key)
+            for name in rotation(cfg)]
 
 
-def choose(cfg: Config, key: str, recent: list[str]) -> tuple[str, list[Option]]:
+def choose(cfg: Config, key: str, recent: list[str], claimed: Iterable[str] = ()
+           ) -> tuple[str, list[Option]]:
     """The reciter for a passage, and every option considered (for the log).
-    recent: reciters published so far, oldest first."""
+    recent: reciters published so far, oldest first; claimed: never chosen."""
     rot = cfg.content.get("rotation") or {}
     p = cfg.content["passage"]
     high, target = float(p["max_seconds"]), float(p.get("target_seconds", 60))
-    opts = options(cfg, key)
+    opts = options(cfg, key, claimed)
     fits = [o for o in opts if o.seconds is not None and o.seconds <= high]
     if not fits:
         why = "; ".join(f"{o.name}: {o.why or f'{o.seconds} s'}" for o in opts)
@@ -99,6 +106,11 @@ def choose(cfg: Config, key: str, recent: list[str]) -> tuple[str, list[Option]]
     pool = [o for o in fits if o.name not in avoid] or fits
     best = min(pool, key=lambda o: abs(o.seconds - target))     # min keeps the list order
     return best.name, opts
+
+
+def claimed_reciters(state) -> set[str]:
+    """Reciters taken out after a claim (selector.calendar.State, key `claimed`)."""
+    return set(state.data.get("claimed") or {})
 
 
 def recent_reciters(state, slot_order: dict[str, int]) -> list[str]:

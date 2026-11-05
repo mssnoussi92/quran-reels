@@ -33,7 +33,15 @@ class FacebookPublisher:
         self.rights_timeout = rights_timeout
 
     def _status(self, video_id: str, published: bool) -> tuple[bool, dict]:
-        status = self.graph.get(video_id, fields="status").get("status") or {}
+        try:
+            status = self.graph.get(video_id, fields="status").get("status") or {}
+        except GraphError as e:
+            # Right after the finish call the new video can answer «does not exist» (code 100,
+            # subcode 33) while it is already live (Budair's 2:255, publish-test, 2026-11-05):
+            # asked again, like a network error.
+            if "error_subcode 33" in str(e):
+                raise GraphError(str(e), transient=True) from None
+            raise
         for phase in ("uploading_phase", "processing_phase", "publishing_phase"):
             p = status.get(phase) or {}
             if p.get("status") == "error":
@@ -65,6 +73,15 @@ class FacebookPublisher:
         return rights.check(self.graph, self.name, video_id, self.rights_timeout,
                             self.poll_interval)
 
+    def rights_after(self, remote_id: str, timeout: float = 0) -> rights.RightsCheck:
+        """The copyright check of the published reel (timeout 0: read once)."""
+        return rights.check(self.graph, self.name, remote_id, timeout, self.poll_interval,
+                            field_name=rights.AFTER)
+
+    def remove(self, remote_id: str) -> None:
+        """Take the published reel down (GraphError if Meta refuses)."""
+        self.graph.delete(remote_id)
+
     def commit(self, draft_id: str, reel: Reel) -> PublishResult:
         """Publish the checked video: uploaded again straight to PUBLISHED, draft deleted."""
         try:
@@ -72,9 +89,13 @@ class FacebookPublisher:
             wait(lambda: self._status(video_id, published=True), f"facebook reel {video_id}",
                  self.timeout, self.poll_interval)
         except (PublisherError, KeyError) as e:
+            uploaded = locals().get("video_id")
+            where = (f"the published reel {uploaded} may be live anyway: check the Page; "
+                     f"draft {draft_id} left in Meta Business Suite → Content → Drafts"
+                     if uploaded else "draft checked but not published: Meta Business Suite → "
+                                      "Content → Drafts")
             return PublishResult(self.name, PublishStatus.FAILED, remote_id=draft_id,
-                                 error=f"{e} (draft checked but not published: Meta Business "
-                                       "Suite → Content → Drafts)")
+                                 error=f"{e} ({where})")
         try:
             if draft_id != video_id:
                 self.graph.delete(draft_id)
