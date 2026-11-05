@@ -304,6 +304,16 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   souvent en retard ; le 2026-11-05, les trois premiers passages à :13 n'ont jamais été lancés
   par GitHub, minute changée pour réenregistrer le planning) ; `daily --check` décide sans installer ffmpeg ; un créneau commencé ne
   réessaie que les plateformes en échec, avec le même passage ; fenêtre de 3 h.
+- **Le cron de GitHub ne se déclenche jamais dans ce dépôt** (0 run `schedule` depuis la
+  création, problème de GitHub connu en 2026 au niveau du compte ; `workflow_dispatch` marche).
+  Les workflows sont donc lancés par des **tâches planifiées Claude** (choix du propriétaire,
+  2026-11-05) qui réveillent la session « Quran Words Daily – planificateur » (Sonnet, dépôt
+  attaché, outils GitHub) : `prepare.yml` 02:41 Paris, `daily.yml` 07:12 et 19:12 Paris
+  (`CRON_TZ=Europe/Paris`), `images.yml` 11:36 UTC ; chacune lance le workflow sur `main`,
+  attend la fin, relance une fois en cas d'échec (sauf prepare) et résume. Une tâche lancée
+  dans une session neuve n'a pas accès au dépôt (essai du 2026-11-05) : elles visent toutes
+  cette session. Les crons des workflows restent en place si GitHub se remet à les lancer
+  (un passage en double ne republie rien : le créneau est déjà dans l'état).
 - État : `published.json` sur la branche `state` (créée au premier passage du workflow),
   commit après chaque créneau. Un passage compte comme publié dès qu'une plateforme l'a.
 - Prévenir le propriétaire (`notify.py`, étape « Tell the owner », `issues: write`) :
