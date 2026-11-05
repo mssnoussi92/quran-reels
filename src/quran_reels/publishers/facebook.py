@@ -65,6 +65,15 @@ class FacebookPublisher:
         return rights.check(self.graph, self.name, video_id, self.rights_timeout,
                             self.poll_interval)
 
+    def rights_after(self, remote_id: str, timeout: float = 0) -> rights.RightsCheck:
+        """The copyright check of the published reel (timeout 0: read once)."""
+        return rights.check(self.graph, self.name, remote_id, timeout, self.poll_interval,
+                            field_name=rights.AFTER)
+
+    def remove(self, remote_id: str) -> None:
+        """Take the published reel down (GraphError if Meta refuses)."""
+        self.graph.delete(remote_id)
+
     def commit(self, draft_id: str, reel: Reel) -> PublishResult:
         """Publish the checked video: uploaded again straight to PUBLISHED, draft deleted."""
         try:

@@ -178,6 +178,10 @@ def check_token(graph: Graph, page_id: str, ig_user_id: str | None, platforms: l
     if problems:
         raise TokenProblem("\n".join([*problems, RENEW]))
     warnings = []
+    if "instagram" in platforms and "instagram_manage_contents" not in scopes:
+        warnings.append("Sans la permission instagram_manage_contents, un reel Instagram que Meta "
+                        "rend muet ne peut pas être retiré automatiquement (à la main). "
+                        "Pour l'ajouter : " + RENEW)
     if days_left < 30:
         warnings.append(f"Accès aux données du jeton : {days_left:.0f} jours restants. {RENEW}")
     return TokenReport(page_id=str(page_id), page_name=page.get("name", ""),

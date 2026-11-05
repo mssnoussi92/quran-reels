@@ -300,7 +300,8 @@ def main(argv: list[str] | None = None) -> int:
             if item and rec.rotation(cfg):
                 done = state.slot(day, slot.name) or {}
                 try:
-                    name = done.get("reciter") or rec.choose(cfg, item.key, recent)[0]
+                    name = done.get("reciter") or rec.choose(
+                        cfg, item.key, recent, rec.claimed_reciters(state))[0]
                     secs = rec.passage_seconds(rec.with_reciter(cfg, name), item.key).seconds
                     reciter = f"  [{name}, {secs} s]"
                     recent.append(name)

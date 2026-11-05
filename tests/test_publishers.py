@@ -14,7 +14,7 @@ TOKEN = "EAAB-secret-page-token"
 PAGE, IG = "1494879297031390", "17841475111287268"
 NOW = datetime(2026, 11, 4, tzinfo=UTC)
 ALL_SCOPES = ["pages_show_list", "pages_read_engagement", "pages_manage_posts",
-              "instagram_basic", "instagram_content_publish"]
+              "instagram_basic", "instagram_content_publish", "instagram_manage_contents"]
 
 
 class Resp:
@@ -80,6 +80,14 @@ def test_token_ok_reports_data_access_expiry():
     # the token goes in a header, never in the URL or the form
     _, url, _, headers = g.session.calls[0]
     assert TOKEN not in url and headers["Authorization"] == f"Bearer {TOKEN}"
+
+
+def test_token_without_instagram_manage_contents_warns():
+    # publishing works without it, but a claimed Instagram reel cannot be taken down by the API
+    scopes = [x for x in ALL_SCOPES if x != "instagram_manage_contents"]
+    report = check_token(graph(token_routes(scopes=scopes)), PAGE, IG, ["facebook", "instagram"],
+                         14, now=NOW)
+    assert any("instagram_manage_contents" in w for w in report.warnings)
 
 
 def test_token_fails_14_days_before_data_access_expires():

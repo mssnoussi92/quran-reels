@@ -21,8 +21,8 @@ e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis 
 | Texte arabe | Uthmani (Hafs), police **Amiri Quran** (OFL) |
 | Traduction | **Sahih International** (anglais), créditée dans chaque légende |
 | Mots difficiles | **غريب التفسير الميسر** (Tafsir al-Muyassar, Complexe du Roi Fahd ; `almuyassar-ghareeb` sur tafsir.app), choix du propriétaire le 2026-11-05 (avant : Ibn Qutaybah, *Tafsir Gharib al-Qur'an*), sens en arabe, **1 à 3 mots liés** surlignés |
-| Récitateurs | **Choisis par passage** (`content.rotation`, `reciters.py`) parmi ceux du propriétaire (2026-11-05) : **Omar Hisham Al-Arabi, Muhammad Siddiq Al-Minshawi, Saad Al-Ghamdi, Nabil Ar-Rifai, Tawfiq As-Sayegh, Salah Budair** : prêt pour le passage (découpe vérifiée), ≤ 90 s, pas un des 2 derniers publiés, puis le plus proche de 60 s (passage long → récitateur rapide, sourate courte → plus lent). Écartés après écoute : Alafasy (Rights Manager), Hudhaifi, Ayyub, Akhdar |
-| Droits | **Vérification Meta avant chaque publication** : brouillon Facebook + conteneur Instagram, publiés seulement si Meta répond `complete` sans correspondance, sinon rien n'est publié (TikTok compris) |
+| Récitateurs | **Choisis par passage** (`content.rotation`, `reciters.py`) parmi ceux du propriétaire (2026-11-05) : **Omar Hisham Al-Arabi, Muhammad Siddiq Al-Minshawi, Saad Al-Ghamdi, Tawfiq As-Sayegh, Salah Budair** : prêt pour le passage (découpe vérifiée), ≤ 90 s, pas un des 2 derniers publiés, puis le plus proche de 60 s (passage long → récitateur rapide, sourate courte → plus lent). Écartés : Alafasy et **Nabil Ar-Rifai** (Rights Manager : 2:255 rendue muette par Facebook dans 24 territoires, 2026-11-05), Hudhaifi, Ayyub, Akhdar (après écoute) ; un récitateur revendiqué après publication est écarté automatiquement (`claimed`) |
+| Droits | **Vérification Meta avant chaque publication** : brouillon Facebook + conteneur Instagram, publiés seulement si Meta répond `complete` sans correspondance, sinon rien n'est publié (TikTok compris). Elle n'a vu ni Alafasy ni Ar-Rifai : **relue après publication** (5 min, puis à chaque run pendant 2 jours) ; reel rendu muet ou bloqué → **retiré de Facebook et Instagram + alerte**, brouillon TikTok à ne pas publier, passage republié avec un autre récitateur (choix du propriétaire, 2026-11-05) |
 | Fond | **choisi selon ce que dit le passage** (montagnes, mer, rivières, jardins, nuit, aube, ciel…) : vidéos Pexels choisies par le propriétaire et scènes générées (aube, nuit, mer), **sans personnes ni animaux** |
 | Exécution | GitHub Actions (dépôt public → gratuit), migrable sur le homelab (Docker) |
 | Comptes pro | Page Facebook + Instagram en type **Créateur**, reliés |
@@ -43,7 +43,8 @@ e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis 
    d'ingestion les télécharge dans un cache (`.cache/`, Actions cache). Le dépôt reste publiable.
 6. **Rien n'est publié sans la vérification des droits de Meta** (`publishers/rights.py`) : une
    récitation reconnue par Rights Manager fait couper ou rendre muet le reel (93:1-11 sur
-   Facebook, 2026-11-05, Alafasy).
+   Facebook, 2026-11-05, Alafasy ; 2:255, Ar-Rifai, muette dans 24 territoires). **Rien ne reste
+   en ligne rendu muet ou bloqué** : le contrôle relu après publication retire le reel.
 
 ## Architecture
 

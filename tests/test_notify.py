@@ -128,3 +128,18 @@ def test_a_rights_block_says_what_to_change(tmp_path):
     assert "bloqué par la vérification des droits" in alert["body"]
     assert "content.reciter" in alert["body"]
     assert not [i for i in gh.issues if i["title"] == notify.CAPTIONS_TITLE]   # nothing to copy
+
+
+def test_a_reel_taken_down_after_publication_warns_about_the_tiktok_draft(tmp_path):
+    gh = FakeGh()
+    reason = "facebook : contenu protégé reconnu : Recitations Ltd — MUTE dans 24 territoires"
+    removed = item(status={
+        "facebook": {"status": "removed", "url": None, "error": f"retiré après publication : {reason}"},
+        "instagram": {"status": "removed", "url": None, "error": "retiré"},
+        "tiktok": {"status": "draft", "url": None, "error": f"ne publie pas ce brouillon : {reason}"}})
+    notify.run(write(tmp_path, [removed]), "failure", "https://run/1", "owner",
+               notify.Issues("o/r", runner=gh))
+    [alert] = [i for i in gh.issues if i["title"] == notify.FAILURE_TITLE]
+    assert "retiré après publication" in alert["body"] and "MUTE dans 24 territoires" in alert["body"]
+    assert "ne publie pas le brouillon TikTok" in alert["body"]
+    assert not [i for i in gh.issues if i["title"] == notify.CAPTIONS_TITLE]   # nothing to copy

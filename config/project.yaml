@@ -148,6 +148,8 @@ platforms:
   meta:
     graph_version: v24.0              # Graph API version, Facebook and Instagram
     min_days_left: 14                 # fail when the token's data access expires sooner
+    rights_after_timeout: 300         # read Meta's check on the published reels this long;
+                                      # muted or blocked → taken down (owner's choice)
   facebook:  { enabled: true,  mode: auto, max_hashtags: 8 }
   instagram: { enabled: true,  mode: auto, max_hashtags: 5 }   # Instagram's cap since 12/2025
   tiktok:

@@ -128,6 +128,31 @@ publier, sur la vidéo non publiée :
   `copyright_check_information` sur la vidéo **publiée** pendant les minutes qui suivent, et
   retirer le post + alerter en cas de correspondance.
 
+### Contrôle après publication (2026-11-05)
+
+La vérification avant publication n'a vu ni Alafasy (93:1-11) ni Nabil Ar-Rifai (2:255, rendue
+muette par Facebook dans 24 territoires « où Meta ne dispose pas des droits musicaux » : Iran,
+Syrie, Chine, Cuba, Azerbaïdjan…). Le même champ est donc relu **sur les reels publiés** :
+
+| | Objet publié | Requête |
+|---|---|---|
+| Facebook | reel | `GET /{video-id}?fields=copyright_check_information` (statut, `copyright_matches` avec `owner_copyright_policy.actions` : `BLOCK`, `MUTE`, `TRACK`… et `geos`) |
+| Instagram | média | `GET /{ig-media-id}?fields=copyright_check_information` |
+
+- `publish.after_check` : jusqu'à `platforms.meta.rights_after_timeout` (300 s) juste après la
+  publication ; `daily.recheck` : une lecture à chaque run pour les créneaux des 2 derniers jours.
+- Revendication qui rend muet ou bloque (toute action autre que `TRACK` ou `MONETIZE`, ou une
+  correspondance sans action indiquée) → reel **supprimé de Facebook et d'Instagram** (statut
+  `removed`), ticket d'échec avec l'ayant droit et les territoires, brouillon TikTok à ne pas
+  publier ; le créneau est marqué `claimed` (pas réessayé), le passage revient en tête de sa
+  file et le récitateur entre dans `claimed` de `published.json` : la rotation ne le choisit
+  plus jamais (choix du propriétaire).
+- Suppression Instagram (`DELETE /{ig-media-id}`) : demande la permission
+  **`instagram_manage_contents`** sur le jeton de Page. Sans elle, le reel Instagram reste en
+  ligne avec « À RETIRER À LA MAIN » dans le ticket, et `meta-check` l'annonce en avertissement.
+  Pour l'ajouter : explorateur Graph → jeton utilisateur avec `instagram_manage_contents` en
+  plus → prolonger → `me/accounts` → nouveau `META_PAGE_TOKEN`.
+
 ### Tester depuis le téléphone : workflow `publish-test`
 
 Actions → **publish-test** → Run workflow :

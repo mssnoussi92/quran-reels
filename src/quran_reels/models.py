@@ -131,6 +131,7 @@ class PublishStatus(str, Enum):
     READY = "ready"           # uploaded and processed, not published (Instagram dry run)
     MANUAL = "manual"         # file ready, owner uploads by hand (YouTube before audit)
     BLOCKED = "blocked"       # not published: the rights check found a match or could not end
+    REMOVED = "removed"       # published, then taken down: Meta muted or blocked it (claim)
     FAILED = "failed"
 
 
@@ -142,3 +143,4 @@ class PublishResult:
     url: str | None = None
     error: str | None = None
     rights: dict | None = None         # the platform's copyright check (RightsCheck.as_dict)
+    rights_after: dict | None = None   # the same, read on the published reel
