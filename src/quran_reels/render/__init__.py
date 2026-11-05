@@ -25,7 +25,7 @@ from quran_reels.models import Ayah, Passage, Reel
 from quran_reels.passage import build
 from quran_reels.render import video
 from quran_reels.render.frames import FrameRenderer, ayah_context
-from quran_reels.sources import Sources, backgrounds
+from quran_reels.sources import Sources, backgrounds, basmala_stem
 
 
 @dataclass
@@ -98,7 +98,7 @@ def manifest(cfg: Config, src: Sources, passage: Passage, timeline: video.Timeli
     if passage.basmala:
         b, starts = passage.basmala, starts[1:]
         basmala = {"ref": str(b.ref), "text": b.text, "translation": b.translation,
-                   "audio": src.audio.file_url(c["basmala"].get("audio", "bismillah")),
+                   "audio": src.audio.file_url(basmala_stem(cfg)),
                    "start": round(timeline.starts()[0], 3), "seconds": round(b.seconds or 0, 3)}
     return {
         "passage": passage.key,
@@ -115,7 +115,7 @@ def manifest(cfg: Config, src: Sources, passage: Passage, timeline: video.Timeli
             "text": "https://api.quran.com/api/v4/quran/verses/uthmani",
             "translation": f"https://api.quran.com/api/v4 (slug {src.translation_slug})",
             "glosses": f"https://tafsir.app/{src.glosses.src}",
-            "audio": f"https://everyayah.com/data/{src.audio.reciter}/",
+            "audio": src.audio.base_url,
         },
         "reciter": {k: c["reciter"][k] for k in ("name", "label", "producer", "rights")
                     if c["reciter"].get(k)},

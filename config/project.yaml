@@ -64,6 +64,15 @@ content:
       kbps: 32
       basmala: "001001"               # no bismillah.mp3
       rights: "Complexe du Roi Fahd, licence d'usage gratuit (qurancomplex.gov.sa)"
+    # One file per surah only (no per-ayah source exists): split on the pauses
+    # (sources/surah_audio.py). Slow, melodic style: surah 93 lasts 5 min 24 s (Alafasy 55 s).
+    omar_hisham:
+      id: omar-hisham-al-arabi        # archive.org item (islamicbulletin.org upload, 320 kb/s)
+      surah_url: "https://archive.org/download/omar-hisham-al-arabi/{surah:03d}.mp3"
+      label: Omar Hisham Al-Arabi
+      hashtags: ["#OmarHisham", "#عمر_هشام_العربي"]
+      basmala: "001001"               # Al-Fatiha's first ayah
+      rights: "aucune licence connue ; copies archive.org par des tiers ; diffusé sur Apple Music et Spotify : risque Rights Manager"
   basmala:
     enabled: true                     # recited and shown at the start of every video
     audio: bismillah                  # EveryAyah file of the reciter: bismillah.mp3

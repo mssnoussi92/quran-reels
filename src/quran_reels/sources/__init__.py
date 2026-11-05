@@ -9,14 +9,22 @@ from quran_reels.models import AyahRef
 from quran_reels.sources.everyayah import EveryAyah
 from quran_reels.sources.http import Http
 from quran_reels.sources.quran_com import QuranCom
+from quran_reels.sources.surah_audio import SurahFiles
 from quran_reels.sources.tafsir_app import TafsirApp
+
+REFERENCE_TIMINGS = 7      # Quran.com recitation whose ayah lengths guide the split (Alafasy)
+
+
+def basmala_stem(cfg: Config) -> str:
+    """The reciter's basmala: a file of its folder ("bismillah") or an ayah ("001001")."""
+    return cfg.content["reciter"].get("basmala") or cfg.content["basmala"].get("audio", "bismillah")
 
 
 @dataclass
 class Sources:
     quran: QuranCom          # Uthmani text, chapters, translation
     glosses: TafsirApp       # word meanings
-    audio: EveryAyah         # recitation, one MP3 per ayah
+    audio: EveryAyah | SurahFiles   # recitation: one MP3 per ayah, or per surah (split)
     translation_slug: str
 
     @classmethod
@@ -29,10 +37,18 @@ class Sources:
             if source != expected:
                 raise SystemExit(f"content.{key}.source: {source!r} is not supported yet")
         g = content["glosses"]
+        r = content["reciter"]
+        quran = QuranCom(cfg.cache, http)
+        if r.get("surah_url"):
+            audio = SurahFiles(cfg.cache, http, reciter=r["id"], url=r["surah_url"],
+                               reference=lambda s: quran.timings(s, REFERENCE_TIMINGS),
+                               verses=lambda s: quran.chapters[s]["verses_count"])
+        else:
+            audio = EveryAyah(cfg.cache, http, reciter=r["id"])
         return cls(
-            quran=QuranCom(cfg.cache, http),
+            quran=quran,
             glosses=TafsirApp(cfg.cache, http, src=g["source_id"], edition=g["edition"]),
-            audio=EveryAyah(cfg.cache, http, reciter=content["reciter"]["id"]),
+            audio=audio,
             translation_slug=content["translation"]["edition"],
         )
 
@@ -43,14 +59,13 @@ class Sources:
         if r.get("timings_id"):
             return self.quran.timings(surah, int(r["timings_id"]))
         n = self.quran.chapters[surah]["verses_count"]
-        return self.audio.seconds(surah, n, float(r["kbps"]))
+        return self.audio.seconds(surah, n, float(r.get("kbps") or 0))
 
     def basmala_seconds(self, cfg: Config) -> float:
         r = cfg.content["reciter"]
         if r.get("timings_id"):
             return self.quran.timings(1, int(r["timings_id"]))[1]
-        stem = r.get("basmala") or cfg.content["basmala"].get("audio", "bismillah")
-        return self.audio.file_seconds(stem, float(r["kbps"]))
+        return self.audio.file_seconds(basmala_stem(cfg), float(r.get("kbps") or 0))
 
     def all_refs(self) -> list[AyahRef]:
         return [AyahRef(s, a) for s, c in sorted(self.quran.chapters.items())

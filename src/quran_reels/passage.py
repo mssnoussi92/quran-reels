@@ -8,7 +8,7 @@ from itertools import pairwise
 from quran_reels.arabic import locate, normalize, quoted_words, similarity, trim, words
 from quran_reels.config import Config
 from quran_reels.models import Ayah, AyahRef, GlossEntry, Passage, WordGloss, parse_passage
-from quran_reels.sources import Sources
+from quran_reels.sources import Sources, basmala_stem
 from quran_reels.sources.tafsir_app import excerpt
 
 
@@ -126,8 +126,7 @@ def build(cfg: Config, key: str, src: Sources | None = None) -> Passage:
             ref=BASMALA,
             text=src.quran.text([BASMALA])[BASMALA],
             translation=src.quran.translate(src.translation_slug, [BASMALA])[BASMALA],
-            audio=src.audio.fetch_file(cfg.content["reciter"].get("basmala")
-                                       or cfg.content["basmala"].get("audio", "bismillah")),
+            audio=src.audio.fetch_file(basmala_stem(cfg)),
         )
     for r in refs:
         passage.ayahs.append(Ayah(

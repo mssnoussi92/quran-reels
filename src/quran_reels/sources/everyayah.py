@@ -21,6 +21,10 @@ class EveryAyah:
         self.http = http
         self.reciter = reciter
 
+    @property
+    def base_url(self) -> str:
+        return f"{BASE}/{self.reciter}/"
+
     def file_url(self, stem: str) -> str:
         return f"{BASE}/{self.reciter}/{stem}.mp3"
 

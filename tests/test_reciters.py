@@ -31,7 +31,8 @@ def test_every_configured_reciter_can_be_planned(monkeypatch):
     catalogue = load().content["reciters"]
     for name, r in catalogue.items():
         assert r["id"] and r["label"], name
-        assert r.get("timings_id") or r.get("kbps"), f"{name}: no way to plan durations"
+        assert r.get("timings_id") or r.get("kbps") or r.get("surah_url"), \
+            f"{name}: no way to plan durations"
         if r.get("producer"):
             assert r.get("rights"), f"{name}: say where its licence comes from"
 
