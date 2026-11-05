@@ -42,6 +42,7 @@ PAD = 0.25               # quiet kept before and after each ayah
 MAX_PAUSE = 2.0          # weight of a pause: its length, or its depth / 10 dB, capped
 MIN_MATCH = 0.85         # a segment's recognised text must match its ayah this well
 RATE = 16000
+MP3QURAN = "https://www.mp3quran.net/api/v3"
 
 
 class SplitError(RuntimeError):
@@ -175,20 +176,28 @@ def speech_span(silences: list[Pause], total: float) -> tuple[float, float]:
 
 
 def find_split(audio: Path, labels: list[str], texts: list[str], expected: list[float],
-               recognizer) -> tuple[dict[str, tuple[float, float]], dict[str, float]]:
-    """Segments {label: (start, end)} and how well each one's recognised text matches."""
+               recognizer, starts: list[float | None] | None = None,
+               check: set[str] | None = None
+               ) -> tuple[dict[str, tuple[float, float]], dict[str, float]]:
+    """Segments {label: (start, end)} and how well each checked one's recognised text
+    matches (check: these labels only, e.g. one passage of a long surah; None: all).
+    starts: where each segment starts when published (mp3quran's timings), otherwise found
+    from the recognised words."""
     from quran_reels.sources.recognition import ayah_starts, heard_matches
 
     samples = decode(audio)
     total = len(samples) / RATE
     silences, _ = pauses(audio)
     speech = speech_span(silences, total)
-    starts = ayah_starts([t.split() for t in texts], recognizer.words(samples))
+    if starts is None:
+        starts = ayah_starts([t.split() for t in texts], recognizer.words(samples))
     candidates = sorted([p for p in silences if speech[0] < p.middle < speech[1]]
                         + dips(envelope(samples), MIN_DIP), key=lambda p: p.start)
     cut = bounds(snap(estimates(starts, speech, expected), candidates, speech), speech, total)
     scores, wrong = {}, []
     for i, (label, text, (a, b)) in enumerate(zip(labels, texts, cut)):
+        if check is not None and label not in check:
+            continue
         heard = recognizer.text(samples[int(a * RATE):int(b * RATE)])
         before = texts[i - 1] if i else ""
         after = texts[i + 1] if i + 1 < len(texts) else ""
@@ -211,7 +220,7 @@ class SurahFiles:
 
     def __init__(self, cache: Path, http: Http, reciter: str, url: str, splits: Path,
                  reference: Callable[[int], dict[int, float]],
-                 texts: Callable[[int], dict[str, str]]):
+                 texts: Callable[[int], dict[str, str]], mp3quran: int | None = None):
         self.dir = cache / "surah-audio" / reciter
         self.splits = splits
         self.http = http
@@ -219,7 +228,33 @@ class SurahFiles:
         self.template = url
         self.reference = reference
         self.texts = texts
+        self.mp3quran = mp3quran      # read id of mp3quran.net's ayah timings, if published
         self._recognizer = None
+
+    def published_timing(self, surah: int) -> dict[int, tuple[float, float]]:
+        """mp3quran.net's (start, end) of each ayah, in seconds (cached): volunteers' marks,
+        a good first estimate that the split still snaps and checks."""
+        path = self.dir / f"timing-{surah:03d}.json"
+        if not path.is_file():
+            url = f"{MP3QURAN}/ayat_timing"
+            rows = self.http.json(url, surah=surah, read=self.mp3quran)
+            write_json(path, {"source": f"{url}?surah={surah}&read={self.mp3quran}",
+                              "ayahs": {str(r["ayah"]): [r["start_time"] / 1000, r["end_time"] / 1000]
+                                        for r in rows if int(r["ayah"]) > 0}})
+        return {int(a): tuple(t) for a, t in read_json(path)["ayahs"].items()}
+
+    def planned_seconds(self, surah: int) -> dict[str, float]:
+        """Length of the basmala and of each ayah, for choosing a reciter: the committed
+        split, or else mp3quran's timings (no download)."""
+        if self.split_path(surah).is_file():
+            return {k: b - a for k, (a, b) in self.segments(surah).items()}
+        if self.mp3quran is None:
+            raise SystemExit(f"{self.reciter}: surah {surah} not split yet (quran-reels split)")
+        timing = self.published_timing(surah)
+        out = {str(a): t[1] - t[0] for a, t in timing.items()}
+        if surah not in (1, 9):
+            out = {"basmala": max(timing[1][0] - 0.3, 0.0), **out}
+        return out
 
     @property
     def base_url(self) -> str:
@@ -257,33 +292,61 @@ class SurahFiles:
             self.make_split(surah)
         return {k: tuple(v) for k, v in read_json(path)["segments"].items()}
 
-    def make_split(self, surah: int) -> dict:
-        """Find and check the split by speech recognition, write it to `splits`."""
+    def matches(self, surah: int) -> dict[str, float]:
+        """How well each checked segment was recognised as its ayah (unchecked: absent)."""
+        path = self.split_path(surah)
+        return read_json(path).get("match", {}) if path.is_file() else {}
+
+    def checked(self, surah: int, label: str) -> None:
+        if self.matches(surah).get(label, 0.0) < MIN_MATCH:
+            what = "the basmala" if label == "basmala" else f"{surah}:{label}"
+            raise SystemExit(f"{self.reciter}: {what} is not checked; nothing rendered "
+                             f"(quran-reels split {surah}" + ("" if label == "basmala" else
+                                                              f":{label}") + ")")
+
+    def make_split(self, surah: int, check: set[str] | None = None) -> dict:
+        """Find the split, check its segments by speech recognition (`check`: these only;
+        those already checked with the same cuts are kept), write it to `splits`."""
         from quran_reels.sources.recognition import MODEL, Recognizer
 
         texts = self.texts(surah)
         labels = list(texts)
         ref = self.reference(surah)
         expected = [self.reference(1)[1] if k == "basmala" else ref[int(k)] for k in labels]
+        starts = None
+        if self.mp3quran is not None:
+            timing = self.published_timing(surah)
+            starts = [None if k == "basmala" else timing[int(k)][0] for k in labels]
+            expected = [timing[1][0] if k == "basmala" else timing[int(k)][1] - timing[int(k)][0]
+                        for k in labels]
         if self._recognizer is None:
             self._recognizer = Recognizer()
+        before = read_json(self.split_path(surah)) if self.split_path(surah).is_file() else {}
         try:
             segments, scores = find_split(self.audio(surah), labels, list(texts.values()),
-                                          expected, self._recognizer)
+                                          expected, self._recognizer, starts, check)
         except SplitError as e:
             raise SystemExit(f"{self.reciter}, surah {surah}: {e}; nothing rendered") from e
+        old_segments = {k: tuple(v) for k, v in before.get("segments", {}).items()}
+        for k, score in before.get("match", {}).items():   # same cuts: still checked
+            if k not in scores and old_segments.get(k) == tuple(segments[k]):
+                scores[k] = score
+        scores = {k: scores[k] for k in labels if k in scores}
         print(f"{self.reciter} {surah}: " + ", ".join(
-            f"{k} {b - a:.1f} s ({scores[k]:.2f})" for k, (a, b) in segments.items()),
-            file=sys.stderr)
+            f"{k} {b - a:.1f} s ({scores[k]:.2f})" for k, (a, b) in segments.items()
+            if k in scores), file=sys.stderr)
         data = {"source": self.surah_url(surah),
-                "method": f"word times recognised by {MODEL}, aligned on the Uthmani text, "
-                          "cut at the quietest moment nearby; each segment recognised again",
+                "method": (f"ayah starts from mp3quran.net (read {self.mp3quran})"
+                           if self.mp3quran is not None else
+                           f"word times recognised by {MODEL}, aligned on the Uthmani text")
+                + f", cut at the quietest moment nearby; each segment recognised by {MODEL}",
                 "segments": segments, "match": scores}
         write_json(self.split_path(surah), data)
         return data
 
     def _cut(self, surah: int, label: str) -> Path:
         dest = self.dir / f"{surah:03d}{label.zfill(3) if label != 'basmala' else 'bsm'}.flac"
+        self.checked(surah, label)
         if not dest.is_file():
             a, b = self.segments(surah)[label]
             subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-y", "-ss", f"{a:.3f}",

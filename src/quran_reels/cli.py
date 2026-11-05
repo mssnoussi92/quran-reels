@@ -8,6 +8,20 @@ import sys
 from quran_reels import config
 
 
+def _reciter_for(cfg, key: str):
+    """$QURAN_REELS_RECITER, or else the reciter the rotation chooses for this passage."""
+    import os
+
+    from quran_reels import reciters as rec
+    from quran_reels.config import RECITER_ENV
+
+    if os.environ.get(RECITER_ENV) or not rec.rotation(cfg):
+        return cfg
+    name, _ = rec.choose(cfg, key, [])
+    print(f"{key}: {name} (content.rotation)", file=sys.stderr)
+    return rec.with_reciter(cfg, name)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="quran-reels")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -27,8 +41,9 @@ def main(argv: list[str] | None = None) -> int:
     split = sub.add_parser("split", help="reciter with one file per surah: find where each "
                                          "ayah starts (speech recognition), check, write "
                                          "config/splits/ (needs the asr extra)")
-    split.add_argument("surahs", type=int, nargs="+")
-    split.add_argument("--force", action="store_true", help="redo a split already committed")
+    split.add_argument("passages", nargs="+", help="surahs (114) or passages (2:255-257): "
+                                                   "only their ayahs are checked")
+    split.add_argument("--force", action="store_true", help="check again what is checked")
 
     publish = sub.add_parser("publish", help="publish a reel (Facebook, Instagram, TikTok draft)")
     publish.add_argument("target", help="out/093_001-011.mp4, or a passage/surah to render first")
@@ -123,26 +138,36 @@ def main(argv: list[str] | None = None) -> int:
         if not isinstance(src.audio, SurahFiles):
             raise SystemExit(f"{cfg.content['reciter']['name']}: one file per ayah, nothing to "
                              f"split (choose one with QURAN_REELS_RECITER)")
+        from quran_reels.models import parse_passage
+        from quran_reels.sources.surah_audio import MIN_MATCH
+
         src.quran.ensure(src.translation_slug)
         failed = []
-        for surah in args.surahs:
-            if src.audio.split_path(surah).is_file() and not args.force:
-                print(f"{surah}: already split ({src.audio.split_path(surah)})")
+        for key in args.passages:
+            surah, start, end = parse_passage(key if ":" in key else f"{key}:1-999")
+            end = min(end, src.quran.chapters[surah]["verses_count"])
+            check = {str(a) for a in range(start, end + 1)}
+            if surah not in (1, 9):
+                check.add("basmala")
+            done = {k for k, v in src.audio.matches(surah).items() if v >= MIN_MATCH}
+            if check <= done and not args.force:
+                print(f"{key}: already checked ({src.audio.split_path(surah)})")
                 continue
             try:
-                src.audio.make_split(surah)
+                src.audio.make_split(surah, None if ":" not in key else check)
             except SystemExit as e:
                 print(e, file=sys.stderr)
-                failed.append(surah)
+                failed.append(key)
         if failed:
-            print(f"not split: {', '.join(map(str, failed))}", file=sys.stderr)
+            print(f"not ready: {', '.join(failed)}", file=sys.stderr)
         return 1 if failed else 0
 
     if args.command == "render":
         from quran_reels.render import render_passage
         from quran_reels.selector.plan import resolve
 
-        print(render_passage(cfg, resolve(cfg, args.passage)).video)
+        key = resolve(cfg, args.passage)
+        print(render_passage(_reciter_for(cfg, key), key).video)
         return 0
 
     if args.command == "meta-check":
@@ -167,7 +192,9 @@ def main(argv: list[str] | None = None) -> int:
             from quran_reels.render import render_passage
             from quran_reels.selector.plan import resolve
 
-            video = render_passage(cfg, resolve(cfg, args.target)).video
+            key = resolve(cfg, args.target)
+            cfg = _reciter_for(cfg, key)
+            video = render_passage(cfg, key).video
         elif not video.is_file():
             raise SystemExit(f"{video}: no such file")
         return publish_mod.run(cfg, video, platforms, dry_run=args.dry_run, checked=checked)
@@ -225,9 +252,23 @@ def main(argv: list[str] | None = None) -> int:
                  else datetime.now(UTC).astimezone(sched.tz).date())
         if not sched.enabled:
             print("(schedule disabled: this is what it would publish)")
+        from quran_reels import reciters as rec
+
+        order = {s.name: i for i, s in enumerate(sorted(sched.slots, key=lambda s: s.at))}
+        recent = rec.recent_reciters(state, order)
         for day, slot, queue, item in preview(sched, series, state, start, args.days):
             what = f"{item.key:<10} {item.label_en or item.series.id}" if item else "— nothing left"
-            print(f"{day:%a %Y-%m-%d} {slot.at:%H:%M} {queue:<8} {what}")
+            reciter = ""
+            if item and rec.rotation(cfg):
+                done = state.slot(day, slot.name) or {}
+                try:
+                    name = done.get("reciter") or rec.choose(cfg, item.key, recent)[0]
+                    secs = rec.passage_seconds(rec.with_reciter(cfg, name), item.key).seconds
+                    reciter = f"  [{name}, {secs} s]"
+                    recent.append(name)
+                except SystemExit:
+                    reciter = "  [no reciter ready: quran-reels split " + item.key + "]"
+            print(f"{day:%a %Y-%m-%d} {slot.at:%H:%M} {queue:<8} {what}{reciter}")
         return 0
 
     if args.command in ("daily", "run"):

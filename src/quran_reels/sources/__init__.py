@@ -53,7 +53,8 @@ class Sources:
             audio = SurahFiles(cfg.cache, http, reciter=r["id"], url=r["surah_url"],
                                splits=cfg.root / "config" / "splits" / r["id"],
                                reference=lambda s: quran.timings(s, REFERENCE_TIMINGS),
-                               texts=lambda s: surah_texts(quran, s))
+                               texts=lambda s: surah_texts(quran, s),
+                               mp3quran=r.get("mp3quran"))
         else:
             audio = EveryAyah(cfg.cache, http, reciter=r["id"])
         return cls(
