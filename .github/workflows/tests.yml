@@ -1,0 +1,36 @@
+name: tests
+
+# The test suite (no network) and ruff on every pull request and on main, with the same static
+# ffmpeg as the publishing workflows (imageio-ffmpeg, no apt: the Ubuntu mirror can take 40 min).
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: |
+          pip install -q -e ".[dev]" imageio-ffmpeg==0.8.1
+          mkdir -p ~/bin
+          ln -sf "$(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')" ~/bin/ffmpeg
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+      - name: Ruff
+        run: ruff check src tests
+      - name: Tests
+        run: python -m pytest -q
