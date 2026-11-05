@@ -31,6 +31,7 @@ from pathlib import Path
 
 import numpy as np
 
+from quran_reels.arabic import normalize
 from quran_reels.models import AyahRef
 from quran_reels.sources.http import Http, read_json, write_json
 
@@ -210,22 +211,39 @@ def _heard(recognizer, samples: np.ndarray, lo: float, hi: float) -> list:
 def check_cut(recognizer, samples: np.ndarray, end: float, start: float, left: str,
               right: str) -> str:
     """'' when a cut keeps each ayah's words on its side (the left segment ends at `end`, the
-    right one starts at `start`), else what is wrong. The words next to the cut are recognised
-    together, CUT_WINDOW seconds on each side: with both sides heard, a short word is not lost,
-    as it was in the recognition of each segment alone («لا» of 2:256 at the end of Budair's
-    2:255, «Alif» of 2:1 at the end of his basmala, 2026-11-05)."""
-    from quran_reels.sources.recognition import align_words
+    right one starts at `start`), else what is wrong. The CUT_WINDOW seconds just before the
+    cut and just after it are recognised apart, and their edge words compared with the ayahs':
+    - the last word heard before the cut must not be one of the next ayah's first words
+      («Alif» of 2:1 at the end of Budair's basmala, 2026-11-05);
+    - the first word heard after it must be the next ayah's first word, not a later one (its
+      first word left before the cut: «لا» of 2:256 at the end of his 2:255, heard as «ذكراه»
+      after the cut) nor one of the previous ayah's last words.
+    Word timestamps are not used: around a silence they were off by seconds."""
+    from quran_reels.sources.recognition import similarity
 
-    lo, hi = max(0.0, end - CUT_WINDOW), min(len(samples) / RATE, start + CUT_WINDOW)
-    lw, rw = left.split()[-CUT_CONTEXT:], right.split()[:CUT_CONTEXT]
-    matched = align_words(lw + rw, _heard(recognizer, samples, lo, hi))
-    last_left = next((w for w in reversed(matched[:len(lw)]) if w is not None), None)
-    first_right = next((w for w in matched[len(lw):] if w is not None), None)
+    total = len(samples) / RATE
+    before = recognizer.text(samples[int(max(0.0, end - CUT_WINDOW) * RATE):int(end * RATE)])
+    after = recognizer.text(samples[int(start * RATE):int(min(total, start + CUT_WINDOW) * RATE)])
+    lw = [w for w in left.split() if normalize(w)][-CUT_CONTEXT:]
+    rw = [w for w in right.split() if normalize(w)][:CUT_CONTEXT]
+    heard_before = [w for w in before.split() if normalize(w)]
+    heard_after = [w for w in after.split() if normalize(w)]
+
+    def best(word: str, among: list[str]) -> float:
+        return max((similarity(word, w) for w in among), default=0.0)
+
     problems = []
-    if first_right is not None and first_right.start < end - CUT_TOLERANCE:
-        problems.append(f"«{first_right.text}» of the next ayah is before the cut")
-    if last_left is not None and last_left.start > start + CUT_TOLERANCE:
-        problems.append(f"«{last_left.text}» is after the cut")
+    if heard_before and rw and lw:
+        tail = heard_before[-1]
+        if best(tail, rw) >= 0.6 and best(tail, rw) > best(tail, lw) + 0.1:
+            problems.append(f"«{tail}» of the next ayah is before the cut")
+    if heard_after and rw:
+        head = heard_after[0]
+        own, later, prev = similarity(head, rw[0]), best(head, rw[1:]), best(head, lw)
+        if prev >= 0.6 and prev > own + 0.1:
+            problems.append(f"«{head}» of the previous ayah is after the cut")
+        elif later >= 0.6 and later > own + 0.1:
+            problems.append(f"«{rw[0]}» is not after the cut (heard first: «{head}»)")
     return "; ".join(problems)
 
 

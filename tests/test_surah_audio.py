@@ -100,29 +100,38 @@ def test_the_basmala_ends_at_the_reciters_stop_not_at_a_late_published_start():
     assert basmala_stop([Pause(0.0, 0.19)], 0.19, 5.6) is None      # no stop heard: as before
 
 
-class WordsHeard:
-    """A recogniser that hears given words, at times in the recording (check_cut)."""
+class HeardAround:
+    """A recogniser for check_cut: each sample holds its own time, so a clip says where it is;
+    it answers what a reciter says just before or just after the cut."""
 
-    def __init__(self, words):
-        self.heard = words
+    def __init__(self, cut, before, after):
+        self.cut, self.before, self.after = cut, before, after
 
-    def words(self, samples):
-        from quran_reels.sources.recognition import Word
-        lo = self.lo
-        return [Word(t, s - lo, s - lo + 0.3) for t, s in self.heard]
+    def text(self, samples):
+        return self.after if samples[0] >= self.cut - 0.01 else self.before
 
 
-def test_a_cut_after_the_next_ayahs_first_word_is_refused():
+def timed(seconds):
     import numpy as np
+    return (np.arange(int(seconds * 16000), dtype=np.float64) / 16000).astype(np.float32)
 
+
+LEFT = "وَلَا يَـُٔودُهُۥ حِفْظُهُمَا ۚ وَهُوَ ٱلْعَلِىُّ ٱلْعَظِيمُ"
+RIGHT = "لَآ إِكْرَاهَ فِى ٱلدِّينِ ۖ قَد تَّبَيَّنَ"
+
+
+def test_a_cut_that_leaves_the_next_ayahs_first_word_before_it_is_refused():
     from quran_reels.sources.surah_audio import check_cut
-    left = "وَلَا يَـُٔودُهُۥ حِفْظُهُمَا ۚ وَهُوَ ٱلْعَلِىُّ ٱلْعَظِيمُ"
-    right = "لَآ إِكْرَاهَ فِى ٱلدِّينِ"
-    samples = np.zeros(16000 * 20, np.float32)
-    rec = WordsHeard([("وهو", 8.0), ("العلي", 8.4), ("العظيم", 9.0), ("لا", 10.2),
-                      ("اكراه", 10.6), ("في", 11.1), ("الدين", 11.4)])
-    rec.lo = 10.8 - 3.0             # Budair's old cut, 0.6 s after «لا» began
-    assert "«لا» of the next ayah is before the cut" in check_cut(rec, samples, 10.8, 10.8,
-                                                                  left, right)
-    rec.lo = 10.0 - 3.0             # the cut before «لا»
-    assert check_cut(rec, samples, 10.0, 10.0, left, right) == ""
+    # Budair's old 2:255|2:256 cut, as recognised: «لا» lost before, «ذكراه» first after
+    rec = HeardAround(10.0, "وَهُوَ الْعَلِيُّ الْعَظِيمُ", "ذَكْرَاهَ فِي الدِّينِ")
+    assert "is not after the cut" in check_cut(rec, timed(20), 10.0, 10.0, LEFT, RIGHT)
+    rec = HeardAround(10.0, "وَهُوَ الْعَلِيُّ الْعَظِيمُ", "لَا إِكْرَاهَ فِي الدِّينِ")
+    assert check_cut(rec, timed(20), 10.0, 10.0, LEFT, RIGHT) == ""
+
+
+def test_a_basmala_that_ends_with_the_first_ayahs_word_is_refused():
+    from quran_reels.sources.surah_audio import check_cut
+    basmala = "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ"
+    rec = HeardAround(5.0, "الرَّحِيمِ الم", "الم ذَلِكَ")           # «Alif» kept before the cut
+    assert "of the next ayah is before the cut" in check_cut(rec, timed(12), 5.0, 5.0, basmala,
+                                                             "الٓمٓ")
