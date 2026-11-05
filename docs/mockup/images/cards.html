@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!--
+  Mockup of the image formats (1080x1350, 4:5). Open with ?card=word-1|word-2|word-3|ayah.
+  Example data: 93:3, grounded via quran.ai (ar-uthmani-hafs, en-sahih-international,
+  ar-ghareeb-ibn-qutaybah). In the pipeline these values come from the cache, never typed by hand.
+-->
+<style>
+  @font-face { font-family: "AmiriQuran"; src: url("../../../assets/fonts/AmiriQuran-Regular.ttf"); }
+  @font-face { font-family: "Amiri"; src: url("../../../assets/fonts/Amiri-Regular.ttf"); font-weight: 400; }
+  @font-face { font-family: "Amiri"; src: url("../../../assets/fonts/Amiri-Bold.ttf"); font-weight: 700; }
+  @font-face { font-family: "Lora"; src: url("../../../assets/fonts/Lora.ttf"); }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1080px; height: 1350px; overflow: hidden; }
+  body { position: relative; color: #eef0fa;
+    background:
+      radial-gradient(ellipse 90% 45% at 50% 108%, rgba(255,170,90,.42), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 78% 12%, rgba(120,140,220,.20), transparent 70%),
+      linear-gradient(180deg, #0b1026 0%, #1a2350 48%, #33335f 78%, #5e4458 100%); }
+  .stars { position: absolute; inset: 0; background-image:
+      radial-gradient(1.6px 1.6px at 12% 14%, #fff8, transparent), radial-gradient(1.2px 1.2px at 34% 7%, #fff9, transparent),
+      radial-gradient(1.6px 1.6px at 61% 11%, #fff7, transparent), radial-gradient(1.2px 1.2px at 86% 6%, #fffa, transparent),
+      radial-gradient(1.2px 1.2px at 92% 24%, #fff6, transparent), radial-gradient(1.6px 1.6px at 7% 31%, #fff5, transparent); }
+  .frame { position: absolute; inset: 70px 80px 80px; display: flex; flex-direction: column; }
+  .top { display: flex; justify-content: space-between; align-items: baseline; font-family: "Lora";
+    font-size: 26px; letter-spacing: .14em; color: #f6c86b; text-transform: uppercase; }
+  .top .ref { letter-spacing: .04em; color: #aab0cf; text-transform: none; }
+  .center { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
+    text-align: center; gap: 40px; }
+  .bottom { display: flex; justify-content: space-between; align-items: flex-end; font-family: "Lora";
+    font-size: 24px; color: #aab0cf; }
+  .bottom .handle { color: #f6c86b; font-size: 28px; letter-spacing: .03em; }
+  .swipe { font-family: "Lora"; font-style: italic; font-size: 30px; color: #aab0cf; }
+
+  .big-word { font-family: "AmiriQuran"; font-size: 260px; line-height: 1.5; color: #f6c86b;
+    direction: rtl; text-shadow: 0 8px 40px rgba(0,0,0,.45); }
+  .surah { font-family: "Amiri"; font-weight: 700; font-size: 44px; direction: rtl; }
+  .surah span { font-family: "Lora"; font-weight: 400; font-size: 32px; color: #aab0cf; margin-inline-start: 12px; }
+
+  .ayah { font-family: "AmiriQuran"; font-size: 100px; line-height: 1.95; direction: rtl;
+    text-shadow: 0 4px 26px rgba(0,0,0,.5); }
+  .ayah .hl { color: #f6c86b; }
+  .ayah .num { font-size: 66px; }
+  .tr { font-family: "Lora"; font-style: italic; font-size: 44px; line-height: 1.5; max-width: 880px; }
+  .credit { font-family: "Lora"; font-size: 24px; color: #aab0cf; }
+
+  .meaning-word { font-family: "AmiriQuran"; font-size: 150px; line-height: 1.5; color: #f6c86b; direction: rtl; }
+  .card { width: 100%; direction: rtl; text-align: right; background: rgba(10,14,35,.55);
+    border: 1px solid rgba(246,200,107,.35); border-radius: 30px; padding: 44px 52px 36px; }
+  .card h3 { font-family: "Amiri"; font-weight: 700; font-size: 38px; color: #f6c86b; margin-bottom: 18px; }
+  .card p { font-family: "Amiri"; font-size: 60px; line-height: 1.6; }
+  .card .src { font-family: "Amiri"; font-size: 30px; color: #aab0cf; margin-top: 18px; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="stars"></div>
+
+<!-- Word of the day, slide 1: the hook (also the grid thumbnail, keep it centred) -->
+<div class="frame" id="word-1">
+  <div class="top"><span>Word of the day</span><span class="ref">1 / 3</span></div>
+  <div class="center">
+    <div class="big-word">قَلَىٰ</div>
+    <div class="surah">سورة الضحى <span>· Surah Ad-Duha 93:3</span></div>
+    <div class="swipe">Swipe for its meaning →</div>
+  </div>
+  <div class="bottom"><span class="handle">@quran_words_daily</span><span></span></div>
+</div>
+
+<!-- Slide 2: the word in its ayah, with the translation -->
+<div class="frame" id="word-2">
+  <div class="top"><span>In its verse</span><span class="ref">2 / 3</span></div>
+  <div class="center">
+    <div class="ayah">مَا وَدَّعَكَ رَبُّكَ وَمَا <span class="hl">قَلَىٰ</span>&nbsp;<span class="num">﴿٣﴾</span></div>
+    <div class="tr">Your Lord has not taken leave of you, [O Muḥammad], nor has He detested [you].</div>
+  </div>
+  <div class="bottom"><span class="handle">@quran_words_daily</span><span class="credit">Ad-Duha 93:3 · Sahih International</span></div>
+</div>
+
+<!-- Slide 3: the meaning, verbatim from Ibn Qutaybah -->
+<div class="frame" id="word-3">
+  <div class="top"><span>Its meaning</span><span class="ref">3 / 3</span></div>
+  <div class="center">
+    <div class="meaning-word">قَلَىٰ</div>
+    <div class="card">
+      <h3>معنى الكلمة</h3>
+      <p>ما أبْغَضك.</p>
+      <div class="src">— ابن قتيبة، تفسير غريب القرآن</div>
+    </div>
+  </div>
+  <div class="bottom"><span class="handle">@quran_words_daily</span><span class="credit">Ad-Duha 93:3</span></div>
+</div>
+
+<!-- Ayah of the day (prepared, not published yet) -->
+<div class="frame" id="ayah">
+  <div class="top"><span>Ayah of the day</span><span class="ref">Ad-Duha 93:3</span></div>
+  <div class="center">
+    <div class="surah">سورة الضحى</div>
+    <div class="ayah">مَا وَدَّعَكَ رَبُّكَ وَمَا قَلَىٰ&nbsp;<span class="num">﴿٣﴾</span></div>
+    <div class="tr">Your Lord has not taken leave of you, [O Muḥammad], nor has He detested [you].</div>
+  </div>
+  <div class="bottom"><span class="handle">@quran_words_daily</span><span class="credit">Sahih International</span></div>
+</div>
+
+<script>
+  var card = new URLSearchParams(location.search).get("card") || "word-1";
+  document.querySelectorAll(".frame").forEach(function (f) { if (f.id !== card) f.classList.add("hidden"); });
+</script>
+</body>
+</html>
