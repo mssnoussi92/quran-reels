@@ -41,7 +41,10 @@ MIN_DIP = 2.0            # dips at least this many dB below the speech within 1 
 WINDOW = (1.2, 0.8)      # a cut is looked for this long before / after the ayah's first word
 PAD = 0.25               # quiet kept before and after each ayah
 MAX_PAUSE = 2.0          # weight of a pause: its length, or its depth / 10 dB, capped
-MIN_MATCH = 0.85         # a segment's recognised text must match its ayah this well
+MIN_MATCH = 0.75         # a segment's recognised text must match its ayah this well
+                         # (no neighbour's word either: recognition.heard_matches)
+PUBLISHED_WINDOW = (0.6, 0.4)   # around a published start: cut close to it
+TRIES = 5                # quiet moments tried for one cut before giving up
 RATE = 16000
 MP3QURAN = "https://www.mp3quran.net/api/v3"
 
@@ -155,13 +158,20 @@ def estimates(starts: list[float | None], speech: tuple[float, float],
     return [est[k] for k in range(1, n)]
 
 
+def ranked(e: float, candidates: list[Pause], after: float,
+           window: tuple[float, float] = WINDOW, scale: float = 0.4) -> list[Pause]:
+    """Quiet moments for a cut expected at e, best first (strong and close), then e itself."""
+    near = [p for p in candidates if p.middle > after and e - window[0] <= p.middle <= e + window[1]]
+    near.sort(key=lambda p: -(p.weight - abs(p.middle - e) / scale))
+    e = max(e, after + 0.1)            # never before the previous cut
+    return near + [Pause(e, e)]
+
+
 def snap(cuts: list[float], candidates: list[Pause], speech: tuple[float, float]) -> list[Pause]:
     """The quiet moment chosen for each cut: the strongest pause near it, in order."""
     chosen, after = [], speech[0]
     for e in cuts:
-        near = [p for p in candidates
-                if p.middle > after and e - WINDOW[0] <= p.middle <= e + WINDOW[1]]
-        p = max(near, key=lambda p: p.weight - abs(p.middle - e) / 0.4) if near else Pause(e, e)
+        p = ranked(e, candidates, after)[0]
         chosen.append(p)
         after = p.middle
     return chosen
@@ -199,6 +209,7 @@ def find_split(audio: Path, labels: list[str], texts: list[str], expected: list[
     total = len(samples) / RATE
     silences, _ = pauses(audio)
     speech = speech_span(silences, total)
+    published = starts is not None
     if starts is None:
         starts = ayah_starts([t.split() for t in texts], recognizer.words(samples))
     candidates = sorted([p for p in silences if speech[0] < p.middle < speech[1]]
@@ -207,17 +218,43 @@ def find_split(audio: Path, labels: list[str], texts: list[str], expected: list[
         near = [p for p in candidates if end - WINDOW[1] <= p.middle <= end + WINDOW[0]]
         stop = max(near, key=lambda p: p.weight - abs(p.middle - end) / 0.4) if near else None
         speech = (speech[0], stop.start + min(PAD, stop.length / 2) - PAD if stop else end)
-    cut = bounds(snap(estimates(starts, speech, expected), candidates, speech), speech, total)
+    window, scale = (PUBLISHED_WINDOW, 0.25) if published else (WINDOW, 0.4)
+    heard: dict[tuple[str, float, float], float] = {}
+
+    def score(i: int, a: float, b: float) -> float:
+        key = (labels[i], round(a, 3), round(b, 3))
+        if key not in heard:
+            text = recognizer.text(samples[int(a * RATE):int(b * RATE)])
+            heard[key] = round(heard_matches(text, texts[i], texts[i - 1] if i else "",
+                                             texts[i + 1] if i + 1 < len(texts) else ""), 2)
+        return heard[key]
+
+    def wanted(i: int) -> bool:
+        return check is None or labels[i] in check
+
+    # Left to right: each cut at the best quiet moment near its estimate whose segment before
+    # it is recognised as its ayah (no word of the next one, none of its own missing).
+    chosen, after = [], speech[0]
+    seg_start = max(speech[0] - PAD, 0.0)
+    for k, e in enumerate(estimates(starts, speech, expected)):
+        options = ranked(e, candidates, after, window, scale)
+        p = options[0]
+        if wanted(k) or wanted(k + 1):
+            for option in options[:TRIES]:
+                if score(k, seg_start, min(option.start + PAD, option.middle)) >= MIN_MATCH:
+                    p = option
+                    break
+        chosen.append(p)
+        after = p.middle
+        seg_start = max(p.end - PAD, p.middle)
+    cut = bounds(chosen, speech, total)
     scores, wrong = {}, []
-    for i, (label, text, (a, b)) in enumerate(zip(labels, texts, cut)):
-        if check is not None and label not in check:
+    for i, (a, b) in enumerate(cut):
+        if not wanted(i):
             continue
-        heard = recognizer.text(samples[int(a * RATE):int(b * RATE)])
-        before = texts[i - 1] if i else ""
-        after = texts[i + 1] if i + 1 < len(texts) else ""
-        scores[label] = round(heard_matches(heard, text, before, after), 2)
-        if scores[label] < MIN_MATCH:
-            wrong.append(f"{label} ({scores[label]:.2f})")
+        scores[labels[i]] = score(i, a, b)
+        if scores[labels[i]] < MIN_MATCH:
+            wrong.append(f"{labels[i]} ({scores[labels[i]]:.2f})")
     if wrong:
         raise SplitError(f"segments not recognised as their ayah: {', '.join(wrong)}")
     return dict(zip(labels, cut)), scores

@@ -1,0 +1,38 @@
+{
+ "source": "https://cdn.mp3quran.net/audio/saad-ghamdi/r1/113.mp3",
+ "method": "ayah starts from mp3quran.net (read 30), cut at the quietest moment nearby; each segment recognised by tarteel-ai/whisper-base-ar-quran",
+ "segments": {
+  "basmala": [
+   0.0,
+   5.817
+  ],
+  "1": [
+   5.817,
+   8.59
+  ],
+  "2": [
+   8.59,
+   12.21
+  ],
+  "3": [
+   12.21,
+   17.556
+  ],
+  "4": [
+   17.556,
+   23.373
+  ],
+  "5": [
+   23.373,
+   27.697
+  ]
+ },
+ "match": {
+  "basmala": 1.0,
+  "1": 0.9,
+  "2": 1.0,
+  "3": 1.0,
+  "4": 0.92,
+  "5": 1.0
+ }
+}
