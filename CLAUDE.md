@@ -208,9 +208,12 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   2. coupe au moment le plus calme proche (silence ou creux de l'enveloppe ≥ 2 dB, la
      réverbération remplit les silences) ; début non reconnu (le 1er mot avale la basmala) →
      proportion des durées d'Alafasy ;
-  3. chaque segment est reconnu à nouveau et comparé à son ayah (≥ 0,85, répétition admise ;
-     0 s'il ressemble plus à « ayah + voisine » : مَلِكِ ٱلنَّاسِ / إِلَـٰهِ ٱلنَّاسِ). Un échec
-     arrête tout. 114 : 1,00 1,00 1,00 0,93 0,91 1,00 ; 1 (Al-Fatiha) refusée (ayah 3 : 0,67).
+  3. chaque segment est reconnu à nouveau et comparé à son ayah (≥ 0,75, répétition admise ;
+     0 s'il ressemble plus à l'ayah avec ne serait-ce qu'un mot d'une voisine : بسم الله… قل هو,
+     لم يلد ولم يولد ولم). Pour chaque coupe, les moments calmes voisins sont essayés tour à
+     tour (près d'un minutage publié : −0,6/+0,4 s) jusqu'à ce que le segment soit reconnu. Les
+     ayahs reconnues restent vérifiées même si d'autres échouent : un passage demande toutes
+     les siennes. 114 : 1,00 1,00 1,00 0,93 0,91 1,00 ; 1 (Al-Fatiha) refusée (ayah 3 : 0,67).
   Découpe vérifiée **commitée** (`config/splits/<id>/SSS.json`, temps seulement) par
   `quran-reels split <sourates>` (extra `asr` : `pip install torch --index-url
   https://download.pytorch.org/whl/cpu && pip install -e .[asr]`) : le pipeline quotidien n'a
@@ -435,9 +438,10 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
 - [x] Série « السبع آيات المنجيات » · [ ] d'autres séries avant la fin des thèmes (≈ 2 mois)
 - [x] Fonds choisis selon le passage (scènes générées + 3 clips Pexels, PR #8 ; + 21 clips
       Pixabay validés)
-- [x] Publications image : Word of the day, Ayah of the day — **désactivés** (2026-11-05) en
-      attendant la validation des tirages avec le Muyassar (`config/image-candidates.yaml` à
-      refaire) · [ ] premier dry-run Meta des images · [ ] première publication réelle
+- [x] Publications image : Word of the day **activé** (tirages du 6 au 12 novembre avec le
+      Muyassar validés par le propriétaire le 2026-11-05 ; candidats refaits : 8 599 mots,
+      4 913 ayahs), Ayah of the day désactivé · [ ] premier dry-run Meta des images ·
+      [ ] première publication réelle (11:30 UTC le lendemain de la fusion)
 - [x] Vérification des droits Meta avant publication. Facebook : un brouillon de reel ne se
       publie pas par l'API (« The video was not uploaded », code 6000, subcode 1363130, run
       #18) → le fichier vérifié est renvoyé directement en PUBLISHED, brouillon supprimé.

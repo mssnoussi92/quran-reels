@@ -3,8 +3,7 @@
 
 formats:
   word:                      # Word of the day: 3-image carousel (word, its ayah, its meaning)
-    enabled: false           # 2026-11-05: off until the owner approves the picks with the
-                             # Muyassar meanings (config/image-candidates.yaml to rebuild)
+    enabled: true            # picks with the Muyassar meanings approved by the owner (2026-11-05)
     time_utc: "11:30"        # once a day (12:30 Paris in winter, 13:30 in summer)
     seed: quran-words-daily  # fixed: the order of the candidates never changes
   ayah:                      # Ayah of the day: one image, prepared, not published yet
