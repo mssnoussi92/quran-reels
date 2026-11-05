@@ -15,7 +15,7 @@ e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis 
 | Basmala | **Au début de chaque vidéo**, même pour quelques versets ; sauf sourate 9 et avant 1:1 (qui est la basmala) |
 | Rythme | **2 vidéos par jour**, heure de Paris : **07:30** lecture dans l'ordre, **19:30** séries thématiques |
 | Lecture | **Juz' 'Amma d'abord** (114 → 78), puis Al-Fatiha et 2 → 77, passages de `config/plan.yaml` |
-| Thèmes | Ayat al-Kursi, versets de du'a, versets du rizq… : listes **proposées par l'IA en PR, validées par le propriétaire** |
+| Thèmes | Ayat al-Kursi, les 7 versets « المنجيات », versets de du'a, versets du rizq… : listes **proposées par l'IA en PR, validées par le propriétaire** |
 | Vendredi | **Les deux créneaux lisent Al-Kahf** (2 passages par vendredi, 38 au total, puis on recommence) |
 | Texte arabe | Uthmani (Hafs), police **Amiri Quran** (OFL) |
 | Traduction | **Sahih International** (anglais), créditée dans chaque légende |
@@ -177,7 +177,8 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   au milieu d'une phrase, ou de plus de 90 s.
 - Listes thématiques : proposées (IA, en amont) avec la règle utilisée (racine ر ز ق, «رَبَّنَا»…)
   et validées par le propriétaire en PR. Les textes viennent toujours des sources au rendu.
-  « السبع المنجيات » : en attente de la liste suivie par le propriétaire (les listes varient).
+  « السبع آيات المنجيات » : la liste du propriétaire (9:51, 6:17, 11:6, 11:56, 29:60, 35:2,
+  29:61) ; 11:6 et 29:60 retirées de la série rizq pour ne pas les publier deux fois.
 - Workflow `daily` : cron `13 5,6,7` et `13 17,18,19` UTC (heure d'été et d'hiver, GitHub est
   souvent en retard) ; `daily --check` décide sans installer ffmpeg ; un créneau commencé ne
   réessaie que les plateformes en échec, avec le même passage ; fenêtre de 3 h.
@@ -246,7 +247,7 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
 - [x] App TikTok Sandbox · [x] connexion (`tiktok-auth`, compte quran_words_daily, refresh
       token jusqu'à ≈ 2027-11-04) · [x] brouillon dans la boîte TikTok en Sandbox (run #8)
 - [ ] Demande d'audit YouTube
-- [x] Calendrier : 2 créneaux, Juz' 'Amma, séries (Ayat al-Kursi, du'a, rizq), Al-Kahf le
+- [x] Calendrier : 2 créneaux, Juz' 'Amma, séries (Ayat al-Kursi, munjiyat, du'a, rizq), Al-Kahf le
       vendredi, état, workflow `daily` (désactivé : `schedule.yaml` → `enabled: true` après la
       première publication réelle)
-- [ ] Liste « السبع المنجيات » à fournir · [ ] d'autres séries avant la fin des thèmes (≈ 2 mois)
+- [x] Série « السبع آيات المنجيات » · [ ] d'autres séries avant la fin des thèmes (≈ 2 mois)

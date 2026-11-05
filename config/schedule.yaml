@@ -16,7 +16,7 @@ fridays:                   # on Fridays both slots read Surah Al-Kahf, two passa
 
 queues:                    # the series of each queue, played one after the other
   reading: [juz-amma, mushaf]
-  themes: [ayat-al-kursi, dua, rizq]
+  themes: [ayat-al-kursi, munjiyat, dua, rizq]
   kahf: [al-kahf]
 
 fallback:                  # a queue that is done hands over to another (add series before!)
