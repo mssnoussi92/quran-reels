@@ -28,7 +28,9 @@ content:
     max_words: 3                      # highlighted words of one meaning (related words, a phrase)
   reciter: alafasy                    # one of `reciters`; QURAN_REELS_RECITER overrides it
   rotation:                           # reciter chosen per passage (src/quran_reels/reciters.py)
-    reciters: [omar_hisham, minshawi, ghamdi, rifai, sayegh, budair]   # ties: this order
+    # Nabil Ar-Rifai removed (2026-11-05): his 2:255 reel was muted by Facebook in 24
+    # territories (recording claimed by a rights holder), like Alafasy before.
+    reciters: [omar_hisham, minshawi, ghamdi, sayegh, budair]   # ties: this order
     avoid_last: 2                     # not one of the last 2 published, unless none else fits
   # One MP3 per ayah from EveryAyah (id: its folder), so the text follows the recitation
   # exactly. Planning durations: Quran.com timings of the same recording (timings_id), or the
