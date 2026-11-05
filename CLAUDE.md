@@ -21,7 +21,7 @@ e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis 
 | Texte arabe | Uthmani (Hafs), police **Amiri Quran** (OFL) |
 | Traduction | **Sahih International** (anglais), créditée dans chaque légende |
 | Mots difficiles | **غريب التفسير الميسر** (Tafsir al-Muyassar, Complexe du Roi Fahd ; `almuyassar-ghareeb` sur tafsir.app), choix du propriétaire le 2026-11-05 (avant : Ibn Qutaybah, *Tafsir Gharib al-Qur'an*), sens en arabe, **1 à 3 mots liés** surlignés |
-| Récitateurs | **Choisis par passage** (`content.rotation`, `reciters.py`) parmi ceux du propriétaire (2026-11-05) : **Omar Hisham Al-Arabi, Muhammad Siddiq Al-Minshawi, Tawfiq As-Sayegh, Salah Budair** : prêt pour le passage (découpe vérifiée), ≤ 90 s, pas un des 2 derniers publiés, puis le plus proche de 60 s (passage long → récitateur rapide, sourate courte → plus lent). Écartés : Alafasy, **Nabil Ar-Rifai** (Rights Manager : 2:255 rendue muette par Facebook dans 24 territoires, 2026-11-05) et **Saad Al-Ghamdi** (2:255 revendiquée par UMG, muette en Russie, le même soir), Hudhaifi, Ayyub, Akhdar (après écoute) ; un récitateur revendiqué après publication est écarté automatiquement (`claimed`) |
+| Récitateurs | **Choisis par passage** (`content.rotation`, `reciters.py`) parmi ceux du propriétaire (2026-11-05) : **Omar Hisham Al-Arabi, Muhammad Siddiq Al-Minshawi, Tawfiq As-Sayegh, Salah Budair, Fares Abbad** (EveryAyah, ajouté depuis le catalogue, ticket #19, directement dans la rotation sans essai sur Facebook seul : choix du propriétaire) : prêt pour le passage (découpe vérifiée), ≤ 90 s, pas un des 2 derniers publiés, puis le plus proche de 60 s (passage long → récitateur rapide, sourate courte → plus lent). Écartés : Alafasy, **Nabil Ar-Rifai** (Rights Manager : 2:255 rendue muette par Facebook dans 24 territoires, 2026-11-05) et **Saad Al-Ghamdi** (2:255 revendiquée par UMG, muette en Russie, le même soir), Hudhaifi, Ayyub, Akhdar (après écoute) ; un récitateur revendiqué après publication est écarté automatiquement (`claimed`) |
 | Droits | **Vérification Meta avant chaque publication** : brouillon Facebook + conteneur Instagram, publiés seulement si Meta répond `complete` sans correspondance, sinon rien n'est publié (TikTok compris). Elle n'a vu ni Alafasy, ni Ar-Rifai, ni Al-Ghamdi (revendications arrivées quelques minutes après la publication). Contrôle après publication prêt (`rights_after_timeout` > 0 : relu 5 min puis à chaque run pendant 2 jours ; muet ou bloqué → retiré de Facebook et Instagram + alerte, récitateur écarté) mais **désactivé : le propriétaire vérifie lui-même pour l'instant** (2026-11-05) ; nouveaux récitateurs testés sur Facebook seul, Instagram ensuite |
 | Fond | **choisi selon ce que dit le passage** (montagnes, mer, rivières, jardins, nuit, aube, ciel…) : vidéos Pexels choisies par le propriétaire et scènes générées (aube, nuit, mer), **sans personnes ni animaux** |
 | Exécution | GitHub Actions (dépôt public → gratuit), migrable sur le homelab (Docker) |
@@ -195,6 +195,18 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   vérification par reconnaissance, comme Omar Hisham. Allure (Alafasy = 1) : As-Sayegh 0,76,
   Ar-Rifai 0,78, Al-Ghamdi et Budair 0,79, Al-Minshawi 1,16. Pas sur EveryAyah : Nabil Ar-Rifai,
   As-Sayegh (Ghamadi_40kbps, Minshawy_*, Salah_Al_Budair_128kbps y sont).
+- **Fares Abbad** (`fares_abbad`, EveryAyah `Fares_Abbad_64kbps`, ticket #19 du catalogue) :
+  fichiers à 48 **ou** 64 kb/s (22 kHz, sans en-tête de durée ; 24 sur 40 tirés au hasard à
+  48), donc `kbps: 48` : la durée prévue n'est jamais plus courte que la vraie (90 s Facebook),
+  les fichiers à 64 kb/s sont surestimés d'un tiers. Pas de `bismillah.mp3` : basmala = 1:1.
+  Toujours « prêt » (un fichier par ayah, rien à découper) : `prepare` le saute. Durées par
+  requêtes HEAD (une par ayah de la sourate, en cache `.cache/everyayah/`).
+  **AbdulSamad** (`AbdulSamad_64kbps_QuranExplorer.Com`, ticket #18) **en attente** : le
+  fichier de la 1re ayah de chaque sourate commence par ≈ 6–9 s de récitation puis une pause
+  avant l'ayah (112:1 16,8 s, 112:2 5,9 s ; 114, 93, 18 pareil), sans doute la basmala :
+  avec la basmala ajoutée par le pipeline, elle serait récitée deux fois et le texte de
+  l'ayah 1 affiché pendant ; nom complet du récitateur inconnu (crédit) ; très lent (2:255 :
+  94 s seule) ; son `bismillah.mp3` est encodé à part (22 kHz, 40 kb/s).
 - Choix par passage (`reciters.py`, `content.rotation`) : seulement les récitateurs dont la
   découpe de la sourate est commitée et chaque ayah du passage (et la basmala) vérifiée ;
   aucun prêt → rien n'est publié pour ce créneau (l'erreur donne `quran-reels split <passage>`).
@@ -272,7 +284,11 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   vidéo garde `pixabay_id`, `author`, `page`. 2026-11-05 : 38 candidats, 9 refusés (phare,
   maisons, lumières de ville, canoës, personnes sur une plage, petit objet sur l'eau), 22
   proposés (2–3 par thème), 21 validés par le propriétaire (213423, aurore, refusé), dans
-  `backgrounds.yaml` (`pb-…`). Un clip indisponible (pas de clé, clip retiré, réseau) ne fait
+  `backgrounds.yaml` (`pb-…`). Tickets du catalogue (2026-11-05) : `pb-grey-clouds` et
+  `pb-cumulus-forest` retirés ; 7 clips de mer approuvés, 3 gardés après le contrôle image par
+  image (`pb-golden-surf` 4006, `pb-aerial-shore` 24216, `pb-dusk-sea` 22183), écartés :
+  338904 (deux nageurs), 28268 (un promeneur), 1890 (un bateau), 19368 (phare, refusé par le
+  propriétaire) ; tous dans `src/quran_reels/catalog/history.yaml` avec la raison. Un clip indisponible (pas de clé, clip retiré, réseau) ne fait
   jamais échouer un reel : repli sur une scène générée, signalé dans le journal.
 
 ## Plateformes (voir docs/plateformes.md)
@@ -489,5 +505,7 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
 - [x] Récitateurs choisis par passage (6, `content.rotation`) · [x] découpes vérifiées
       (`quran-reels split`, workflow `prepare` chaque nuit) · [ ] Juz' 'Amma et thèmes pour
       tous · [ ] refaire le plan (calculé avec Alafasy) si des passages dépassent 90 s
-- [x] Catalogue (docs/catalog.md, `catalog.yml`) · [ ] Pages passé en « GitHub Actions » par le
-      propriétaire et premier déploiement · [ ] libellé `catalog` créé dans le dépôt
+- [x] Catalogue (docs/catalog.md, `catalog.yml`) · [x] Pages passé en « GitHub Actions » par le
+      propriétaire, premier déploiement (run #1, 2026-11-05) · [x] libellé « Catalog » créé ·
+      [x] premiers tickets appliqués (#19–#28) · [ ] #18 AbdulSamad en attente (basmala dans
+      la 1re ayah, nom inconnu)

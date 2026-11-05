@@ -14,6 +14,8 @@ reciters:                     # name in content.reciters → events, oldest firs
     - {date: 2026-11-05, kind: removed, text: "écarté après écoute"}
   omar_hisham:
     - {date: 2026-11-05, kind: check, text: "114 publiée sur Facebook (publish-test run #19) : aucun problème de droits signalé"}
+  fares_abbad:
+    - {date: 2026-11-05, kind: added, text: "ajouté à la rotation depuis le catalogue (ticket #19), sans essai sur Facebook seul (choix du propriétaire) ; fichiers EveryAyah 48 ou 64 kb/s, durées prévues à 48 kb/s"}
   rifai:
     - {date: 2026-11-05, kind: claim, text: "2:255 rendue muette par Facebook dans 24 territoires (Rights Manager) ; retiré de la rotation"}
   ghamdi:
@@ -35,6 +37,50 @@ backgrounds:
       page: https://pixabay.com/videos/id-213423/
       date: 2026-11-05
       reason: "aurore : refusé par le propriétaire"
+    - id: pb-grey-clouds
+      source: pixabay
+      pixabay_id: 215149
+      author: adege
+      page: https://pixabay.com/videos/id-215149/
+      tags: [rain]
+      date: 2026-11-05
+      reason: "retiré par le propriétaire depuis le catalogue (ticket #20)"
+    - id: pb-cumulus-forest
+      source: pixabay
+      pixabay_id: 291622
+      author: adege
+      page: https://pixabay.com/videos/id-291622/
+      tags: [rain, sky]
+      date: 2026-11-05
+      reason: "retiré par le propriétaire depuis le catalogue (ticket #21)"
+    - id: pixabay-19368
+      source: pixabay
+      pixabay_id: 19368
+      author: bellergy
+      page: https://pixabay.com/videos/id-19368/
+      date: 2026-11-05
+      reason: "phare (construction) : refusé par le propriétaire (ticket #23)"
+    - id: pixabay-338904
+      source: pixabay
+      pixabay_id: 338904
+      author: TonyDias7
+      page: https://pixabay.com/videos/id-338904/
+      date: 2026-11-06
+      reason: "deux personnes dans l'eau, vues d'en haut (approuvé au ticket #25, écarté au contrôle image par image)"
+    - id: pixabay-28268
+      source: pixabay
+      pixabay_id: 28268
+      author: Rick_Coyle
+      page: https://pixabay.com/videos/id-28268/
+      date: 2026-11-06
+      reason: "une personne marche au bord de l'eau, de 9 à 14 s (approuvé au ticket #26, écarté au contrôle image par image)"
+    - id: pixabay-1890
+      source: pixabay
+      pixabay_id: 1890
+      author: bellergy
+      page: https://pixabay.com/videos/id-1890/
+      date: 2026-11-06
+      reason: "un bateau près de l'île à partir de 19 s (approuvé au ticket #27, écarté au contrôle image par image)"
     - id: pexels-1858301
       source: pexels
       page: https://www.pexels.com/video/1858301/

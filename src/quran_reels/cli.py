@@ -167,6 +167,8 @@ def main(argv: list[str] | None = None) -> int:
             sched, series, State.load(Path(args.state)), today, args.upcoming) if item))
         print(f"next {args.upcoming} days: {' '.join(keys)}")
         for name in rec.rotation(cfg):      # one process per reciter: its own sources
+            if not cfg.content["reciters"][name].get("surah_url"):
+                continue                    # one file per ayah (EveryAyah): nothing to split
             env = {**os.environ, RECITER_ENV: name}
             subprocess.run(["quran-reels", "split", *keys], env=env, check=False)
         missing = []                        # a reciter may fail; a passage must have one

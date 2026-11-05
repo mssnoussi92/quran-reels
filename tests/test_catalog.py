@@ -242,8 +242,8 @@ def test_backgrounds_count_uses_list_refused_clips_and_filter_candidates(cfg, tm
                 "when": "2026-11-08 morning"}]
     clips = [{"id": 95188, "theme": "sky", "author": "NickyPe"},        # refused: not proposed
              {"id": 22512, "theme": "mountains"},                      # listed: not proposed
-             {"id": 4006, "theme": "sea", "author": "outlinez", "tags": ", ".join("abcdefghij"),
-              "page": "https://pixabay.com/videos/id-4006/", "duration": 12}]
+             {"id": 99999, "theme": "sea", "author": "someone", "tags": ", ".join("abcdefghij"),
+              "page": "https://pixabay.com/videos/id-99999/", "duration": 12}]
     out = bg_mod.collect(cfg, load_history(), used, planned, Previews(cfg, tmp_path, enabled=False),
                          clips)
     by = {b["id"]: b for b in out["list"]}
@@ -252,7 +252,7 @@ def test_backgrounds_count_uses_list_refused_clips_and_filter_candidates(cfg, tm
     assert by["night"]["shader"].startswith("#version 300 es")          # drawn live, not a file
     assert by["pb-storm"]["licence"]["name"] == "Licence de contenu Pixabay"
     assert "pb-moving-clouds" in {r["id"] for r in out["refused"]}
-    assert [c["pixabay_id"] for c in out["candidates"]] == [4006]
+    assert [c["pixabay_id"] for c in out["candidates"]] == [99999]
     assert out["candidates"][0]["tags"] == "a, b, c, d, e, f, g, h …"
     assert not list(tmp_path.iterdir())                                 # previews off: no file
 
@@ -292,7 +292,7 @@ def test_history_is_dated_facts(cfg):
     for name, events in history["reciters"].items():
         assert name in listed, name
         for e in events:
-            assert e["kind"] in ("claim", "removed", "check") and e["text"] and e["date"]
+            assert e["kind"] in ("claim", "removed", "check", "added") and e["text"] and e["date"]
     for r in history["backgrounds"]["refused"]:
         assert r["id"] and r["reason"] and r["page"].startswith("https://")
     listed_bgs = {b["id"] for b in cfg.backgrounds["backgrounds"]}
@@ -324,9 +324,15 @@ def test_word_of_the_day_starts_after_a_missed_window(cfg, monkeypatch):
 
 
 
-def test_a_published_slot_without_its_reciter_is_not_guessed(cfg):
+def test_a_published_slot_without_its_reciter_is_not_guessed(cfg, monkeypatch):
+    from quran_reels import reciters as rec
+
+    # no network: the rotation's choice and lengths are stubbed
+    monkeypatch.setattr(rec, "choose", lambda cfg, key, recent, claimed=(): ("budair", []))
+    monkeypatch.setattr(rec, "passage_seconds", lambda cfg, key: rec.Option("budair", 40.0))
     state = published_state()          # 114:1-6 published, no reciter recorded
     days = sched_mod.calendar(cfg, schedule(), SERIES, state, date(2026, 11, 5), 1, None)
     first = days[0]["slots"][0]
     assert first["status"] == "published" and first.get("reciter_unknown")
     assert "reciter" not in first
+    assert days[0]["slots"][1]["reciter"] == "budair"     # the next slot is chosen as usual
