@@ -90,3 +90,11 @@ def test_the_committed_splits_are_complete():
         assert times == sorted(times), path
         from quran_reels.sources.surah_audio import MIN_MATCH
         assert min(data["match"].values()) >= MIN_MATCH, path
+
+
+def test_the_basmala_ends_at_the_reciters_stop_not_at_a_late_published_start():
+    from quran_reels.sources.surah_audio import Pause, basmala_stop
+    # Budair, surah 2: basmala, silence 3.9-4.64, «Alif» 4.68-5.12, mp3quran's 2:1 at 5.2
+    silences = [Pause(0.0, 0.19), Pause(1.6, 1.62), Pause(3.9, 4.64)]
+    assert basmala_stop(silences, 0.19, 5.2 + 0.4) == Pause(3.9, 4.64)
+    assert basmala_stop([Pause(0.0, 0.19)], 0.19, 5.6) is None      # no stop heard: as before
