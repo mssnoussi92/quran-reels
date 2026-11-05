@@ -1,0 +1,17 @@
+# Temporary research job (removed before the PR): reads the King Fahd Complex site, which
+# the development container cannot reach. Runs only on pushes that change it.
+name: explore-complex
+on:
+  push:
+    branches: [claude/friendly-sagan-qyo1qg]
+    paths: [".github/explore/**", ".github/workflows/explore-complex.yml"]
+permissions:
+  contents: read
+jobs:
+  explore:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
+      - run: python3 .github/explore/complex.py
