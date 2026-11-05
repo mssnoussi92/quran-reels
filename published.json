@@ -49,27 +49,28 @@
    "results": {
     "facebook": {
      "status": "published",
-     "id": "1108497078562174",
-     "url": "https://www.facebook.com/reel/1108497078562174/",
+     "id": "1842176293639982",
+     "url": "https://www.facebook.com/reel/1842176293639982/",
      "error": null,
-     "at": "2026-11-05T19:32:28+00:00"
+     "at": "2026-11-05T20:17:00+00:00"
     },
     "instagram": {
-     "status": "failed",
-     "id": null,
-     "url": null,
-     "error": "instagram container 17892640113503710: still processing after 240 s",
-     "at": "2026-11-05T19:32:28+00:00"
+     "status": "published",
+     "id": "18045937688899436",
+     "url": "https://www.instagram.com/reel/DfX3mfGjzWL/",
+     "error": null,
+     "at": "2026-11-05T20:17:00+00:00"
     },
     "tiktok": {
-     "status": "draft",
-     "id": "v_inbox_file~v2.7704772328299284483",
+     "status": "published",
+     "id": null,
      "url": null,
-     "error": null,
-     "at": "2026-11-05T19:32:28+00:00"
+     "error": "published by hand by the owner (an earlier draft of the evening)",
+     "at": "2026-11-05T20:17:00+00:00"
     }
    },
-   "reciter": "ghamdi"
+   "reciter": "budair",
+   "note": "published again with publish-test run 42100977908 (Budair, corrected basmala cut)"
   }
  },
  "removed": [
@@ -105,6 +106,39 @@
     "reciter": "rifai"
    },
    "why": "deleted by the owner from Facebook and Instagram (background clouds too fast; Nabil Ar-Rifai muted by Facebook in 24 territories); published again"
+  },
+  {
+   "slot": "2026-11-05/evening",
+   "record": {
+    "queue": "themes",
+    "item": "ayat-al-kursi/2:255-255",
+    "passage": "2:255-255",
+    "results": {
+     "facebook": {
+      "status": "published",
+      "id": "1108497078562174",
+      "url": "https://www.facebook.com/reel/1108497078562174/",
+      "error": null,
+      "at": "2026-11-05T19:32:28+00:00"
+     },
+     "instagram": {
+      "status": "failed",
+      "id": null,
+      "url": null,
+      "error": "instagram container 17892640113503710: still processing after 240 s",
+      "at": "2026-11-05T19:32:28+00:00"
+     },
+     "tiktok": {
+      "status": "draft",
+      "id": "v_inbox_file~v2.7704772328299284483",
+      "url": null,
+      "error": null,
+      "at": "2026-11-05T19:32:28+00:00"
+     }
+    },
+    "reciter": "ghamdi"
+   },
+   "why": "Saad Al-Ghamdi: Facebook reel claimed by UMG (muted in Russia), deleted by the owner; Instagram never published"
   }
  ]
 }
