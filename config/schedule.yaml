@@ -1,6 +1,6 @@
 # When and what the daily workflow publishes. Editorial choices: change here, not in the code.
 
-enabled: false             # true once the first real post (publish-test, mode publish) is done
+enabled: true              # first real post done on 2026-11-05 (publish-test run #12, 93:1-11)
 timezone: Europe/Paris     # slot times below are local times there (summer time included)
 
 slots:                     # two videos a day
@@ -21,6 +21,9 @@ queues:                    # the series of each queue, played one after the othe
 
 fallback:                  # a queue that is done hands over to another (add series before!)
   themes: reading
+
+published_by_hand:         # posted outside the calendar: never published again by it
+  - "93:1-11"              # publish-test run #12, Facebook and Instagram, 2026-11-05
 
 early_minutes: 20          # a run up to 20 min before the slot time takes the slot
 window_hours: 3            # after 3 h the slot is missed for the day (GitHub can be late)

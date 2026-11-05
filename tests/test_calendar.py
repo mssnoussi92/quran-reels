@@ -185,3 +185,9 @@ def test_friday_evening_continues_al_kahf_with_its_label(world):
     assert calls["render"] == [("18:1-5", "Surah Al-Kahf on Friday · 1/3"),
                                ("18:6-12", "Surah Al-Kahf on Friday · 2/3")]
     assert calls["tags"] == [("#Jumuah",), ("#Jumuah",)]
+
+
+def test_a_passage_published_by_hand_is_skipped():
+    s = schedule(published_by_hand=frozenset({"113:1-5"}))
+    days = preview(s, SERIES, State(), date(2026, 11, 7), 2)      # Saturday, Sunday
+    assert [i.key for _, slot, _, i in days if slot.name == "morning"] == ["114:1-6", "112:1-4"]

@@ -169,7 +169,7 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
 - `config/schedule.yaml` : fuseau `Europe/Paris`, créneaux `morning` 07:30 (file `reading`) et
   `evening` 19:30 (file `themes`), vendredi → file `kahf` pour les deux, `fallback` (une file
   finie passe à une autre). `enabled: false` tant que la première publication réelle n'est pas
-  faite.
+  faite (activé le 2026-11-05). `published_by_hand` : passages publiés hors calendrier, sautés.
 - Une file joue ses séries l'une après l'autre ; chaque créneau prend le premier passage pas
   encore publié. Série `repeat: true` (Al-Kahf) : recommence une fois finie.
 - Série (`config/series/*.yaml`) : `surahs: [...]` (passages de plan.yaml) ou `passages:`
@@ -249,12 +249,12 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
 - [x] Passages d'≈ 1 min, sourate courte entière (`quran-reels passages`, `render 93`)
 - [x] App Meta (voir docs/plateformes.md)
 - [x] Dry-run Facebook (run #3, brouillon créé) et Instagram (run #7, conteneur FINISHED, non
-      publié). [ ] Première publication réelle (`publish-test`, mode publish + PUBLIER).
-      Pas encore d'état anti-doublon (`state/`).
+      publié). [x] Première publication réelle : 93:1-11 sur Facebook et Instagram
+      (publish-test run #12, 2026-11-05 ; Instagram : 1er conteneur bloqué, publié au 2e).
 - [x] App TikTok Sandbox · [x] connexion (`tiktok-auth`, compte quran_words_daily, refresh
       token jusqu'à ≈ 2027-11-04) · [x] brouillon dans la boîte TikTok en Sandbox (run #8)
 - [ ] Demande d'audit YouTube
 - [x] Calendrier : 2 créneaux, Juz' 'Amma, séries (Ayat al-Kursi, munjiyat, du'a, rizq), Al-Kahf le
-      vendredi, état, workflow `daily` (désactivé : `schedule.yaml` → `enabled: true` après la
-      première publication réelle)
+      vendredi, état, workflow `daily` — **activé** (`enabled: true`) ; 93:1-11, publiée à la
+      main, est dans `published_by_hand` (jamais republiée par le calendrier)
 - [x] Série « السبع آيات المنجيات » · [ ] d'autres séries avant la fin des thèmes (≈ 2 mois)
