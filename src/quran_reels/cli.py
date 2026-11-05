@@ -1,4 +1,4 @@
-"""Command line entry point: quran-reels ingest|render|publish|run."""
+"""Command line entry point: quran-reels ingest|render|publish|run|catalog."""
 
 from __future__ import annotations
 
@@ -110,6 +110,20 @@ def main(argv: list[str] | None = None) -> int:
     se.add_argument("--theme", action="append", help="only this theme (repeatable)")
     se.add_argument("--per-theme", type=int, default=4)
     se.add_argument("--out", default="out/pixabay/candidates.json")
+
+    cat = sub.add_parser("catalog", help="read-only catalogue for the owner (docs/catalog.md)")
+    cat_sub = cat.add_subparsers(dest="catalog_command", required=True)
+    cb = cat_sub.add_parser("build", help="write the static catalogue: HTML, data.json, previews")
+    cb.add_argument("--out", default="out/catalog")
+    cb.add_argument("--state", help="checkout of the state branch (published.json, images.json, "
+                                    "splits/); default: none, an empty state")
+    cb.add_argument("--previous", help="the deployed data.json (URL or file): a published reel "
+                                       "keeps the background computed when it was first seen")
+    cb.add_argument("--clip-candidates", help="candidates.json of the backgrounds-search workflow")
+    cb.add_argument("--manifests", action="append", default=[],
+                    help="folder holding manifest.json of rendered reels (repeatable; out/ is read)")
+    cb.add_argument("--no-previews", action="store_true", help="no clip previews (no ffmpeg)")
+    cb.add_argument("--days", type=int, default=14)
 
     note = sub.add_parser("notify", help="GitHub issues: failure alert, captions to copy")
     note.add_argument("--outcome", required=True, help="the job status: success or failure")
@@ -337,6 +351,25 @@ def main(argv: list[str] | None = None) -> int:
         for c in found:                 # one line each: public metadata only, never the key
             print(json.dumps(c, ensure_ascii=False))
         print(f"{len(found)} candidates → {out}", file=sys.stderr)
+        return 0
+
+    if args.command == "catalog":
+        import os
+        from pathlib import Path
+
+        from quran_reels import catalog
+        from quran_reels.sources import SPLITS_ENV
+
+        state = Path(args.state) if args.state else None
+        if state and not state.is_dir():
+            raise SystemExit(f"--state {state}: no such folder (a checkout of the state branch)")
+        if state and (state / "splits").is_dir() and not os.environ.get(SPLITS_ENV):
+            os.environ[SPLITS_ENV] = str(state / "splits")     # splits of the prepare workflow
+        out = catalog.build(cfg, Path(args.out), state, previous=args.previous,
+                            clip_candidates=Path(args.clip_candidates) if args.clip_candidates
+                            else None, manifests=[Path(m) for m in args.manifests],
+                            previews=not args.no_previews, days=args.days)
+        print(out / "index.html")
         return 0
 
     if args.command == "notify":

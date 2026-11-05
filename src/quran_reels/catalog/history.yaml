@@ -1,0 +1,46 @@
+# What the configuration does not keep, shown by the catalogue (docs/catalog.md): dated facts
+# from CLAUDE.md and the commits. The state branch adds its own (published.json: `removed`,
+# `claimed`). A code session that applies a catalogue issue (reciter removed, background
+# removed, clip refused) adds a line here in the same pull request.
+
+reciters:                     # name in content.reciters → events, oldest first
+  alafasy:
+    - {date: 2026-11-05, kind: claim, text: "93:1-11 coupée par Rights Manager sur Facebook (premier reel) ; depuis, vérification des droits Meta avant chaque publication"}
+  hudhaifi:
+    - {date: 2026-11-05, kind: removed, text: "écarté après écoute"}
+  ayyoub:
+    - {date: 2026-11-05, kind: removed, text: "écarté après écoute"}
+  akhdar:
+    - {date: 2026-11-05, kind: removed, text: "écarté après écoute"}
+  omar_hisham:
+    - {date: 2026-11-05, kind: check, text: "114 publiée sur Facebook (publish-test run #19) : aucun problème de droits signalé"}
+  rifai:
+    - {date: 2026-11-05, kind: claim, text: "2:255 rendue muette par Facebook dans 24 territoires (Rights Manager) ; retiré de la rotation"}
+  ghamdi:
+    - {date: 2026-11-05, kind: claim, text: "2:255 revendiquée par UMG, muette en Russie ; retiré de la rotation"}
+
+backgrounds:
+  refused:                    # never used again; the reason is shown
+    - id: pb-moving-clouds
+      source: pixabay
+      pixabay_id: 95188
+      author: NickyPe
+      page: https://pixabay.com/videos/id-95188/
+      tags: [sky, rain]
+      date: 2026-11-05
+      reason: "retiré après sa première utilisation (2:255) : nuages trop rapides, fatigant à regarder"
+    - id: pixabay-213423
+      source: pixabay
+      pixabay_id: 213423
+      page: https://pixabay.com/videos/id-213423/
+      date: 2026-11-05
+      reason: "aurore : refusé par le propriétaire"
+    - id: pexels-1858301
+      source: pexels
+      page: https://www.pexels.com/video/1858301/
+      date: 2026-11-05
+      reason: "canards sur le lac (animaux), vu au contrôle image par image"
+  unrecorded: >-
+    9 candidats Pixabay écartés au contrôle image par image le 2026-11-05 (phare, maisons,
+    lumières de ville, canoës, personnes sur une plage, petit objet sur l'eau) : leurs
+    identifiants n'ont pas été gardés.

@@ -1,0 +1,140 @@
+name: catalog
+
+# The owner's read-only catalogue (docs/catalog.md): reciters, backgrounds, calendar and posts,
+# at https://mssnoussi92.github.io/quran-reels/catalog/. Deploys GitHub Pages with docs/ (same
+# addresses as before: terms, privacy, TikTok pages and verification file) + catalog/.
+# Needs Settings → Pages → Source: "GitHub Actions" (instead of "Deploy from a branch").
+#
+# Reads config/ and the state branch, never writes anything (contents: read). Publishes
+# nothing. A failed build deploys nothing: the site stays as it was.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "config/**"
+      - "docs/**"
+      - "src/quran_reels/catalog/**"
+      - ".github/workflows/catalog.yml"
+  workflow_run:               # after the runs that update the state branch
+    workflows: [daily-reel, images, prepare-splits]
+    types: [completed]
+  schedule:
+    - cron: "37 3 * * *"      # once a day (04:37 Paris in winter): the calendar moves on
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read               # the last Pixabay search (backgrounds-search artifact)
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  SITE_URL: https://mssnoussi92.github.io/quran-reels
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    outputs:
+      build: ${{ steps.new.outputs.build }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Load the state branch (read only)
+        run: |
+          if git ls-remote --exit-code --heads origin state >/dev/null; then
+            git fetch --depth=1 origin state:state
+            git worktree add state-branch state
+          else
+            mkdir state-branch
+          fi
+
+      # The images workflow runs every hour: build only when main, the state or the day changed.
+      - name: Anything new since the deployed catalogue?
+        id: new
+        run: |
+          now="$GITHUB_SHA $(git -C state-branch rev-parse HEAD 2>/dev/null) $(TZ=Europe/Paris date +%F)"
+          prev=$(curl -fsSL "$SITE_URL/catalog/data.json" 2>/dev/null | python3 -c \
+            'import json,sys; d=json.load(sys.stdin); print(d.get("commit",""), d.get("state_commit",""), d.get("built_date",""))' \
+            2>/dev/null || true)
+          if [ "${{ github.event_name }}" = "workflow_run" ] && [ "$prev" = "$now" ]; then
+            echo "Nothing new (main, state and day unchanged): not built."
+            echo "build=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "build=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-python@v6
+        if: steps.new.outputs.build == 'true'
+        with:
+          python-version: "3.12"
+      - name: Install the package and ffmpeg (clip previews)
+        if: steps.new.outputs.build == 'true'
+        run: |
+          pip install -e .
+          # No apt (the Ubuntu mirror can be very slow): static ffmpeg of imageio-ffmpeg.
+          pip install -q imageio-ffmpeg==0.8.1
+          mkdir -p ~/bin
+          ln -sf "$(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')" ~/bin/ffmpeg
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+
+      # Clip previews (downloaded once), Pixabay answers (24 h), Quran.com data.
+      - uses: actions/cache@v5
+        if: steps.new.outputs.build == 'true'
+        with:
+          path: .cache
+          key: catalog-${{ github.run_id }}
+          restore-keys: catalog-
+
+      - name: Last Pixabay search (backgrounds-search, kept 7 days)
+        if: steps.new.outputs.build == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          id=$(gh run list --workflow backgrounds-search.yml --status success --limit 1 \
+                 --json databaseId --jq '.[0].databaseId // empty')
+          if [ -n "$id" ]; then
+            gh run download "$id" -n pixabay-candidates -D search || echo "no candidates (expired)"
+          fi
+
+      - name: Build the catalogue
+        if: steps.new.outputs.build == 'true'
+        env:                   # resolves Pixabay file URLs for the previews; never in the page
+          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
+        run: |
+          args=()
+          [ -f search/candidates.json ] && args+=(--clip-candidates search/candidates.json)
+          quran-reels catalog build --state state-branch --out _site/catalog \
+            --previous "$SITE_URL/catalog/data.json" "${args[@]}"
+
+      - name: Site = docs/ + catalog/
+        if: steps.new.outputs.build == 'true'
+        run: |
+          cp -r docs/. _site/
+          for f in index.html privacy.html terms.html tiktok-login.html tiktok-callback.html \
+                   tiktokL9p6iJLUFgCxLFBybxAfUuWqfqnLTuOp.txt style.css catalog/index.html \
+                   catalog/data.json; do
+            test -s "_site/$f" || { echo "::error::_site/$f is missing"; exit 1; }
+          done
+          du -sh _site _site/catalog
+
+      - uses: actions/upload-pages-artifact@v5
+        if: steps.new.outputs.build == 'true'
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    if: needs.build.outputs.build == 'true'
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}catalog/
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
