@@ -110,3 +110,25 @@ def test_caption_file_round_trip_keeps_body_and_hashtags(tmp_path):
     reel = load_reel(tmp_path / "093_001-011.mp4")
     assert (reel.caption, reel.hashtags) == ("Body\n", tags)
     assert reel.text(1) == "Body\n\n#QuranWordsDaily\n"
+
+
+def test_text_to_paste_on_tiktok_keeps_five_hashtags(tmp_path):
+    import json
+
+    from quran_reels.daily import copy_text
+    from quran_reels.models import Reel
+
+    work = tmp_path / "114_001-006"
+    work.mkdir()
+    tags = [f"#t{i}" for i in range(1, 12)]
+    (work / "caption.txt").write_text(
+        Reel(Passage(114, 1, 6, "الناس", "An-Nas"), tmp_path / "x.mp4", "Body\n",
+             hashtags=tags).text(), encoding="utf-8")
+    (work / "manifest.json").write_text(json.dumps({
+        "passage": "114:1-6", "surah": {"name_ar": "الناس", "name_en": "An-Nas"},
+        "hashtags": tags, "ayahs": [{"ref": "114:1", "glosses": [], "start": 0.4,
+                                     "seconds": 3.0}]}), encoding="utf-8")
+    c = Config(root=Path("."), project={"platforms": {"tiktok": {"max_hashtags": 5}}},
+               backgrounds=[], gloss_headwords={})
+    assert copy_text(c, tmp_path / "114_001-006.mp4") == "Body\n\n#t1 #t2 #t3 #t4 #t5\n"
+    assert copy_text(c, tmp_path / "missing.mp4") == ""

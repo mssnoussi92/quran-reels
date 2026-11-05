@@ -61,6 +61,7 @@ platforms:
   tiktok:
     enabled: true                     # tiktok-auth saved TIKTOK_REFRESH_TOKEN (2026-11-04)
     mode: draft                       # inbox upload, posted by hand from the TikTok app
+    max_hashtags: 5                   # TikTok accepts 5 (seen by the owner, 2026-11-05)
     redirect_uri: https://mssnoussi92.github.io/quran-reels/tiktok-callback.html
   youtube:   { enabled: false, mode: manual }  # locked private until the YouTube audit
 
