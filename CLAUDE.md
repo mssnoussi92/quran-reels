@@ -224,7 +224,7 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   `quran-reels split <sourates>` (extra `asr` : `pip install torch --index-url
   https://download.pytorch.org/whl/cpu && pip install -e .[asr]`) : le pipeline quotidien n'a
   besoin ni du modèle ni de la vérification. Basmala : début du fichier de la sourate (même
-  séance, sans isti'adha). Le texte reconnu n'est que comparé, jamais affiché ni publié. La légende crédite le producteur (« Recitation: Ali Al-Hudhaifi
+  séance, sans isti'adha) ; elle finit au **dernier vrai silence avant l'ayah 1** (le récitateur s'arrête toujours après la basmala ; le début publié par mp3quran peut être en retard : chez Budair, sourate 2, la basmala gardait « Alif », entendu « ah » avant Ayat al-Kursi, 2026-11-05). Les FLAC coupés portent leurs temps de coupe dans leur nom (jamais une ancienne coupe du cache). Le texte reconnu n'est que comparé, jamais affiché ni publié. La légende crédite le producteur (« Recitation: Ali Al-Hudhaifi
   (King Fahd Complex) ») ; `manifest.json` et `publish.json` gardent le récitateur et sa licence.
 - Durées pour le découpage : Quran.com (`timings_id`, Alafasy seulement) ou, sinon, taille des
   fichiers EveryAyah (débit constant, `kbps` : octets × 8 / débit, une requête HEAD par ayah, en

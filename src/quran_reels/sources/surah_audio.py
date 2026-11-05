@@ -195,6 +195,19 @@ def speech_span(silences: list[Pause], total: float) -> tuple[float, float]:
     return start, end
 
 
+BASMALA_MIN = 2.0         # seconds: no basmala is shorter (Budair 3.7, the quickest ≈ 3)
+
+
+def basmala_stop(silences: list[Pause], speech_start: float, before: float) -> Pause | None:
+    """The stop after the basmala: the last real silence (silencedetect) before ayah 1's
+    estimated start. Reciters always stop there, while the published start of ayah 1 can be
+    late: Budair's 2:1 on mp3quran starts after «Alif», and the cut near it left «A» at the
+    end of the basmala, heard before every passage of Al-Baqarah (2:255, 2026-11-05)."""
+    stops = [p for p in silences
+             if speech_start + BASMALA_MIN <= p.middle <= before and p.length >= MIN_PAUSE]
+    return stops[-1] if stops else None
+
+
 def find_split(audio: Path, labels: list[str], texts: list[str], expected: list[float],
                recognizer, starts: list[float | None] | None = None,
                check: set[str] | None = None, end: float | None = None
@@ -239,6 +252,10 @@ def find_split(audio: Path, labels: list[str], texts: list[str], expected: list[
     seg_start = max(speech[0] - PAD, 0.0)
     for k, e in enumerate(estimates(starts, speech, expected)):
         options = ranked(e, candidates, after, window, scale)
+        if k == 0 and labels[0] == "basmala":
+            stop = basmala_stop(silences, speech[0], e + window[1])
+            if stop is not None:
+                options = [stop, *[o for o in options if o is not stop]]
         p = options[0]
         if wanted(k) or wanted(k + 1):
             for option in options[:TRIES]:
@@ -419,10 +436,13 @@ class SurahFiles:
         return data
 
     def _cut(self, surah: int, label: str) -> Path:
-        dest = self.dir / f"{surah:03d}{label.zfill(3) if label != 'basmala' else 'bsm'}.flac"
+        """The segment as a FLAC, named after its cut times: a split made again (the basmala
+        of Budair's surah 2, 2026-11-05) never reuses an old cut from the Actions cache."""
         self.checked(surah, label)
+        a, b = self.segments(surah)[label]
+        name = label.zfill(3) if label != "basmala" else "bsm"
+        dest = self.dir / f"{surah:03d}{name}-{round(a * 1000)}-{round(b * 1000)}.flac"
         if not dest.is_file():
-            a, b = self.segments(surah)[label]
             subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-y", "-ss", f"{a:.3f}",
                             "-to", f"{b:.3f}", "-i", str(self.audio(surah)),
                             "-c:a", "flac", str(dest)], check=True)
