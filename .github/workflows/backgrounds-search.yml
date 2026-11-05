@@ -14,9 +14,6 @@ on:
         description: "Candidates per theme"
         required: false
         default: "4"
-  push:                       # temporary: the first search, from the development branch
-    branches: [claude/friendly-sagan-qyo1qg]
-    paths: [".github/workflows/backgrounds-search.yml"]
 
 permissions:
   contents: read
@@ -34,9 +31,8 @@ jobs:
       - name: Search
         env:
           PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
-          # push (temporary): a second search for the sea only, with more results
-          THEME: ${{ github.event_name == 'push' && 'sea' || inputs.theme }}
-          PER_THEME: ${{ github.event_name == 'push' && '10' || inputs.per_theme || '4' }}
+          THEME: ${{ inputs.theme }}
+          PER_THEME: ${{ inputs.per_theme || '4' }}
         run: quran-reels backgrounds search --per-theme "$PER_THEME" ${THEME:+--theme "$THEME"}
       - uses: actions/upload-artifact@v6
         with:

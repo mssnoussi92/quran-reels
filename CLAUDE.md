@@ -186,9 +186,26 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   conteneur (403, Cloudflare) : l'URL du fichier se devine pour les vidéos anciennes
   (`{id}/{id}-uhd_3840_2160_24fps.mp4`), pas pour les récentes (numéro de fichier distinct).
   Chaque clip est vérifié image par image (personnes, animaux, texte) avant d'être ajouté ;
-  refusé : 1858301 (canards sur le lac). Décision (2026-11-05) : pas de liens à la main ni de
-  clé ; on garde les 3 clips obtenus, et les nouveaux fonds viendront de scènes générées. Ce
-  conteneur n'atteint ni Pixabay, ni Wikimedia Commons, ni NASA (politique réseau).
+  refusé : 1858301 (canards sur le lac). Décision (2026-11-05) : pas de liens à la main.
+- **Pixabay** (`sources/pixabay.py`, clé `PIXABAY_API_KEY` : secret GitHub ; absente de ce
+  conteneur, qui atteint pourtant `pixabay.com/api` et `cdn.pixabay.com`) : API vidéos,
+  `category=nature`, `safesearch=true`, `video_type=film`. Leurs règles : réponses en cache
+  24 h (`.cache/pixabay/`, clé de cache sans la clé API), une requête toutes les 0,7 s au plus
+  (< 100/min) et pause si `X-RateLimit-Remaining` tombe à 0, pas de téléchargement en masse.
+  La clé passe en paramètre (l'API l'exige) mais n'est jamais affichée ni mise en cache
+  (erreurs reconstruites, masquée `***` dans les journaux Actions). Le CDN limite aussi les
+  téléchargements : 32 aperçus à 0,3 s d'écart → `429 Rate limit exceeded, Retry-After 210` ;
+  un aperçu toutes les 5 s, et on attend `Retry-After`.
+- Processus pour un nouveau clip : workflow `backgrounds-search` (manuel, thème optionnel) ou
+  `quran-reels backgrounds search` → candidats par thème (termes de `backgrounds.yaml` →
+  `pixabay`), premier tri sur les tags (personnes, animaux, texte, villes) ; puis aperçus
+  (`_tiny.mp4`) vérifiés image par image (8 images par clip, zoom sur les plages et les lacs)
+  → proposés au propriétaire → seuls les clips validés vont dans `backgrounds.yaml` avec
+  `source: pixabay`, `pixabay_id`, `author`, `page` ; le fichier vient de l'API au premier
+  usage (`file_url`, rendu `large`), puis la boucle traitée est en cache. Le manifeste de chaque
+  vidéo garde `pixabay_id`, `author`, `page`. 2026-11-05 : 38 candidats, 9 refusés (phare,
+  maisons, lumières de ville, canoës, personnes sur une plage, petit objet sur l'eau), 23
+  proposés (2–3 par thème).
 
 ## Plateformes (voir docs/plateformes.md)
 
