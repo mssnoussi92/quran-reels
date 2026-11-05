@@ -29,7 +29,8 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [tool.setuptools.package-data]
-quran_reels = ["render/templates/*", "sources/scenes/*.frag", "sources/scenes/*.glsl"]
+quran_reels = ["render/templates/*", "sources/scenes/*.frag", "sources/scenes/*.glsl",
+               "catalog/history.yaml", "catalog/site/*"]
 
 [tool.ruff]
 line-length = 100

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Catalogue · Quran Words Daily</title>
+<meta name="description" content="Récitateurs, fonds, calendrier et publications de Quran Words Daily (lecture seule).">
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="catalog.css">
+</head>
+<body>
+<main class="catalog">
+  <header class="site">
+    <a class="brand" href="../">Quran Words Daily</a>
+    <nav><a href="../privacy.html">Privacy</a><a href="../terms.html">Terms</a></nav>
+  </header>
+
+  <h1>Catalogue</h1>
+  <p class="lead">Ce que le pipeline utilise et ce qu'il a publié, pour décider. <strong>Lecture seule</strong> :
+    chaque bouton ouvre un ticket GitHub prérempli, une session de code l'applique en PR.</p>
+  <p class="muted small">Mis à jour le {{ d.built_local }} ({{ d.timezone }}){% if d.commit %} · main <code>{{ d.commit[:7] }}</code>{% endif %}{% if d.state_commit %} · state <code>{{ d.state_commit[:7] }}</code>{% endif %}
+    {% if not d.schedule.enabled %} · <strong>calendrier désactivé</strong>{% endif %}</p>
+  {% for n in d.notes %}<p class="notice">{{ n }}</p>{% endfor %}
+
+  <nav class="tabs" aria-label="Sections">
+    <a href="#reciters">Récitateurs</a><a href="#backgrounds">Fonds</a><a href="#calendar">Calendrier</a><a href="#posts">Publications</a>
+  </nav>
+
+  {# ---------------------------------------------------------------- reciters #}
+  {% set R = d.reciters %}
+  <section id="reciters">
+    <h2>Récitateurs</h2>
+    <p class="muted">Même extrait pour tous : <strong>sourate {{ R.sample.surah }} (Al-Ikhlas)</strong> avec sa basmala, lu
+      depuis la source (jamais copié ici). Rotation : choisi par passage parmi {{ R.rotation|length }} récitateurs prêts,
+      pas un des {{ R.avoid_last }} derniers publiés, puis le plus proche de 60 s.</p>
+
+    {% for group, title in [("rotation", "Dans la rotation"), ("retired", "Retirés")] %}
+    <h3>{{ title }}</h3>
+    <div class="grid">
+      {% for r in R.list if r.status == group %}
+      <article class="card rec{% if r.claimed %} claimed{% endif %}" id="rec-{{ r.name }}">
+        <div class="head">
+          <h4>{{ r.label }}</h4>
+          <span class="badge {{ 'rot' if r.status == 'rotation' else 'out' }}">{{ 'rotation' if r.status == 'rotation' else 'retiré' }}</span>
+        </div>
+        <p class="meta">{% if r.producer %}{{ r.producer }} · {% endif %}<a href="{{ r.source.page }}" rel="noopener">{{ r.source.name }}</a> · {{ r.source.kind }}{% if r.splits is not none %} · découpes : {{ r.splits }} sourate{{ 's' if r.splits != 1 }}{% endif %}</p>
+        <button class="play" type="button" data-urls='{{ r.sample|tojson }}'><span class="ico">▶</span> Écouter 112</button>
+        <dl>
+          <dt>Publiées</dt><dd>{{ r.published }} vidéo{{ 's' if r.published != 1 }}{% if r.last %} · dernière {{ r.last }}{% endif %}{% if r.removed %} · {{ r.removed|length }} retirée{{ 's' if r.removed|length > 1 }}{% endif %}</dd>
+          <dt>Droits</dt><dd>{{ r.rights or "—" }}</dd>
+          {% if r.default %}<dt>Par défaut</dt><dd>content.reciter (hors rotation)</dd>{% endif %}
+          {% if r.also_everyayah %}<dt>EveryAyah</dt><dd>{% for f in r.also_everyayah %}<a href="{{ f.page }}" rel="noopener">{{ f.folder }}</a>{{ ", " if not loop.last }}{% endfor %}</dd>{% endif %}
+        </dl>
+        {% if r.events or r.removed %}
+        <ul class="events">
+          {% for e in r.events %}<li class="{{ e.kind }}"><time>{{ e.date }}</time> {{ e.text }}</li>{% endfor %}
+          {% for x in r.removed %}<li class="claim"><time>{{ x.slot.split('/')[0] }}</time> {{ x.passage }} retiré : {{ x.why }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+        <a class="act{% if r.status == 'rotation' %} danger{% endif %}" href="{{ r.issue }}" rel="noopener">{{ 'Retirer ce récitateur' if r.status == 'rotation' else 'Ajouter ce récitateur à la rotation' }}</a>
+      </article>
+      {% endfor %}
+    </div>
+    {% endfor %}
+
+    <details class="cands" id="candidates">
+      <summary><h3>Candidats EveryAyah <span class="count">{{ R.candidates|length }}</span></h3></summary>
+      {% if R.candidates_source %}
+      <p class="muted small">Récitations d'<a href="https://everyayah.com/" rel="noopener">EveryAyah</a> (un MP3 par ayah, le texte suit la
+        récitation exactement) pas encore dans la liste, une carte par récitateur et style, le meilleur débit en écoute.
+        Écartées d'office : {% for k, v in R.candidates_left_out.items() %}{{ v }} {{ 'traductions' if k == 'translation' else 'lectures Warsh (le texte affiché est Hafs)' }}{{ ", " if not loop.last }}{% endfor %}.
+        Avant la rotation : provenance et droits vérifiés, essai sur Facebook seul.</p>
+      {% else %}
+      <p class="notice">La liste d'EveryAyah n'a pas pu être lue à cette construction.</p>
+      {% endif %}
+      <div class="grid compact">
+        {% for c in R.candidates %}
+        <article class="card cand" id="{{ c.id }}">
+          <div class="head"><h4>{{ c.label }}</h4><span class="badge cand">candidat</span></div>
+          <p class="meta">{% for f in c.folders %}<a href="{{ f.page }}" rel="noopener">{{ f.kbps }} kb/s</a>{{ " · " if not loop.last }}{% endfor %}</p>
+          <div class="row">
+            <button class="play" type="button" data-urls='{{ c.sample|tojson }}'><span class="ico">▶</span> Écouter 112</button>
+            <a class="act" href="{{ c.issue }}" rel="noopener">Ajouter à la rotation</a>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </details>
+  </section>
+
+  {# ------------------------------------------------------------- backgrounds #}
+  {% set B = d.backgrounds %}
+  <section id="backgrounds">
+    <h2>Fonds</h2>
+    <p class="muted">Choisi d'après la traduction du passage : chaque thème compte ses mots × son poids, le meilleur thème
+      qui a un fond gagne (même passage → même fond) ; aucun thème → {% for x in B.default %}<code>{{ x }}</code>{{ ", " if not loop.last }}{% endfor %}.
+      Clips : aperçu de quelques secondes en 360p (recadré et adouci comme dans le reel), avec auteur, licence et page d'origine.</p>
+    <p class="chips">{% for t in B.themes %}<span class="chip" title="{{ t.pattern }} × {{ t.weight }}">{{ t.tag|theme }} <b>{{ t.count }}</b></span>{% endfor %}</p>
+
+    <div class="grid">
+      {% for b in B.list %}
+      <article class="card bg" id="bg-{{ b.id }}">
+        <div class="thumb">
+          {% if b.shader %}
+          <canvas class="scene" width="180" height="320" data-scene="{{ b.id }}" aria-label="Scène générée {{ b.id }}"></canvas>
+          {% elif b.preview %}
+          <video class="clip" muted loop playsinline preload="none" poster="{{ b.preview.poster }}" src="{{ b.preview.video }}" aria-label="Aperçu {{ b.id }}"></video>
+          {% else %}
+          <div class="noprev">aperçu indisponible</div>
+          {% endif %}
+        </div>
+        <div class="info">
+          <div class="head"><h4>{{ b.id }}</h4>{% if b.default %}<span class="badge plan">défaut</span>{% endif %}</div>
+          <p class="meta">{{ b.source_label }}{% if b.author %} · {{ b.author }}{% endif %}{% if b.licence %} · <a href="{{ b.licence.url }}" rel="noopener">{{ b.licence.name }}</a>{% endif %}{% if b.page %} · <a href="{{ b.page }}" rel="noopener">page</a>{% endif %}</p>
+          <p class="chips">{% for t in b.tags %}<span class="chip">{{ t|theme }}</span>{% endfor %}</p>
+          {% if b.note %}<p class="note">{{ b.note }}</p>{% endif %}
+          <p class="use">{% if b.uses %}Utilisé {{ b.uses|length }}× ({% for t, n in b.themes.items() %}{{ t|theme }}{% if n > 1 %} ×{{ n }}{% endif %}{{ ", " if not loop.last }}{% endfor %}) : {% for u in b.uses %}{{ u.passage }}{{ ", " if not loop.last }}{% endfor %}{% else %}Pas encore utilisé{% endif %}{% if b.planned %} · prévu {{ b.planned|length }}× sur {{ d.schedule.days }} jours{% endif %}</p>
+          <a class="act danger" href="{{ b.issue }}" rel="noopener">Retirer ce fond</a>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+
+    <h3>Refusés</h3>
+    <ul class="plain refused">
+      {% for r in B.refused %}
+      <li><strong>{{ r.id }}</strong> <span class="muted">· {{ r.source_label }}{% if r.author %} · {{ r.author }}{% endif %}{% if r.page %} · <a href="{{ r.page }}" rel="noopener">page</a>{% endif %} · {{ r.date }}</span><br>{{ r.reason }}</li>
+      {% endfor %}
+      {% if B.unrecorded %}<li class="muted">{{ B.unrecorded }}</li>{% endif %}
+    </ul>
+
+    <h3 id="clips">Clips candidats</h3>
+    {% if B.candidates %}
+    <p class="muted small">Dernière recherche Pixabay (workflow <code>backgrounds-search</code>), hors clips listés ou refusés. À vérifier
+      image par image : ni personnes, ni animaux, ni texte.</p>
+    <div class="grid">
+      {% for c in B.candidates %}
+      <article class="card bg" id="clip-{{ c.id }}">
+        <div class="thumb">
+          {% if c.preview %}<video class="clip" muted loop playsinline preload="none" poster="{{ c.preview.poster }}" src="{{ c.preview.video }}" aria-label="Aperçu {{ c.id }}"></video>
+          {% else %}<div class="noprev">aperçu indisponible</div>{% endif %}
+        </div>
+        <div class="info">
+          <div class="head"><h4>{{ c.pixabay_id }}</h4><span class="badge cand">{{ c.theme|theme }}</span></div>
+          <p class="meta">Pixabay · {{ c.author }} · <a href="{{ c.licence.url }}" rel="noopener">{{ c.licence.name }}</a> · <a href="{{ c.page }}" rel="noopener">page</a>{% if c.duration %} · {{ c.duration }} s{% endif %}</p>
+          <p class="note">{{ c.tags }}</p>
+          <div class="row"><a class="act" href="{{ c.approve }}" rel="noopener">Approuver ce clip</a><a class="act danger" href="{{ c.refuse }}" rel="noopener">Refuser ce clip</a></div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="muted">Aucun clip candidat en attente{% if not B.candidates_searched %} : la dernière recherche Pixabay n'est plus disponible
+      (lancer le workflow <code>backgrounds-search</code>, ses résultats restent 7 jours){% endif %}.</p>
+    {% endif %}
+  </section>
+
+  {# ---------------------------------------------------------------- calendar #}
+  <section id="calendar">
+    <h2>Calendrier et séries</h2>
+    <p class="muted">Les {{ d.schedule.days }} prochains jours, comme <code>quran-reels calendar --days {{ d.schedule.days }}</code> :
+      {% for s in d.schedule.slots %}{{ s.time }} file <code>{{ s.queue }}</code>{{ ", " if not loop.last }}{% endfor %} ; le vendredi, Al-Kahf.
+      Récitateur et durée tels que le choix se ferait aujourd'hui.</p>
+    <ol class="days">
+      {% for day in d.calendar %}
+      <li class="day{% if day.friday %} friday{% endif %}{% if day.today %} today{% endif %}">
+        <h4>{{ day.label|capitalize }}{% if day.today %} <span class="badge plan">aujourd'hui</span>{% endif %}{% if day.friday %} <span class="badge rot">Al-Kahf</span>{% endif %}</h4>
+        {% for s in day.slots %}
+        {% set st = STATES[s.status] %}
+        <div class="slot{% if s.not_ready %} warn{% endif %}">
+          <time>{{ s.time }}</time>
+          <div class="what">
+            {% if s.empty %}
+            <span class="bad">Rien à publier : la file {{ s.queue }} est vide</span>
+            {% else %}
+            <b>{{ s.ref }}</b> {{ s.surah }}
+            <span class="sub">{{ s.label }}</span>
+            <span class="sub">
+              {% if s.reciter %}{{ s.reciter_label }}{% if s.seconds %} · {{ s.seconds|seconds }}{% endif %}{% elif s.reciter_unknown %}récitateur non noté{% elif s.not_ready %}<span class="bad">⚠ aucun récitateur prêt</span>{% endif %}
+              {% if s.background %} · fond <a href="#bg-{{ s.background.id }}">{{ s.background.id }}</a> ({{ s.background.theme|theme }}){% endif %}
+            </span>
+            {% if s.not_ready %}
+            <details class="why"><summary>pourquoi</summary>
+              <ul>{% for o in s.not_ready %}<li>{{ o.label }} : {{ o.why }}</li>{% endfor %}</ul>
+              <p class="small">Le workflow <code>prepare</code> (chaque nuit) découpe et vérifie les 8 prochains jours ; sinon <code>quran-reels split {{ s.passage }}</code>.</p>
+            </details>
+            {% endif %}
+            {% endif %}
+          </div>
+          <span class="state {{ st[1] }}">{{ st[0] }}</span>
+        </div>
+        {% endfor %}
+      </li>
+      {% endfor %}
+    </ol>
+
+    <h3>Files et séries</h3>
+    <div class="grid">
+      {% for q in d.queues %}
+      <article class="card queue">
+        <div class="head"><h4>{{ q.queue }}</h4><span class="badge plan">tour {{ q.round }}</span></div>
+        <p class="meta">{{ q.used_by|join(', ') or 'aucun créneau' }}{% if q.fallback %} · finie → {{ q.fallback }}{% endif %}{% if q.next %} · prochain : <b>{{ q.next }}</b>{% endif %}</p>
+        {% for s in q.series %}
+        <div class="series">
+          <div class="srow"><span>{{ s.title }}{% if s.repeat %} <span class="muted">↻</span>{% endif %}</span><span class="num">{{ s.done + s.by_hand }}/{{ s.total }}</span></div>
+          {% if s.title_ar %}<div class="ar small-ar">{{ s.title_ar }}</div>{% endif %}
+          <div class="bar"><i style="width: {{ ((s.done + s.by_hand) * 100 / s.total)|round(1) if s.total else 0 }}%"></i></div>
+          {% if s.skipped %}<p class="small muted">{{ s.skipped }} passage{{ 's' if s.skipped > 1 }} de plus de 90 s laissé{{ 's' if s.skipped > 1 }} de côté</p>{% endif %}
+        </div>
+        {% endfor %}
+      </article>
+      {% endfor %}
+    </div>
+
+    {% set W = d.words %}
+    <h3>Word of the day <span class="muted small">· {{ W.time_utc }} UTC{% if not W.enabled %} · désactivé{% endif %}</span></h3>
+    <p class="muted small">Carrousel de 3 images : le mot, son ayah, son sens ({{ W.gloss_source }}), cité tel quel.</p>
+    <ul class="words">
+      {% for w in W.days %}
+      <li class="card word">
+        <div class="wtop"><span class="wday">{{ w.label|capitalize }}</span>{% if w.posted %}<span class="state ok">publié</span>{% endif %}</div>
+        <div class="ar big">{{ w.word }}</div>
+        <p class="meta">{{ w.ayah }} · {{ w.surah }} <span class="ar">{{ w.surah_ar }}</span> · image 2 : {{ w.image2 }}</p>
+        {% if w.gloss %}<p class="ar gloss">{{ w.gloss }}</p>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  {# ------------------------------------------------------------------- posts #}
+  {% set P = d.posts %}
+  <section id="posts">
+    <h2>Publications</h2>
+    <p class="muted">Les derniers créneaux de <code>published.json</code> (branche <code>state</code>), le plus récent d'abord{% if P.total > P.slots|length %} ({{ P.slots|length }} sur {{ P.total }}){% endif %}.</p>
+    {% for p in P.slots %}
+    {% set st = STATES[p.status] %}
+    <article class="card post">
+      <div class="head"><h4>{{ p.day|capitalize }} · {{ p.slot_fr }} {{ p.time }}</h4><span class="state {{ st[1] }}">{{ st[0] }}</span></div>
+      <p><b>{{ p.ref }}</b> {{ p.surah }}{% if p.label %} · <span class="muted">{{ p.label }}</span>{% endif %}</p>
+      <p class="meta">{{ p.reciter_label or 'récitateur non noté' }}{% if p.background %} · fond <a href="#bg-{{ p.background.id }}">{{ p.background.id }}</a> ({{ p.background.theme|theme }}){% endif %}</p>
+      <p class="pills">{% for r in p.results %}{% if r.url %}<a class="pill {{ r.status }}" href="{{ r.url }}" rel="noopener">{{ r.name }} ↗</a>{% else %}<span class="pill {{ r.status }}">{{ r.name }} : {{ r.label }}</span>{% endif %}{% endfor %}</p>
+      {% if p.note %}<p class="small muted">{{ p.note }}</p>{% endif %}
+      {% if p.claimed %}<p class="small bad">{{ p.claimed }}</p>{% endif %}
+    </article>
+    {% else %}
+    <p class="muted">Rien de publié pour l'instant.</p>
+    {% endfor %}
+
+    {% if P.removed %}
+    <h3>Retirés</h3>
+    {% for p in P.removed %}
+    <article class="card post removed">
+      <div class="head"><h4>{{ p.day|capitalize }} · {{ p.slot_fr }} {{ p.time }}</h4><span class="state bad">retiré</span></div>
+      <p><b>{{ p.ref }}</b> {{ p.surah }} · {{ p.reciter_label }}</p>
+      <p class="small">{{ p.why }}</p>
+    </article>
+    {% endfor %}
+    {% endif %}
+
+    {% if P.by_hand %}<p class="muted small">Publiés à la main hors calendrier (jamais republiés) : {{ P.by_hand|join(', ') }}.</p>{% endif %}
+
+    {% if P.images %}
+    <h3>Images</h3>
+    {% for i in P.images %}
+    <article class="card post">
+      <div class="head"><h4>{{ i.day|capitalize }} · {{ i.kind }}</h4></div>
+      <p><span class="ar">{{ i.word }}</span> {{ i.ayah }}</p>
+      <p class="pills">{% for r in i.results %}{% if r.url %}<a class="pill {{ r.status }}" href="{{ r.url }}" rel="noopener">{{ r.name }} ↗</a>{% else %}<span class="pill {{ r.status }}">{{ r.name }} : {{ r.label }}</span>{% endif %}{% endfor %}</p>
+    </article>
+    {% endfor %}
+    {% endif %}
+  </section>
+
+  <footer>Quran Words Daily · catalogue en lecture seule · <a href="data.json">data.json</a> ·
+    <a href="https://github.com/{{ d.repo }}" rel="noopener">code</a> · <a href="../privacy.html">Privacy</a></footer>
+</main>
+<audio id="player" preload="none"></audio>
+<script type="application/json" id="shaders">{{ shaders|tojson }}</script>
+<script src="catalog.js" defer></script>
+</body>
+</html>

@@ -81,7 +81,11 @@ src/quran_reels/
                    (1080×1350), caption.py, publish.py (carrousel Instagram, post Facebook
                    multi-photos), daily.py (`quran-reels images run`)
   notify.py        `quran-reels notify` : tickets GitHub (alerte d'échec, légendes à copier)
-  cli.py           `quran-reels ingest|render|passages|plan|series-check|calendar|daily|publish`
+  catalog/         `quran-reels catalog build` : catalogue public en lecture seule
+                   (docs/catalog.md) : récitateurs (+ candidats EveryAyah), fonds (aperçus
+                   360p), calendrier et séries, publications ; décisions par tickets préremplis ;
+                   history.yaml (revendications, clips refusés) ; ne modifie rien
+  cli.py           `quran-reels ingest|render|passages|plan|series-check|calendar|daily|publish|catalog`
 tests/             pytest, sans réseau
 .github/workflows/ daily.yml (cron 2 créneaux × 3 essais ; ne publie rien tant que
                    schedule.yaml dit enabled: false ; état sur la branche `state`),
@@ -90,13 +94,16 @@ tests/             pytest, sans réseau
                    prepare.yml (chaque nuit : découpes vérifiées de la semaine → `state`)
                    images.yml (toutes les heures ; `images run --check` décide selon
                    config/images.yaml ; état images.json sur la branche `state`)
+                   catalog.yml (push main config/docs, après daily/images/prepare, chaque jour,
+                   à la main : docs/ + catalog/ → GitHub Pages, source « GitHub Actions »)
                    Runners épinglés sur `ubuntu-24.04` (`ubuntu-latest` passe à 26.04),
                    actions en versions Node.js 24. **Pas d'apt** : le miroir Ubuntu a mis
                    40 min à installer ffmpeg (run du soir du 2026-11-05, bloqué) ; ffmpeg =
                    build statique d'imageio-ffmpeg (pip, épinglé 0.8.1 : ffmpeg 9.0.2,
                    libx264, aac ; les tests passent avec), sans ffprobe (durées lues par
                    ffmpeg) ; Chromium de Playwright, `--with-deps` seulement s'il ne démarre pas.
-docs/              site GitHub Pages (CGU, confidentialité, tiktok-login.html, tiktok-callback.html)
+docs/              site GitHub Pages (CGU, confidentialité, tiktok-login.html, tiktok-callback.html),
+                   déployé par catalog.yml avec le catalogue (/quran-reels/catalog/)
 ```
 
 Flux : `selector` → `sources` (texte + traduction + gloses + audio par ayah + fond) →
@@ -128,6 +135,10 @@ quran-reels images build            # règles 1-4 → config/image-candidates.ya
 quran-reels images next --days 7    # la semaine à venir (rien n'est publié)
 quran-reels images render --days 7  # la dessine dans out/images/ (aperçu)
 quran-reels images run              # publie le format dû, écrit state/images.json
+```
+
+```bash
+quran-reels catalog build --state state-branch --out _site/catalog   # catalogue (lecture seule)
 ```
 
 ```bash
@@ -478,3 +489,5 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
 - [x] Récitateurs choisis par passage (6, `content.rotation`) · [x] découpes vérifiées
       (`quran-reels split`, workflow `prepare` chaque nuit) · [ ] Juz' 'Amma et thèmes pour
       tous · [ ] refaire le plan (calculé avec Alafasy) si des passages dépassent 90 s
+- [x] Catalogue (docs/catalog.md, `catalog.yml`) · [ ] Pages passé en « GitHub Actions » par le
+      propriétaire et premier déploiement · [ ] libellé `catalog` créé dans le dépôt
