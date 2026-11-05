@@ -94,6 +94,7 @@ class Series:
     repeat: bool = False
     skipped: tuple[str, ...] = ()      # plan passages left out (longer than max_seconds)
     from_plan: bool = False            # whole surahs, as split in config/plan.yaml
+    hashtags: tuple[str, ...] = ()
 
 
 def _passage_key(value: Any, where: str) -> str:
@@ -132,7 +133,8 @@ def load_series(cfg: Config, plan: dict[int, list[PlanEntry]] | None = None) -> 
                                 title_ar=str(raw.get("title_ar") or ""),
                                 title_en=str(raw.get("title_en") or ""),
                                 repeat=bool(raw.get("repeat", False)), skipped=tuple(skipped),
-                                from_plan=bool(raw.get("surahs")))
+                                from_plan=bool(raw.get("surahs")),
+                                hashtags=tuple(str(t) for t in raw.get("hashtags") or ()))
     return out
 
 

@@ -70,3 +70,43 @@ def test_series_title_on_the_first_frame_and_first_caption_line():
     c = Config(root=Path("."), project={"content": content, "video": {"handle": "@h"}},
                backgrounds=[], gloss_headwords={})
     assert caption(c, passage).splitlines()[0] == "Supplications from the Quran · 4/38"
+
+
+def test_hashtags_brand_first_then_series_surah_broad_reciter_glosses():
+    from quran_reels.models import WordGloss
+    from quran_reels.render import hashtags
+
+    content = {"reciter": {"label": "R", "hashtags": ["#Alafasy"]},
+               "glosses": {"label": "G", "hashtags": ["#تفسير_القرآن"]}}
+    c = Config(root=Path("."), project={"content": content, "captions": {
+        "brand": "#QuranWordsDaily", "broad": ["#Quran", "#القرآن_الكريم"]}},
+        backgrounds=[], gloss_headwords={})
+    p = Passage(93, 1, 11, "الضحى", "Ad-Duhaa", series_tags=("#JuzAmma", "#جزء_عم"),
+                ayahs=[Ayah(AyahRef(93, 2), "وَٱلَّيْلِ إِذَا سَجَىٰ", "t")])
+    assert hashtags(c, p) == ["#QuranWordsDaily", "#Quran", "#JuzAmma", "#SurahAdDuhaa",
+                              "#سورة_الضحى", "#القرآن_الكريم", "#جزء_عم", "#Alafasy"]
+    p.ayahs[0].glosses = [WordGloss(AyahRef(93, 2), "سَجَىٰ", "سكن", "e")]
+    p2 = Passage(3, 1, 5, "آل عمران", "Ali 'Imran", ayahs=p.ayahs)
+    assert hashtags(c, p2)[2:4] == ["#SurahAliImran", "#سورة_آل_عمران"]
+    assert hashtags(c, p2)[-1] == "#تفسير_القرآن"
+
+
+def test_caption_file_round_trip_keeps_body_and_hashtags(tmp_path):
+    import json
+
+    from quran_reels.models import Reel
+    from quran_reels.publish import load_reel
+
+    work = tmp_path / "093_001-011"
+    (work / "preview").mkdir(parents=True)
+    tags = ["#QuranWordsDaily", "#Quran"]
+    (work / "caption.txt").write_text(
+        Reel(Passage(93, 1, 11, "الضحى", "Ad-Duhaa"), tmp_path / "x.mp4", "Body\n",
+             hashtags=tags).text(), encoding="utf-8")
+    (work / "manifest.json").write_text(json.dumps({
+        "passage": "93:1-11", "surah": {"name_ar": "الضحى", "name_en": "Ad-Duhaa"},
+        "hashtags": tags, "ayahs": [{"ref": "93:1", "glosses": [], "start": 0.4,
+                                     "seconds": 3.0}]}), encoding="utf-8")
+    reel = load_reel(tmp_path / "093_001-011.mp4")
+    assert (reel.caption, reel.hashtags) == ("Body\n", tags)
+    assert reel.text(1) == "Body\n\n#QuranWordsDaily\n"

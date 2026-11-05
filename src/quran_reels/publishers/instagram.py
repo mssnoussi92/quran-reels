@@ -27,8 +27,10 @@ class InstagramPublisher:
     mode = "auto"
 
     def __init__(self, graph: Graph, ig_user_id: str, poll_interval: float = 10,
-                 timeout: float = 900, attempts: int = 3, stuck_after: float = 240):
+                 timeout: float = 900, attempts: int = 3, stuck_after: float = 240,
+                 max_hashtags: int | None = 5):
         self.graph = graph
+        self.max_hashtags = max_hashtags    # Instagram allows 5 per post since December 2025
         self.ig_user_id = ig_user_id
         self.poll_interval = poll_interval
         self.timeout = timeout              # processing after a clean upload
@@ -90,10 +92,11 @@ class InstagramPublisher:
         raise AssertionError("unreachable")
 
     def publish(self, reel: Reel, dry_run: bool = False) -> PublishResult:
-        if len(reel.caption) > CAPTION_LIMIT:
+        text = reel.text(self.max_hashtags)
+        if len(text) > CAPTION_LIMIT:
             return PublishResult(self.name, PublishStatus.FAILED,
                                  error=f"caption longer than {CAPTION_LIMIT} characters")
-        params = {"media_type": "REELS", "upload_type": "resumable", "caption": reel.caption,
+        params = {"media_type": "REELS", "upload_type": "resumable", "caption": text,
                   "share_to_feed": "true"}
         if reel.cover_ms is not None:
             params["thumb_offset"] = str(reel.cover_ms)

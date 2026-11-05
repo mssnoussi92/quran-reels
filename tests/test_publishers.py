@@ -146,7 +146,7 @@ def test_facebook_dry_run_leaves_a_draft(reel):
     [finish] = [c for c in g.session.find("POST", f"/{PAGE}/video_reels")
                 if c[2]["upload_phase"] == "finish"]
     assert finish[2]["video_state"] == "DRAFT"
-    assert finish[2]["description"] == reel.caption
+    assert finish[2]["description"] == reel.text()
     [upload] = g.session.find("POST", "/video-upload/v24.0/111")
     assert upload[3]["file_size"] == "1234" and upload[3]["offset"] == "0"
     assert upload[3]["Authorization"] == f"OAuth {TOKEN}"
@@ -190,7 +190,7 @@ def test_instagram_dry_run_stops_before_media_publish(reel):
     assert not g.session.find("POST", f"/{IG}/media_publish")
     [create] = g.session.find("POST", f"/{IG}/media")
     assert create[2] == {"media_type": "REELS", "upload_type": "resumable",
-                              "caption": reel.caption, "share_to_feed": "true",
+                              "caption": reel.text(5), "share_to_feed": "true",
                               "thumb_offset": "3700"}
 
 
@@ -314,3 +314,18 @@ def test_slow_processing_after_a_clean_upload_is_not_retried(reel):
     r = InstagramPublisher(g, IG, poll_interval=0, timeout=0).publish(reel, dry_run=True)
     assert r.status is PublishStatus.FAILED and "222: still processing" in r.error
     assert len(g.session.find("POST", f"/{IG}/media")) == 1
+
+
+def test_instagram_keeps_the_first_five_hashtags_facebook_its_own_cap(reel):
+    from quran_reels.publishers.facebook import FacebookPublisher
+
+    reel.hashtags = [f"#t{i}" for i in range(1, 10)]
+    g = graph(instagram_routes())
+    InstagramPublisher(g, IG, poll_interval=0).publish(reel, dry_run=True)
+    caption = g.session.find("POST", f"/{IG}/media")[0][2]["caption"]
+    assert caption.rstrip().endswith("#t1 #t2 #t3 #t4 #t5") and "#t6" not in caption
+    g = graph(facebook_routes())
+    FacebookPublisher(g, PAGE, poll_interval=0, max_hashtags=8).publish(reel, dry_run=True)
+    finish = next(c for c in g.session.find("POST", f"/{PAGE}/video_reels")
+                  if c[2].get("upload_phase") == "finish")
+    assert "#t8" in finish[2]["description"] and "#t9" not in finish[2]["description"]

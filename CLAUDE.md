@@ -25,6 +25,7 @@ e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis 
 | Exécution | GitHub Actions (dépôt public → gratuit), migrable sur le homelab (Docker) |
 | Comptes pro | Page Facebook + Instagram en type **Créateur**, reliés |
 | Signature | **@quran_words_daily** sur chaque image, dans la zone sûre (repartages) |
+| Hashtags | Fin de légende, dans l'ordre : `#QuranWordsDaily`, `#Quran`, 1er tag de la série, sourate (`#SurahAdDuhaa` `#سورة_الضحى`), `#القرآن_الكريم`, autres tags de la série, récitateur, gloses (`#تفسير_القرآن`) ; **Instagram : les 5 premiers** (sa limite depuis déc. 2025), Facebook 8, `caption.txt` tous (TikTok, YouTube à la main) |
 
 ## Règles de contenu (non négociables)
 
@@ -193,6 +194,12 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   `content` par ayah (référence, ayah, traduction, gloses) en fondu de 0,25 s. Fond provisoire
   tant que `backgrounds.yaml` est vide : boucle de 12 s générée (numpy) dans la palette de la
   maquette, ciel de nuit vers l'aube, étoiles qui scintillent, mise en cache.
+- Hashtags (`render.hashtags`, déterministes) : `captions.brand`/`broad` et
+  `platforms.*.max_hashtags` dans project.yaml, `content.reciter.hashtags`,
+  `content.glosses.hashtags` (seulement si une glose est affichée), `hashtags:` de chaque série.
+  Sourate : `name_simple`/`name_arabic` de Quran.com (`#SurahAliImran`, `#سورة_آل_عمران`).
+  `caption.txt` = légende + tous les tags sur la dernière ligne ; `manifest.json` les liste ;
+  `Reel.text(n)` garde les n premiers.
 - Basmala (`content.basmala`) : `bismillah.mp3` d'EveryAyah (≈ 6 s), texte uthmani et
   traduction de 1:1 (Quran.com), premier segment du minutage ; écran sans référence ni numéro.
   Comptée dans le découpage (93 entière : 62 s). Pas pour la sourate 9 (`skip_surahs`) ni

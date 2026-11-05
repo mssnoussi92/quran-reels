@@ -85,6 +85,7 @@ class Passage:
     basmala: Ayah | None = None      # recited before the passage (text and translation of 1:1)
     label_ar: str = ""               # series shown on the first frame, «آيات الدعاء · ٣ من ٣٨»
     label_en: str = ""               # same, first line of the caption
+    series_tags: tuple[str, ...] = ()  # the series' hashtags (config/series/*.yaml)
 
     @property
     def segments(self) -> list[Ayah]:
@@ -113,9 +114,15 @@ class Passage:
 class Reel:
     passage: Passage
     video: Path
-    caption: str
+    caption: str                     # without hashtags
     cover: Path | None = None
     cover_ms: int | None = None      # frame used as cover, in ms from the start
+    hashtags: list[str] = field(default_factory=list)   # most important first
+
+    def text(self, max_hashtags: int | None = None) -> str:
+        """The caption with the first max_hashtags hashtags (all if None) on a last line."""
+        tags = self.hashtags if max_hashtags is None else self.hashtags[:max_hashtags]
+        return self.caption.rstrip("\n") + ("\n\n" + " ".join(tags) if tags else "") + "\n"
 
 
 class PublishStatus(str, Enum):

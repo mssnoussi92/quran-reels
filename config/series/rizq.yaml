@@ -4,6 +4,7 @@
 # (marked «theme»). Mushaf order. 11:6 and 29:60 are in the munjiyat series, not here. Whole ayahs ending a sentence (`quran-reels series-check`).
 title_ar: آيات الرزق
 title_en: Provision (rizq) in the Quran
+hashtags: ["#Rizq", "#الرزق"]
 passages:
   - "2:245"        # theme: lending to Allah, «Allah withholds and grants abundance»
   - "2:261"        # theme: spending multiplied

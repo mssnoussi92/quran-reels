@@ -115,7 +115,8 @@ def run(cfg: Config, state_path: Path, now: datetime | None = None, dry_run: boo
             if got is None:
                 continue
             p.queue, p.item = got
-        video = render_passage(cfg, p.item.key, p.item.label_ar, p.item.label_en).video
+        video = render_passage(cfg, p.item.key, p.item.label_ar, p.item.label_en,
+                               p.item.series.hashtags).video
         results = publish_mod.publish_reel(cfg, video, p.platforms, dry_run, checked)
         failed |= any(r.status is PublishStatus.FAILED for r in results)
         if dry_run:
