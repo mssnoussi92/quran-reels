@@ -45,12 +45,14 @@
   échoue avec la marche à suivre ; avertissement sous 30 jours. Puis
   `GET /{page}?fields=instagram_business_account` doit renvoyer `IG_USER_ID`.
 - Facebook : `video_reels` start → upload `rupload.facebook.com/video-upload/…` (en-têtes
-  `offset`, `file_size`) → finish avec `video_state=PUBLISHED`, ou `DRAFT` en dry-run → attente
-  du traitement (`GET /{video_id}?fields=status`).
+  `offset`, `file_size`) → finish avec `video_state=DRAFT` (toujours, depuis le 2026-11-05) →
+  attente du traitement (`GET /{video_id}?fields=status`) → vérification des droits (ci-dessous)
+  → finish à nouveau avec `video_state=PUBLISHED` → attente de la mise en ligne. En dry-run on
+  s'arrête avant : le brouillon reste dans Meta Business Suite → Contenu → Brouillons.
 - Instagram : `POST /{ig}/media` (`media_type=REELS`, `upload_type=resumable`, légende,
   `thumb_offset` = milieu de la première ayah glosée) → upload `rupload…/ig-api-upload/…` →
-  attente `status_code=FINISHED` → contrôle du quota (`content_publishing_limit`) →
-  `media_publish`. En dry-run on s'arrête avant `media_publish`.
+  attente `status_code=FINISHED` → vérification des droits (ci-dessous) → contrôle du quota
+  (`content_publishing_limit`) → `media_publish`. En dry-run on s'arrête avant `media_publish`.
 - **Constaté (2026-11-04, runs #4–#9) :** l'upload Instagram répond presque toujours
   `400 ProcessingFailedError`. Parfois Instagram a quand même la vidéo (run #7 : conteneur
   `FINISHED` aussitôt), parfois le conteneur reste `IN_PROGRESS` pour de bon (run #9 : encore
@@ -62,9 +64,41 @@
 - **Première publication réelle (2026-11-05, publish-test run #12) :** 93:1-11 publiée sur
   Facebook et Instagram. Instagram : premier conteneur resté `IN_PROGRESS` après l'erreur
   d'upload, abandonné au bout de 4 min ; publié depuis le deuxième. Un seul post.
+- **Premier reel Facebook coupé (2026-11-05)** : Rights Manager a reconnu l'enregistrement
+  d'Alafasy (fichiers EveryAyah, sans licence connue). D'où la vérification ci-dessous.
 - Légende : celle du rendu (`caption.txt`), raccourcie automatiquement sous 2 200 caractères
   (l'arabe d'abord, puis la traduction ; les crédits restent).
 - Résultats : `out/<passage>/publish.json` et résumé sur la page de l'exécution GitHub.
+
+### Vérification des droits avant publication (`publishers/rights.py`)
+
+Meta compare chaque vidéo à son catalogue Rights Manager. On lit sa réponse **avant** de
+publier, sur la vidéo non publiée :
+
+| | Objet non publié | Requête | Réponse |
+|---|---|---|---|
+| Facebook | brouillon de reel | `GET /{video-id}?fields=copyright_check_information` | `{"status": {"status": "complete", "matches_found": false}, "copyright_matches": [...]}` |
+| Instagram | conteneur `FINISHED` | `GET /{container-id}?fields=copyright_check_status` | `{"status": "complete", "matches_found": false}` |
+
+- Interrogé toutes les 10 s jusqu'à `complete` (ou `completed`, les deux orthographes existent
+  dans la documentation), 10 min au plus (`platforms.meta.rights_timeout`).
+- **On publie seulement si toutes les plateformes Meta répondent `complete` avec
+  `matches_found: false`.** Sinon (correspondance, `error`, `not_eligible`, pas de réponse à
+  temps, champ inconnu de l'API) : rien n'est publié, nulle part, TikTok compris ; statut
+  `blocked`. Le ticket d'échec donne le passage et le titulaire que Meta indique
+  (`copyright_matches` : `content_title`, `author`, `owner_copyright_policy.name`, type de
+  segment audio/vidéo ; Instagram ne donne le détail qu'après publication). Le créneau n'est pas
+  réessayé (le même enregistrement serait refusé) et le passage reste en tête de sa file :
+  changer de récitateur.
+- Le brouillon Facebook d'un passage bloqué reste dans Meta Business Suite (Contenu →
+  Brouillons) ; le conteneur Instagram expire seul après 24 h.
+- Documentation : Meta documente ces champs pour Instagram ([Copyright Detection](https://developers.facebook.com/docs/instagram-platform/instagram-api-with-facebook-login/copyright-detection),
+  [IG Container](https://developers.facebook.com/docs/instagram-platform/instagram-graph-api/reference/ig-container)) ;
+  pour Facebook, `copyright_check_information` sur la vidéo n'est décrit que par des tiers.
+  La publication d'un brouillon Facebook par un second `finish` avec `video_state=PUBLISHED`
+  n'est pas documentée non plus : à confirmer à la première publication réelle (en cas
+  d'échec, le brouillon vérifié reste publiable à la main).
+- Dry-run du 2026-11-05 sur la sourate 93 (publish-test run #14 : Alafasy en témoin, Hudhaifi, Ayyub, Akhdar) : résultats ci-dessous dès la fin du run.
 
 ### Tester depuis le téléphone : workflow `publish-test`
 
@@ -73,6 +107,9 @@ Actions → **publish-test** → Run workflow :
    (reel Facebook non publié) ; le conteneur Instagram n'est visible nulle part et disparaît
    après 24 h. Supprimer le brouillon ensuite.
 2. `mode: publish`, `confirm: PUBLIER` → publication réelle sur la Page et Instagram.
+3. `reciters: hudhaifi,ayyoub,akhdar` (dry-run seulement) : le même passage avec plusieurs
+   récitateurs, l'un après l'autre ; le résumé du run donne, pour chacun, la réponse de Meta
+   sur les droits (colonne « Droits »).
 
 Le bouton « Run workflow » n'apparaît que pour un workflow présent sur `main`.
 

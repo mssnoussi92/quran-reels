@@ -20,7 +20,8 @@ e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis 
 | Texte arabe | Uthmani (Hafs), police **Amiri Quran** (OFL) |
 | Traduction | **Sahih International** (anglais), créditée dans chaque légende |
 | Mots difficiles | **Ibn Qutaybah, *Tafsir Gharib al-Qur'an*** (`ar-ghareeb-ibn-qutaybah`), glose en arabe |
-| Récitateur | **Mishary Alafasy** par défaut, paramétrable (`config/project.yaml`) |
+| Récitateur | Catalogue dans `config/project.yaml` (`content.reciters`), choisi par `content.reciter` : **Alafasy** (reconnu par Rights Manager, à remplacer) ; enregistrements du **Complexe du Roi Fahd** (licence d'usage gratuit) : **Ali Al-Hudhaifi** en priorité, Muhammad Ayyub, Ibrahim Al-Akhdar |
+| Droits | **Vérification Meta avant chaque publication** : brouillon Facebook + conteneur Instagram, publiés seulement si Meta répond `complete` sans correspondance, sinon rien n'est publié (TikTok compris) |
 | Fond | **choisi selon ce que dit le passage** (montagnes, mer, rivières, jardins, nuit, aube, ciel…) : vidéos Pexels choisies par le propriétaire et scènes générées (aube, nuit, mer), **sans personnes ni animaux** |
 | Exécution | GitHub Actions (dépôt public → gratuit), migrable sur le homelab (Docker) |
 | Comptes pro | Page Facebook + Instagram en type **Créateur**, reliés |
@@ -39,6 +40,9 @@ e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis 
    d'ayahs des tafsirs (Ibn Kathir / Muyassar), sous contrainte de durée.
 5. Les jeux de données tiers (traduction complète, tafsir) **ne sont pas commités** : un script
    d'ingestion les télécharge dans un cache (`.cache/`, Actions cache). Le dépôt reste publiable.
+6. **Rien n'est publié sans la vérification des droits de Meta** (`publishers/rights.py`) : une
+   récitation reconnue par Rights Manager fait couper ou rendre muet le reel (93:1-11 sur
+   Facebook, 2026-11-05, Alafasy).
 
 ## Architecture
 
@@ -61,7 +65,8 @@ src/quran_reels/
   render/          frames.py (template HTML → PNG, Chromium/Playwright),
                    video.py (minutage audio + ffmpeg → MP4), __init__ (orchestration)
   publishers/      un adaptateur par plateforme, interface commune `Publisher` (dry_run) :
-                   meta.py (client Graph, contrôle du jeton), facebook.py, instagram.py,
+                   meta.py (client Graph, contrôle du jeton), facebook.py, instagram.py
+                   (prepare → rights → commit), rights.py (vérification des droits Meta),
                    tiktok.py (brouillon dans la boîte TikTok, connexion OAuth)
   publish.py       `quran-reels publish|meta-check|tiktok-auth` : contrôle, publication, résumé
   gh_secrets.py    réécrit un secret Actions (refresh token TikTok) via gh + GH_SECRETS_TOKEN
@@ -133,8 +138,24 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   `.cache/tafsir.app/ghareeb-ibn-qutaybah/SSS.json`. À l'affichage : notes de l'éditeur
   `[[…]]` retirées, phrases entières seulement (`max_chars`), sinon la glose est omise.
   Absente de QUL et de Quran.com.
-- Audio : EveryAyah, un MP3 par ayah, `https://everyayah.com/data/Alafasy_128kbps/SSSAAA.mp3`.
-  Décodé en PCM 48 kHz pour un minutage exact à l'échantillon.
+- Audio : EveryAyah, un MP3 par ayah, `https://everyayah.com/data/<dossier>/SSSAAA.mp3`.
+  Décodé en PCM 48 kHz pour un minutage exact à l'échantillon : le texte suit la récitation.
+  Récitateurs (`content.reciters`, `QURAN_REELS_RECITER` pour un essai) : `alafasy`
+  (`Alafasy_128kbps`), et les enregistrements Hafs du Complexe du Roi Fahd `hudhaifi`
+  (`Hudhaify_128kbps`, coupes propres sur un silence), `ayyoub` (`Muhammad_Ayyoub_128kbps` ; son
+  `bismillah.mp3` dure 2,9 s, coupé : on prend son 1:1), `akhdar` (`Ibrahim_Akhdar_32kbps`,
+  32 kb/s mono seulement, pas de `bismillah.mp3`). Le site du Complexe (`qurancomplex.gov.sa`,
+  qui propose « المصحف كاملاً آيات », ≈ 800 Mo par récitateur, et une page « حقوق الاستخدام »)
+  ne répond ni depuis ce conteneur ni depuis les runners GitHub (connexion expirée,
+  2026-11-05) : la provenance des fichiers EveryAyah n'a pas pu être comparée à l'original.
+  `mp3quran.net` (sourates entières + minutage par ayah, `api/v3/ayat_timing`) répond depuis
+  GitHub : piste de repli. La légende crédite le producteur (« Recitation: Ali Al-Hudhaifi
+  (King Fahd Complex) ») ; `manifest.json` et `publish.json` gardent le récitateur et sa licence.
+- Durées pour le découpage : Quran.com (`timings_id`, Alafasy seulement) ou, sinon, taille des
+  fichiers EveryAyah (débit constant, `kbps` : octets × 8 / débit, une requête HEAD par ayah, en
+  cache) ; sourate 93 entière : 62,6 s Alafasy, 66,5 s Hudhaifi, 68,9 s Ayyub, 72,0 s Akhdar.
+  Changer de récitateur par défaut demande de refaire `quran-reels plan --write` (le plan figé
+  est calculé avec Alafasy) et `quran-reels series-check`.
 - Découpage (par sourate, à la demande, petits fichiers) : durées par ayah depuis
   `/chapter_recitations/7/{s}?segments=true` (même enregistrement d'Alafasy, ±2 %, sans
   télécharger les MP3) ; groupes d'ayahs d'Ibn Kathir abrégé (`en-tafisr-ibn-kathir`, id 169 :
@@ -153,6 +174,8 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
 
 - Facebook + Instagram : publication auto via l'API Graph, app Meta en accès standard
   (comptes du propriétaire uniquement), sans validation Meta ni vérification d'entreprise.
+  Chaque reel est d'abord envoyé non publié (brouillon Facebook, conteneur Instagram) et publié
+  seulement si la vérification des droits de Meta est propre partout (voir docs/plateformes.md).
 - TikTok : sans audit, la publication directe est forcée en privé → mode **brouillon**
   (MEDIA_UPLOAD vers la boîte TikTok) en attendant l'audit.
 - YouTube : sans audit, les uploads API sont verrouillés en privé → **upload manuel** du MP4
@@ -290,3 +313,6 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
       vendredi, état, workflow `daily` — **activé** (`enabled: true`) ; 93:1-11, publiée à la
       main, est dans `published_by_hand` (jamais republiée par le calendrier)
 - [x] Série « السبع آيات المنجيات » · [ ] d'autres séries avant la fin des thèmes (≈ 2 mois)
+- [x] Fonds choisis selon le passage (scènes générées + 3 clips Pexels, PR #8)
+- [x] Vérification des droits Meta avant publication · [x] récitateurs du Complexe du Roi Fahd
+      (Hudhaifi, Ayyub, Akhdar) · [ ] choisir le récitateur par défaut, refaire le plan
