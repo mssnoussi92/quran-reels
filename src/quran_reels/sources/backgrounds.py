@@ -25,6 +25,7 @@ import hashlib
 import os
 import re
 import subprocess
+import sys
 from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -280,11 +281,20 @@ def pick(cfg: Config, passage: Passage, http: Http | None = None) -> tuple[Path,
         return provisional(cfg), {"id": f"provisional-v{PROVISIONAL_VERSION}",
                                   "source": "generated"}
     bg, theme, scores = chosen
+    from quran_reels.sources import scenes
     if bg.scene:
-        from quran_reels.sources import scenes
         path = scenes.render(cfg, bg.scene)
     else:
-        path = clip(cfg, bg, http)
+        try:
+            path = clip(cfg, bg, http)
+        except Exception as e:   # no key, clip removed, network: never fail a reel
+            fallback = next((b for b in catalogue(cfg)[0] if b.scene), None)
+            if fallback is None:
+                raise
+            print(f"warning: background {bg.id} unavailable ({type(e).__name__}: {e}); "
+                  f"using the generated scene {fallback.id}", file=sys.stderr)
+            bg, theme = fallback, f"{theme or 'default'} (fallback)"
+            path = scenes.render(cfg, bg.scene)
     info = {"id": bg.id, "source": bg.source, "theme": theme or "default",
             "scores": dict(scores)}
     for key in ("page", "author", "pixabay_id"):
