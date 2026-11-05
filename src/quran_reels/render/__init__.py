@@ -12,6 +12,7 @@ out/
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import sys
 from dataclasses import dataclass
@@ -20,7 +21,7 @@ from pathlib import Path
 from quran_reels import __version__
 from quran_reels.arabic import arabic_digits
 from quran_reels.config import Config
-from quran_reels.models import Ayah, Passage
+from quran_reels.models import Ayah, Passage, Reel
 from quran_reels.passage import build
 from quran_reels.render import video
 from quran_reels.render.frames import FrameRenderer, ayah_context
@@ -36,6 +37,25 @@ class RenderResult:
 
 
 CAPTION_LIMIT = 2200   # Instagram
+
+
+def _tag(text: str, joiner: str = "") -> str:
+    """One hashtag word: 'Ali 'Imran' → 'AliImran'; with joiner '_', 'آل عمران' → 'آل_عمران'."""
+    return re.sub(r"[^\w]", "", re.sub(r"\s+", joiner, text.strip()))
+
+
+def hashtags(cfg: Config, passage: Passage) -> list[str]:
+    """The caption's hashtags, most important first, without duplicates (see project.yaml)."""
+    c = cfg.content
+    conf = cfg.project.get("captions") or {}
+    broad = list(conf.get("broad") or [])
+    series = list(passage.series_tags)
+    glossed = any(a.glosses for a in passage.ayahs)
+    tags = [conf.get("brand"), *broad[:1], *series[:1],
+            f"#Surah{_tag(passage.surah_name_en)}", f"#سورة_{_tag(passage.surah_name_ar, '_')}",
+            *broad[1:], *series[1:], *(c["reciter"].get("hashtags") or []),
+            *((c["glosses"].get("hashtags") or []) if glossed else [])]
+    return list(dict.fromkeys(t for t in tags if t))
 
 
 def caption(cfg: Config, passage: Passage, limit: int = CAPTION_LIMIT) -> str:
@@ -99,6 +119,7 @@ def manifest(cfg: Config, src: Sources, passage: Passage, timeline: video.Timeli
         "background": background,
         "series": {"ar": passage.label_ar, "en": passage.label_en} if passage.label_en
         or passage.label_ar else None,
+        "hashtags": hashtags(cfg, passage),
         "basmala": basmala,
         "ayahs": [
             {
@@ -122,11 +143,14 @@ def _warn(msg: str) -> None:
     print(f"warning: {msg}", file=sys.stderr)
 
 
-def render_passage(cfg: Config, key: str, label_ar: str = "", label_en: str = "") -> RenderResult:
-    """label_ar / label_en: the series the passage belongs to, on the first frame and caption."""
+def render_passage(cfg: Config, key: str, label_ar: str = "", label_en: str = "",
+                   series_tags: tuple[str, ...] = ()) -> RenderResult:
+    """label_ar / label_en: the series the passage belongs to, on the first frame and caption;
+    series_tags: its hashtags."""
     src = Sources.from_config(cfg)
     passage = build(cfg, key, src)
     passage.label_ar, passage.label_en = label_ar, label_en
+    passage.series_tags = tuple(series_tags)
     v = cfg.video
     work = cfg.out / passage.slug
     if work.exists():
@@ -178,6 +202,9 @@ def render_passage(cfg: Config, key: str, label_ar: str = "", label_en: str = ""
     (work / "manifest.json").write_text(
         json.dumps(manifest(cfg, src, passage, timeline, bg_info), ensure_ascii=False, indent=2),
         encoding="utf-8")
-    (work / "caption.txt").write_text(caption(cfg, passage), encoding="utf-8")
+    tags = hashtags(cfg, passage)
+    room = CAPTION_LIMIT - len(" ".join(tags)) - 2       # all of them, even on Instagram
+    reel_text = Reel(passage, out, caption(cfg, passage, room), hashtags=tags).text()
+    (work / "caption.txt").write_text(reel_text, encoding="utf-8")
     shutil.rmtree(audio_dir)
     return RenderResult(passage=passage, video=out, workdir=work, seconds=timeline.seconds)

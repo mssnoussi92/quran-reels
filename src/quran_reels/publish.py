@@ -55,6 +55,11 @@ def platforms_for(cfg: Config, requested: list[str] | None) -> list[str]:
             and (conf.get(p) or {}).get("mode") in ("auto", "draft")]
 
 
+def max_hashtags(cfg: Config, platform: str) -> int | None:
+    value = ((cfg.project.get("platforms") or {}).get(platform) or {}).get("max_hashtags")
+    return None if value is None else int(value)
+
+
 def _meta(cfg: Config) -> dict:
     return (cfg.project.get("platforms") or {}).get("meta") or {}
 
@@ -90,8 +95,12 @@ def load_reel(video: Path) -> Reel:
                       manifest["surah"]["name_en"])
     ayahs = manifest["ayahs"]
     cover = next((a for a in ayahs if a["glosses"]), ayahs[0])   # a frame with a word meaning
-    return Reel(passage=passage, video=video,
-                caption=(work / "caption.txt").read_text(encoding="utf-8"),
+    text = (work / "caption.txt").read_text(encoding="utf-8")
+    tags = manifest.get("hashtags") or []
+    tag_line = " ".join(tags)
+    if tags and text.rstrip().endswith(tag_line):         # written by render: body + tags
+        text = text.rstrip()[: -len(tag_line)].rstrip() + "\n"
+    return Reel(passage=passage, video=video, caption=text, hashtags=list(tags),
                 cover=work / "preview" / f"{surah:03d}{int(cover['ref'].split(':')[1]):03d}.png",
                 cover_ms=int((cover["start"] + cover["seconds"] / 2) * 1000))
 
@@ -129,9 +138,11 @@ def publish_reel(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
     results = []
     for name in platforms:
         if name == "facebook":
-            publisher = FacebookPublisher(graph, env.page_id)
+            publisher = FacebookPublisher(graph, env.page_id,
+                                          max_hashtags=max_hashtags(cfg, name))
         elif name == "instagram":
-            publisher = InstagramPublisher(graph, str(env.ig_user_id))
+            publisher = InstagramPublisher(graph, str(env.ig_user_id),
+                                           max_hashtags=max_hashtags(cfg, name))
         else:
             publisher = tiktok
         print(f"{name}: uploading {reel.video.name}{' (dry run)' if dry_run else ''}",

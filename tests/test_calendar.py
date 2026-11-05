@@ -26,7 +26,8 @@ SERIES = {
     "dua": Series("dua", ("2:186-186", "2:201-201", "3:8-9"), "آيات الدعاء",
                   "Supplications from the Quran"),
     "kahf": Series("kahf", ("18:1-5", "18:6-12", "18:13-14"), "سورة الكهف يوم الجمعة",
-                   "Surah Al-Kahf on Friday", repeat=True, from_plan=True),
+                   "Surah Al-Kahf on Friday", repeat=True, from_plan=True,
+                   hashtags=("#Jumuah",)),
 }
 
 
@@ -110,8 +111,9 @@ def world(monkeypatch, tmp_path):
         def __init__(self, key):
             self.video = tmp_path / f"{key}.mp4"
 
-    def render(cfg, key, label_ar="", label_en=""):
+    def render(cfg, key, label_ar="", label_en="", series_tags=()):
         calls["render"].append((key, label_en))
+        calls.setdefault("tags", []).append(tuple(series_tags))
         return Rendered(key)
 
     def publish(cfg, video, platforms, dry_run, checked=None):
@@ -182,3 +184,10 @@ def test_friday_evening_continues_al_kahf_with_its_label(world):
     daily.run(None, path, now=paris(2026, 11, 6, 19, 20))
     assert calls["render"] == [("18:1-5", "Surah Al-Kahf on Friday · 1/3"),
                                ("18:6-12", "Surah Al-Kahf on Friday · 2/3")]
+    assert calls["tags"] == [("#Jumuah",), ("#Jumuah",)]
+
+
+def test_a_passage_published_by_hand_is_skipped():
+    s = schedule(published_by_hand=frozenset({"113:1-5"}))
+    days = preview(s, SERIES, State(), date(2026, 11, 7), 2)      # Saturday, Sunday
+    assert [i.key for _, slot, _, i in days if slot.name == "morning"] == ["114:1-6", "112:1-4"]

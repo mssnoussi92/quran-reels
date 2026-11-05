@@ -94,6 +94,7 @@ class Series:
     repeat: bool = False
     skipped: tuple[str, ...] = ()      # plan passages left out (longer than max_seconds)
     from_plan: bool = False            # whole surahs, as split in config/plan.yaml
+    hashtags: tuple[str, ...] = ()
 
 
 def _passage_key(value: Any, where: str) -> str:
@@ -132,7 +133,8 @@ def load_series(cfg: Config, plan: dict[int, list[PlanEntry]] | None = None) -> 
                                 title_ar=str(raw.get("title_ar") or ""),
                                 title_en=str(raw.get("title_en") or ""),
                                 repeat=bool(raw.get("repeat", False)), skipped=tuple(skipped),
-                                from_plan=bool(raw.get("surahs")))
+                                from_plan=bool(raw.get("surahs")),
+                                hashtags=tuple(str(t) for t in raw.get("hashtags") or ()))
     return out
 
 
@@ -184,6 +186,7 @@ class Schedule:
     queues: dict[str, list[str]]                  # queue → series ids, played in order
     friday_queue: str | None = None
     fallback: dict[str, str] = field(default_factory=dict)
+    published_by_hand: frozenset[str] = frozenset()   # passage keys the calendar skips
     early_minutes: int = 20                       # a run this early still takes the slot
     window_hours: float = 3                       # later than this, the slot is missed
 
@@ -226,6 +229,9 @@ def load_schedule(cfg: Config, series: dict[str, Series] | None = None) -> Sched
                      enabled=bool(raw.get("enabled", False)), slots=slots, queues=queues,
                      friday_queue=(raw.get("fridays") or {}).get("queue"),
                      fallback={str(k): str(v) for k, v in (raw.get("fallback") or {}).items()},
+                     published_by_hand=frozenset(
+                         _passage_key(k, "config/schedule.yaml, published_by_hand")
+                         for k in raw.get("published_by_hand") or ()),
                      early_minutes=int(raw.get("early_minutes", 20)),
                      window_hours=float(raw.get("window_hours", 3)))
     used = {s.queue for s in slots} | set(sched.fallback.values()) | (
@@ -293,7 +299,7 @@ def next_item(sched: Schedule, series: dict[str, Series], state: State,
         items = queue_items(sched, series, queue)
         done = set(state.queue(queue)["done"])
         for item in items:
-            if item.id not in done:
+            if item.id not in done and item.key not in sched.published_by_hand:
                 return queue, item
         if items and all(i.series.repeat for i in items):
             q = state.queue(queue)

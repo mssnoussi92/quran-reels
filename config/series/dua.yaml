@@ -5,6 +5,7 @@
 # Each passage is whole ayahs ending a sentence (`quran-reels series-check`).
 title_ar: آيات الدعاء
 title_en: Supplications from the Quran
+hashtags: ["#Dua", "#أدعية_قرآنية"]
 passages:
   - "2:186"        # «I am near»: about du'a
   - "40:60"        # «Call upon Me; I will respond to you»

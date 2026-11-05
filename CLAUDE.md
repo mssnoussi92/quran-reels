@@ -15,7 +15,7 @@ e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis 
 | Basmala | **Au début de chaque vidéo**, même pour quelques versets ; sauf sourate 9 et avant 1:1 (qui est la basmala) |
 | Rythme | **2 vidéos par jour**, heure de Paris : **07:30** lecture dans l'ordre, **19:30** séries thématiques |
 | Lecture | **Juz' 'Amma d'abord** (114 → 78), puis Al-Fatiha et 2 → 77, passages de `config/plan.yaml` |
-| Thèmes | Ayat al-Kursi, versets de du'a, versets du rizq… : listes **proposées par l'IA en PR, validées par le propriétaire** |
+| Thèmes | Ayat al-Kursi, les 7 versets « المنجيات », versets de du'a, versets du rizq… : listes **proposées par l'IA en PR, validées par le propriétaire** |
 | Vendredi | **Les deux créneaux lisent Al-Kahf** (2 passages par vendredi, 38 au total, puis on recommence) |
 | Texte arabe | Uthmani (Hafs), police **Amiri Quran** (OFL) |
 | Traduction | **Sahih International** (anglais), créditée dans chaque légende |
@@ -25,6 +25,7 @@ e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis 
 | Exécution | GitHub Actions (dépôt public → gratuit), migrable sur le homelab (Docker) |
 | Comptes pro | Page Facebook + Instagram en type **Créateur**, reliés |
 | Signature | **@quran_words_daily** sur chaque image, dans la zone sûre (repartages) |
+| Hashtags | Fin de légende, dans l'ordre : `#QuranWordsDaily`, `#Quran`, 1er tag de la série, sourate (`#SurahAdDuhaa` `#سورة_الضحى`), `#القرآن_الكريم`, autres tags de la série, récitateur, gloses (`#تفسير_القرآن`) ; **Instagram : les 5 premiers** (sa limite depuis déc. 2025), Facebook 8, `caption.txt` tous (TikTok, YouTube à la main) |
 
 ## Règles de contenu (non négociables)
 
@@ -168,7 +169,7 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
 - `config/schedule.yaml` : fuseau `Europe/Paris`, créneaux `morning` 07:30 (file `reading`) et
   `evening` 19:30 (file `themes`), vendredi → file `kahf` pour les deux, `fallback` (une file
   finie passe à une autre). `enabled: false` tant que la première publication réelle n'est pas
-  faite.
+  faite (activé le 2026-11-05). `published_by_hand` : passages publiés hors calendrier, sautés.
 - Une file joue ses séries l'une après l'autre ; chaque créneau prend le premier passage pas
   encore publié. Série `repeat: true` (Al-Kahf) : recommence une fois finie.
 - Série (`config/series/*.yaml`) : `surahs: [...]` (passages de plan.yaml) ou `passages:`
@@ -177,7 +178,8 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   au milieu d'une phrase, ou de plus de 90 s.
 - Listes thématiques : proposées (IA, en amont) avec la règle utilisée (racine ر ز ق, «رَبَّنَا»…)
   et validées par le propriétaire en PR. Les textes viennent toujours des sources au rendu.
-  « السبع المنجيات » : en attente de la liste suivie par le propriétaire (les listes varient).
+  « السبع آيات المنجيات » : la liste du propriétaire (9:51, 6:17, 11:6, 11:56, 29:60, 35:2,
+  29:61) ; 11:6 et 29:60 retirées de la série rizq pour ne pas les publier deux fois.
 - Workflow `daily` : cron `13 5,6,7` et `13 17,18,19` UTC (heure d'été et d'hiver, GitHub est
   souvent en retard) ; `daily --check` décide sans installer ffmpeg ; un créneau commencé ne
   réessaie que les plateformes en échec, avec le même passage ; fenêtre de 3 h.
@@ -192,6 +194,12 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   `content` par ayah (référence, ayah, traduction, gloses) en fondu de 0,25 s. Fond provisoire
   tant que `backgrounds.yaml` est vide : boucle de 12 s générée (numpy) dans la palette de la
   maquette, ciel de nuit vers l'aube, étoiles qui scintillent, mise en cache.
+- Hashtags (`render.hashtags`, déterministes) : `captions.brand`/`broad` et
+  `platforms.*.max_hashtags` dans project.yaml, `content.reciter.hashtags`,
+  `content.glosses.hashtags` (seulement si une glose est affichée), `hashtags:` de chaque série.
+  Sourate : `name_simple`/`name_arabic` de Quran.com (`#SurahAliImran`, `#سورة_آل_عمران`).
+  `caption.txt` = légende + tous les tags sur la dernière ligne ; `manifest.json` les liste ;
+  `Reel.text(n)` garde les n premiers.
 - Basmala (`content.basmala`) : `bismillah.mp3` d'EveryAyah (≈ 6 s), texte uthmani et
   traduction de 1:1 (Quran.com), premier segment du minutage ; écran sans référence ni numéro.
   Comptée dans le découpage (93 entière : 62 s). Pas pour la sourate 9 (`skip_surahs`) ni
@@ -241,12 +249,12 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
 - [x] Passages d'≈ 1 min, sourate courte entière (`quran-reels passages`, `render 93`)
 - [x] App Meta (voir docs/plateformes.md)
 - [x] Dry-run Facebook (run #3, brouillon créé) et Instagram (run #7, conteneur FINISHED, non
-      publié). [ ] Première publication réelle (`publish-test`, mode publish + PUBLIER).
-      Pas encore d'état anti-doublon (`state/`).
+      publié). [x] Première publication réelle : 93:1-11 sur Facebook et Instagram
+      (publish-test run #12, 2026-11-05 ; Instagram : 1er conteneur bloqué, publié au 2e).
 - [x] App TikTok Sandbox · [x] connexion (`tiktok-auth`, compte quran_words_daily, refresh
       token jusqu'à ≈ 2027-11-04) · [x] brouillon dans la boîte TikTok en Sandbox (run #8)
 - [ ] Demande d'audit YouTube
-- [x] Calendrier : 2 créneaux, Juz' 'Amma, séries (Ayat al-Kursi, du'a, rizq), Al-Kahf le
-      vendredi, état, workflow `daily` (désactivé : `schedule.yaml` → `enabled: true` après la
-      première publication réelle)
-- [ ] Liste « السبع المنجيات » à fournir · [ ] d'autres séries avant la fin des thèmes (≈ 2 mois)
+- [x] Calendrier : 2 créneaux, Juz' 'Amma, séries (Ayat al-Kursi, munjiyat, du'a, rizq), Al-Kahf le
+      vendredi, état, workflow `daily` — **activé** (`enabled: true`) ; 93:1-11, publiée à la
+      main, est dans `published_by_hand` (jamais republiée par le calendrier)
+- [x] Série « السبع آيات المنجيات » · [ ] d'autres séries avant la fin des thèmes (≈ 2 mois)

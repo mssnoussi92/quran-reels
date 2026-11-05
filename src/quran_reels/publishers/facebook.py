@@ -15,9 +15,10 @@ class FacebookPublisher:
     mode = "auto"
 
     def __init__(self, graph: Graph, page_id: str, poll_interval: float = 10,
-                 timeout: float = 900):
+                 timeout: float = 900, max_hashtags: int | None = None):
         self.graph = graph
         self.page_id = page_id
+        self.max_hashtags = max_hashtags
         self.poll_interval = poll_interval
         self.timeout = timeout
 
@@ -43,7 +44,7 @@ class FacebookPublisher:
             self.graph.upload(url, reel.video, f"upload facebook reel {video_id}")
             self.graph.post(f"{self.page_id}/video_reels", upload_phase="finish",
                             video_id=video_id, video_state="DRAFT" if dry_run else "PUBLISHED",
-                            description=reel.caption)
+                            description=reel.text(self.max_hashtags))
             wait(lambda: self._status(video_id, published=not dry_run),
                  f"facebook reel {video_id}", self.timeout, self.poll_interval)
         except (GraphError, KeyError) as e:

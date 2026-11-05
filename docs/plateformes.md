@@ -59,6 +59,9 @@
   plus). Un conteneur non publié ne coûte rien : rien n'est posté, il expire après 24 h.
   Le MP4 est aussi encodé sans edit list ni B-frames, AAC 128 kb/s (spécifications Reels).
 - **Dry-runs validés :** Facebook (run #3, brouillon) et Instagram (run #7, conteneur prêt).
+- **Première publication réelle (2026-11-05, publish-test run #12) :** 93:1-11 publiée sur
+  Facebook et Instagram. Instagram : premier conteneur resté `IN_PROGRESS` après l'erreur
+  d'upload, abandonné au bout de 4 min ; publié depuis le deuxième. Un seul post.
 - Légende : celle du rendu (`caption.txt`), raccourcie automatiquement sous 2 200 caractères
   (l'arabe d'abord, puis la traduction ; les crédits restent).
 - Résultats : `out/<passage>/publish.json` et résumé sur la page de l'exécution GitHub.
