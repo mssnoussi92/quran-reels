@@ -28,7 +28,7 @@ def find_root(start: Path | None = None) -> Path:
 class Config:
     root: Path
     project: dict[str, Any]
-    backgrounds: list[dict[str, Any]]
+    backgrounds: dict[str, Any]           # config/backgrounds.yaml
     gloss_headwords: dict[str, list[tuple[str, ...]]]   # "93:2" → [("سجى",)]
 
     @property
@@ -98,6 +98,6 @@ def load(root: Path | None = None) -> Config:
     return Config(
         root=root,
         project=_yaml(root / "config" / "project.yaml"),
-        backgrounds=_yaml(root / "config" / "backgrounds.yaml").get("clips") or [],
+        backgrounds=_yaml(root / "config" / "backgrounds.yaml"),
         gloss_headwords=parse_headwords(_yaml(root / "config" / "glosses.yaml").get("headwords")),
     )

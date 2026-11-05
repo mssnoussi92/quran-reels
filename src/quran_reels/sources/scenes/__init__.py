@@ -1,9 +1,10 @@
 """Generated backgrounds: a nature scene drawn by a GLSL shader, in the Chromium we already use.
 
 Each scene (`<name>.frag` next to this file) defines `vec3 scene(vec2 uv, float t)`: the colour
-of a pixel (uv in 0..1, y up) at t seconds. It is drawn in headless Chromium (WebGL 2, software
-rendering on GitHub's runners); the page posts each frame's raw pixels to a small local HTTP
-server, which feeds ffmpeg.
+of a pixel (uv in 0..1, y up) at t seconds. A small local HTTP server serves a page that draws
+the frames with WebGL 2 (software rendering on GitHub's runners) and posts each one's raw
+pixels back; the server feeds them to ffmpeg. Chromium is launched directly: Playwright's
+network monitoring would copy every frame and make the transfer 3–4 times slower.
 
 The clip is a seamless loop: its first `fade` seconds blend the scene at t + loop into the
 scene at t, so the last frame runs into the first one. The compositor loops it under the
@@ -18,6 +19,7 @@ import hashlib
 import http.server
 import json
 import subprocess
+import tempfile
 import threading
 from pathlib import Path
 from typing import IO
@@ -41,41 +43,44 @@ void main() {
 _PAGE = """<!doctype html><html><body style="margin:0;background:#000">
 <canvas id="c" width="{w}" height="{h}"></canvas>
 <script>
-const FRAG = {frag};
-const c = document.getElementById('c');
-const gl = c.getContext('webgl2', {{preserveDrawingBuffer: true, antialias: false}});
-function shader(type, src) {{
-  const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
-  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
-  return s;
-}}
-const prog = gl.createProgram();
-gl.attachShader(prog, shader(gl.VERTEX_SHADER,
-  '#version 300 es\\nin vec2 p; void main() {{ gl_Position = vec4(p, 0., 1.); }}'));
-gl.attachShader(prog, shader(gl.FRAGMENT_SHADER, FRAG));
-gl.linkProgram(prog);
-if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
-gl.useProgram(prog);
-gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-const loc = gl.getAttribLocation(prog, 'p');
-gl.enableVertexAttribArray(loc);
-gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-const u = n => gl.getUniformLocation(prog, n);
-gl.uniform2f(u('u_res'), {w}, {h});
-gl.uniform1f(u('u_loop'), {loop});
-gl.uniform1f(u('u_fade'), {fade});
-const buf = new Uint8Array({w} * {h} * 4);
-window.run = async (times) => {{
-  for (const t of times) {{
-    gl.uniform1f(u('u_time'), t);
+const post = (path, body) => fetch(path, {{method: 'POST', body}});
+window.onerror = (msg) => {{ post('/error', String(msg)); }};
+(async () => {{
+  const FRAG = {frag};
+  const gl = document.getElementById('c').getContext('webgl2',
+    {{preserveDrawingBuffer: true, antialias: false}});
+  if (!gl) throw new Error('no WebGL 2');
+  function shader(type, src) {{
+    const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+    return s;
+  }}
+  const prog = gl.createProgram();
+  gl.attachShader(prog, shader(gl.VERTEX_SHADER,
+    '#version 300 es\\nin vec2 p; void main() {{ gl_Position = vec4(p, 0., 1.); }}'));
+  gl.attachShader(prog, shader(gl.FRAGMENT_SHADER, FRAG));
+  gl.linkProgram(prog);
+  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+  gl.useProgram(prog);
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(prog, 'p');
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  const u = n => gl.getUniformLocation(prog, n);
+  gl.uniform2f(u('u_res'), {w}, {h});
+  gl.uniform1f(u('u_loop'), {loop});
+  gl.uniform1f(u('u_fade'), {fade});
+  const buf = new Uint8Array({w} * {h} * 4);
+  for (let f = 0; f < {frames}; f++) {{
+    gl.uniform1f(u('u_time'), f / {fps});
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     gl.readPixels(0, 0, {w}, {h}, gl.RGBA, gl.UNSIGNED_BYTE, buf);
-    const r = await fetch('/frame', {{method: 'POST', body: buf}});
+    const r = await post('/frame', buf);
     if (!r.ok) throw new Error('frame refused: ' + r.status);
   }}
-  return times.length;
-}};
+  await post('/done', '');
+}})().catch(e => post('/error', String(e && e.message || e)));
 </script></body></html>"""
 
 
@@ -98,6 +103,8 @@ class _Server(http.server.HTTPServer):
     sink: IO[bytes]
     frame_bytes: int
     frames: int = 0
+    error: str = ""
+    finished: threading.Event
 
 
 class _Handler(http.server.BaseHTTPRequestHandler):
@@ -109,11 +116,16 @@ class _Handler(http.server.BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         n = int(self.headers.get("Content-Length", 0))
         data = self.rfile.read(n)
-        if n != self.server.frame_bytes:
+        if self.path in ("/done", "/error"):
+            if self.path == "/error":
+                self.server.error = data.decode("utf-8", "replace")[:500]
+            self.server.finished.set()
+        elif n == self.server.frame_bytes:
+            self.server.sink.write(data)
+            self.server.frames += 1
+        else:
             self._reply(400, b"wrong frame size", "text/plain")
             return
-        self.server.sink.write(data)
-        self.server.frames += 1
         self._reply(204, b"", "text/plain")
 
     def _reply(self, code: int, body: bytes, kind: str) -> None:
@@ -142,8 +154,7 @@ def render(cfg: Config, name: str, loop: float = 30.0, fade: float = 5.0, width:
         return dest
     dest.parent.mkdir(parents=True, exist_ok=True)
     tmp = dest.with_name(f".{dest.name}")
-
-    from playwright.sync_api import sync_playwright
+    total = round(seconds * fps)
 
     encoder = subprocess.Popen(
         ["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgba",
@@ -154,28 +165,39 @@ def render(cfg: Config, name: str, loop: float = 30.0, fade: float = 5.0, width:
     assert encoder.stdin
     server = _Server(("127.0.0.1", 0), _Handler)
     server.page = _PAGE.format(w=width, h=height, frag=json.dumps(frag), loop=float(loop),
-                               fade=float(fade)).encode()
+                               fade=float(fade), frames=total, fps=fps).encode()
     server.sink = encoder.stdin
     server.frame_bytes = width * height * 4
+    server.finished = threading.Event()
     threading.Thread(target=server.serve_forever, daemon=True).start()
-    total = round(seconds * fps)
-    try:
-        with sync_playwright() as p:
-            browser = p.chromium.launch(args=["--enable-unsafe-swiftshader"])
-            page = browser.new_page(viewport={"width": width, "height": height})
-            errors: list[str] = []
-            page.on("pageerror", lambda e: errors.append(str(e)))
-            page.goto(f"http://127.0.0.1:{server.server_address[1]}/")
-            if errors:
-                raise RuntimeError(f"scene {name}: {errors[0]}")
-            page.evaluate("ts => run(ts)", [f / fps for f in range(total)])
-            browser.close()
-    finally:
-        server.shutdown()
-        server.server_close()
-        encoder.stdin.close()
-    if encoder.wait() != 0 or server.frames != total:
+    with tempfile.TemporaryDirectory() as profile:
+        browser = subprocess.Popen(
+            [_chromium(), "--headless", "--no-sandbox", "--no-first-run", "--mute-audio",
+             "--use-angle=swiftshader", "--enable-unsafe-swiftshader",
+             f"--user-data-dir={profile}", f"http://127.0.0.1:{server.server_address[1]}/"],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        try:
+            server.finished.wait(timeout=60 + total * 10)
+        finally:
+            browser.terminate()
+            try:
+                browser.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                browser.kill()
+            server.shutdown()
+            server.server_close()
+            encoder.stdin.close()
+    if encoder.wait() != 0 or server.error or server.frames != total:
         tmp.unlink(missing_ok=True)
-        raise RuntimeError(f"scene {name}: {server.frames}/{total} frames encoded")
+        raise RuntimeError(f"scene {name}: {server.error or 'stopped'} "
+                           f"({server.frames}/{total} frames)")
     tmp.replace(dest)
     return dest
+
+
+def _chromium() -> str:
+    """The Chromium installed by `playwright install chromium`."""
+    from playwright.sync_api import sync_playwright
+
+    with sync_playwright() as p:
+        return p.chromium.executable_path
