@@ -177,12 +177,13 @@ def speech_span(silences: list[Pause], total: float) -> tuple[float, float]:
 
 def find_split(audio: Path, labels: list[str], texts: list[str], expected: list[float],
                recognizer, starts: list[float | None] | None = None,
-               check: set[str] | None = None
+               check: set[str] | None = None, end: float | None = None
                ) -> tuple[dict[str, tuple[float, float]], dict[str, float]]:
     """Segments {label: (start, end)} and how well each checked one's recognised text
     matches (check: these labels only, e.g. one passage of a long surah; None: all).
     starts: where each segment starts when published (mp3quran's timings), otherwise found
-    from the recognised words."""
+    from the recognised words. end: where the last ayah ends when published: the recording
+    may go on with words that are not the surah («صدق الله العظيم»)."""
     from quran_reels.sources.recognition import ayah_starts, heard_matches
 
     samples = decode(audio)
@@ -193,6 +194,10 @@ def find_split(audio: Path, labels: list[str], texts: list[str], expected: list[
         starts = ayah_starts([t.split() for t in texts], recognizer.words(samples))
     candidates = sorted([p for p in silences if speech[0] < p.middle < speech[1]]
                         + dips(envelope(samples), MIN_DIP), key=lambda p: p.start)
+    if end is not None and end < speech[1] - 0.5:
+        near = [p for p in candidates if end - WINDOW[1] <= p.middle <= end + WINDOW[0]]
+        stop = max(near, key=lambda p: p.weight - abs(p.middle - end) / 0.4) if near else None
+        speech = (speech[0], stop.start + min(PAD, stop.length / 2) - PAD if stop else end)
     cut = bounds(snap(estimates(starts, speech, expected), candidates, speech), speech, total)
     scores, wrong = {}, []
     for i, (label, text, (a, b)) in enumerate(zip(labels, texts, cut)):
@@ -313,7 +318,7 @@ class SurahFiles:
         labels = list(texts)
         ref = self.reference(surah)
         expected = [self.reference(1)[1] if k == "basmala" else ref[int(k)] for k in labels]
-        starts = None
+        starts, timing = None, {}
         if self.mp3quran is not None:
             timing = self.published_timing(surah)
             starts = [None if k == "basmala" else timing[int(k)][0] for k in labels]
@@ -324,7 +329,8 @@ class SurahFiles:
         before = read_json(self.split_path(surah)) if self.split_path(surah).is_file() else {}
         try:
             segments, scores = find_split(self.audio(surah), labels, list(texts.values()),
-                                          expected, self._recognizer, starts, check)
+                                          expected, self._recognizer, starts, check,
+                                          end=timing[int(labels[-1])][1] if starts else None)
         except SplitError as e:
             raise SystemExit(f"{self.reciter}, surah {surah}: {e}; nothing rendered") from e
         old_segments = {k: tuple(v) for k, v in before.get("segments", {}).items()}

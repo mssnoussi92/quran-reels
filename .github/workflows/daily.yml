@@ -34,7 +34,7 @@ concurrency:
 jobs:
   reel:
     runs-on: ubuntu-24.04     # pinned: same ffmpeg as tested; ubuntu-latest is moving to 26.04
-    timeout-minutes: 30
+    timeout-minutes: 60       # 2026-11-05: the Ubuntu mirror took 39 min to install ffmpeg
     env:
       STATE: state-branch/published.json
     steps:
@@ -70,7 +70,7 @@ jobs:
       - name: Install ffmpeg and Chromium
         if: inputs.passage != '' || steps.due.outputs.due == 'true'
         run: |
-          sudo apt-get update && sudo apt-get install -y ffmpeg
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
           python -m playwright install --with-deps chromium
       # The cache fills up as passages are rendered: restore the latest, save a new one.
       - uses: actions/cache@v5
