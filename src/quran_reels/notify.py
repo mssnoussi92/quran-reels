@@ -3,8 +3,9 @@
 - A failed run opens the issue «⚠️ Publication quotidienne en échec», assigned to the owner
   (a push notification in the GitHub app), or comments on it if it is already open. The next
   run that publishes comments and closes it.
-- Every publishing run updates the issue «📋 Légendes à copier (TikTok, YouTube)»: the full
-  captions of the latest videos, all hashtags included, for the platforms posted by hand.
+- Every publishing run updates the issue «📋 Légendes à copier (TikTok, YouTube)»: the
+  captions of the latest videos as TikTok takes them (5 hashtags at most), to paste on its
+  drafts. caption.txt, in the run's artifact, keeps every hashtag (YouTube).
   Editing it notifies nobody; TikTok already notifies its drafts.
 
 Input: out/daily-report.json, written by `quran-reels daily`. Uses the gh CLI with the
@@ -87,9 +88,10 @@ def merge_captions(body: str, report: dict, keep: int = KEEP_CAPTIONS) -> str:
     new = {i["key"]: _entry(i, report.get("dry_run", False))
            for i in reversed(report.get("items", [])) if i.get("caption")}
     entries = list(new.items()) + [(k, v) for k, v in old.items() if k not in new]
-    head = ("Légendes complètes (tous les hashtags) des dernières vidéos, à copier dans "
-            "TikTok (le brouillon arrive dans ta boîte) ou YouTube. Mis à jour à chaque "
-            "publication ; les plus récentes en haut.")
+    head = ("Légendes des dernières vidéos, à coller sur le brouillon TikTok (il arrive dans "
+            "ta boîte) : 5 hashtags, la limite de TikTok. Mis à jour à chaque publication ; "
+            "les plus récentes en haut. Tous les hashtags (YouTube) : caption.txt dans "
+            "l'artefact du run.")
     return "\n\n".join([head, *(v for _, v in entries[:keep])]) + "\n"
 
 

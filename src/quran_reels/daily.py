@@ -122,6 +122,15 @@ def run(cfg: Config, state_path: Path, now: datetime | None = None, dry_run: boo
             report.write_text(json.dumps(log, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
+def copy_text(cfg: Config, video: Path) -> str:
+    """The caption to paste on TikTok's draft: its hashtag limit (platforms.tiktok)."""
+    try:
+        reel = publish_mod.load_reel(video)
+    except (OSError, KeyError, ValueError):
+        return ""
+    return reel.text(publish_mod.max_hashtags(cfg, "tiktok"))
+
+
 def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: State,
              state_path: Path, todo: list[Pending], platforms: list[str], dry_run: bool,
              log: dict) -> int:
@@ -140,8 +149,7 @@ def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
                                p.item.series.hashtags).video
         results = publish_mod.publish_reel(cfg, video, p.platforms, dry_run, checked)
         failed |= any(r.status is PublishStatus.FAILED for r in results)
-        caption_file = video.with_suffix("") / "caption.txt"
-        caption = caption_file.read_text(encoding="utf-8") if caption_file.is_file() else ""
+        caption = copy_text(cfg, video)
         log["items"].append({
             "key": f"{p.day.isoformat()}/{p.slot.name}", "day": p.day.isoformat(),
             "time": f"{p.slot.at:%H:%M}", "passage": p.item.key, "label": p.item.label_en,
@@ -149,7 +157,7 @@ def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
             "results": {r.platform: {"status": r.status.value, "url": r.url, "error": r.error}
                         for r in results}})
         if caption:
-            publish_mod._summary("**Légende complète, à copier (TikTok, YouTube)**\n\n"
+            publish_mod._summary("**Légende à coller sur le brouillon TikTok**\n\n"
                                  f"```text\n{caption.strip()}\n```")
         if dry_run:
             continue

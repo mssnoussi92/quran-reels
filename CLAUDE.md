@@ -25,7 +25,7 @@ e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis 
 | Exécution | GitHub Actions (dépôt public → gratuit), migrable sur le homelab (Docker) |
 | Comptes pro | Page Facebook + Instagram en type **Créateur**, reliés |
 | Signature | **@quran_words_daily** sur chaque image, dans la zone sûre (repartages) |
-| Hashtags | Fin de légende, dans l'ordre : `#QuranWordsDaily`, `#Quran`, 1er tag de la série, sourate (`#SurahAdDuhaa` `#سورة_الضحى`), `#القرآن_الكريم`, autres tags de la série, récitateur, gloses (`#تفسير_القرآن`) ; **Instagram : les 5 premiers** (sa limite depuis déc. 2025), Facebook 8, `caption.txt` tous (TikTok, YouTube à la main) |
+| Hashtags | Fin de légende, dans l'ordre : `#QuranWordsDaily`, `#Quran`, 1er tag de la série, sourate (`#SurahAdDuhaa` `#سورة_الضحى`), `#القرآن_الكريم`, autres tags de la série, récitateur, gloses (`#تفسير_القرآن`) ; **Instagram et TikTok : les 5 premiers** (leur limite), Facebook 8, `caption.txt` tous (YouTube à la main) |
 
 ## Règles de contenu (non négociables)
 
@@ -193,7 +193,8 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   « ⚠️ Publication quotidienne en échec » assigné au propriétaire et @mention (notification
   push dans l'app GitHub), commentaire s'il est déjà ouvert ; fermé par la prochaine
   publication réussie. Chaque publication met à jour le ticket épinglé « 📋 Légendes à copier
-  (TikTok, YouTube) » : légendes complètes des 4 dernières vidéos (aucune notification).
+  (TikTok, YouTube) » : légendes des 4 dernières vidéos avec 5 hashtags, la limite de TikTok
+  (`platforms.tiktok.max_hashtags`) ; aucune notification.
   Aussi dans le résumé du run. Dry-run : jamais le ticket d'échec, pas de TikTok (son seul
   test serait un vrai brouillon) ; entrée `now` du workflow pour simuler l'heure.
 
