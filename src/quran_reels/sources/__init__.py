@@ -15,6 +15,16 @@ from quran_reels.sources.tafsir_app import TafsirApp
 REFERENCE_TIMINGS = 7      # Quran.com recitation whose ayah lengths guide the split (Alafasy)
 
 
+def surah_texts(quran: QuranCom, surah: int) -> dict[str, str]:
+    """Uthmani text of what a surah's file holds: the basmala (but in 1 and 9), each ayah."""
+    n = quran.chapters[surah]["verses_count"]
+    refs = [AyahRef(surah, a) for a in range(1, n + 1)]
+    texts = {str(r.ayah): t for r, t in quran.text(refs).items()}
+    if surah in (1, 9):
+        return texts
+    return {"basmala": quran.text([AyahRef(1, 1)])[AyahRef(1, 1)], **texts}
+
+
 def basmala_stem(cfg: Config) -> str:
     """The reciter's basmala: a file of its folder ("bismillah") or an ayah ("001001")."""
     return cfg.content["reciter"].get("basmala") or cfg.content["basmala"].get("audio", "bismillah")
@@ -41,8 +51,9 @@ class Sources:
         quran = QuranCom(cfg.cache, http)
         if r.get("surah_url"):
             audio = SurahFiles(cfg.cache, http, reciter=r["id"], url=r["surah_url"],
+                               splits=cfg.root / "config" / "splits" / r["id"],
                                reference=lambda s: quran.timings(s, REFERENCE_TIMINGS),
-                               verses=lambda s: quran.chapters[s]["verses_count"])
+                               texts=lambda s: surah_texts(quran, s))
         else:
             audio = EveryAyah(cfg.cache, http, reciter=r["id"])
         return cls(
@@ -61,10 +72,15 @@ class Sources:
         n = self.quran.chapters[surah]["verses_count"]
         return self.audio.seconds(surah, n, float(r.get("kbps") or 0))
 
-    def basmala_seconds(self, cfg: Config) -> float:
+    def basmala_seconds(self, cfg: Config, surah: int | None = None) -> float:
+        """Length of the basmala before a passage (of `surah`, for reciters whose basmala
+        comes from each surah's own file)."""
         r = cfg.content["reciter"]
         if r.get("timings_id"):
             return self.quran.timings(1, int(r["timings_id"]))[1]
+        if surah is not None and isinstance(self.audio, SurahFiles) and surah not in (1, 9):
+            a, b = self.audio.segments(surah)["basmala"]
+            return b - a
         return self.audio.file_seconds(basmala_stem(cfg), float(r.get("kbps") or 0))
 
     def all_refs(self) -> list[AyahRef]:

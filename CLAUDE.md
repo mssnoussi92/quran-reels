@@ -177,14 +177,25 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   est en 16 kHz, 22 kb/s, sans pause : écarté). Ses enregistrements sont aussi diffusés sur
   Apple Music et Spotify : risque Rights Manager. Style lent pour une partie des sourates :
   93 dure 5 min 24 s (Alafasy 55 s), 89 et 96 plus de 8 min ; les courtes sont proches
-  d'Alafasy (112 : 19 s, 113 : 24 s, 114 : 40 s). `sources/surah_audio.py` (`surah_url` dans
-  le catalogue) télécharge la sourate et la découpe sur les pauses : `silencedetect` (seuil
-  absolu, puis relatif au volume moyen du fichier, la réverbération remplit les silences),
-  coupes choisies par programmation dynamique près des fins d'ayah d'Alafasy (Quran.com) mises
-  à l'échelle ; un segment hors de 0,55–1,5 × sa durée attendue arrête le rendu. Découpe en
-  cache (`.cache/surah-audio/<id>/split-SSS.json`, segments FLAC), affichée dans le journal.
-  Vérifié sur 93 reconstruite à partir des fichiers d'Hudhaifi et d'Ayyub : coupes à 0,4 et
-  0,6 s près. La légende crédite le producteur (« Recitation: Ali Al-Hudhaifi
+  d'Alafasy (112 : 19 s, 113 : 24 s, 114 : 40 s). 108 manque. Les pauses seules ne trouvent pas
+  les ayahs : il enchaîne des ayahs sans respirer et en répète (114 : ayahs 2 et 3 d'un souffle,
+  ayah 6 deux fois ; le découpage sur les pauses était décalé d'une ayah, vu par reconnaissance).
+  `sources/surah_audio.py` (`surah_url` dans le catalogue) + `sources/recognition.py` :
+  1. mots reconnus avec leurs temps (`tarteel-ai/whisper-base-ar-quran`, Whisper affiné sur la
+     récitation ; temps des mots par l'attention de `openai/whisper-base`), alignés sur le texte
+     uthmani (programmation dynamique ; une répétition reste avec son ayah, la 1re récitation
+     compte) → début de chaque ayah ;
+  2. coupe au moment le plus calme proche (silence ou creux de l'enveloppe ≥ 2 dB, la
+     réverbération remplit les silences) ; début non reconnu (le 1er mot avale la basmala) →
+     proportion des durées d'Alafasy ;
+  3. chaque segment est reconnu à nouveau et comparé à son ayah (≥ 0,85, répétition admise ;
+     0 s'il ressemble plus à « ayah + voisine » : مَلِكِ ٱلنَّاسِ / إِلَـٰهِ ٱلنَّاسِ). Un échec
+     arrête tout. 114 : 1,00 1,00 1,00 0,93 0,91 1,00 ; 1 (Al-Fatiha) refusée (ayah 3 : 0,67).
+  Découpe vérifiée **commitée** (`config/splits/<id>/SSS.json`, temps seulement) par
+  `quran-reels split <sourates>` (extra `asr` : `pip install torch --index-url
+  https://download.pytorch.org/whl/cpu && pip install -e .[asr]`) : le pipeline quotidien n'a
+  besoin ni du modèle ni de la vérification. Basmala : début du fichier de la sourate (même
+  séance, sans isti'adha). Le texte reconnu n'est que comparé, jamais affiché ni publié. La légende crédite le producteur (« Recitation: Ali Al-Hudhaifi
   (King Fahd Complex) ») ; `manifest.json` et `publish.json` gardent le récitateur et sa licence.
 - Durées pour le découpage : Quran.com (`timings_id`, Alafasy seulement) ou, sinon, taille des
   fichiers EveryAyah (débit constant, `kbps` : octets × 8 / débit, une requête HEAD par ayah, en

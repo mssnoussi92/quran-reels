@@ -101,7 +101,7 @@ def plan_surah(cfg: Config, surah: int, src: Sources | None = None) -> list[Plan
     def basmala(start: int) -> float:
         if not needs_basmala(cfg, surah, start):
             return 0.0
-        return src.basmala_seconds(cfg)
+        return src.basmala_seconds(cfg, surah)
 
     whole = sum(seconds) + overhead + basmala(1)
     if p.get("whole_surah", True) and whole <= high:

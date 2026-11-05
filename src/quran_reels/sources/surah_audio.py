@@ -1,15 +1,21 @@
 """Recitations published only as one file per surah (archive.org), split into ayahs.
 
-No ayah timing exists for these recordings, so the ayahs are found on the pauses: ffmpeg's
-silencedetect for clean studio files, or, when reverb fills the gaps, the dips of the loudness
-envelope (deepest quiet moments, in dB below the speech around them). The N - 1 cuts (N = the
-basmala at the start of the file, when it has one, then every ayah) are chosen among them by
-dynamic programming: a marked pause close to where the reference recording (Alafasy,
-Quran.com timings) ends that ayah, scaled to this recording's length. Every segment is then checked against its expected length: a split
-that does not fit stops the render. Wrong text on screen is worse than no video.
+No ayah timing exists for these recordings, and pauses alone do not find the ayahs: Omar
+Hisham joins some ayahs without a breath and repeats others (114: ayahs 2 and 3 in one
+breath, ayah 6 twice). So the split is found by speech recognition (sources/recognition.py):
 
-Same interface as EveryAyah (fetch, fetch_file, url, seconds…); segments are cut losslessly
-to FLAC, which the renderer decodes like the MP3s.
+1. the words recognised in the file, with their times, are aligned with the ayahs' Uthmani
+   text: where each ayah's first word starts (a repetition stays with its ayah);
+2. each cut goes to the quietest moment near that time: a silence, or a dip of the loudness
+   envelope (reverb keeps the gaps above any silence threshold); a cut whose start was not
+   recognised is placed in proportion to the reference lengths (Alafasy);
+3. every segment is recognised again and compared with its ayah: one that does not match
+   stops everything. Wrong text on screen is worse than no video.
+
+The verified split is committed in config/splits/<reciter>/SSS.json (times only), so the
+daily pipeline needs neither the model nor the check: `quran-reels split <surah>` makes it.
+Same interface as EveryAyah (fetch, basmala, url, seconds…); segments are cut losslessly to
+FLAC, which the renderer decodes like the MP3s.
 """
 
 from __future__ import annotations
@@ -19,6 +25,7 @@ import subprocess
 import sys
 from collections.abc import Callable
 from dataclasses import dataclass
+from itertools import pairwise
 from pathlib import Path
 
 import numpy as np
@@ -27,14 +34,14 @@ from quran_reels.models import AyahRef
 from quran_reels.sources.http import Http, read_json, write_json
 
 NOISE = "-35dB"          # silence threshold
-MIN_PAUSE = 0.3          # shortest pause that can separate two ayahs (seconds)
+MIN_PAUSE = 0.3          # shortest silence that counts (seconds)
 FRAME = 0.02             # loudness envelope: 20 ms frames, smoothed over 100 ms
-DIP_DEPTHS = (8.0, 5.0)  # dips at least this many dB below the speech within 1 s, in turn
-PAD = 0.25               # silence kept before and after each ayah
-DEVIATION = 1.0          # cost of being one ayah length away from the expected cut…
-PAUSE_WEIGHT = 1.0       # …against one second more of pause, or 10 dB more of dip
-MAX_PAUSE = 2.0          # (capped)
-TOLERANCE = (0.55, 1.5)  # a segment's length / its expected length must stay inside
+MIN_DIP = 2.0            # dips at least this many dB below the speech within 1 s
+WINDOW = (1.2, 0.8)      # a cut is looked for this long before / after the ayah's first word
+PAD = 0.25               # quiet kept before and after each ayah
+MAX_PAUSE = 2.0          # weight of a pause: its length, or its depth / 10 dB, capped
+MIN_MATCH = 0.85         # a segment's recognised text must match its ayah this well
+RATE = 16000
 
 
 class SplitError(RuntimeError):
@@ -52,24 +59,28 @@ class Pause:
         return self.end - self.start
 
     @property
-    def weight(self) -> float:
-        return min(self.length if self.depth is None else self.depth / 10, MAX_PAUSE)
-
-    @property
     def middle(self) -> float:
         return (self.start + self.end) / 2
 
+    @property
+    def weight(self) -> float:
+        return min(self.length if self.depth is None else self.depth / 10, MAX_PAUSE)
 
-def envelope(path: Path) -> np.ndarray:
-    """Loudness in dB per FRAME, smoothed over 5 frames."""
-    rate = 16000
+
+def decode(path: Path) -> np.ndarray:
+    """Mono 16 kHz samples, as the recogniser wants them."""
     raw = subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-i", str(path), "-ac", "1",
-                          "-ar", str(rate), "-f", "s16le", "-"], capture_output=True,
+                          "-ar", str(RATE), "-f", "f32le", "-"], capture_output=True,
                          check=True).stdout
-    x = np.frombuffer(raw, np.int16).astype(np.float32) / 32768
-    size = int(rate * FRAME)
-    n = len(x) // size
-    rms = np.sqrt((x[:n * size].reshape(n, size) ** 2).mean(axis=1) + 1e-10)
+    return np.frombuffer(raw, np.float32)
+
+
+def envelope(samples: np.ndarray) -> np.ndarray:
+    """Loudness in dB per FRAME, smoothed over 5 frames."""
+    size = int(RATE * FRAME)
+    n = len(samples) // size
+    rms = np.sqrt((samples[:n * size].reshape(n, size).astype(np.float64) ** 2).mean(axis=1)
+                  + 1e-10)
     return np.convolve(20 * np.log10(rms), np.ones(5) / 5, mode="same")
 
 
@@ -111,75 +122,104 @@ def pauses(path: Path, noise: str = NOISE, min_pause: float = MIN_PAUSE) -> tupl
     return [Pause(max(a, 0.0), b) for a, b in zip(starts, ends)], total
 
 
-def split(found: list[Pause], total: float, expected: list[float]) -> list[tuple[float, float]]:
-    """Start and end of each of len(expected) segments; expected = reference lengths, in order."""
+def estimates(starts: list[float | None], speech: tuple[float, float],
+              expected: list[float]) -> list[float]:
+    """Where each cut should be (before segments 1..n-1): the recognised start of the
+    segment when plausible (increasing, inside the speech, not at its very start: a first word
+    can swallow the basmala), otherwise in proportion to the reference lengths between the
+    known cuts around it."""
     n = len(expected)
-    speech_start = found[0].end if found and found[0].start <= 0.05 else 0.0
-    speech_end = found[-1].start if found and found[-1].end >= total - 0.05 else total
-    inner = [p for p in found if speech_start < p.middle < speech_end]
-    if len(inner) < n - 1:
-        raise SplitError(f"{len(inner)} pauses for {n} segments")
-    scale = (speech_end - speech_start) / sum(expected)
-    cuts_expected, t = [], speech_start
-    for e in expected[:-1]:
-        t += e * scale
-        cuts_expected.append(t)
+    known, last = {0: speech[0]}, speech[0]
+    for k in range(1, n):
+        t = starts[k]
+        if t is not None and last + 0.5 < t < speech[1] - 0.5:
+            known[k], last = t, t
+    known[n] = speech[1]
+    keys = sorted(known)
+    est = dict(known)
+    for a, b in pairwise(keys):
+        t, total = known[a], sum(expected[a:b])
+        for k in range(a + 1, b):
+            t += (known[b] - known[a]) * expected[k - 1] / total
+            est[k] = t
+    return [est[k] for k in range(1, n)]
 
-    def cost(j: int, k: int) -> float:     # pause j as cut k
-        width = (expected[k] + expected[k + 1]) / 2 * scale
-        return (DEVIATION * abs(inner[j].middle - cuts_expected[k]) / width
-                - PAUSE_WEIGHT * inner[j].weight)
 
-    m, inf = len(inner), float("inf")
-    best = [[inf] * m for _ in range(n - 1)]
-    back = [[-1] * m for _ in range(n - 1)]
-    for k in range(n - 1):
-        run, arg = inf, -1                  # best of row k - 1 over pauses before j
-        for j in range(m):
-            if k == 0:
-                best[k][j] = cost(j, k)
-            else:
-                if j > 0 and best[k - 1][j - 1] < run:
-                    run, arg = best[k - 1][j - 1], j - 1
-                if arg >= 0:
-                    best[k][j], back[k][j] = run + cost(j, k), arg
-    chosen: list[Pause] = []
-    if n > 1:
-        j = min(range(m), key=lambda x: best[n - 2][x])
-        for k in range(n - 2, -1, -1):
-            chosen.append(inner[j])
-            j = back[k][j]
-        chosen.reverse()
+def snap(cuts: list[float], candidates: list[Pause], speech: tuple[float, float]) -> list[Pause]:
+    """The quiet moment chosen for each cut: the strongest pause near it, in order."""
+    chosen, after = [], speech[0]
+    for e in cuts:
+        near = [p for p in candidates
+                if p.middle > after and e - WINDOW[0] <= p.middle <= e + WINDOW[1]]
+        p = max(near, key=lambda p: p.weight - abs(p.middle - e) / 0.4) if near else Pause(e, e)
+        chosen.append(p)
+        after = p.middle
+    return chosen
 
-    bounds = [max(speech_start - PAD, 0.0)]
-    segments = []
+
+def bounds(chosen: list[Pause], speech: tuple[float, float], total: float
+           ) -> list[tuple[float, float]]:
+    start = max(speech[0] - PAD, 0.0)
+    out = []
     for p in chosen:
-        segments.append((bounds[-1], min(p.start + PAD, p.middle)))
-        bounds.append(max(p.end - PAD, p.middle))
-    segments.append((bounds[-1], min(speech_end + PAD, total)))
-    for i, ((a, b), e) in enumerate(zip(segments, expected)):
-        ratio = (b - a - 2 * PAD) / (e * scale)
-        if not TOLERANCE[0] <= ratio <= TOLERANCE[1]:
-            raise SplitError(f"segment {i + 1}/{n}: {b - a:.1f} s for {e * scale:.1f} s expected")
-    return [(round(a, 3), round(b, 3)) for a, b in segments]
+        out.append((start, min(p.start + PAD, p.middle)))
+        start = max(p.end - PAD, p.middle)
+    out.append((start, min(speech[1] + PAD, total)))
+    return [(round(a, 3), round(b, 3)) for a, b in out]
+
+
+def speech_span(silences: list[Pause], total: float) -> tuple[float, float]:
+    start = silences[0].end if silences and silences[0].start <= 0.05 else 0.0
+    end = silences[-1].start if silences and silences[-1].end >= total - 0.05 else total
+    return start, end
+
+
+def find_split(audio: Path, labels: list[str], texts: list[str], expected: list[float],
+               recognizer) -> tuple[dict[str, tuple[float, float]], dict[str, float]]:
+    """Segments {label: (start, end)} and how well each one's recognised text matches."""
+    from quran_reels.sources.recognition import ayah_starts, heard_matches
+
+    samples = decode(audio)
+    total = len(samples) / RATE
+    silences, _ = pauses(audio)
+    speech = speech_span(silences, total)
+    starts = ayah_starts([t.split() for t in texts], recognizer.words(samples))
+    candidates = sorted([p for p in silences if speech[0] < p.middle < speech[1]]
+                        + dips(envelope(samples), MIN_DIP), key=lambda p: p.start)
+    cut = bounds(snap(estimates(starts, speech, expected), candidates, speech), speech, total)
+    scores, wrong = {}, []
+    for i, (label, text, (a, b)) in enumerate(zip(labels, texts, cut)):
+        heard = recognizer.text(samples[int(a * RATE):int(b * RATE)])
+        before = texts[i - 1] if i else ""
+        after = texts[i + 1] if i + 1 < len(texts) else ""
+        scores[label] = round(heard_matches(heard, text, before, after), 2)
+        if scores[label] < MIN_MATCH:
+            wrong.append(f"{label} ({scores[label]:.2f})")
+    if wrong:
+        raise SplitError(f"segments not recognised as their ayah: {', '.join(wrong)}")
+    return dict(zip(labels, cut)), scores
 
 
 class SurahFiles:
     """One file per surah ({surah:03d} in `url`), split into the basmala and the ayahs.
 
-    reference(surah) gives the reference lengths of the surah's ayahs (Alafasy), and
-    reference(1)[1] the basmala's. The file of every surah but 1 and 9 starts with the basmala
-    (`basmala_in_file`); Al-Fatiha's basmala is its first ayah.
+    The file of every surah but 1 and 9 starts with the basmala; Al-Fatiha's is its first
+    ayah. reference(surah) gives Alafasy's ayah lengths (reference(1)[1] the basmala's), and
+    texts(surah) the Uthmani text of {"basmala" | "<ayah>"}. Splits are read from `splits`
+    (committed); a missing one is made with the recogniser, then written there.
     """
 
-    def __init__(self, cache: Path, http: Http, reciter: str, url: str,
-                 reference: Callable[[int], dict[int, float]], verses: Callable[[int], int]):
+    def __init__(self, cache: Path, http: Http, reciter: str, url: str, splits: Path,
+                 reference: Callable[[int], dict[int, float]],
+                 texts: Callable[[int], dict[str, str]]):
         self.dir = cache / "surah-audio" / reciter
+        self.splits = splits
         self.http = http
         self.reciter = reciter
         self.template = url
         self.reference = reference
-        self.verses = verses
+        self.texts = texts
+        self._recognizer = None
 
     @property
     def base_url(self) -> str:
@@ -201,58 +241,53 @@ class SurahFiles:
                              f"'001001', not {stem!r}")
         return AyahRef(int(stem[:3]), int(stem[3:]))
 
+    def audio(self, surah: int) -> Path:
+        path = self.dir / f"{surah:03d}.mp3"
+        if not path.is_file():
+            self.http.download(self.surah_url(surah), path, min_bytes=20_000)
+        return path
+
+    def split_path(self, surah: int) -> Path:
+        return self.splits / f"{surah:03d}.json"
+
     def segments(self, surah: int) -> dict[str, tuple[float, float]]:
-        """{"basmala" | "<ayah>": (start, end)} for a surah, cached."""
-        path = self.dir / f"split-{surah:03d}.json"
-        if path.is_file():
-            return {k: tuple(v) for k, v in read_json(path)["segments"].items()}
-        audio = self.dir / f"{surah:03d}.mp3"
-        if not audio.is_file():
-            self.http.download(self.surah_url(surah), audio, min_bytes=20_000)
+        """{"basmala" | "<ayah>": (start, end)} for a surah, from its committed split."""
+        path = self.split_path(surah)
+        if not path.is_file():
+            self.make_split(surah)
+        return {k: tuple(v) for k, v in read_json(path)["segments"].items()}
+
+    def make_split(self, surah: int) -> dict:
+        """Find and check the split by speech recognition, write it to `splits`."""
+        from quran_reels.sources.recognition import MODEL, Recognizer
+
+        texts = self.texts(surah)
+        labels = list(texts)
         ref = self.reference(surah)
-        n = self.verses(surah)
-        labels = [str(a) for a in range(1, n + 1)]
-        expected = [ref[a] for a in range(1, n + 1)]
-        if surah not in (1, 9):
-            labels.insert(0, "basmala")
-            expected.insert(0, self.reference(1)[1])
-        silences, total = pauses(audio)
-        edges = [p for p in silences if p.start <= 0.05 or p.end >= total - 0.05]
-        env = None
-        attempts = [("silences", f"silencedetect {NOISE} ≥ {MIN_PAUSE} s", silences)]
-        for depth in DIP_DEPTHS:           # clean files first, then reverberant ones
-            attempts.append(("dips", f"loudness dips ≥ {depth:g} dB", depth))
-        errors = []
-        for kind, method, arg in attempts:
-            if kind == "dips":
-                env = envelope(audio) if env is None else env
-                arg = sorted(edges + [p for p in dips(env, arg)
-                                      if all(p.end <= e.start or p.start >= e.end for e in edges)],
-                             key=lambda p: p.start)
-            try:
-                cut = split(arg, total, expected)
-                break
-            except SplitError as e:
-                errors.append(f"{method}: {e}")
-        else:
-            raise SystemExit(f"{self.reciter}, surah {surah}: the ayahs could not be found on the "
-                             f"pauses ({'; '.join(errors)}); nothing rendered")
-        segments = dict(zip(labels, cut))
-        scale = sum(b - a for a, b in cut) / sum(expected)
-        print(f"{self.reciter} {surah}: split on {method}: " + ", ".join(
-            f"{k} {b - a:.1f} s ({e * scale:.1f})" for k, (a, b), e in zip(labels, cut, expected)),
+        expected = [self.reference(1)[1] if k == "basmala" else ref[int(k)] for k in labels]
+        if self._recognizer is None:
+            self._recognizer = Recognizer()
+        try:
+            segments, scores = find_split(self.audio(surah), labels, list(texts.values()),
+                                          expected, self._recognizer)
+        except SplitError as e:
+            raise SystemExit(f"{self.reciter}, surah {surah}: {e}; nothing rendered") from e
+        print(f"{self.reciter} {surah}: " + ", ".join(
+            f"{k} {b - a:.1f} s ({scores[k]:.2f})" for k, (a, b) in segments.items()),
             file=sys.stderr)
-        write_json(path, {"source": self.surah_url(surah), "seconds": round(total, 3),
-                          "method": f"{method}, aligned on the reference lengths (Alafasy)",
-                          "segments": segments})
-        return segments
+        data = {"source": self.surah_url(surah),
+                "method": f"word times recognised by {MODEL}, aligned on the Uthmani text, "
+                          "cut at the quietest moment nearby; each segment recognised again",
+                "segments": segments, "match": scores}
+        write_json(self.split_path(surah), data)
+        return data
 
     def _cut(self, surah: int, label: str) -> Path:
         dest = self.dir / f"{surah:03d}{label.zfill(3) if label != 'basmala' else 'bsm'}.flac"
         if not dest.is_file():
             a, b = self.segments(surah)[label]
             subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-y", "-ss", f"{a:.3f}",
-                            "-to", f"{b:.3f}", "-i", str(self.dir / f"{surah:03d}.mp3"),
+                            "-to", f"{b:.3f}", "-i", str(self.audio(surah)),
                             "-c:a", "flac", str(dest)], check=True)
         return dest
 

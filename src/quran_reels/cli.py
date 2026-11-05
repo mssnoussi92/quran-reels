@@ -24,6 +24,12 @@ def main(argv: list[str] | None = None) -> int:
     passages = sub.add_parser("passages", help="split a surah into passages of about a minute")
     passages.add_argument("surah", type=int)
 
+    split = sub.add_parser("split", help="reciter with one file per surah: find where each "
+                                         "ayah starts (speech recognition), check, write "
+                                         "config/splits/ (needs the asr extra)")
+    split.add_argument("surahs", type=int, nargs="+")
+    split.add_argument("--force", action="store_true", help="redo a split already committed")
+
     publish = sub.add_parser("publish", help="publish a reel (Facebook, Instagram, TikTok draft)")
     publish.add_argument("target", help="out/093_001-011.mp4, or a passage/surah to render first")
     publish.add_argument("--dry-run", action="store_true",
@@ -108,6 +114,29 @@ def main(argv: list[str] | None = None) -> int:
                                      ("cut inside a tafsir group", p.relaxed)) if on]
             print(f"{p.key:<10} {p.seconds:6.1f} s  {', '.join(notes)}".rstrip())
         return 0
+
+    if args.command == "split":
+        from quran_reels.sources import Sources
+        from quran_reels.sources.surah_audio import SurahFiles
+
+        src = Sources.from_config(cfg)
+        if not isinstance(src.audio, SurahFiles):
+            raise SystemExit(f"{cfg.content['reciter']['name']}: one file per ayah, nothing to "
+                             f"split (choose one with QURAN_REELS_RECITER)")
+        src.quran.ensure(src.translation_slug)
+        failed = []
+        for surah in args.surahs:
+            if src.audio.split_path(surah).is_file() and not args.force:
+                print(f"{surah}: already split ({src.audio.split_path(surah)})")
+                continue
+            try:
+                src.audio.make_split(surah)
+            except SystemExit as e:
+                print(e, file=sys.stderr)
+                failed.append(surah)
+        if failed:
+            print(f"not split: {', '.join(map(str, failed))}", file=sys.stderr)
+        return 1 if failed else 0
 
     if args.command == "render":
         from quran_reels.render import render_passage
