@@ -41,6 +41,13 @@ class EveryAyah:
     def fetch(self, ref: AyahRef) -> Path:
         return self.fetch_file(ref.everyayah)
 
+    def basmala(self, surah: int, stem: str) -> Path:
+        """The basmala recited before a passage of `surah`: the reciter's file `stem`."""
+        return self.fetch_file(stem)
+
+    def basmala_url(self, surah: int, stem: str) -> str:
+        return self.file_url(stem)
+
     def seconds(self, surah: int, ayahs: int, kbps: float) -> dict[int, float]:
         """Seconds per ayah of a surah, from the file sizes (cached per surah)."""
         path = self.dir / f"sizes-{surah:03d}.json"

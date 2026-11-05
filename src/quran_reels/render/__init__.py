@@ -98,7 +98,7 @@ def manifest(cfg: Config, src: Sources, passage: Passage, timeline: video.Timeli
     if passage.basmala:
         b, starts = passage.basmala, starts[1:]
         basmala = {"ref": str(b.ref), "text": b.text, "translation": b.translation,
-                   "audio": src.audio.file_url(basmala_stem(cfg)),
+                   "audio": src.audio.basmala_url(passage.surah, basmala_stem(cfg)),
                    "start": round(timeline.starts()[0], 3), "seconds": round(b.seconds or 0, 3)}
     return {
         "passage": passage.key,

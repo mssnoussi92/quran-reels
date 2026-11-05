@@ -262,6 +262,16 @@ class SurahFiles:
     def fetch_file(self, stem: str) -> Path:
         return self.fetch(self._ref(stem))
 
+    def basmala(self, surah: int, stem: str) -> Path:
+        """The basmala at the start of the surah's own file (same recording, and no
+        isti'adha, which Al-Fatiha's file may start with); `stem` for surahs 1 and 9."""
+        if surah in (1, 9):
+            return self.fetch_file(stem)
+        return self._cut(surah, "basmala")
+
+    def basmala_url(self, surah: int, stem: str) -> str:
+        return self.file_url(stem) if surah in (1, 9) else self.surah_url(surah)
+
     def seconds(self, surah: int, ayahs: int, kbps: float = 0) -> dict[int, float]:
         segs = self.segments(surah)
         return {a: segs[str(a)][1] - segs[str(a)][0] for a in range(1, ayahs + 1)}

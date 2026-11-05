@@ -126,7 +126,7 @@ def build(cfg: Config, key: str, src: Sources | None = None) -> Passage:
             ref=BASMALA,
             text=src.quran.text([BASMALA])[BASMALA],
             translation=src.quran.translate(src.translation_slug, [BASMALA])[BASMALA],
-            audio=src.audio.fetch_file(basmala_stem(cfg)),
+            audio=src.audio.basmala(surah, basmala_stem(cfg)),
         )
     for r in refs:
         passage.ayahs.append(Ayah(
