@@ -1,4 +1,8 @@
-from quran_reels.selector.plan import sentence_ends, split
+from types import SimpleNamespace
+
+import pytest
+
+from quran_reels.selector.plan import plan_surah, sentence_ends, split
 
 KW = {"target": 60, "low": 40, "high": 90, "overhead": 1.6}
 
@@ -39,3 +43,47 @@ def test_an_ayah_too_long_on_its_own_does_not_swallow_its_neighbours():
     parts = split(seconds, set(range(1, n + 1)), [(a, a) for a in range(1, n + 1)], **KW)
     assert parts[0][:2] == (1, 1) and parts[-1][:2] == (n, n)
     assert all(b - a + 1 <= 4 for a, b, _ in parts[1:-1])
+
+
+class FakeQuran:
+    def __init__(self):
+        self.chapters = {18: {"verses_count": 20}}
+
+    def ensure(self, slug):
+        pass
+
+    def translate(self, slug, refs):      # a sentence ends after every even ayah
+        return {r: "words." if r.ayah % 2 == 0 else "words," for r in refs}
+
+    def tafsir_groups(self, surah, slug):
+        return [(1, 4), (5, 12), (13, 16), (17, 20)]
+
+
+class FakeSources:
+    quran, translation_slug = FakeQuran(), "sahih"
+
+    def ayah_seconds(self, cfg, surah):
+        return {a: 10.0 for a in range(1, 21)}
+
+    def basmala_seconds(self, cfg, surah=None):
+        return 5.0
+
+
+CFG = SimpleNamespace(
+    content={"passage": {"target_seconds": 60, "min_seconds": 40, "max_seconds": 90,
+                         "groups": "ibn-kathir"},
+             "basmala": {"enabled": True, "skip_surahs": [9]},
+             "reciter": {"id": "test"}},
+    video={"lead_seconds": 0.4, "tail_seconds": 1.2})
+
+
+def test_a_plan_can_start_after_a_passage_chosen_by_hand():
+    # 18:1-10 every Friday morning: the evenings read from 18:11, cut as usual after it
+    # (group 5-12 clipped to 11-12: 26.6 s alone, too short, so it joins 13-16)
+    parts = plan_surah(CFG, 18, FakeSources(), first=11)
+    assert [(p.key, p.seconds) for p in parts] == [("18:11-16", 66.6), ("18:17-20", 46.6)]
+
+
+def test_a_plan_cannot_start_mid_sentence():
+    with pytest.raises(SystemExit, match="18:11 does not end"):
+        plan_surah(CFG, 18, FakeSources(), first=12)

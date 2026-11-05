@@ -28,6 +28,10 @@ SERIES = {
     "kahf": Series("kahf", ("18:1-5", "18:6-12", "18:13-14"), "سورة الكهف يوم الجمعة",
                    "Surah Al-Kahf on Friday", repeat=True, from_plan=True,
                    hashtags=("#Jumuah",)),
+    "kahf-first-ten": Series("kahf-first-ten", ("18:1-10",), "أول عشر آيات من سورة الكهف",
+                             "The first ten verses of Surah Al-Kahf", repeat=True),
+    "kahf-rest": Series("kahf-rest", ("18:11-14", "18:15-16"), "سورة الكهف يوم الجمعة",
+                        "Surah Al-Kahf on Friday", repeat=True),
 }
 
 
@@ -58,6 +62,33 @@ def test_queues_play_their_series_in_order_and_fridays_read_al_kahf():
     days = preview(schedule(), SERIES, State(), date(2026, 11, 5), 2)   # Thursday, Friday
     assert [(q, i.key) for _, _, q, i in days] == [
         ("reading", "114:1-6"), ("themes", "2:255-255"), ("kahf", "18:1-5"), ("kahf", "18:6-12")]
+
+
+def per_slot_fridays() -> Schedule:
+    s = schedule()
+    s.queues |= {"kahf-first-ten": ["kahf-first-ten"], "kahf-rest": ["kahf-rest"]}
+    s.friday_queue = None
+    s.friday_queues = {"morning": "kahf-first-ten", "evening": "kahf-rest"}
+    return s
+
+
+def test_friday_slots_can_each_have_their_queue():
+    # The owner's choice: 18:1-10 every Friday morning, the rest of Al-Kahf in the evening.
+    days = preview(per_slot_fridays(), SERIES, State(), date(2026, 11, 6), 8)  # 2 Fridays
+    fridays = [(d.isoformat(), q, i.key) for d, _, q, i in days if d.weekday() == 4]
+    assert fridays == [("2026-11-06", "kahf-first-ten", "18:1-10"),
+                       ("2026-11-06", "kahf-rest", "18:11-14"),
+                       ("2026-11-13", "kahf-first-ten", "18:1-10"),     # the same, each week
+                       ("2026-11-13", "kahf-rest", "18:15-16")]
+    weekdays = {q for d, _, q, _ in days if d.weekday() != 4}
+    assert weekdays == {"reading", "themes"}
+
+
+def test_a_friday_slot_not_listed_takes_the_friday_queue():
+    s = per_slot_fridays()
+    s.friday_queue, s.friday_queues = "kahf", {"evening": "kahf-rest"}
+    friday = date(2026, 11, 6)
+    assert [s.queue_for(x, friday) for x in s.slots] == ["kahf", "kahf-rest"]
 
 
 def test_a_finished_queue_hands_over_to_its_fallback():

@@ -84,7 +84,10 @@ def split(seconds: list[float], ends: set[int], groups: list[tuple[int, int]],
     return out[::-1]
 
 
-def plan_surah(cfg: Config, surah: int, src: Sources | None = None) -> list[Planned]:
+def plan_surah(cfg: Config, surah: int, src: Sources | None = None,
+               first: int = 1) -> list[Planned]:
+    """Passages covering ayahs first..end of the surah (first > 1: after a passage chosen by
+    hand, such as 18:1-10 every Friday morning; first - 1 must end a sentence)."""
     src = src or Sources.from_config(cfg)
     src.quran.ensure(src.translation_slug)
     p, v = cfg.content["passage"], cfg.video
@@ -104,15 +107,23 @@ def plan_surah(cfg: Config, surah: int, src: Sources | None = None) -> list[Plan
         return src.basmala_seconds(cfg, surah)
 
     whole = sum(seconds) + overhead + basmala(1)
-    if p.get("whole_surah", True) and whole <= high:
+    if first == 1 and p.get("whole_surah", True) and whole <= high:
         return [Planned(surah, 1, n, round(whole, 1), whole_surah=True)]
-    overhead += basmala(2)          # every later passage opens with it too
+    overhead += basmala(max(first, 2))      # every later passage opens with it too
 
     refs = [AyahRef(surah, a) for a in range(1, n + 1)]
     translations = {r.ayah: t for r, t in src.quran.translate(src.translation_slug, refs).items()}
-    groups = src.quran.tafsir_groups(surah, p["groups"])
-    parts = split(seconds, sentence_ends(translations), groups, target, low, high, overhead)
-    return [Planned(surah, a, b, round(sum(seconds[a - 1:b]) + overhead, 1), relaxed=r)
+    ends = sentence_ends(translations)
+    if not 1 <= first <= n or (first > 1 and first - 1 not in ends):
+        raise SystemExit(f"{surah}:{first}: a passage cannot start there "
+                         f"({surah}:{first - 1} does not end a sentence)")
+    shift = first - 1                       # split() numbers the ayahs from 1
+    groups = [(max(a, first) - shift, b - shift)
+              for a, b in src.quran.tafsir_groups(surah, p["groups"]) if b >= first]
+    parts = split(seconds[shift:], {e - shift for e in ends if e >= first}, groups,
+                  target, low, high, overhead)
+    return [Planned(surah, a + shift, b + shift,
+                    round(sum(seconds[a + shift - 1:b + shift]) + overhead, 1), relaxed=r)
             for a, b, r in parts]
 
 

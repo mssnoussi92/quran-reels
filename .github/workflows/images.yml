@@ -62,7 +62,12 @@ jobs:
 
       - name: Install Chromium
         if: steps.due.outputs.due == 'true'
-        run: python -m playwright install --with-deps chromium
+        run: |
+          # Chromium: the runner image has its libraries (it ships Chrome); apt only if it
+          # does not start.
+          python -m playwright install chromium
+          python -c "from playwright.sync_api import sync_playwright as p; pw = p().start(); pw.chromium.launch().close(); pw.stop()" \
+            || python -m playwright install --with-deps chromium
       - uses: actions/cache@v5
         if: steps.due.outputs.due == 'true'
         with:

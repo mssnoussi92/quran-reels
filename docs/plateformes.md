@@ -24,6 +24,18 @@
 - App Meta `Quran Words Daily Publisher` (ID `1673453344149749`), non publiée (mode développement,
   accès standard). Cas d'utilisation : « Tout gérer sur votre Page » + « Gérer les messages et les
   contenus sur Instagram » (configuration Facebook Login).
+- **Mode développement = posts invisibles pour le public** (constaté le 2026-11-05 : le reel 114,
+  partagé par Messenger, est « non disponible » pour un autre compte, et la Page ne lui montre
+  aucun reel). Meta (*App Modes*) : « Any data generated while an app is in Development mode,
+  such as test posts, can only be seen by role users », visible de tous dès le passage en Live,
+  sans republier. Passer l'app en **Live** : Paramètres → Général (URL de confidentialité
+  `https://mssnoussi92.github.io/quran-reels/privacy.html`, CGU `…/terms.html`, suppression des
+  données : la même page de confidentialité, icône `assets/brand/icon-1024.jpg`, catégorie, e-mail
+  de contact), puis « Publier ». Pas d'App Review ni de vérification d'entreprise : l'accès
+  standard reste valable en Live pour les personnes qui ont un rôle sur l'app (le propriétaire,
+  donc le jeton de Page actuel continue de marcher). **Fait le 2026-11-05** ; vérifié aussitôt
+  sans compte : `facebook.com/plugins/video.php?href=…/reel/1455267246753851/` renvoie la vidéo
+  (41 s), lisible depuis le CDN.
 - Page `1494879297031390` · compte Instagram pro `17841475111287268`.
 - La liaison Instagram ↔ Page doit être faite depuis la Page (Paramètres → Comptes liés). Une liaison
   faite seulement via l'Espace Comptes n'expose pas `instagram_business_account` à l'API.

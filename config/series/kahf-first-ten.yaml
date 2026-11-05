@@ -1,0 +1,9 @@
+# Every Friday morning: the first ten ayahs of Surah Al-Kahf in one video, the same passage
+# each week (owner's choice, 2026-11-05). The rest of the surah is read on Friday evenings
+# (al-kahf.yaml, from 18:11). Reels are 90 s at most on Facebook: 18:1-10 fits with Salah
+# Budair (88 s); the other reciters of the rotation take 108 to 132 s.
+title_ar: أول عشر آيات من سورة الكهف
+title_en: The first ten verses of Surah Al-Kahf
+repeat: true
+hashtags: ["#Jumuah", "#يوم_الجمعة"]
+passages: ["18:1-10"]

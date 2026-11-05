@@ -7,8 +7,9 @@ published.json         the state: what each queue has published, what each slot 
 
 A queue plays its series one after the other. Each slot takes the first passage of its queue
 that is not published yet, so a day that fails is taken up again and nothing is skipped or
-posted twice. On Fridays every slot takes from the Friday queue. A queue whose series repeat
-starts over when it is done; any other queue, once done, hands over to its fallback.
+posted twice. On Fridays the slots take from the Friday queues instead (one per slot, or one
+for all). A queue whose series repeat starts over when it is done; any other queue, once done,
+hands over to its fallback.
 
 Nothing here is generated: series list references chosen by people (proposed in a pull
 request, validated by the owner); the texts come from the sources at render time.
@@ -184,15 +185,16 @@ class Schedule:
     enabled: bool
     slots: list[Slot]
     queues: dict[str, list[str]]                  # queue → series ids, played in order
-    friday_queue: str | None = None
+    friday_queue: str | None = None               # every slot on Fridays, unless listed below
+    friday_queues: dict[str, str] = field(default_factory=dict)   # slot → queue on Fridays
     fallback: dict[str, str] = field(default_factory=dict)
     published_by_hand: frozenset[str] = frozenset()   # passage keys the calendar skips
     early_minutes: int = 20                       # a run this early still takes the slot
     window_hours: float = 3                       # later than this, the slot is missed
 
     def queue_for(self, slot: Slot, day: date) -> str:
-        if self.friday_queue and day.weekday() == FRIDAY:
-            return self.friday_queue
+        if day.weekday() == FRIDAY:
+            return self.friday_queues.get(slot.name) or self.friday_queue or slot.queue
         return slot.queue
 
     def due(self, now: datetime) -> list[tuple[date, Slot]]:
@@ -225,9 +227,17 @@ def load_schedule(cfg: Config, series: dict[str, Series] | None = None) -> Sched
     slots = [Slot(str(name), _time(s.get("time"), f"schedule.yaml, slot {name}"),
                   str(s.get("queue")))
              for name, s in (raw.get("slots") or {}).items()]
+    fridays = dict(raw.get("fridays") or {})       # {queue: q} for every slot, {slot: q} each
+    friday_queue = fridays.pop("queue", None)
+    names = {s.name for s in slots}
+    for name in fridays:
+        if name not in names:
+            raise SystemExit(f"config/schedule.yaml: fridays: no slot «{name}» "
+                             f"(slots: {', '.join(sorted(names))})")
     sched = Schedule(tz=ZoneInfo(str(raw.get("timezone", "Europe/Paris"))),
                      enabled=bool(raw.get("enabled", False)), slots=slots, queues=queues,
-                     friday_queue=(raw.get("fridays") or {}).get("queue"),
+                     friday_queue=str(friday_queue) if friday_queue else None,
+                     friday_queues={str(k): str(v) for k, v in fridays.items()},
                      fallback={str(k): str(v) for k, v in (raw.get("fallback") or {}).items()},
                      published_by_hand=frozenset(
                          _passage_key(k, "config/schedule.yaml, published_by_hand")
@@ -235,7 +245,7 @@ def load_schedule(cfg: Config, series: dict[str, Series] | None = None) -> Sched
                      early_minutes=int(raw.get("early_minutes", 20)),
                      window_hours=float(raw.get("window_hours", 3)))
     used = {s.queue for s in slots} | set(sched.fallback.values()) | (
-        {sched.friday_queue} if sched.friday_queue else set())
+        {sched.friday_queue} if sched.friday_queue else set()) | set(sched.friday_queues.values())
     for q in sorted(used):
         if q not in queues:
             raise SystemExit(f"config/schedule.yaml: queue «{q}» is not defined in queues")
@@ -365,7 +375,10 @@ def check_series(cfg: Config, series: dict[str, Series], src: Any = None) -> lis
 
     A passage starts at the start of a surah or after an ayah that ends a sentence in the
     translation, and ends with a sentence (selector.plan.sentence_ends). Seconds as planned:
-    the reciter's timings, the video's lead and tail, the basmala.
+    the reciter's timings, the video's lead and tail, the basmala. With content.rotation, a
+    passage too long for that estimate passes if a reciter of the rotation, ready for it, fits
+    (reciters.choose picks among those: 18:1-10 is 88 s with Salah Budair, over 108 s with the
+    others).
     """
     from quran_reels.models import AyahRef
     from quran_reels.passage import needs_basmala
@@ -404,6 +417,20 @@ def check_series(cfg: Config, series: dict[str, Series], src: Any = None) -> lis
             if end < n and end not in ends[surah]:
                 problems.append(f"ends mid-sentence ({surah}:{end} does not end one)")
             if seconds > high:
-                problems.append(f"{seconds:.0f} s, longer than {high:.0f} s")
+                fit = _rotation_fit(cfg, key, high)
+                if fit is not None:
+                    seconds = fit
+                else:
+                    problems.append(f"{seconds:.0f} s, longer than {high:.0f} s")
             out.append(Checked(s.id, key, round(seconds, 1), problems))
     return out
+
+
+def _rotation_fit(cfg: Config, key: str, high: float) -> float | None:
+    """Seconds of the shortest reciter of the rotation ready for key and within high."""
+    from quran_reels.reciters import options, rotation
+
+    if not rotation(cfg):
+        return None
+    fits = [o.seconds for o in options(cfg, key) if o.seconds is not None and o.seconds <= high]
+    return min(fits) if fits else None

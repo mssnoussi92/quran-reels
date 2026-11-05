@@ -33,8 +33,8 @@ concurrency:
 
 jobs:
   reel:
-    runs-on: ubuntu-24.04     # pinned: same ffmpeg as tested; ubuntu-latest is moving to 26.04
-    timeout-minutes: 60       # 2026-11-05: the Ubuntu mirror took 39 min to install ffmpeg
+    runs-on: ubuntu-24.04     # pinned: Chromium finds its libraries; ubuntu-latest is moving to 26.04
+    timeout-minutes: 60       # 2026-11-05: the Ubuntu mirror took 39 min to install ffmpeg (no apt since)
     env:
       STATE: state-branch/published.json
       QURAN_REELS_SPLITS: state-branch/splits   # checked splits (prepare workflow)
@@ -71,8 +71,19 @@ jobs:
       - name: Install ffmpeg and Chromium
         if: inputs.passage != '' || steps.due.outputs.due == 'true'
         run: |
-          sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
-          python -m playwright install --with-deps chromium
+          # No apt for ffmpeg: the Ubuntu mirror took 39 min on 2026-11-05 and stalled the evening
+          # run. Static build of imageio-ffmpeg (pip, pinned: ffmpeg 9.0.2, libx264, aac); no
+          # ffprobe needed.
+          pip install -q imageio-ffmpeg==0.8.1
+          mkdir -p ~/bin
+          ln -sf "$(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')" ~/bin/ffmpeg
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+          ~/bin/ffmpeg -version | head -1
+          # Chromium: the runner image has its libraries (it ships Chrome); apt only if it
+          # does not start.
+          python -m playwright install chromium
+          python -c "from playwright.sync_api import sync_playwright as p; pw = p().start(); pw.chromium.launch().close(); pw.stop()" \
+            || python -m playwright install --with-deps chromium
       # The cache fills up as passages are rendered: restore the latest, save a new one.
       - uses: actions/cache@v5
         if: inputs.passage != '' || steps.due.outputs.due == 'true'

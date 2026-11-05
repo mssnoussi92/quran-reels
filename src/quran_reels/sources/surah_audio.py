@@ -73,7 +73,8 @@ class Pause:
 
 
 def duration(path: Path) -> float:
-    """Length of an audio file in seconds, from ffmpeg's header read."""
+    """Length of an audio or video file in seconds, from ffmpeg's header read (no ffprobe:
+    the workflows use the static ffmpeg of imageio-ffmpeg, which comes without it)."""
     out = subprocess.run(["ffmpeg", "-nostdin", "-i", str(path)], capture_output=True,
                          text=True, check=False).stderr      # no output file: exit code 1
     h, m, sec = re.search(r"Duration: (\d+):(\d+):([\d.]+)", out).groups()
@@ -378,17 +379,26 @@ class SurahFiles:
         expected = [self.reference(1)[1] if k == "basmala" else ref[int(k)] for k in labels]
         starts, timing = None, {}
         if self.mp3quran is not None:
+            # An ayah missing from the published timing (Al-Minshawi's 9:129) is placed like
+            # an unrecognised one: in proportion, its length from the reference at this pace.
             timing = self.published_timing(surah)
-            starts = [None if k == "basmala" else timing[int(k)][0] for k in labels]
-            expected = [timing[1][0] if k == "basmala" else timing[int(k)][1] - timing[int(k)][0]
-                        for k in labels]
+            timed = [a for a in map(int, (k for k in labels if k != "basmala")) if a in timing]
+            pace = (sum(timing[a][1] - timing[a][0] for a in timed)
+                    / max(sum(ref[a] for a in timed), 1e-6)) if timed else 1.0
+            starts = [timing[int(k)][0] if k != "basmala" and int(k) in timing else None
+                      for k in labels]
+            expected = [(timing[1][0] if 1 in timing else expected[i]) if k == "basmala"
+                        else timing[int(k)][1] - timing[int(k)][0] if int(k) in timing
+                        else ref[int(k)] * pace
+                        for i, k in enumerate(labels)]
         if self._recognizer is None:
             self._recognizer = Recognizer()
         before = read_json(self.split_path(surah)) if self.split_path(surah).is_file() else {}
         try:
             segments, scores = find_split(self.audio(surah), labels, list(texts.values()),
                                           expected, self._recognizer, starts, check,
-                                          end=timing[int(labels[-1])][1] if starts else None)
+                                          end=timing[int(labels[-1])][1]
+                                          if starts and int(labels[-1]) in timing else None)
         except SplitError as e:
             raise SystemExit(f"{self.reciter}, surah {surah}: {e}; nothing rendered") from e
         old_segments = {k: tuple(v) for k, v in before.get("segments", {}).items()}
