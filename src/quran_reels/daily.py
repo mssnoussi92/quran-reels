@@ -8,7 +8,9 @@ in UTC (summer time moves the slots by an hour) and often runs late. Each run:
   - saves the state after each slot (published.json, kept on the `state` branch).
 
 A passage counts as published, and its queue moves on, once one platform has it: a failed
-platform is retried while the slot's window lasts, never with another passage.
+platform is retried while the slot's window lasts, never with another passage. A slot blocked
+by Meta's copyright check is not retried: the same recitation would be refused again. Its
+passage stays first in its queue until the recitation changes.
 """
 
 from __future__ import annotations
@@ -55,6 +57,11 @@ def pending(sched: Schedule, series: dict[str, Series], state: State, now: datet
     out = []
     for day, slot in sched.due(now):
         record = sim.slot(day, slot.name)
+        if record and any(r.get("status") == PublishStatus.BLOCKED.value
+                          for r in record["results"].values()):
+            print(f"{day} {slot.name}: blocked by the rights check, not retried "
+                  f"({record['passage']})", file=sys.stderr)
+            continue
         if record:
             done = {p for p, r in record["results"].items() if r.get("status") in OK_STATUSES}
             todo = [p for p in platforms if p not in done]
@@ -148,7 +155,8 @@ def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
         video = render_passage(cfg, p.item.key, p.item.label_ar, p.item.label_en,
                                p.item.series.hashtags).video
         results = publish_mod.publish_reel(cfg, video, p.platforms, dry_run, checked)
-        failed |= any(r.status is PublishStatus.FAILED for r in results)
+        failed |= any(r.status in (PublishStatus.FAILED, PublishStatus.BLOCKED)
+                      for r in results)
         caption = copy_text(cfg, video)
         log["items"].append({
             "key": f"{p.day.isoformat()}/{p.slot.name}", "day": p.day.isoformat(),

@@ -130,6 +130,7 @@ class PublishStatus(str, Enum):
     DRAFT = "draft"           # unpublished draft (Facebook dry run, TikTok inbox before audit)
     READY = "ready"           # uploaded and processed, not published (Instagram dry run)
     MANUAL = "manual"         # file ready, owner uploads by hand (YouTube before audit)
+    BLOCKED = "blocked"       # not published: the rights check found a match or could not end
     FAILED = "failed"
 
 
@@ -140,3 +141,4 @@ class PublishResult:
     remote_id: str | None = None
     url: str | None = None
     error: str | None = None
+    rights: dict | None = None         # the platform's copyright check (RightsCheck.as_dict)

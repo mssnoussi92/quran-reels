@@ -31,7 +31,8 @@ _DAYS = ["lun.", "mar.", "mer.", "jeu.", "ven.", "sam.", "dim."]
 _MONTHS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.",
            "nov.", "déc."]
 _STATUS = {"published": "publié", "draft": "brouillon", "ready": "prêt (dry run)",
-           "manual": "à publier à la main", "failed": "échec"}
+           "manual": "à publier à la main", "failed": "échec",
+           "blocked": "bloqué par la vérification des droits"}
 
 
 def _when(item: dict) -> str:
@@ -61,6 +62,13 @@ def failure_text(report: dict | None, run_url: str) -> str:
         lines.append(f"- **{_when(item)} · {item['passage']}** — {_results(item, errors=True)}")
     for e in (report or {}).get("errors", []):
         lines += ["", "```text", e.strip(), "```"]
+    blocked = any(r.get("status") == "blocked" for i in (report or {}).get("items", [])
+                  for r in i["results"].values())
+    if blocked:
+        lines += ["", ("⛔ Meta a reconnu un contenu protégé (ou n'a pas pu vérifier) : rien n'est "
+                       "publié, sur aucune plateforme, et le créneau n'est pas réessayé. Le passage "
+                       "reste en tête de sa file : changer de récitateur (config/project.yaml → "
+                       "content.reciter) avant la prochaine publication.")]
     lines += ["", ("Un créneau en échec est réessayé à chaque passage du workflow pendant 3 h "
                    "(une fois par heure). Ce ticket se ferme tout seul à la prochaine "
                    "publication réussie.")]
@@ -78,6 +86,13 @@ def _entry(item: dict, dry_run: bool) -> str:
 _ENTRY = re.compile(r"<!-- entry (\S+) -->")
 
 
+def _has_caption(item: dict) -> bool:
+    """A caption to copy, for a video that went out somewhere (not one stopped by the rights
+    check)."""
+    return bool(item.get("caption")) and any(
+        r.get("status") in ("published", "draft", "ready") for r in item["results"].values())
+
+
 def merge_captions(body: str, report: dict, keep: int = KEEP_CAPTIONS) -> str:
     """The captions issue body: the report's entries first, then the previous ones."""
     old: dict[str, str] = {}
@@ -86,7 +101,7 @@ def merge_captions(body: str, report: dict, keep: int = KEEP_CAPTIONS) -> str:
         end = marks[k + 1].start() if k + 1 < len(marks) else len(body)
         old[m[1]] = body[m.start():end].strip()
     new = {i["key"]: _entry(i, report.get("dry_run", False))
-           for i in reversed(report.get("items", [])) if i.get("caption")}
+           for i in reversed(report.get("items", [])) if _has_caption(i)}
     entries = list(new.items()) + [(k, v) for k, v in old.items() if k not in new]
     head = ("Légendes des dernières vidéos, à coller sur le brouillon TikTok (il arrive dans "
             "ta boîte) : 5 hashtags, la limite de TikTok. Mis à jour à chaque publication ; "
@@ -146,7 +161,7 @@ def run(report_path: Path, outcome: str, run_url: str, owner: str | None,
     report = json.loads(report_path.read_text(encoding="utf-8")) if report_path.is_file() else None
     dry_run = bool(report and report.get("dry_run"))
 
-    if report and any(i.get("caption") for i in report.get("items", [])):
+    if report and any(_has_caption(i) for i in report.get("items", [])):
         current = issues.find(CAPTIONS_TITLE)
         if current:
             issues.edit(current["number"], merge_captions(current.get("body") or "", report))

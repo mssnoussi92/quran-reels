@@ -214,3 +214,13 @@ def test_daily_writes_a_report_for_notify_even_when_it_stops(world, monkeypatch,
         daily.run(None, path, now=paris(2026, 11, 5, 19, 20), report=report)
     data = _json.loads(report.read_text(encoding="utf-8"))
     assert data["items"] == [] and "expires in 3 days" in data["errors"][0]
+
+
+def test_a_slot_blocked_by_the_rights_check_is_not_retried(world):
+    calls, answers, path = world
+    answers["facebook"] = [PublishStatus.BLOCKED]
+    answers["instagram"] = [PublishStatus.BLOCKED]
+    assert daily.run(None, path, now=paris(2026, 11, 5, 7, 20)) == 1       # alert
+    assert daily.run(None, path, now=paris(2026, 11, 5, 8, 20)) == 0       # no new upload
+    assert len(calls["publish"]) == 1
+    assert State.load(path).queue("reading")["done"] == []                 # still first

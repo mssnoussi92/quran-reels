@@ -1,8 +1,9 @@
 """Instagram Reels (Instagram Graph API, account linked to the Page, Page token).
 
-REELS container with resumable upload → binary upload → wait for status_code FINISHED →
-media_publish. A dry run stops before media_publish: the container is ready but nothing is
-posted, and Instagram drops it after 24 hours.
+REELS container with resumable upload → binary upload → wait for status_code FINISHED
+(prepare) → Meta's copyright check of the container, copyright_check_status (rights,
+publishers/rights.py) → media_publish (commit). A dry run stops before media_publish: the
+container is ready but nothing is posted, and Instagram drops it after 24 hours.
 
 rupload answers 400 ProcessingFailedError to most uploads. Sometimes Instagram has the video
 anyway (run #7: container FINISHED at once), sometimes the container stays IN_PROGRESS for
@@ -16,6 +17,7 @@ from __future__ import annotations
 import sys
 
 from quran_reels.models import PublishResult, PublishStatus, Reel
+from quran_reels.publishers import rights
 from quran_reels.publishers.base import PublisherError, StillProcessing
 from quran_reels.publishers.meta import RUPLOAD, Graph, GraphError, wait
 
@@ -28,7 +30,7 @@ class InstagramPublisher:
 
     def __init__(self, graph: Graph, ig_user_id: str, poll_interval: float = 10,
                  timeout: float = 900, attempts: int = 3, stuck_after: float = 240,
-                 max_hashtags: int | None = 5):
+                 max_hashtags: int | None = 5, rights_timeout: float = 600):
         self.graph = graph
         self.max_hashtags = max_hashtags    # Instagram allows 5 per post since December 2025
         self.ig_user_id = ig_user_id
@@ -36,6 +38,7 @@ class InstagramPublisher:
         self.timeout = timeout              # processing after a clean upload
         self.attempts = attempts            # containers tried when uploads fail
         self.stuck_after = stuck_after      # processing allowed after a failed upload
+        self.rights_timeout = rights_timeout
 
     def _status(self, container_id: str) -> tuple[bool, str]:
         c = self.graph.get(container_id, fields="status_code,status")
@@ -91,27 +94,52 @@ class InstagramPublisher:
                   f"({attempt + 1}/{self.attempts})", file=sys.stderr)
         raise AssertionError("unreachable")
 
-    def publish(self, reel: Reel, dry_run: bool = False) -> PublishResult:
+    def _params(self, reel: Reel) -> dict[str, str]:
         text = reel.text(self.max_hashtags)
         if len(text) > CAPTION_LIMIT:
-            return PublishResult(self.name, PublishStatus.FAILED,
-                                 error=f"caption longer than {CAPTION_LIMIT} characters")
+            raise PublisherError(f"caption longer than {CAPTION_LIMIT} characters")
         params = {"media_type": "REELS", "upload_type": "resumable", "caption": text,
                   "share_to_feed": "true"}
         if reel.cover_ms is not None:
             params["thumb_offset"] = str(reel.cover_ms)
+        return params
+
+    def prepare(self, reel: Reel) -> str:
+        """Id of a container holding the processed reel, not published."""
+        return self._ready_container(reel, self._params(reel))
+
+    def rights(self, container_id: str) -> rights.RightsCheck:
+        return rights.check(self.graph, self.name, container_id, self.rights_timeout,
+                            self.poll_interval)
+
+    def commit(self, container_id: str, reel: Reel | None = None) -> PublishResult:
         try:
-            cid = self._ready_container(reel, params)
-            if dry_run:
-                return PublishResult(self.name, PublishStatus.READY, remote_id=cid)
             self._quota()
             media_id = str(self.graph.post(f"{self.ig_user_id}/media_publish",
-                                           creation_id=cid)["id"])
+                                           creation_id=container_id)["id"])
         except (PublisherError, KeyError) as e:
-            return PublishResult(self.name, PublishStatus.FAILED, error=str(e))
+            return PublishResult(self.name, PublishStatus.FAILED, remote_id=container_id,
+                                 error=str(e))
         link = None
         try:
             link = self.graph.get(media_id, fields="permalink").get("permalink")
         except GraphError:
             pass
         return PublishResult(self.name, PublishStatus.PUBLISHED, remote_id=media_id, url=link)
+
+    def publish(self, reel: Reel, dry_run: bool = False) -> PublishResult:
+        """Instagram alone: prepare, check, then publish if the check is clear."""
+        try:
+            cid = self.prepare(reel)
+        except (PublisherError, KeyError) as e:
+            return PublishResult(self.name, PublishStatus.FAILED, error=str(e))
+        check = self.rights(cid)
+        if dry_run:
+            return PublishResult(self.name, PublishStatus.READY, remote_id=cid,
+                                 rights=check.as_dict())
+        if not check.clear:
+            return PublishResult(self.name, PublishStatus.BLOCKED, remote_id=cid,
+                                 error=f"droits : {check.describe()}", rights=check.as_dict())
+        result = self.commit(cid, reel)
+        result.rights = check.as_dict()
+        return result
