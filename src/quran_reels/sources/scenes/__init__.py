@@ -147,7 +147,8 @@ def render(cfg: Config, name: str, loop: float = 30.0, fade: float = 5.0, width:
     fps = cfg.video["fps"]
     frag = source(name)
     seconds = loop or fade
-    digest = hashlib.sha1(f"{frag}|{width}x{height}|{fps}|{loop}|{fade}".encode()).hexdigest()
+    digest = hashlib.sha1(
+        f"{frag}|{width}x{height}|{fps}|{float(loop)}|{float(fade)}".encode()).hexdigest()
     if dest is None:
         dest = cfg.cache / "backgrounds" / f"scene-{name}-{digest[:10]}.mp4"
     if dest.is_file():
