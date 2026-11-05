@@ -320,3 +320,20 @@ def test_later_runs_take_down_a_reel_claimed_after_its_check(world, two_reciters
     assert "Iran" in morning["claimed"] and list(state.data["claimed"]) == ["rifai"]
     assert state.queue("reading")["done"] == []                          # back at the head
     assert calls["publish"][-1][0] == "2:255-255"                        # the evening went on
+
+
+def test_a_reopened_slot_publishes_its_passage_again(world):
+    from quran_reels.selector.calendar import reopen
+
+    calls, _, path = world
+    daily.run(None, path, now=paris(2026, 11, 5, 7, 20))
+    state = State.load(path)
+    reopen(state, "2026-11-05/morning", "bad cut at the basmala", claimed=False)
+    state.save(path)
+    assert State.load(path).queue("reading")["done"] == []
+    daily.run(None, path, now=paris(2026, 11, 5, 8, 20))      # same window: published again
+    assert [c[0] for c in calls["publish"]] == ["114:1-6", "114:1-6"]
+    state = State.load(path)
+    assert state.data["removed"][0]["why"] == "bad cut at the basmala"
+    with pytest.raises(SystemExit, match="no such slot"):
+        reopen(state, "2026-11-06/morning", "x")

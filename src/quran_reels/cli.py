@@ -79,6 +79,17 @@ def main(argv: list[str] | None = None) -> int:
 
     sub.add_parser("series-check", help="check config/series: whole sentences, duration")
 
+    st = sub.add_parser("state", help="the publication state (published.json, branch state)")
+    st_sub = st.add_subparsers(dest="state_command", required=True)
+    ro = st_sub.add_parser("reopen", help="a slot whose posts were deleted: its passage is "
+                                          "published again (next run in its window, or next "
+                                          "slot of its queue)")
+    ro.add_argument("slot", help="day/slot, e.g. 2026-11-05/evening")
+    ro.add_argument("--why", required=True, help="kept with the old record")
+    ro.add_argument("--claimed", action="store_true",
+                    help="its recording was claimed: never choose its reciter again")
+    ro.add_argument("--state", default="state/published.json")
+
     cal = sub.add_parser("calendar", help="what the next days publish (nothing is published)")
     cal.add_argument("--days", type=int, default=14)
     cal.add_argument("--state", default="state/published.json")
@@ -304,6 +315,21 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         n = sum(len(plan_surah(cfg, s)) for s in range(1, 115))
         print(f"{n} passages (add --write to save config/plan.yaml)")
+        return 0
+
+    if args.command == "state" and args.state_command == "reopen":
+        from pathlib import Path
+
+        from quran_reels.selector.calendar import State, reopen
+
+        path = Path(args.state)
+        state = State.load(path)
+        record = reopen(state, args.slot, args.why, args.claimed)
+        state.save(path)
+        print(f"{args.slot}: {record['passage']} ({record.get('reciter') or 'reciter unknown'}) "
+              f"back at the head of queue {record['queue']}"
+              + (f"; {record['reciter']} never chosen again" if args.claimed
+                 and record.get("reciter") else ""))
         return 0
 
     if args.command == "series-check":
