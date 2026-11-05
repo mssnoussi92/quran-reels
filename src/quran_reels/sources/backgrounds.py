@@ -12,6 +12,10 @@ softened (`soften`: a light blur and dimming, so that the text stays readable ov
 water) and made into a seamless loop once (their last seconds blend into their first ones),
 then cached in .cache/backgrounds/. The compositor loops them under the video.
 
+Pixabay clips (sources/pixabay.py) are listed by id and author: the file URL comes from the
+API when the clip is first needed. New candidates: `quran-reels backgrounds search`, then a
+frame-by-frame check (no people, no animals, no text) before anything is added.
+
 Without any background listed, a provisional night sky is generated with numpy.
 """
 
@@ -46,6 +50,9 @@ class Background:
     page: str = ""           # clip: where it comes from (licence, credit)
     source: str = ""         # pexels | pixabay | generated
     focus: float = 0.5       # clip: horizontal centre of the 9:16 crop, 0 left … 1 right
+    pixabay_id: int = 0      # Pixabay clip: its file URL comes from the API (24 h cache)
+    author: str = ""         # who filmed it, as the source names them
+    rendition: str = "large"
     extra: dict[str, Any] = field(default_factory=dict, compare=False, hash=False)
 
 
@@ -55,13 +62,14 @@ def catalogue(cfg: Config) -> tuple[list[Background], dict[str, tuple[re.Pattern
     raw = cfg.backgrounds
     out = []
     for c in raw.get("backgrounds") or []:
-        if not (c.get("scene") or c.get("file")):
+        if not (c.get("scene") or c.get("file") or c.get("pixabay_id")):
             continue
         out.append(Background(
             id=str(c["id"]), tags=tuple(c.get("tags") or ()), scene=c.get("scene", ""),
             file=c.get("file", ""), page=c.get("page", ""),
             source=c.get("source") or ("generated" if c.get("scene") else ""),
-            focus=float(c.get("focus", .5)),
+            focus=float(c.get("focus", .5)), pixabay_id=int(c.get("pixabay_id") or 0),
+            author=str(c.get("author", "")), rendition=str(c.get("rendition", "large")),
             extra={k: v for k, v in c.items() if k in ("note", "seconds")}))
     themes = {}
     for tag, (pattern, weight) in (raw.get("themes") or {}).items():
@@ -106,13 +114,19 @@ def clip(cfg: Config, bg: Background, http: Http | None = None) -> Path:
     w, h, fps = v["width"], v["height"], v["fps"]
     soften = cfg.backgrounds.get("soften") or {}
     blur, dim = float(soften.get("blur", 0)), float(soften.get("dim", 0))
+    origin = f"pixabay:{bg.pixabay_id}:{bg.rendition}" if bg.pixabay_id else bg.file
     digest = hashlib.sha1(
-        f"{bg.file}|{bg.focus}|{w}x{h}|{fps}|{blur}|{dim}|{CLIP_VERSION}".encode())
+        f"{origin}|{bg.focus}|{w}x{h}|{fps}|{blur}|{dim}|{CLIP_VERSION}".encode())
     dest = cfg.cache / "backgrounds" / f"clip-{bg.id}-{digest.hexdigest()[:10]}.mp4"
     if dest.is_file():
         return dest
+    url = bg.file
+    if bg.pixabay_id:                  # downloaded once, when first needed, then cached
+        from quran_reels.sources.pixabay import Pixabay
+
+        url = Pixabay(cfg.cache).file_url(bg.pixabay_id, bg.rendition)
     raw = dest.with_name(f".raw-{bg.id}-{os.getpid()}.mp4")
-    (http or Http(timeout=120)).download(bg.file, raw, min_bytes=200_000)
+    (http or Http(timeout=120)).download(url, raw, min_bytes=200_000)
     try:
         make_loop(raw, dest, w, h, fps, bg.focus, blur=blur, dim=dim)
     finally:
@@ -273,6 +287,7 @@ def pick(cfg: Config, passage: Passage, http: Http | None = None) -> tuple[Path,
         path = clip(cfg, bg, http)
     info = {"id": bg.id, "source": bg.source, "theme": theme or "default",
             "scores": dict(scores)}
-    if bg.page:
-        info["page"] = bg.page
+    for key in ("page", "author", "pixabay_id"):
+        if getattr(bg, key):
+            info[key] = getattr(bg, key)
     return path, info

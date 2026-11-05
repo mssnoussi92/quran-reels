@@ -1,8 +1,9 @@
 # Backgrounds: generated scenes and hand-picked clips, chosen from what the passage says.
 #
 # Rules for a clip: nature only, no people, no animals, no text or logos; checked frame by
-# frame before being added. Direct file URL (videos.pexels.com), no API key needed; Pexels
-# licence: free to use, no attribution required (the page is kept for reference).
+# frame before being added. Pexels: direct file URL (videos.pexels.com), no API key; Pixabay:
+# by id (pixabay_id) and author, file URL from the API (PIXABAY_API_KEY). Both licences: free
+# to use, no attribution required (page and author are kept, and go into each manifest).
 #
 # Choice (sources/backgrounds.py): each theme below counts its matches in the passage's
 # translation (Sahih International, without the translator's [additions]) × its weight.
@@ -25,6 +26,16 @@ themes:                         # tag: [pattern, weight per match]; ties go to t
   sky: ['\b(sky|heavens?)\b', 1]
 
 default: [dawn, night, sea]     # when the passage mentions none of the themes
+
+pixabay:                        # search terms per theme: `quran-reels backgrounds search`
+  mountains: ["mountains", "mountain peaks clouds"]
+  sea: ["ocean waves", "calm sea"]
+  rivers: ["river", "waterfall stream"]
+  dawn: ["sunrise", "dawn landscape"]
+  rain: ["rain clouds", "storm clouds"]
+  gardens: ["forest trees", "palm trees"]
+  night: ["night sky stars", "milky way"]
+  sky: ["clouds timelapse", "blue sky clouds"]
 
 soften:                         # clips only (busy, sharp): keeps the text readable
   blur: 2.5                     # Gaussian sigma, in pixels at 1080 wide

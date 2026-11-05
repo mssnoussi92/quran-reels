@@ -1,0 +1,44 @@
+name: backgrounds-search
+
+# Pixabay candidates per theme (config/backgrounds.yaml → pixabay), to be checked frame by
+# frame (no people, no animals, no text) before any is added. Prints public metadata only:
+# ids, authors, tags, preview URLs; the key stays in the step's environment.
+on:
+  workflow_dispatch:
+    inputs:
+      theme:
+        description: "One theme (empty: all)"
+        required: false
+        default: ""
+      per_theme:
+        description: "Candidates per theme"
+        required: false
+        default: "4"
+  push:                       # temporary: the first search, from the development branch
+    branches: [claude/friendly-sagan-qyo1qg]
+    paths: [".github/workflows/backgrounds-search.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  search:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install -e .
+      - name: Search
+        env:
+          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
+          THEME: ${{ inputs.theme }}
+          PER_THEME: ${{ inputs.per_theme || '4' }}
+        run: quran-reels backgrounds search --per-theme "$PER_THEME" ${THEME:+--theme "$THEME"}
+      - uses: actions/upload-artifact@v6
+        with:
+          name: pixabay-candidates
+          path: out/pixabay/
+          retention-days: 7

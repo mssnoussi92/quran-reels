@@ -105,6 +105,7 @@ jobs:
           TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
           TIKTOK_REFRESH_TOKEN: ${{ secrets.TIKTOK_REFRESH_TOKEN }}
           GH_SECRETS_TOKEN: ${{ secrets.GH_SECRETS_TOKEN }}   # saves TikTok's new refresh token
+          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}    # an approved Pixabay clip, first use
         run: |
           if [ "$WHAT" = "images" ]; then
             slot=$(python -c "import yaml; print(yaml.safe_load(open('config/images.yaml'))['formats']['word']['time_utc'])")

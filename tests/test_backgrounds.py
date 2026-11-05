@@ -27,7 +27,7 @@ def test_the_config_lists_valid_backgrounds(cfg):
     ids = {b.id for b in bgs}
     assert len(ids) == len(bgs) and set(default) <= ids
     for b in bgs:
-        assert bool(b.scene) != bool(b.file), b.id
+        assert bool(b.scene) != bool(b.file or b.pixabay_id), b.id
         assert set(b.tags) <= set(themes), b.id
         assert 0 <= b.focus <= 1
     assert all(any(t in b.tags for b in bgs) for t in themes)    # every theme can be shown

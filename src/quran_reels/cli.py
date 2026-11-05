@@ -77,6 +77,13 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--dry-run", action="store_true", help="nothing posted, state unchanged")
     r.add_argument("--check", action="store_true", help="only say whether a post is due")
 
+    bgs = sub.add_parser("backgrounds", help="background clips")
+    bgs_sub = bgs.add_subparsers(dest="backgrounds_command", required=True)
+    se = bgs_sub.add_parser("search", help="Pixabay candidates per theme (to check frame by frame)")
+    se.add_argument("--theme", action="append", help="only this theme (repeatable)")
+    se.add_argument("--per-theme", type=int, default=4)
+    se.add_argument("--out", default="out/pixabay/candidates.json")
+
     note = sub.add_parser("notify", help="GitHub issues: failure alert, captions to copy")
     note.add_argument("--outcome", required=True, help="the job status: success or failure")
     note.add_argument("--run-url", required=True)
@@ -207,6 +214,21 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "images":
         return _images(cfg, args)
+
+    if args.command == "backgrounds":
+        import json
+        from pathlib import Path
+
+        from quran_reels.sources.pixabay import candidates
+
+        found = candidates(cfg, args.theme, args.per_theme)
+        out = Path(args.out)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(found, ensure_ascii=False, indent=1), encoding="utf-8")
+        for c in found:                 # one line each: public metadata only, never the key
+            print(json.dumps(c, ensure_ascii=False))
+        print(f"{len(found)} candidates → {out}", file=sys.stderr)
+        return 0
 
     if args.command == "notify":
         from pathlib import Path
