@@ -17,7 +17,7 @@ e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis 
 | Images | **Word of the day**, carrousel de 3 images 1080×1350 (le mot, son ayah, son sens dans le Tafsir al-Muyassar), **1 par jour** à 11:30 UTC sur Instagram et Facebook ; **Ayah of the day** préparé, désactivé (docs/images.md) |
 | Lecture | **Juz' 'Amma d'abord** (114 → 78), puis Al-Fatiha et 2 → 77, passages de `config/plan.yaml` |
 | Thèmes | Ayat al-Kursi, les 7 versets « المنجيات », versets de du'a, versets du rizq… : listes **proposées par l'IA en PR, validées par le propriétaire** |
-| Vendredi | **Les deux créneaux lisent Al-Kahf** (2 passages par vendredi, 38 au total, puis on recommence) |
+| Vendredi | **Al-Kahf sur les deux créneaux** (choix du propriétaire, 2026-11-05) : le matin, **les 10 premières ayahs (18:1-10) en une seule vidéo, chaque vendredi** ; le soir, la suite **à partir de 18:11**, un passage par vendredi (36), puis on recommence |
 | Texte arabe | Uthmani (Hafs), police **Amiri Quran** (OFL) |
 | Traduction | **Sahih International** (anglais), créditée dans chaque légende |
 | Mots difficiles | **غريب التفسير الميسر** (Tafsir al-Muyassar, Complexe du Roi Fahd ; `almuyassar-ghareeb` sur tafsir.app), choix du propriétaire le 2026-11-05 (avant : Ibn Qutaybah, *Tafsir Gharib al-Qur'an*), sens en arabe, **1 à 3 mots liés** surlignés |
@@ -88,8 +88,12 @@ tests/             pytest, sans réseau
                    prepare.yml (chaque nuit : découpes vérifiées de la semaine → `state`)
                    images.yml (toutes les heures ; `images run --check` décide selon
                    config/images.yaml ; état images.json sur la branche `state`)
-                   Runners épinglés sur `ubuntu-24.04` (même ffmpeg 6.1 que les tests ;
-                   `ubuntu-latest` passe à 26.04), actions en versions Node.js 24.
+                   Runners épinglés sur `ubuntu-24.04` (`ubuntu-latest` passe à 26.04),
+                   actions en versions Node.js 24. **Pas d'apt** : le miroir Ubuntu a mis
+                   40 min à installer ffmpeg (run du soir du 2026-11-05, bloqué) ; ffmpeg =
+                   build statique d'imageio-ffmpeg (pip, épinglé 0.8.1 : ffmpeg 9.0.2,
+                   libx264, aac ; les tests passent avec), sans ffprobe (durées lues par
+                   ffmpeg) ; Chromium de Playwright, `--with-deps` seulement s'il ne démarre pas.
 docs/              site GitHub Pages (CGU, confidentialité, tiktok-login.html, tiktok-callback.html)
 ```
 
@@ -287,11 +291,19 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
 ## Calendrier (`selector/calendar.py`, `daily.py`)
 
 - `config/schedule.yaml` : fuseau `Europe/Paris`, créneaux `morning` 07:30 (file `reading`) et
-  `evening` 19:30 (file `themes`), vendredi → file `kahf` pour les deux, `fallback` (une file
+  `evening` 19:30 (file `themes`), vendredi : une file par créneau (`fridays: {morning:
+  kahf-first-ten, evening: kahf}` ; `queue:` en donne une pour tous), `fallback` (une file
   finie passe à une autre). `enabled: false` tant que la première publication réelle n'est pas
   faite (activé le 2026-11-05). `published_by_hand` : passages publiés hors calendrier, sautés.
 - Une file joue ses séries l'une après l'autre ; chaque créneau prend le premier passage pas
   encore publié. Série `repeat: true` (Al-Kahf) : recommence une fois finie.
+- Al-Kahf : `kahf-first-ten` (18:1-10, une seule entrée qui recommence chaque semaine) et
+  `al-kahf` (36 passages de 18:11 à 18:110, `quran-reels passages 18 --from 11` : mêmes coupes
+  que plan.yaml à partir de 18:15, 18:11-14 remplace 18:6-12 et 18:13-14). 18:1-10 dure
+  87,6 s avec Salah Budair, 108 à 132 s avec les autres : les reels Facebook s'arrêtent à 90 s
+  (doc Reels Publishing : « 3 to 90 seconds »), la rotation choisit donc Budair chaque vendredi
+  matin. `series-check` accepte un passage trop long pour l'estimation Alafasy si un récitateur
+  prêt de la rotation tient dans 90 s.
 - Série (`config/series/*.yaml`) : `surahs: [...]` (passages de plan.yaml) ou `passages:`
   écrits à la main, `title_ar`/`title_en` affichés sur le premier écran («آيات الدعاء · ٤ من ٣٨»)
   et en tête de la légende. `quran-reels series-check` refuse un passage qui commence ou finit
