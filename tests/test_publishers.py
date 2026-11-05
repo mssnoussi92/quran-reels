@@ -125,17 +125,29 @@ def test_errors_never_contain_the_token():
 
 # ---- Facebook ------------------------------------------------------------------------
 
-def facebook_routes(publish_status="complete"):
+CLEAR = {"status": "complete", "matches_found": False}
+MATCH = {"status": "complete", "matches_found": True}
+CLAIM = [{"author": "Rights Holder Ltd", "content_title": "Surah Ad-Duha",
+          "owner_copyright_policy": {"name": "Block worldwide"},
+          "matched_segments": [{"start_time_in_seconds": 0, "segment_type": "AUDIO"}]}]
+
+
+def facebook_routes(publish_status="complete", rights=CLEAR, matches=()):
+    def video(f):
+        if f.get("fields") == "permalink_url":
+            return {"permalink_url": "/reel/111/"}
+        if f.get("fields") == "copyright_check_information":
+            r = rights() if callable(rights) else rights
+            return {"copyright_check_information": {"status": r,
+                                                    "copyright_matches": list(matches)}}
+        return {"status": {"video_status": "ready", "processing_phase": {"status": "complete"},
+                           "publishing_phase": {"status": publish_status}}}
     return {
         ("POST", f"/{PAGE}/video_reels"): lambda f: (
             {"video_id": "111", "upload_url": "https://rupload.facebook.com/video-upload/v24.0/111"}
             if f["upload_phase"] == "start" else {"success": True}),
         ("POST", "/video-upload/v24.0/111"): {"success": True},
-        ("GET", "/111"): lambda f: (
-            {"permalink_url": "/reel/111/"} if f.get("fields") == "permalink_url" else
-            {"status": {"video_status": "ready",
-                        "processing_phase": {"status": "complete"},
-                        "publishing_phase": {"status": publish_status}}}),
+        ("GET", "/111"): video,
     }
 
 
@@ -157,7 +169,38 @@ def test_facebook_publish(reel):
     r = FacebookPublisher(g, PAGE, poll_interval=0).publish(reel)
     assert (r.status, r.url) == (PublishStatus.PUBLISHED, "https://www.facebook.com/reel/111/")
     states = [c[2].get("video_state") for c in g.session.find("POST", f"/{PAGE}/video_reels")]
-    assert states == [None, "PUBLISHED"]
+    assert states == [None, "DRAFT", "PUBLISHED"]       # a draft first, published once checked
+    assert r.rights["clear"] and r.rights["summary"] == "aucune correspondance"
+
+
+def test_facebook_match_keeps_the_draft_and_names_the_rights_holder(reel):
+    g = graph(facebook_routes(rights=MATCH, matches=CLAIM))
+    r = FacebookPublisher(g, PAGE, poll_interval=0).publish(reel)
+    assert r.status is PublishStatus.BLOCKED and r.remote_id == "111"
+    assert "Rights Holder Ltd" in r.error and "Surah Ad-Duha" in r.error and "audio" in r.error
+    states = [c[2].get("video_state") for c in g.session.find("POST", f"/{PAGE}/video_reels")]
+    assert "PUBLISHED" not in states
+
+
+def test_facebook_waits_for_the_check_to_complete(reel):
+    answers = iter([{"status": "in_progress"}, {"status": "in_progress"}, CLEAR])
+    g = graph(facebook_routes(rights=lambda: next(answers)))
+    r = FacebookPublisher(g, PAGE, poll_interval=0).publish(reel)
+    assert r.status is PublishStatus.PUBLISHED
+    checks = [c for c in g.session.find("GET", "/111")
+              if c[2].get("fields") == "copyright_check_information"]
+    assert len(checks) == 3
+
+
+def test_facebook_unknown_field_blocks(reel):
+    routes = facebook_routes()
+    status = routes[("GET", "/111")]
+    routes[("GET", "/111")] = lambda f: (
+        Resp({"error": {"message": "(#100) Tried accessing nonexisting field "
+                                   "(copyright_check_information)", "code": 100}}, 400)
+        if f.get("fields") == "copyright_check_information" else status(f))
+    r = FacebookPublisher(graph(routes), PAGE, poll_interval=0).publish(reel)
+    assert r.status is PublishStatus.BLOCKED and "indisponible" in r.error
 
 
 def test_facebook_processing_error_is_reported(reel):
@@ -169,13 +212,28 @@ def test_facebook_processing_error_is_reported(reel):
 
 # ---- Instagram -----------------------------------------------------------------------
 
-def instagram_routes(states=("IN_PROGRESS", "FINISHED")):
+def status_only(answer):
+    """A container route for processing states; the copyright check answers clear."""
+    def route(f):
+        if f.get("fields") == "copyright_check_status":
+            return {"copyright_check_status": CLEAR}
+        return answer(f) if callable(answer) else answer
+    return route
+
+
+def instagram_routes(states=("IN_PROGRESS", "FINISHED"), rights=CLEAR):
     seq = iter(states)
+
+    def container(f):
+        if f.get("fields") == "copyright_check_status":
+            return {"copyright_check_status": rights() if callable(rights) else rights,
+                    "id": "222"}
+        return {"status_code": next(seq)}
     return {
         ("POST", f"/{IG}/media"): {"id": "222",
                                    "uri": "https://rupload.facebook.com/ig-api-upload/v24.0/222"},
         ("POST", "/ig-api-upload/v24.0/222"): {"success": True},
-        ("GET", "/222"): lambda f: {"status_code": next(seq)},
+        ("GET", "/222"): container,
         ("GET", f"/{IG}/content_publishing_limit"): {"data": [{"quota_usage": 3,
                                                                "config": {"quota_total": 50}}]},
         ("POST", f"/{IG}/media_publish"): {"id": "333"},
@@ -202,6 +260,19 @@ def test_instagram_publish(reel):
     assert g.session.find("POST", f"/{IG}/media_publish")[0][2] == {"creation_id": "222"}
 
 
+def test_instagram_match_is_never_published(reel):
+    g = graph(instagram_routes(rights=MATCH))
+    r = InstagramPublisher(g, IG, poll_interval=0).publish(reel)
+    assert r.status is PublishStatus.BLOCKED and "après publication" in r.error
+    assert not g.session.find("POST", f"/{IG}/media_publish")
+
+
+def test_instagram_check_that_errors_blocks(reel):
+    g = graph(instagram_routes(rights={"status": "error"}))
+    r = InstagramPublisher(g, IG, poll_interval=0).publish(reel)
+    assert r.status is PublishStatus.BLOCKED and not g.session.find("POST", f"/{IG}/media_publish")
+
+
 def test_instagram_container_error(reel):
     r = InstagramPublisher(graph(instagram_routes(("ERROR",))), IG, poll_interval=0).publish(reel)
     assert r.status is PublishStatus.FAILED and "ERROR" in r.error
@@ -216,7 +287,7 @@ def test_instagram_caption_limit(reel):
 def test_status_polling_survives_a_transient_error(reel):
     answers = iter([Resp({"error": {"message": "Service unavailable"}}, 503),
                     {"status_code": "FINISHED"}])
-    routes = instagram_routes() | {("GET", "/222"): lambda f: next(answers)}
+    routes = instagram_routes() | {("GET", "/222"): status_only(lambda f: next(answers))}
     r = InstagramPublisher(graph(routes), IG, poll_interval=0).publish(reel, dry_run=True)
     assert r.status is PublishStatus.READY
 
@@ -262,8 +333,9 @@ def test_upload_error_while_instagram_is_processing_is_not_a_failure(reel):
         ("POST", "/ig-api-upload/v24.0/222"): Resp(
             {"debug_info": {"type": "ProcessingFailedError", "message": "Request processing failed"}},
             400),
-        ("GET", "/222"): lambda f: {"status_code": next(states),
-                                    "status": "In Progress: Media is still being processed."},
+        ("GET", "/222"): status_only(lambda f: {
+            "status_code": next(states),
+            "status": "In Progress: Media is still being processed."}),
     }
     r = InstagramPublisher(graph(routes), IG, poll_interval=0).publish(reel, dry_run=True)
     assert (r.status, r.remote_id) == (PublishStatus.READY, "222")
@@ -283,11 +355,12 @@ def stuck_routes(stuck: int):
     for n, cid in enumerate(["222", "223", "224"]):
         if n < stuck:
             routes[("POST", f"/ig-api-upload/v24.0/{cid}")] = failing_upload()
-            routes[("GET", f"/{cid}")] = {"status_code": "IN_PROGRESS",
-                                          "status": "In Progress: Media is still being processed."}
+            routes[("GET", f"/{cid}")] = status_only({
+                "status_code": "IN_PROGRESS",
+                "status": "In Progress: Media is still being processed."})
         else:
             routes[("POST", f"/ig-api-upload/v24.0/{cid}")] = {"success": True}
-            routes[("GET", f"/{cid}")] = {"status_code": "FINISHED"}
+            routes[("GET", f"/{cid}")] = status_only({"status_code": "FINISHED"})
     return routes
 
 
@@ -309,7 +382,7 @@ def test_gives_up_after_three_stuck_containers(reel):
 
 
 def test_slow_processing_after_a_clean_upload_is_not_retried(reel):
-    routes = instagram_routes() | {("GET", "/222"): {"status_code": "IN_PROGRESS"}}
+    routes = instagram_routes() | {("GET", "/222"): status_only({"status_code": "IN_PROGRESS"})}
     g = graph(routes)
     r = InstagramPublisher(g, IG, poll_interval=0, timeout=0).publish(reel, dry_run=True)
     assert r.status is PublishStatus.FAILED and "222: still processing" in r.error

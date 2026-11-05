@@ -27,7 +27,7 @@ def test_the_config_lists_valid_backgrounds(cfg):
     ids = {b.id for b in bgs}
     assert len(ids) == len(bgs) and set(default) <= ids
     for b in bgs:
-        assert bool(b.scene) != bool(b.file), b.id
+        assert bool(b.scene) != bool(b.file or b.pixabay_id), b.id
         assert set(b.tags) <= set(themes), b.id
         assert 0 <= b.focus <= 1
     assert all(any(t in b.tags for b in bgs) for t in themes)    # every theme can be shown
@@ -37,7 +37,7 @@ def test_mountains_win_over_a_passing_mention_of_the_heavens(cfg):
     p = passage("78:6-7", "Have We not made the earth a resting place?",
                 "And the mountains as stakes? Above you are the heavens.")
     bg, theme, scores = backgrounds.choose(cfg, p)
-    assert (theme, bg.id) == ("mountains", "mountains-clouds")
+    assert theme == "mountains" and "mountains" in bg.tags
     assert scores["mountains"] == 3 and scores["sky"] == 1
 
 
@@ -60,7 +60,7 @@ def test_the_night_passage_of_ad_duha(cfg):
     p = passage("93:1-2", "By the morning brightness", "And [by] the night when it covers with "
                 "darkness,")
     bg, theme, _ = backgrounds.choose(cfg, p)
-    assert theme == "night" and bg.id == "night"
+    assert theme == "night" and "night" in bg.tags
 
 
 def test_make_loop_blends_the_end_into_the_start(tmp_path: Path):

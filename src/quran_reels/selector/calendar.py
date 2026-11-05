@@ -377,8 +377,7 @@ def check_series(cfg: Config, series: dict[str, Series], src: Any = None) -> lis
     v, p = cfg.video, cfg.content["passage"]
     overhead = float(v.get("lead_seconds", 0.4)) + float(v.get("tail_seconds", 1.2))
     high = float(p["max_seconds"])
-    tid = int(cfg.content["reciter"]["timings_id"])
-    basmala = src.quran.timings(1, tid)[1]
+    basmala = src.basmala_seconds(cfg)
     ends: dict[int, set[int]] = {}
     out = []
     for s in series.values():
@@ -396,7 +395,7 @@ def check_series(cfg: Config, series: dict[str, Series], src: Any = None) -> lis
                 refs = [AyahRef(surah, a) for a in range(1, n + 1)]
                 tr = src.quran.translate(src.translation_slug, refs)
                 ends[surah] = sentence_ends({r.ayah: t for r, t in tr.items()})
-            timings = src.quran.timings(surah, tid)
+            timings = src.ayah_seconds(cfg, surah)
             seconds = sum(timings[a] for a in range(start, end + 1)) + overhead + (
                 basmala if needs_basmala(cfg, surah, start) else 0.0)
             problems = []

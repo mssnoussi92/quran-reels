@@ -1,8 +1,9 @@
 # Backgrounds: generated scenes and hand-picked clips, chosen from what the passage says.
 #
 # Rules for a clip: nature only, no people, no animals, no text or logos; checked frame by
-# frame before being added. Direct file URL (videos.pexels.com), no API key needed; Pexels
-# licence: free to use, no attribution required (the page is kept for reference).
+# frame before being added. Pexels: direct file URL (videos.pexels.com), no API key; Pixabay:
+# by id (pixabay_id) and author, file URL from the API (PIXABAY_API_KEY). Both licences: free
+# to use, no attribution required (page and author are kept, and go into each manifest).
 #
 # Choice (sources/backgrounds.py): each theme below counts its matches in the passage's
 # translation (Sahih International, without the translator's [additions]) × its weight.
@@ -25,6 +26,16 @@ themes:                         # tag: [pattern, weight per match]; ties go to t
   sky: ['\b(sky|heavens?)\b', 1]
 
 default: [dawn, night, sea]     # when the passage mentions none of the themes
+
+pixabay:                        # search terms per theme: `quran-reels backgrounds search`
+  mountains: ["mountains", "mountain peaks clouds"]
+  sea: ["ocean waves", "calm sea", "sea waves rocks", "ocean sunset"]
+  rivers: ["river", "waterfall stream"]
+  dawn: ["sunrise", "dawn landscape"]
+  rain: ["rain clouds", "storm clouds"]
+  gardens: ["forest trees", "palm trees"]
+  night: ["night sky stars", "milky way"]
+  sky: ["clouds timelapse", "blue sky clouds"]
 
 soften:                         # clips only (busy, sharp): keeps the text readable
   blur: 2.5                     # Gaussian sigma, in pixels at 1080 wide
@@ -67,3 +78,154 @@ backgrounds:
     focus: 0.55
     tags: [rivers, gardens]
     note: river rapids between rocks and green trees, fixed camera (13 s)
+
+  # Pixabay clips (approved by the owner on 2026-11-05 after a frame-by-frame check: no
+  # people, no animals, no text). File URL from the API by id, downloaded on first use.
+  # 21 of 38 candidates; 213423 (aurora) declined by the owner.
+  - id: pb-alpine-peak
+    source: pixabay
+    pixabay_id: 22512
+    author: luc_toutsimplement
+    page: https://pixabay.com/videos/id-22512/
+    tags: [mountains]
+    note: aerial, rocky alpine peak in snow (20 s, 2.5K)
+  - id: pb-ama-dablam
+    source: pixabay
+    pixabay_id: 277097
+    author: vecax
+    page: https://pixabay.com/videos/id-277097/
+    tags: [mountains, sky]
+    note: snowy peak, passing clouds, timelapse (18 s)
+  - id: pb-clear-shallows
+    source: pixabay
+    pixabay_id: 208635
+    author: SkyScapeDrone
+    page: https://pixabay.com/videos/id-208635/
+    tags: [sea]
+    note: clear shallow water over sand, vertical 4K (11 s)
+  - id: pb-sunset-waves
+    source: pixabay
+    pixabay_id: 138588
+    author: Natures_Embrace
+    page: https://pixabay.com/videos/id-138588/
+    tags: [sea]
+    note: waves at sunset, 4K (29 s)
+  - id: pb-golden-shallows
+    source: pixabay
+    pixabay_id: 133508
+    author: Marsel_beijing
+    page: https://pixabay.com/videos/id-133508/
+    tags: [sea]
+    note: waves over golden sand, blue sky, vertical (10 s)
+  - id: pb-forest-waterfall
+    source: pixabay
+    pixabay_id: 228847
+    author: Kanenori
+    page: https://pixabay.com/videos/id-228847/
+    tags: [rivers, gardens]
+    note: waterfall in a forest, vertical 4K (20 s)
+  - id: pb-mossy-stream
+    source: pixabay
+    pixabay_id: 271161
+    author: McPix22
+    page: https://pixabay.com/videos/id-271161/
+    tags: [rivers]
+    note: stream among mossy rocks, 4K (27 s)
+  - id: pb-forest-river
+    source: pixabay
+    pixabay_id: 174860
+    author: Alex_Sochi7777
+    page: https://pixabay.com/videos/id-174860/
+    tags: [rivers, gardens]
+    note: forest river with small rapids, 4K (28 s)
+  - id: pb-island-sunrise
+    source: pixabay
+    pixabay_id: 2119
+    author: bellergy
+    page: https://pixabay.com/videos/id-2119/
+    tags: [dawn]
+    note: aerial sunrise over forest and islands (25 s)
+  - id: pb-fog-sunrise
+    source: pixabay
+    pixabay_id: 59291
+    author: trilemedia
+    page: https://pixabay.com/videos/id-59291/
+    tags: [dawn]
+    note: sun above a valley of fog, 4K (19 s)
+  - id: pb-cumulus-forest
+    source: pixabay
+    pixabay_id: 291622
+    author: adege
+    page: https://pixabay.com/videos/id-291622/
+    tags: [rain, sky]
+    note: cumulus over a forest line, timelapse 4K (15 s)
+  - id: pb-grey-clouds
+    source: pixabay
+    pixabay_id: 215149
+    author: adege
+    page: https://pixabay.com/videos/id-215149/
+    tags: [rain]
+    note: grey clouds over hills, timelapse 4K (40 s)
+  - id: pb-storm
+    source: pixabay
+    pixabay_id: 223338
+    author: adege
+    page: https://pixabay.com/videos/id-223338/
+    tags: [rain]
+    note: storm darkening over hills, timelapse 4K (40 s)
+  - id: pb-forest-sunbeams
+    source: pixabay
+    pixabay_id: 287510
+    author: Thamnguyen_TBVN
+    page: https://pixabay.com/videos/id-287510/
+    tags: [gardens, rivers]
+    note: forest stream in sunbeams, 4K (16 s)
+  - id: pb-misty-pines
+    source: pixabay
+    pixabay_id: 382582
+    author: Matthias_Groeneveld
+    page: https://pixabay.com/videos/id-382582/
+    tags: [gardens]
+    note: misty pine forest, sunbeams, 4K (12 s)
+  - id: pb-autumn-birches
+    source: pixabay
+    pixabay_id: 18420
+    author: Nature-Stock-Footage
+    page: https://pixabay.com/videos/id-18420/
+    tags: [gardens]
+    note: autumn birch forest, 4K (12 s)
+  - id: pb-full-moon
+    source: pixabay
+    pixabay_id: 29238
+    author: Dans4
+    page: https://pixabay.com/videos/id-29238/
+    tags: [night]
+    note: full moon in thin clouds (20 s)
+  - id: pb-aurora-trees
+    source: pixabay
+    pixabay_id: 90998
+    author: domukuk
+    page: https://pixabay.com/videos/id-90998/
+    tags: [night]
+    note: aurora and stars above trees, partly computer-made look (55 s)
+  - id: pb-cumulus-blue
+    source: pixabay
+    pixabay_id: 116167
+    author: NickyPe
+    page: https://pixabay.com/videos/id-116167/
+    tags: [sky]
+    note: white cumulus on blue, timelapse 4K (30 s)
+  - id: pb-moving-clouds
+    source: pixabay
+    pixabay_id: 95188
+    author: NickyPe
+    page: https://pixabay.com/videos/id-95188/
+    tags: [sky, rain]
+    note: clouds passing on blue, timelapse 4K (20 s)
+  - id: pb-sunset-clouds
+    source: pixabay
+    pixabay_id: 190332
+    author: DancingSky
+    page: https://pixabay.com/videos/id-190332/
+    tags: [sky]
+    note: cloudscape at sunset over plains, timelapse 4K (14 s)

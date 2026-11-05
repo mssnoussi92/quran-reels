@@ -7,6 +7,9 @@ name: publish-test
 #   publish  really posts on Facebook and Instagram. Type PUBLIER in "confirm" to allow it.
 # Every run checks the Meta Page token first and fails if its data access expires in < 14 days.
 # TikTok needs the tiktok-auth workflow to have run once (TIKTOK_REFRESH_TOKEN).
+# Rights: the reel is uploaded unpublished first and Meta's copyright check is read; the run
+# summary gives each platform's answer. `reciters` tries several recitations in one dry run.
+# what: images runs `quran-reels images run --dry-run` at today's slot (always a dry run here).
 
 on:
   workflow_dispatch:
@@ -29,6 +32,15 @@ on:
         description: "For mode publish only: type PUBLIER"
         required: false
         default: ""
+      reciters:
+        description: "Dry run: reciters to try one after the other, e.g. hudhaifi,ayyoub,akhdar (empty: the configured one)"
+        required: false
+        default: ""
+      what:
+        description: "reel, or images (dry run of today's Word of the day: photos, carousel, nothing posted)"
+        type: choice
+        options: [reel, images]
+        default: reel
 
 permissions:
   contents: read
@@ -40,18 +52,24 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-24.04     # pinned: same ffmpeg as tested; ubuntu-latest is moving to 26.04
-    timeout-minutes: 30
+    timeout-minutes: 75       # several reciters, each waiting for Meta's copyright check
     env:                       # secrets: only in the steps that use them, below
       PASSAGE: ${{ inputs.passage }}
       MODE: ${{ inputs.mode }}
       PLATFORMS: ${{ inputs.platforms }}
       CONFIRM: ${{ inputs.confirm }}
+      RECITERS: ${{ inputs.reciters }}
+      WHAT: ${{ inputs.what }}
     steps:
       - name: Confirm a real publication
         if: inputs.mode == 'publish'
         run: |
           if [ "$CONFIRM" != "PUBLIER" ]; then
             echo "::error::mode publish: type PUBLIER in the confirm field to post for real."
+            exit 1
+          fi
+          if [ "$(echo "$RECITERS" | tr ',+' '  ' | wc -w)" -gt 1 ]; then
+            echo "::error::mode publish: one reciter at most (several would post several times)."
             exit 1
           fi
       - uses: actions/checkout@v6
@@ -71,7 +89,7 @@ jobs:
           quran-reels meta-check "$@"
       - name: Install ffmpeg and Chromium
         run: |
-          sudo apt-get update && sudo apt-get install -y ffmpeg
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
           python -m playwright install --with-deps chromium
       - uses: actions/cache@v5
         with:
@@ -87,19 +105,37 @@ jobs:
           TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
           TIKTOK_REFRESH_TOKEN: ${{ secrets.TIKTOK_REFRESH_TOKEN }}
           GH_SECRETS_TOKEN: ${{ secrets.GH_SECRETS_TOKEN }}   # saves TikTok's new refresh token
+          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}    # an approved Pixabay clip, first use
         run: |
+          if [ "$WHAT" = "images" ]; then
+            slot=$(python -c "import yaml; print(yaml.safe_load(open('config/images.yaml'))['formats']['word']['time_utc'])")
+            quran-reels images run --state /tmp/images-dry-run.json --dry-run \
+              --now "$(date -u +%Y-%m-%d)T${slot}:00+00:00"
+            exit $?
+          fi
           set -- $(echo "$PLATFORMS" | tr '+' ' ' | sed 's/[^ ]*/--platform &/g')
           if [ "$MODE" = "dry-run" ]; then set -- "$@" --dry-run; fi
-          quran-reels publish "$PASSAGE" "$@"
+          list=$(echo "$RECITERS" | tr ',+' '  ')
+          if [ -z "$list" ]; then quran-reels publish "$PASSAGE" "$@"; exit $?; fi
+          status=0                  # every reciter is tried, each in its own out/<reciter>/
+          for r in $list; do
+            echo "::group::$r"
+            QURAN_REELS_RECITER="$r" quran-reels publish "$PASSAGE" "$@" || status=1
+            mkdir -p "results/$r" && mv out/* "results/$r/"
+            echo "::endgroup::"
+          done
+          mv results/* out/
+          exit $status
       - name: Keep the video and the results
         if: always()
         uses: actions/upload-artifact@v6
         with:
           name: publish-${{ inputs.mode }}
           path: |
-            out/*.mp4
-            out/*/caption.txt
-            out/*/manifest.json
-            out/*/publish.json
+            out/**/*.mp4
+            out/**/caption.txt
+            out/**/manifest.json
+            out/**/publish.json
+            out/images/
           if-no-files-found: ignore
           retention-days: 14

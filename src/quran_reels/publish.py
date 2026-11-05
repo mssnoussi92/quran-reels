@@ -4,6 +4,11 @@ Facebook and Instagram: every run checks the Page token first (validity, permiss
 access expiry) and stops with a clear message if it cannot publish for at least
 platforms.meta.min_days_left days. TikTok: draft mode, the reel goes to the TikTok inbox.
 Results go to out/<passage>/publish.json and, on GitHub Actions, to the run summary.
+
+Rights (publishers/rights.py): the reel is first uploaded unpublished to every Meta platform
+(Facebook draft, Instagram container) and Meta's copyright check is read on each. Nothing is
+published, TikTok included, unless every check is complete without a match: a recitation
+that Rights Manager recognises gets the reel cut or muted after publication.
 """
 
 from __future__ import annotations
@@ -17,6 +22,7 @@ from pathlib import Path
 from quran_reels.config import Config
 from quran_reels.gh_secrets import save_secret
 from quran_reels.models import Passage, PublishResult, PublishStatus, Reel, parse_passage
+from quran_reels.publishers.base import PublisherError
 from quran_reels.publishers.facebook import FacebookPublisher
 from quran_reels.publishers.instagram import InstagramPublisher
 from quran_reels.publishers.meta import (
@@ -42,6 +48,7 @@ _LABELS = {
     PublishStatus.PUBLISHED: "publié",
     PublishStatus.DRAFT: "brouillon, non publié (Meta Business Suite → Contenu → Brouillons)",
     PublishStatus.READY: "conteneur prêt, non publié (Instagram le supprime après 24 h)",
+    PublishStatus.BLOCKED: "non publié : vérification des droits",
     PublishStatus.FAILED: "échec",
 }
 _TIKTOK_DRAFT = "dans la boîte TikTok : notification dans l'app, à publier à la main"
@@ -106,15 +113,17 @@ def load_reel(video: Path) -> Reel:
 
 
 def _report(reel: Reel, results: list[PublishResult], dry_run: bool,
-            token: TokenReport | None) -> str:
-    title = f"## {'🧪 Dry run' if dry_run else '📣 Publication'} {reel.passage.key}"
-    rows = ["| Plateforme | Résultat | Identifiant / lien |", "|---|---|---|"]
+            token: TokenReport | None, reciter: str = "") -> str:
+    title = f"## {'🧪 Dry run' if dry_run else '📣 Publication'} {reel.passage.key}" + (
+        f" · {reciter}" if reciter else "")
+    rows = ["| Plateforme | Résultat | Droits (Meta) | Identifiant / lien |", "|---|---|---|---|"]
     for r in results:
         label = _TIKTOK_DRAFT if (r.platform, r.status) == ("tiktok", PublishStatus.DRAFT) \
             else _LABELS[r.status]
         label += f" : {r.error}" if r.error else ""
+        rights = (("✅ " if r.rights["clear"] else "⛔ ") + r.rights["summary"]) if r.rights else ""
         where = r.url or (f"`{r.remote_id}`" if r.remote_id else "")
-        rows.append(f"| {r.platform} | {label} | {where} |")
+        rows.append(f"| {r.platform} | {label} | {rights} | {where} |")
     return "\n".join([title, "", *rows, "", token.summary() if token else ""]).rstrip()
 
 
@@ -135,36 +144,82 @@ def publish_reel(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
     tiktok = tiktok_publisher() if "tiktok" in platforms else None
     reel = load_reel(video)
 
-    results = []
+    rights_timeout = float(_meta(cfg).get("rights_timeout", 600))
+    publishers = {}
     for name in platforms:
         if name == "facebook":
-            publisher = FacebookPublisher(graph, env.page_id,
-                                          max_hashtags=max_hashtags(cfg, name))
+            publishers[name] = FacebookPublisher(graph, env.page_id,
+                                                 max_hashtags=max_hashtags(cfg, name),
+                                                 rights_timeout=rights_timeout)
         elif name == "instagram":
-            publisher = InstagramPublisher(graph, str(env.ig_user_id),
-                                           max_hashtags=max_hashtags(cfg, name))
+            publishers[name] = InstagramPublisher(graph, str(env.ig_user_id),
+                                                  max_hashtags=max_hashtags(cfg, name),
+                                                  rights_timeout=rights_timeout)
         else:
-            publisher = tiktok
-        print(f"{name}: uploading {reel.video.name}{' (dry run)' if dry_run else ''}",
-              file=sys.stderr)
-        result = publisher.publish(reel, dry_run=dry_run)
-        print(f"{name}: {result.status.value} {result.remote_id or ''} {result.url or ''} "
-              f"{result.error or ''}".rstrip(), file=sys.stderr)
-        results.append(result)
+            publishers[name] = tiktok
+
+    # 1. Meta: upload unpublished everywhere, then read every copyright check.
+    results: dict[str, PublishResult] = {}
+    prepared: dict[str, str] = {}
+    for name in (p for p in platforms if p in META):
+        print(f"{name}: uploading {reel.video.name} unpublished", file=sys.stderr)
+        try:
+            prepared[name] = publishers[name].prepare(reel)
+        except (PublisherError, KeyError) as e:
+            results[name] = PublishResult(name, PublishStatus.FAILED, error=str(e))
+    checks = {}
+    for name, object_id in prepared.items():
+        checks[name] = publishers[name].rights(object_id)
+        print(f"{name}: rights check {checks[name].status} after {checks[name].seconds:.0f} s: "
+              f"{checks[name].describe()}", file=sys.stderr)
+    blocked = {n: c for n, c in checks.items() if not c.clear}
+    reason = "; ".join(f"{n} : {c.describe()}" for n, c in blocked.items())
+
+    # 2. Publish only if no platform found a problem.
+    for name in platforms:
+        if name in results:
+            continue
+        check = checks.get(name)
+        if name in prepared:
+            if dry_run:
+                status = PublishStatus.DRAFT if name == "facebook" else PublishStatus.READY
+                results[name] = PublishResult(name, status, remote_id=prepared[name])
+            elif blocked:
+                results[name] = PublishResult(
+                    name, PublishStatus.BLOCKED, remote_id=prepared[name],
+                    error=f"droits : {reason} — {reel.passage.key} non publié")
+            else:
+                results[name] = publishers[name].commit(prepared[name], reel)
+            results[name].rights = check.as_dict()
+        elif blocked:
+            results[name] = PublishResult(name, PublishStatus.BLOCKED,
+                                          error=f"non envoyé, droits : {reason}")
+        else:
+            print(f"{name}: uploading {reel.video.name}{' (dry run)' if dry_run else ''}",
+                  file=sys.stderr)
+            results[name] = publishers[name].publish(reel, dry_run=dry_run)
+        r = results[name]
+        print(f"{name}: {r.status.value} {r.remote_id or ''} {r.url or ''} {r.error or ''}"
+              .rstrip(), file=sys.stderr)
+    results_list = [results[n] for n in platforms]
 
     out = video.with_suffix("") / "publish.json"
     out.write_text(json.dumps({"passage": reel.passage.key, "dry_run": dry_run,
+                               "reciter": (cfg.project.get("content") or {}).get("reciter"),
                                "results": [asdict(r) | {"status": r.status.value}
-                                           for r in results]},
+                                           for r in results_list]},
                               ensure_ascii=False, indent=2), encoding="utf-8")
-    _summary(_report(reel, results, dry_run, token))
-    return results
+    reciter = ((getattr(cfg, "project", None) or {}).get("content") or {}).get("reciter") or {}
+    _summary(_report(reel, results_list, dry_run, token,
+                     reciter.get("label", "") if isinstance(reciter, dict) else ""))
+    return results_list
 
 
 def run(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
         checked: tuple[Graph, MetaEnv, TokenReport] | None = None) -> int:
     results = publish_reel(cfg, video, platforms, dry_run, checked)
-    return 1 if any(r.status is PublishStatus.FAILED for r in results) else 0
+    return 1 if any(r.status in (PublishStatus.FAILED, PublishStatus.BLOCKED)
+                    for r in results) else 0
 
 
 def _event_input(name: str) -> str | None:

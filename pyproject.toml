@@ -15,6 +15,8 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff>=0.5"]
+# quran-reels split: torch from https://download.pytorch.org/whl/cpu (CPU only, ~200 MB)
+asr = ["torch>=2.4", "transformers>=4.45"]
 
 [project.scripts]
 quran-reels = "quran_reels.cli:main"

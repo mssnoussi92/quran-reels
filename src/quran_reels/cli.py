@@ -8,6 +8,20 @@ import sys
 from quran_reels import config
 
 
+def _reciter_for(cfg, key: str):
+    """$QURAN_REELS_RECITER, or else the reciter the rotation chooses for this passage."""
+    import os
+
+    from quran_reels import reciters as rec
+    from quran_reels.config import RECITER_ENV
+
+    if os.environ.get(RECITER_ENV) or not rec.rotation(cfg):
+        return cfg
+    name, _ = rec.choose(cfg, key, [])
+    print(f"{key}: {name} (content.rotation)", file=sys.stderr)
+    return rec.with_reciter(cfg, name)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="quran-reels")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -23,6 +37,13 @@ def main(argv: list[str] | None = None) -> int:
 
     passages = sub.add_parser("passages", help="split a surah into passages of about a minute")
     passages.add_argument("surah", type=int)
+
+    split = sub.add_parser("split", help="reciter with one file per surah: find where each "
+                                         "ayah starts (speech recognition), check, write "
+                                         "config/splits/ (needs the asr extra)")
+    split.add_argument("passages", nargs="+", help="surahs (114) or passages (2:255-257): "
+                                                   "only their ayahs are checked")
+    split.add_argument("--force", action="store_true", help="check again what is checked")
 
     publish = sub.add_parser("publish", help="publish a reel (Facebook, Instagram, TikTok draft)")
     publish.add_argument("target", help="out/093_001-011.mp4, or a passage/surah to render first")
@@ -60,6 +81,30 @@ def main(argv: list[str] | None = None) -> int:
         d.add_argument("--check", action="store_true", help="only say whether a slot is due")
         d.add_argument("--force", action="store_true", help="even if schedule.enabled is false")
 
+    img = sub.add_parser("images", help="daily image posts (docs/images.md)")
+    img_sub = img.add_subparsers(dest="images_command", required=True)
+    b = img_sub.add_parser("build", help="rules 1-4 → config/image-candidates.yaml")
+    b.add_argument("--surah", type=int, action="append", help="only this surah (repeatable)")
+    for name, text in (("next", "what the next days post (nothing is published)"),
+                       ("render", "render the next days' posts into out/images/ (preview)")):
+        n = img_sub.add_parser(name, help=text)
+        n.add_argument("--days", type=int, default=7)
+        n.add_argument("--kind", default="word", choices=["word", "ayah"])
+        n.add_argument("--from", dest="start", help="first day, YYYY-MM-DD (default: today)")
+        n.add_argument("--state", default="state/images.json")
+    r = img_sub.add_parser("run", help="post the image formats due now (config/images.yaml)")
+    r.add_argument("--state", default="state/images.json")
+    r.add_argument("--now", help="ISO date-time instead of now, for tests")
+    r.add_argument("--dry-run", action="store_true", help="nothing posted, state unchanged")
+    r.add_argument("--check", action="store_true", help="only say whether a post is due")
+
+    bgs = sub.add_parser("backgrounds", help="background clips")
+    bgs_sub = bgs.add_subparsers(dest="backgrounds_command", required=True)
+    se = bgs_sub.add_parser("search", help="Pixabay candidates per theme (to check frame by frame)")
+    se.add_argument("--theme", action="append", help="only this theme (repeatable)")
+    se.add_argument("--per-theme", type=int, default=4)
+    se.add_argument("--out", default="out/pixabay/candidates.json")
+
     note = sub.add_parser("notify", help="GitHub issues: failure alert, captions to copy")
     note.add_argument("--outcome", required=True, help="the job status: success or failure")
     note.add_argument("--run-url", required=True)
@@ -85,11 +130,44 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{p.key:<10} {p.seconds:6.1f} s  {', '.join(notes)}".rstrip())
         return 0
 
+    if args.command == "split":
+        from quran_reels.sources import Sources
+        from quran_reels.sources.surah_audio import SurahFiles
+
+        src = Sources.from_config(cfg)
+        if not isinstance(src.audio, SurahFiles):
+            raise SystemExit(f"{cfg.content['reciter']['name']}: one file per ayah, nothing to "
+                             f"split (choose one with QURAN_REELS_RECITER)")
+        from quran_reels.models import parse_passage
+        from quran_reels.sources.surah_audio import MIN_MATCH
+
+        src.quran.ensure(src.translation_slug)
+        failed = []
+        for key in args.passages:
+            surah, start, end = parse_passage(key if ":" in key else f"{key}:1-999")
+            end = min(end, src.quran.chapters[surah]["verses_count"])
+            check = {str(a) for a in range(start, end + 1)}
+            if surah not in (1, 9):
+                check.add("basmala")
+            done = {k for k, v in src.audio.matches(surah).items() if v >= MIN_MATCH}
+            if check <= done and not args.force:
+                print(f"{key}: already checked ({src.audio.split_path(surah)})")
+                continue
+            try:
+                src.audio.make_split(surah, None if ":" not in key else check)
+            except SystemExit as e:
+                print(e, file=sys.stderr)
+                failed.append(key)
+        if failed:
+            print(f"not ready: {', '.join(failed)}", file=sys.stderr)
+        return 1 if failed else 0
+
     if args.command == "render":
         from quran_reels.render import render_passage
         from quran_reels.selector.plan import resolve
 
-        print(render_passage(cfg, resolve(cfg, args.passage)).video)
+        key = resolve(cfg, args.passage)
+        print(render_passage(_reciter_for(cfg, key), key).video)
         return 0
 
     if args.command == "meta-check":
@@ -114,7 +192,9 @@ def main(argv: list[str] | None = None) -> int:
             from quran_reels.render import render_passage
             from quran_reels.selector.plan import resolve
 
-            video = render_passage(cfg, resolve(cfg, args.target)).video
+            key = resolve(cfg, args.target)
+            cfg = _reciter_for(cfg, key)
+            video = render_passage(cfg, key).video
         elif not video.is_file():
             raise SystemExit(f"{video}: no such file")
         return publish_mod.run(cfg, video, platforms, dry_run=args.dry_run, checked=checked)
@@ -172,9 +252,23 @@ def main(argv: list[str] | None = None) -> int:
                  else datetime.now(UTC).astimezone(sched.tz).date())
         if not sched.enabled:
             print("(schedule disabled: this is what it would publish)")
+        from quran_reels import reciters as rec
+
+        order = {s.name: i for i, s in enumerate(sorted(sched.slots, key=lambda s: s.at))}
+        recent = rec.recent_reciters(state, order)
         for day, slot, queue, item in preview(sched, series, state, start, args.days):
             what = f"{item.key:<10} {item.label_en or item.series.id}" if item else "— nothing left"
-            print(f"{day:%a %Y-%m-%d} {slot.at:%H:%M} {queue:<8} {what}")
+            reciter = ""
+            if item and rec.rotation(cfg):
+                done = state.slot(day, slot.name) or {}
+                try:
+                    name = done.get("reciter") or rec.choose(cfg, item.key, recent)[0]
+                    secs = rec.passage_seconds(rec.with_reciter(cfg, name), item.key).seconds
+                    reciter = f"  [{name}, {secs} s]"
+                    recent.append(name)
+                except SystemExit:
+                    reciter = "  [no reciter ready: quran-reels split " + item.key + "]"
+            print(f"{day:%a %Y-%m-%d} {slot.at:%H:%M} {queue:<8} {what}{reciter}")
         return 0
 
     if args.command in ("daily", "run"):
@@ -187,6 +281,24 @@ def main(argv: list[str] | None = None) -> int:
         return daily.run(cfg, Path(args.state), now=now, dry_run=args.dry_run,
                          check=args.check, force=args.force,
                          report=cfg.out / "daily-report.json")
+
+    if args.command == "images":
+        return _images(cfg, args)
+
+    if args.command == "backgrounds":
+        import json
+        from pathlib import Path
+
+        from quran_reels.sources.pixabay import candidates
+
+        found = candidates(cfg, args.theme, args.per_theme)
+        out = Path(args.out)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(found, ensure_ascii=False, indent=1), encoding="utf-8")
+        for c in found:                 # one line each: public metadata only, never the key
+            print(json.dumps(c, ensure_ascii=False))
+        print(f"{len(found)} candidates → {out}", file=sys.stderr)
+        return 0
 
     if args.command == "notify":
         from pathlib import Path
@@ -202,3 +314,69 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+def _images(cfg: config.Config, args) -> int:
+    from datetime import UTC, date, datetime
+    from pathlib import Path
+
+    from quran_reels.images import candidates as cand_mod
+    from quran_reels.images import daily as images_daily
+    from quran_reels.images.select import ImageState, load_exclusions, upcoming
+    from quran_reels.sources import Sources
+
+    if args.images_command == "build":
+        src = Sources.from_config(cfg)
+        words_out, ayahs_out, left_out = cand_mod.build(cfg, src, surahs=args.surah)
+        if args.surah:
+            print(f"{len(words_out)} words, {len(ayahs_out)} ayahs (not written: --surah)")
+            for c in words_out:
+                print(c.row())
+            return 0
+        path = cand_mod.write(cfg, words_out, ayahs_out, left_out)
+        print(f"{path}: {len(words_out)} words, {len(ayahs_out)} ayahs")
+        for reason, n in sorted(left_out.items()):
+            print(f"  left out, {reason}: {n}")
+        return 0
+
+    if args.images_command == "run":
+        now = datetime.fromisoformat(args.now) if args.now else None
+        return images_daily.run(cfg, Path(args.state), now=now, dry_run=args.dry_run,
+                                check=args.check, report=cfg.out / "images-report.json")
+
+    # next / render: the coming days, from the state, nothing published
+    settings = images_daily.settings(cfg)
+    conf = (settings.get("formats") or {}).get(args.kind) or {}
+    start = date.fromisoformat(args.start) if args.start else datetime.now(UTC).date()
+    picks = upcoming(cand_mod.load(cfg, args.kind), ImageState.load(Path(args.state)),
+                     args.kind, conf.get("seed", "quran-words-daily"), load_exclusions(cfg),
+                     start, args.days)
+    if not conf.get("enabled"):
+        print(f"({args.kind} is disabled in config/images.yaml: this is what it would post)")
+    src = Sources.from_config(cfg)
+    src.quran.ensure(src.translation_slug)
+    if args.images_command == "next":
+        from quran_reels.arabic import words
+        from quran_reels.models import AyahRef
+        from quran_reels.passage import shown_words
+
+        for day, c in picks:
+            name = src.quran.chapters[c.surah]["name_simple"]
+            what = ""
+            if c.kind == "word":
+                ref = AyahRef(c.surah, c.ayah)
+                what = shown_words(words(src.quran.text([ref])[ref]), c.positions)
+            a, b = c.context
+            shown = f"{c.surah}:{a}" if a == b else f"{c.surah}:{a}-{b}"
+            print(f"{day:%a %Y-%m-%d}  {c.key:<9} {name:<16} {what:<18} image 2: {shown}")
+        return 0
+
+    from quran_reels.images.cards import CardRenderer
+
+    with CardRenderer(cfg) as renderer:
+        for day, c in picks:
+            post = images_daily.render(cfg, src, args.kind, day, c, cfg.out / "images",
+                                       renderer=renderer)
+            print(f"{day}  {c.key}  {post.folder}")
+    return 0
+

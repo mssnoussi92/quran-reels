@@ -92,16 +92,16 @@ def plan_surah(cfg: Config, surah: int, src: Sources | None = None) -> list[Plan
     overhead = float(v.get("lead_seconds", 0.4)) + float(v.get("tail_seconds", 1.2))
 
     n = src.quran.chapters[surah]["verses_count"]
-    timings = src.quran.timings(surah, int(cfg.content["reciter"]["timings_id"]))
+    timings = src.ayah_seconds(cfg, surah)
     missing = [a for a in range(1, n + 1) if a not in timings]
     if missing:
-        raise SystemExit(f"no timing for {surah}:{missing[0]} on Quran.com")
+        raise SystemExit(f"no timing for {surah}:{missing[0]} ({cfg.content['reciter']['id']})")
     seconds = [timings[a] for a in range(1, n + 1)]
 
     def basmala(start: int) -> float:
         if not needs_basmala(cfg, surah, start):
             return 0.0
-        return src.quran.timings(1, int(cfg.content["reciter"]["timings_id"]))[1]
+        return src.basmala_seconds(cfg, surah)
 
     whole = sum(seconds) + overhead + basmala(1)
     if p.get("whole_surah", True) and whole <= high:

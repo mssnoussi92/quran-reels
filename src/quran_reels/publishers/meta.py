@@ -94,6 +94,17 @@ class Graph:
         return self._call("POST", f"{GRAPH}/{self.version}/{path}", f"POST {path}",
                           data=data, headers=self._auth())
 
+    def post_file(self, path: str, field: str, file: Path, **data: Any) -> dict:
+        """Multipart upload of a small file (Page photos)."""
+        with file.open("rb") as f:
+            return self._call("POST", f"{GRAPH}/{self.version}/{path}", f"POST {path}",
+                              data=data, files={field: (file.name, f, "image/jpeg")},
+                              headers=self._auth())
+
+    def delete(self, path: str) -> dict:
+        return self._call("DELETE", f"{GRAPH}/{self.version}/{path}", f"DELETE {path}",
+                          headers=self._auth())
+
     def upload(self, url: str, video: Path, what: str) -> dict:
         """Binary upload to rupload.facebook.com (Reels and Instagram resumable uploads)."""
         size = video.stat().st_size

@@ -1,0 +1,4 @@
+# Ayahs never published as images (Word of the day, Ayah of the day). Edit at any time: the
+# next daily run skips them. Entries: an ayah "2:255", a range "2:1-5", or a whole surah 9.
+# A run of ayahs is skipped when any of its ayahs is excluded.
+exclude: []

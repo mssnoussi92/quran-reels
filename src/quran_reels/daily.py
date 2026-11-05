@@ -8,7 +8,9 @@ in UTC (summer time moves the slots by an hour) and often runs late. Each run:
   - saves the state after each slot (published.json, kept on the `state` branch).
 
 A passage counts as published, and its queue moves on, once one platform has it: a failed
-platform is retried while the slot's window lasts, never with another passage.
+platform is retried while the slot's window lasts, never with another passage. A slot blocked
+by Meta's copyright check is not retried: the same recitation would be refused again. Its
+passage stays first in its queue until the recitation changes.
 """
 
 from __future__ import annotations
@@ -55,6 +57,11 @@ def pending(sched: Schedule, series: dict[str, Series], state: State, now: datet
     out = []
     for day, slot in sched.due(now):
         record = sim.slot(day, slot.name)
+        if record and any(r.get("status") == PublishStatus.BLOCKED.value
+                          for r in record["results"].values()):
+            print(f"{day} {slot.name}: blocked by the rights check, not retried "
+                  f"({record['passage']})", file=sys.stderr)
+            continue
         if record:
             done = {p for p, r in record["results"].items() if r.get("status") in OK_STATUSES}
             todo = [p for p in platforms if p not in done]
@@ -134,8 +141,10 @@ def copy_text(cfg: Config, video: Path) -> str:
 def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: State,
              state_path: Path, todo: list[Pending], platforms: list[str], dry_run: bool,
              log: dict) -> int:
+    from quran_reels import reciters as rec
     from quran_reels.render import render_passage
 
+    order = {s.name: i for i, s in enumerate(sorted(sched.slots, key=lambda s: s.at))}
     meta = [x for x in platforms if x in publish_mod.META]
     checked = publish_mod.meta_check(cfg, meta) if meta else None     # before rendering
     failed = False
@@ -145,14 +154,27 @@ def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
             if got is None:
                 continue
             p.queue, p.item = got
-        video = render_passage(cfg, p.item.key, p.item.label_ar, p.item.label_en,
+        pcfg, reciter = cfg, None
+        if rec.rotation(cfg):       # the reciter is chosen per passage (reciters.py)
+            before = state.slot(p.day, p.slot.name) or {}
+            if p.retry and before.get("reciter"):
+                reciter = before["reciter"]          # a retry posts the same recitation
+            else:
+                reciter, opts = rec.choose(cfg, p.item.key, rec.recent_reciters(state, order))
+                print(f"{p.item.key}: {reciter} (" + ", ".join(
+                    f"{o.name} {o.seconds} s" if o.seconds is not None else f"{o.name}: {o.why}"
+                    for o in opts) + ")")
+            pcfg = rec.with_reciter(cfg, reciter)
+        video = render_passage(pcfg, p.item.key, p.item.label_ar, p.item.label_en,
                                p.item.series.hashtags).video
-        results = publish_mod.publish_reel(cfg, video, p.platforms, dry_run, checked)
-        failed |= any(r.status is PublishStatus.FAILED for r in results)
+        results = publish_mod.publish_reel(pcfg, video, p.platforms, dry_run, checked)
+        failed |= any(r.status in (PublishStatus.FAILED, PublishStatus.BLOCKED)
+                      for r in results)
         caption = copy_text(cfg, video)
         log["items"].append({
             "key": f"{p.day.isoformat()}/{p.slot.name}", "day": p.day.isoformat(),
             "time": f"{p.slot.at:%H:%M}", "passage": p.item.key, "label": p.item.label_en,
+            "reciter": reciter,
             "retry": p.retry, "caption": caption,
             "results": {r.platform: {"status": r.status.value, "url": r.url, "error": r.error}
                         for r in results}})
@@ -163,6 +185,8 @@ def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
             continue
         record = state.slot(p.day, p.slot.name) or {
             "queue": p.queue, "item": p.item.id, "passage": p.item.key, "results": {}}
+        if reciter:
+            record["reciter"] = reciter
         for r in results:
             record["results"][r.platform] = {
                 "status": r.status.value, "id": r.remote_id, "url": r.url, "error": r.error,

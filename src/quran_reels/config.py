@@ -62,7 +62,7 @@ _AYAH_KEY = re.compile(r"^\s*(\d{1,3})\s*:\s*(\d{1,3})\s*$")
 
 
 def parse_headwords(raw: Any) -> dict[str, list[tuple[str, ...]]]:
-    """config/glosses.yaml headwords → {"S:A": [choice, ...]}, each choice one or two words.
+    """config/glosses.yaml headwords → {"S:A": [choice, ...]}, each choice 1 to 3 words.
 
     A string is one choice («سجى», «زهرة الحياة»); a list holds one choice per gloss of the
     ayah («[ريب, هدى]»).
@@ -86,18 +86,35 @@ def parse_headwords(raw: Any) -> dict[str, list[tuple[str, ...]]]:
                 raise SystemExit(f"config/glosses.yaml, {ayah}: write the word(s) to highlight, "
                                  "e.g. \"93:2\": سجى")
             chosen = tuple(str(item).split())
-            if not 1 <= len(chosen) <= 2:
-                raise SystemExit(f"config/glosses.yaml, {ayah}: «{item}»: choose one or two words")
+            if not 1 <= len(chosen) <= 3:
+                raise SystemExit(f"config/glosses.yaml, {ayah}: «{item}»: choose 1 to 3 words")
             choices.append(chosen)
         out[ayah] = choices
     return out
+
+
+RECITER_ENV = "QURAN_REELS_RECITER"     # test runs: another reciter of the catalogue
+
+
+def resolve_reciter(project: dict[str, Any]) -> dict[str, Any]:
+    """content.reciter names one of content.reciters (or $QURAN_REELS_RECITER does): the
+    entry replaces the name, so that the rest of the code reads content.reciter.label etc."""
+    content = project.get("content") or {}
+    catalogue = content.get("reciters") or {}
+    chosen = os.environ.get(RECITER_ENV) or content.get("reciter")
+    if isinstance(chosen, str):
+        if chosen not in catalogue:
+            raise SystemExit(f"unknown reciter {chosen!r}: config/project.yaml has "
+                             f"{', '.join(catalogue) or 'no content.reciters'}")
+        content["reciter"] = {"name": chosen, **catalogue[chosen]}
+    return project
 
 
 def load(root: Path | None = None) -> Config:
     root = root or find_root()
     return Config(
         root=root,
-        project=_yaml(root / "config" / "project.yaml"),
+        project=resolve_reciter(_yaml(root / "config" / "project.yaml")),
         backgrounds=_yaml(root / "config" / "backgrounds.yaml"),
         gloss_headwords=parse_headwords(_yaml(root / "config" / "glosses.yaml").get("headwords")),
     )

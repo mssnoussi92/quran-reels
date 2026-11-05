@@ -115,3 +115,16 @@ def test_a_dry_run_updates_captions_but_never_the_failure_issue(tmp_path):
     notify.run(report, "failure", "https://run/1", "owner", notify.Issues("o/r", runner=gh))
     assert [i["title"] for i in gh.issues] == [notify.CAPTIONS_TITLE]
     assert "(dry run)" in gh.issues[0]["body"]
+
+
+def test_a_rights_block_says_what_to_change(tmp_path):
+    gh = FakeGh()
+    blocked = item(status={"facebook": {"status": "blocked", "url": None,
+                                        "error": "droits : instagram : contenu protégé reconnu"},
+                           "instagram": {"status": "blocked", "url": None, "error": "droits"}})
+    notify.run(write(tmp_path, [blocked]), "failure", "https://run/1", "owner",
+               notify.Issues("o/r", runner=gh))
+    [alert] = [i for i in gh.issues if i["title"] == notify.FAILURE_TITLE]
+    assert "bloqué par la vérification des droits" in alert["body"]
+    assert "content.reciter" in alert["body"]
+    assert not [i for i in gh.issues if i["title"] == notify.CAPTIONS_TITLE]   # nothing to copy

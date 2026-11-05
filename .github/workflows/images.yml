@@ -1,0 +1,115 @@
+name: images
+
+# Daily image posts on Instagram and Facebook (docs/images.md): Word of the day carousel.
+# The time of each format is in config/images.yaml (UTC); this workflow runs every hour and
+# `quran-reels images run --check` decides whether one is due, so the time can change without
+# touching this file. A day's post is chosen once (state branch: images.json); a platform that
+# failed is retried with the same images while the window lasts.
+on:
+  schedule:
+    - cron: "41 * * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Run as a dry run now (nothing posted, state unchanged)"
+        type: boolean
+        default: false
+      now:
+        description: "Dry run only: pretend it is this time, e.g. 2026-11-06T11:35+00:00"
+        required: false
+
+permissions:
+  contents: write          # the state branch (images.json)
+  issues: write            # failure alert (quran-reels notify)
+
+concurrency:
+  group: accounts          # never two runs posting at the same time (reels, images, tests)
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      STATE: state-branch/images.json
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install the package
+        run: pip install -e .
+
+      - name: Load the state
+        run: |
+          if git ls-remote --exit-code --heads origin state >/dev/null; then
+            git fetch --depth=1 origin state:state
+            git worktree add state-branch state
+          else
+            git worktree add --orphan -b state state-branch
+          fi
+
+      - name: What is due
+        id: due
+        env:
+          NOW: ${{ inputs.now }}
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            quran-reels images run --state "$STATE" --check ${NOW:+--now "$NOW"}
+          else
+            quran-reels images run --state "$STATE" --check
+          fi
+
+      - name: Install Chromium
+        if: steps.due.outputs.due == 'true'
+        run: python -m playwright install --with-deps chromium
+      - uses: actions/cache@v5
+        if: steps.due.outputs.due == 'true'
+        with:
+          path: .cache
+          key: images-${{ hashFiles('config/project.yaml') }}-${{ github.run_id }}
+          restore-keys: images-${{ hashFiles('config/project.yaml') }}-
+
+      - name: Post
+        if: steps.due.outputs.due == 'true'
+        env:                   # secrets for this step only
+          META_PAGE_ID: ${{ secrets.META_PAGE_ID }}
+          META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          NOW: ${{ inputs.now }}
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            quran-reels images run --state "$STATE" --dry-run ${NOW:+--now "$NOW"}
+          else
+            quran-reels images run --state "$STATE"
+          fi
+
+      - name: Save the state
+        if: always() && steps.due.outputs.due == 'true'
+        working-directory: state-branch
+        run: |
+          [ -f images.json ] || exit 0
+          git add images.json
+          git diff --cached --quiet && exit 0
+          git -c user.name="quran-reels" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -q -m "Images $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -q origin state
+
+      - name: Tell the owner
+        if: always() && steps.due.outputs.due == 'true' && inputs.dry_run != true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OUTCOME: ${{ job.status }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          OWNER: ${{ github.repository_owner }}
+        run: quran-reels notify --outcome "$OUTCOME" --run-url "$RUN_URL" --owner "$OWNER" --report out/images-report.json
+
+      - name: Keep the images
+        if: always() && steps.due.outputs.due == 'true'
+        uses: actions/upload-artifact@v6
+        with:
+          name: images
+          path: out/images/
+          if-no-files-found: ignore
+          retention-days: 14

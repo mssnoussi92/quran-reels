@@ -1,10 +1,11 @@
 # Editorial choices for word meanings. The gloss text itself is never edited here.
 #
-# By default the whole quotation of Ibn Qutaybah is highlighted, minus the particles at its
-# edges («فَإِنْ عُثِرَ» → عُثِرَ). To highlight one or two of its words instead:
+# By default the whole quotation of the word meaning (Tafsir al-Muyassar, King Fahd Complex;
+# Ibn Qutaybah until 2026-11-05) is highlighted, minus the particles at its edges
+# («فَإِنْ عُثِرَ» → عُثِرَ). To highlight 1 to 3 related words of it instead:
 #
 #   "93:2": سجى                  one word
-#   "20:131": زهرة الحياة         two words
+#   "20:131": زهرة الحياة         two words (up to three related words)
 #   "2:2": [ريب, هدى]             two glosses in the same ayah, one choice each
 #
 # Diacritics are optional and either spelling works (سجى = سَجَىٰ). A word that is not in the

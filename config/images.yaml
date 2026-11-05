@@ -1,0 +1,21 @@
+# Daily image posts on Instagram and Facebook (docs/images.md, src/quran_reels/images/).
+# Fully automatic and deterministic: no AI in the daily loop, no manual validation.
+
+formats:
+  word:                      # Word of the day: 3-image carousel (word, its ayah, its meaning)
+    enabled: false           # 2026-11-05: off until the owner approves the picks with the
+                             # Muyassar meanings (config/image-candidates.yaml to rebuild)
+    time_utc: "11:30"        # once a day (12:30 Paris in winter, 13:30 in summer)
+    seed: quran-words-daily  # fixed: the order of the candidates never changes
+  ayah:                      # Ayah of the day: one image, prepared, not published yet
+    enabled: false
+    time_utc: "16:30"
+    seed: quran-words-daily-ayah
+
+window_hours: 6              # a slot not done at its time is still done within this window
+min_scale: 0.7               # below this text scale an image is not readable: candidate left out
+platforms: [facebook, instagram]
+
+hashtags:                    # caption, in this order; Instagram keeps the first 5 (its limit)
+  before: ["#Quran", "#ArabicWords", "#QuranWordsDaily"]
+  after: ["#القرآن_الكريم"]  # the surah's two tags go in between
