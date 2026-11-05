@@ -8,6 +8,7 @@ description: Publish a Quran Words Daily calendar slot again after the owner del
 1. **Fix the cause first**, on the branch that will publish:
    - background: remove or change it in `config/backgrounds.yaml` (comment why);
    - reciter claimed: remove it from `content.rotation` (comment who claimed, where);
+   - either: a dated line in `src/quran_reels/catalog/history.yaml` (the catalogue shows it);
    - bad cut: `QURAN_REELS_RECITER=<name> quran-reels split --audit --fix <surah>`, render and
      check by recognition (test-reciter skill, step 3).
 2. **Reopen the slot** on the state branch:

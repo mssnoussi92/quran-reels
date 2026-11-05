@@ -21,7 +21,8 @@ and the same passage always gets the same one.
    ones to `config/backgrounds.yaml`: `source: pixabay`, `pixabay_id`, `author`, `page`,
    `tags`, `note`.
 4. **Remove** a clip: delete its entry and leave a comment with the date and the reason (see
-   95188 in `backgrounds.yaml`). Check what a passage gets now:
+   95188 in `backgrounds.yaml`), and add it under `backgrounds.refused` in
+   `src/quran_reels/catalog/history.yaml` (the catalogue shows it). Check what a passage gets now:
    ```python
    from quran_reels import config
    from quran_reels.passage import build

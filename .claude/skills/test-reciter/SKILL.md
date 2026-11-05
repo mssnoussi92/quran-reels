@@ -31,7 +31,8 @@ few minutes after going live. So the owner checks every new reciter on Facebook 
 5. **The owner checks** Facebook's copyright page a few minutes later.
    - Clean: the same with `platforms: instagram` (same render: same reel).
    - Claimed: the owner deletes it; remove the reciter from `content.rotation` with a comment
-     (who claimed, where), update the Récitateurs row of CLAUDE.md and this table.
+     (who claimed, where), add a `claim` line for it in `src/quran_reels/catalog/history.yaml`
+     (shown by the catalogue), update the Récitateurs row of CLAUDE.md and this table.
 6. A test that stands in for a calendar slot: record it in the state (republish skill).
 
 Limits: Facebook Reels 3–90 s (18:1-10 fits only with Budair, 87.6 s); Omar Hisham's
