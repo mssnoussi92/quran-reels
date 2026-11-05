@@ -98,7 +98,23 @@ publier, sur la vidéo non publiée :
   La publication d'un brouillon Facebook par un second `finish` avec `video_state=PUBLISHED`
   n'est pas documentée non plus : à confirmer à la première publication réelle (en cas
   d'échec, le brouillon vérifié reste publiable à la main).
-- Dry-run du 2026-11-05 sur la sourate 93 (publish-test run #14 : Alafasy en témoin, Hudhaifi, Ayyub, Akhdar) : résultats ci-dessous dès la fin du run.
+- **Dry-run du 2026-11-05, sourate 93 entière (publish-test run #14) :**
+
+  | Récitateur | Facebook (brouillon) | Instagram (conteneur) |
+  |---|---|---|
+  | Alafasy (témoin) | complete, aucune correspondance (0 s) | complete, aucune correspondance (12 s) |
+  | Hudhaifi | complete, aucune correspondance (0 s) | complete, aucune correspondance (12 s) |
+  | Ayyub | complete, aucune correspondance (0 s) | pas de vérification : 3 conteneurs restés `IN_PROGRESS` |
+  | Akhdar | complete, aucune correspondance (0 s) | pas de vérification : 3 conteneurs restés `IN_PROGRESS` |
+
+  **Le témoin échoue** : le même enregistrement d'Alafasy a été reconnu par Rights Manager après
+  publication le matin même (reel 93:1-11 coupé sur Facebook), mais les deux vérifications
+  avant publication répondent « aucune correspondance ». Facebook répond en 0 s : le champ du
+  brouillon ne reflète pas une analyse. La vérification reste en place (elle ne coûte qu'une
+  minute et peut attraper d'autres cas), mais **elle ne garantit rien** : la protection réelle
+  est le choix d'un enregistrement sous licence (Complexe du Roi Fahd). Piste : relire
+  `copyright_check_information` sur la vidéo **publiée** pendant les minutes qui suivent, et
+  retirer le post + alerter en cas de correspondance.
 
 ### Tester depuis le téléphone : workflow `publish-test`
 
