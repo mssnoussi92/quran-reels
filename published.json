@@ -8,9 +8,7 @@
   },
   "themes": {
    "round": 1,
-   "done": [
-    "ayat-al-kursi/2:255-255"
-   ]
+   "done": []
   }
  },
  "slots": {
@@ -41,35 +39,41 @@
      "at": "2026-11-05T08:45:55+00:00"
     }
    }
-  },
-  "2026-11-05/evening": {
-   "queue": "themes",
-   "item": "ayat-al-kursi/2:255-255",
-   "passage": "2:255-255",
-   "results": {
-    "facebook": {
-     "status": "published",
-     "id": "2566491060517325",
-     "url": "https://www.facebook.com/reel/2566491060517325/",
-     "error": null,
-     "at": "2026-11-05T18:48:34+00:00"
-    },
-    "instagram": {
-     "status": "published",
-     "id": "18042411059837052",
-     "url": "https://www.instagram.com/reel/DfXtPhWAZ_D/",
-     "error": null,
-     "at": "2026-11-05T18:48:34+00:00"
-    },
-    "tiktok": {
-     "status": "draft",
-     "id": "v_inbox_file~v2.7704760573531523074",
-     "url": null,
-     "error": null,
-     "at": "2026-11-05T18:48:34+00:00"
-    }
-   },
-   "reciter": "rifai"
   }
- }
+ },
+ "removed": [
+  {
+   "slot": "2026-11-05/evening",
+   "record": {
+    "queue": "themes",
+    "item": "ayat-al-kursi/2:255-255",
+    "passage": "2:255-255",
+    "results": {
+     "facebook": {
+      "status": "published",
+      "id": "2566491060517325",
+      "url": "https://www.facebook.com/reel/2566491060517325/",
+      "error": null,
+      "at": "2026-11-05T18:48:34+00:00"
+     },
+     "instagram": {
+      "status": "published",
+      "id": "18042411059837052",
+      "url": "https://www.instagram.com/reel/DfXtPhWAZ_D/",
+      "error": null,
+      "at": "2026-11-05T18:48:34+00:00"
+     },
+     "tiktok": {
+      "status": "draft",
+      "id": "v_inbox_file~v2.7704760573531523074",
+      "url": null,
+      "error": null,
+      "at": "2026-11-05T18:48:34+00:00"
+     }
+    },
+    "reciter": "rifai"
+   },
+   "why": "deleted by the owner from Facebook and Instagram (background clouds too fast; Nabil Ar-Rifai muted by Facebook in 24 territories); published again"
+  }
+ ]
 }
