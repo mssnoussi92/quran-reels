@@ -8,7 +8,9 @@
   },
   "themes": {
    "round": 1,
-   "done": []
+   "done": [
+    "ayat-al-kursi/2:255-255"
+   ]
   }
  },
  "slots": {
@@ -39,6 +41,35 @@
      "at": "2026-11-05T08:45:55+00:00"
     }
    }
+  },
+  "2026-11-05/evening": {
+   "queue": "themes",
+   "item": "ayat-al-kursi/2:255-255",
+   "passage": "2:255-255",
+   "results": {
+    "facebook": {
+     "status": "published",
+     "id": "1108497078562174",
+     "url": "https://www.facebook.com/reel/1108497078562174/",
+     "error": null,
+     "at": "2026-11-05T19:32:28+00:00"
+    },
+    "instagram": {
+     "status": "failed",
+     "id": null,
+     "url": null,
+     "error": "instagram container 17892640113503710: still processing after 240 s",
+     "at": "2026-11-05T19:32:28+00:00"
+    },
+    "tiktok": {
+     "status": "draft",
+     "id": "v_inbox_file~v2.7704772328299284483",
+     "url": null,
+     "error": null,
+     "at": "2026-11-05T19:32:28+00:00"
+    }
+   },
+   "reciter": "ghamdi"
   }
  },
  "removed": [
