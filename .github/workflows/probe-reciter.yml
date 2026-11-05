@@ -1,0 +1,65 @@
+# Temporary: looks for Omar Hisham's recordings from a runner (this container cannot reach
+# mp3quran.net or surahquran.com). Removed once the source is chosen.
+name: probe-reciter
+on:
+  push:
+    branches: [claude/friendly-sagan-qyo1qg]
+    paths: [.github/workflows/probe-reciter.yml]
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Probe
+        shell: python
+        run: |
+          import json, re, urllib.request
+          def get(url, n=None):
+              req = urllib.request.Request(url, headers={"User-Agent": "quran-reels/0.1"})
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as r:
+                      return r.status, r.read(n).decode("utf-8", "replace"), dict(r.headers)
+              except Exception as e:
+                  return None, f"{type(e).__name__}: {e}", {}
+          print("== mp3quran reciters")
+          for lang in ("ar", "eng"):
+              st, body, _ = get(f"https://mp3quran.net/api/v3/reciters?language={lang}")
+              print(lang, st, len(body))
+              if st == 200:
+                  for r in json.loads(body)["reciters"]:
+                      if re.search(r"هشام|hisham|hesham", r["name"], re.I):
+                          print(json.dumps(r, ensure_ascii=False)[:1500])
+          print("== mp3quran timing reads")
+          st, body, _ = get("https://mp3quran.net/api/v3/ayat_timing/reads")
+          print(st, body[:200])
+          if st == 200:
+              for r in json.loads(body):
+                  if re.search(r"هشام|hisham|hesham", json.dumps(r, ensure_ascii=False), re.I):
+                      print("TIMING:", r)
+          print("== surahquran.com")
+          for u in ("https://surahquran.com/English/Omar-Hisham/93.html",
+                    "https://surahquran.com/mp3quran-surah-en-93-sheikh-55.html"):
+              st, body, _ = get(u)
+              print(u, st, len(body))
+              for m in sorted(set(re.findall(r'https?://[^"\' >]+\.mp3', body)))[:10]:
+                  print("  mp3:", m)
+          print("== quranicaudio")
+          st, body, _ = get("https://quranicaudio.com/api/qaris")
+          print(st, len(body))
+          if st == 200:
+              for r in json.loads(body):
+                  if re.search(r"hisham|hesham", json.dumps(r), re.I):
+                      print(json.dumps(r)[:800])
+          print("== alquran.cloud")
+          st, body, _ = get("https://api.alquran.cloud/v1/edition?format=audio")
+          print(st, len(body))
+          if st == 200:
+              for r in json.loads(body)["data"]:
+                  if re.search(r"hisham|hesham|هشام", json.dumps(r, ensure_ascii=False), re.I):
+                      print(r)
+          print("== archive.org")
+          st, body, _ = get("https://archive.org/advancedsearch.php?q=%22omar+hisham%22+AND+mediatype%3Aaudio&fl%5B%5D=identifier&fl%5B%5D=title&rows=30&output=json")
+          print(st)
+          if st == 200:
+              for d in json.loads(body)["response"]["docs"]:
+                  print(" ", d.get("identifier"), "|", d.get("title"))
