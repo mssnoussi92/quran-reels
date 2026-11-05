@@ -91,14 +91,19 @@ def calendar(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
                     if not name:
                         name = rec.choose(cfg, item.key, recent, claimed)[0]
                     secs = rec.passage_seconds(rec.with_reciter(cfg, name), item.key).seconds
+                    recent.append(name)         # as `quran-reels calendar` does
+                except SystemExit:
+                    secs = None
+                    if not record:
+                        row["not_ready"] = [
+                            {"name": o.name, "label": labels.get(o.name, o.name),
+                             "why": o.why or (f"{o.seconds:.0f} s" if o.seconds else "")}
+                            for o in rec.options(cfg, item.key, claimed)]
+                if record and not record.get("reciter"):
+                    row["reciter_unknown"] = True       # published: never guessed on the page
+                elif name and not row.get("not_ready"):
                     row |= {"reciter": name, "reciter_label": labels.get(name, name),
                             "seconds": secs}
-                    recent.append(name)
-                except SystemExit:
-                    row["not_ready"] = [
-                        {"name": o.name, "label": labels.get(o.name, o.name),
-                         "why": o.why or (f"{o.seconds:.0f} s" if o.seconds else "")}
-                        for o in rec.options(cfg, item.key, claimed)]
             try:
                 row["background"] = picker.pick(item.key) if picker else None
             except Exception as e:     # noqa: BLE001  (a missing translation: no background)

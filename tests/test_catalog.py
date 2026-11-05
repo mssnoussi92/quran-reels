@@ -322,3 +322,11 @@ def test_word_of_the_day_starts_after_a_missed_window(cfg, monkeypatch):
     assert [d["date"] for d in early["days"]] == ["2026-11-05", "2026-11-06"]
     assert early["days"][0]["word"] == "سَجَىٰ" and early["days"][0]["surah"] == "Ad-Duhaa"
 
+
+
+def test_a_published_slot_without_its_reciter_is_not_guessed(cfg):
+    state = published_state()          # 114:1-6 published, no reciter recorded
+    days = sched_mod.calendar(cfg, schedule(), SERIES, state, date(2026, 11, 5), 1, None)
+    first = days[0]["slots"][0]
+    assert first["status"] == "published" and first.get("reciter_unknown")
+    assert "reciter" not in first

@@ -177,7 +177,7 @@
             <b>{{ s.ref }}</b> {{ s.surah }}
             <span class="sub">{{ s.label }}</span>
             <span class="sub">
-              {% if s.reciter %}{{ s.reciter_label }} · {{ s.seconds|seconds }}{% elif s.not_ready %}<span class="bad">⚠ aucun récitateur prêt</span>{% endif %}
+              {% if s.reciter %}{{ s.reciter_label }}{% if s.seconds %} · {{ s.seconds|seconds }}{% endif %}{% elif s.reciter_unknown %}récitateur non noté{% elif s.not_ready %}<span class="bad">⚠ aucun récitateur prêt</span>{% endif %}
               {% if s.background %} · fond <a href="#bg-{{ s.background.id }}">{{ s.background.id }}</a> ({{ s.background.theme|theme }}){% endif %}
             </span>
             {% if s.not_ready %}
