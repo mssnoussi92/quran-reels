@@ -60,6 +60,12 @@ def main(argv: list[str] | None = None) -> int:
         d.add_argument("--check", action="store_true", help="only say whether a slot is due")
         d.add_argument("--force", action="store_true", help="even if schedule.enabled is false")
 
+    note = sub.add_parser("notify", help="GitHub issues: failure alert, captions to copy")
+    note.add_argument("--outcome", required=True, help="the job status: success or failure")
+    note.add_argument("--run-url", required=True)
+    note.add_argument("--owner", help="assigned to the failure issue (push notification)")
+    note.add_argument("--report", help="default: out/daily-report.json")
+
     args = parser.parse_args(argv)
     cfg = config.load()
 
@@ -179,7 +185,16 @@ def main(argv: list[str] | None = None) -> int:
 
         now = datetime.fromisoformat(args.now) if args.now else None
         return daily.run(cfg, Path(args.state), now=now, dry_run=args.dry_run,
-                         check=args.check, force=args.force)
+                         check=args.check, force=args.force,
+                         report=cfg.out / "daily-report.json")
+
+    if args.command == "notify":
+        from pathlib import Path
+
+        from quran_reels import notify
+
+        report = Path(args.report) if args.report else cfg.out / "daily-report.json"
+        return notify.run(report, args.outcome, args.run_url, args.owner)
 
     print(f"'{args.command}' is not implemented yet", file=sys.stderr)
     return 2
