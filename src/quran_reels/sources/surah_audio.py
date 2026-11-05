@@ -359,6 +359,20 @@ def find_split(audio: Path, labels: list[str], texts: list[str], expected: list[
     return dict(zip(labels, cut)), {k: v for k, v in scores.items() if v >= MIN_MATCH}
 
 
+def kept_scores(before: dict, segments: dict, scores: dict[str, float],
+                check: set[str] | None, labels: list[str]) -> dict[str, float]:
+    """The new split's checked segments: those just recognised (`scores`), and those of the
+    previous split left out of `check` whose cuts did not move. A segment checked again and
+    refused stays refused, even with the same cuts (an audit that finds no better cut)."""
+    old_segments = {k: tuple(v) for k, v in before.get("segments", {}).items()}
+    out = dict(scores)
+    for k, score in before.get("match", {}).items():
+        if (k not in out and check is not None and k not in check
+                and k in segments and old_segments.get(k) == tuple(segments[k])):
+            out[k] = score
+    return {k: out[k] for k in labels if k in out}
+
+
 class SurahFiles:
     """One file per surah ({surah:03d} in `url`), split into the basmala and the ayahs.
 
@@ -501,11 +515,7 @@ class SurahFiles:
                                           if starts and int(labels[-1]) in timing else None)
         except SplitError as e:
             raise SystemExit(f"{self.reciter}, surah {surah}: {e}; nothing rendered") from e
-        old_segments = {k: tuple(v) for k, v in before.get("segments", {}).items()}
-        for k, score in before.get("match", {}).items():   # same cuts: still checked
-            if k not in scores and old_segments.get(k) == tuple(segments[k]):
-                scores[k] = score
-        scores = {k: scores[k] for k in labels if k in scores}
+        scores = kept_scores(before, segments, scores, check, labels)
         print(f"{self.reciter} {surah}: " + ", ".join(
             f"{k} {b - a:.1f} s ({scores[k]:.2f})" for k, (a, b) in segments.items()
             if k in scores), file=sys.stderr)
