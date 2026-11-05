@@ -41,9 +41,13 @@ def main(argv: list[str] | None = None) -> int:
     split = sub.add_parser("split", help="reciter with one file per surah: find where each "
                                          "ayah starts (speech recognition), check, write "
                                          "config/splits/ (needs the asr extra)")
-    split.add_argument("passages", nargs="+", help="surahs (114) or passages (2:255-257): "
+    split.add_argument("passages", nargs="*", help="surahs (114) or passages (2:255-257): "
                                                    "only their ayahs are checked")
     split.add_argument("--force", action="store_true", help="check again what is checked")
+    split.add_argument("--upcoming", type=int, metavar="DAYS",
+                       help="the passages of the next DAYS days, for every reciter of "
+                            "content.rotation (the prepare workflow)")
+    split.add_argument("--state", default="state/published.json")
 
     publish = sub.add_parser("publish", help="publish a reel (Facebook, Instagram, TikTok draft)")
     publish.add_argument("target", help="out/093_001-011.mp4, or a passage/surah to render first")
@@ -130,10 +134,42 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{p.key:<10} {p.seconds:6.1f} s  {', '.join(notes)}".rstrip())
         return 0
 
+    if args.command == "split" and args.upcoming:
+        import os
+        import subprocess
+        from datetime import UTC, datetime
+        from pathlib import Path
+
+        from quran_reels import reciters as rec
+        from quran_reels.config import RECITER_ENV
+        from quran_reels.selector.calendar import State, load_schedule, load_series, preview
+
+        series = load_series(cfg)
+        sched = load_schedule(cfg, series)
+        today = datetime.now(UTC).astimezone(sched.tz).date()
+        keys = list(dict.fromkeys(item.key for _, _, _, item in preview(
+            sched, series, State.load(Path(args.state)), today, args.upcoming) if item))
+        print(f"next {args.upcoming} days: {' '.join(keys)}")
+        for name in rec.rotation(cfg):      # one process per reciter: its own sources
+            env = {**os.environ, RECITER_ENV: name}
+            subprocess.run(["quran-reels", "split", *keys], env=env, check=False)
+        missing = []                        # a reciter may fail; a passage must have one
+        for key in keys:
+            ready = [o.name for o in rec.options(cfg, key) if o.seconds is not None]
+            print(f"{key:<12} {', '.join(ready) or 'NO RECITER READY'}")
+            if not ready:
+                missing.append(key)
+        if missing:
+            print(f"no reciter ready for {', '.join(missing)}: nothing would be published",
+                  file=sys.stderr)
+        return 1 if missing else 0
+
     if args.command == "split":
         from quran_reels.sources import Sources
         from quran_reels.sources.surah_audio import SurahFiles
 
+        if not args.passages:
+            raise SystemExit("quran-reels split: give passages, or --upcoming DAYS")
         src = Sources.from_config(cfg)
         if not isinstance(src.audio, SurahFiles):
             raise SystemExit(f"{cfg.content['reciter']['name']}: one file per ayah, nothing to "

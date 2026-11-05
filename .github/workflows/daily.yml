@@ -37,6 +37,7 @@ jobs:
     timeout-minutes: 60       # 2026-11-05: the Ubuntu mirror took 39 min to install ffmpeg
     env:
       STATE: state-branch/published.json
+      QURAN_REELS_SPLITS: state-branch/splits   # checked splits (prepare workflow)
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6

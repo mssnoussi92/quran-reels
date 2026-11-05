@@ -72,6 +72,7 @@ content:
     omar_hisham:
       id: omar-hisham-al-arabi        # archive.org item (islamicbulletin.org upload, 320 kb/s)
       surah_url: "https://archive.org/download/omar-hisham-al-arabi/{surah:03d}.mp3"
+      split_max_minutes: 15           # his slow recordings (93: 5 min, 89: 9 min) rarely fit
       label: Omar Hisham Al-Arabi
       hashtags: ["#OmarHisham", "#عمر_هشام_العربي"]
       basmala: "001001"               # Al-Fatiha's first ayah

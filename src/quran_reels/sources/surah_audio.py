@@ -12,8 +12,9 @@ breath, ayah 6 twice). So the split is found by speech recognition (sources/reco
 3. every segment is recognised again and compared with its ayah: one that does not match
    stops everything. Wrong text on screen is worse than no video.
 
-The verified split is committed in config/splits/<reciter>/SSS.json (times only), so the
-daily pipeline needs neither the model nor the check: `quran-reels split <surah>` makes it.
+The verified split (times only) is in config/splits/<reciter>/SSS.json (committed) or on the
+state branch (splits/, written each night by the prepare workflow for the coming week), so
+the daily pipeline needs neither the model nor the check: `quran-reels split` makes it.
 Same interface as EveryAyah (fetch, basmala, url, seconds…); segments are cut losslessly to
 FLAC, which the renderer decodes like the MP3s.
 """
@@ -66,6 +67,14 @@ class Pause:
     @property
     def weight(self) -> float:
         return min(self.length if self.depth is None else self.depth / 10, MAX_PAUSE)
+
+
+def duration(path: Path) -> float:
+    """Length of an audio file in seconds, from ffmpeg's header read."""
+    out = subprocess.run(["ffmpeg", "-nostdin", "-i", str(path)], capture_output=True,
+                         text=True, check=False).stderr      # no output file: exit code 1
+    h, m, sec = re.search(r"Duration: (\d+):(\d+):([\d.]+)", out).groups()
+    return int(h) * 3600 + int(m) * 60 + float(sec)
 
 
 def decode(path: Path) -> np.ndarray:
@@ -219,13 +228,14 @@ class SurahFiles:
 
     The file of every surah but 1 and 9 starts with the basmala; Al-Fatiha's is its first
     ayah. reference(surah) gives Alafasy's ayah lengths (reference(1)[1] the basmala's), and
-    texts(surah) the Uthmani text of {"basmala" | "<ayah>"}. Splits are read from `splits`
-    (committed); a missing one is made with the recogniser, then written there.
+    texts(surah) the Uthmani text of {"basmala" | "<ayah>"}. Splits are read from the
+    folders `splits` (the one with the most checked ayahs wins) and written to the last one.
     """
 
-    def __init__(self, cache: Path, http: Http, reciter: str, url: str, splits: Path,
+    def __init__(self, cache: Path, http: Http, reciter: str, url: str, splits: list[Path],
                  reference: Callable[[int], dict[int, float]],
-                 texts: Callable[[int], dict[str, str]], mp3quran: int | None = None):
+                 texts: Callable[[int], dict[str, str]], mp3quran: int | None = None,
+                 max_minutes: float | None = None):
         self.dir = cache / "surah-audio" / reciter
         self.splits = splits
         self.http = http
@@ -234,6 +244,7 @@ class SurahFiles:
         self.reference = reference
         self.texts = texts
         self.mp3quran = mp3quran      # read id of mp3quran.net's ayah timings, if published
+        self.max_minutes = max_minutes  # longer surah files are not split (word pass too long)
         self._recognizer = None
 
     def published_timing(self, surah: int) -> dict[int, tuple[float, float]]:
@@ -288,7 +299,11 @@ class SurahFiles:
         return path
 
     def split_path(self, surah: int) -> Path:
-        return self.splits / f"{surah:03d}.json"
+        """The split file to read: the one with the most checked ayahs, or where to write."""
+        found = [d / f"{surah:03d}.json" for d in self.splits if (d / f"{surah:03d}.json").is_file()]
+        if not found:
+            return self.splits[-1] / f"{surah:03d}.json"
+        return max(found, key=lambda f: len(read_json(f).get("match", {})))
 
     def segments(self, surah: int) -> dict[str, tuple[float, float]]:
         """{"basmala" | "<ayah>": (start, end)} for a surah, from its committed split."""
@@ -314,6 +329,9 @@ class SurahFiles:
         those already checked with the same cuts are kept), write it to `splits`."""
         from quran_reels.sources.recognition import MODEL, Recognizer
 
+        if self.max_minutes and duration(self.audio(surah)) > self.max_minutes * 60:
+            raise SystemExit(f"{self.reciter}, surah {surah}: recording longer than "
+                             f"{self.max_minutes:g} min, not split")
         texts = self.texts(surah)
         labels = list(texts)
         ref = self.reference(surah)
@@ -347,7 +365,7 @@ class SurahFiles:
                            f"word times recognised by {MODEL}, aligned on the Uthmani text")
                 + f", cut at the quietest moment nearby; each segment recognised by {MODEL}",
                 "segments": segments, "match": scores}
-        write_json(self.split_path(surah), data)
+        write_json(self.splits[-1] / f"{surah:03d}.json", data)
         return data
 
     def _cut(self, surah: int, label: str) -> Path:

@@ -85,6 +85,7 @@ tests/             pytest, sans réseau
                    schedule.yaml dit enabled: false ; état sur la branche `state`),
                    publish-test.yml (manuel : dry-run, ou publication réelle avec PUBLIER),
                    tiktok-auth.yml (manuel : échange du code TikTok → TIKTOK_REFRESH_TOKEN)
+                   prepare.yml (chaque nuit : découpes vérifiées de la semaine → `state`)
                    images.yml (toutes les heures ; `images run --check` décide selon
                    config/images.yaml ; état images.json sur la branche `state`)
                    Runners épinglés sur `ubuntu-24.04` (même ffmpeg 6.1 que les tests ;
@@ -180,6 +181,13 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
 - Choix par passage (`reciters.py`, `content.rotation`) : seulement les récitateurs dont la
   découpe de la sourate est commitée et chaque ayah du passage (et la basmala) vérifiée ;
   aucun prêt → rien n'est publié pour ce créneau (l'erreur donne `quran-reels split <passage>`).
+  Workflow **`prepare`** (chaque nuit 01:41 UTC, et à la main) : `quran-reels split --upcoming 8`
+  découpe et vérifie les passages des 8 prochains jours pour chaque récitateur de la rotation,
+  sur un runner (torch CPU, ffmpeg statique d'imageio-ffmpeg, pas d'apt), et pousse les
+  découpes sur la branche `state` (`splits/`) ; `daily` et `publish-test` les lisent
+  (`QURAN_REELS_SPLITS`), en plus de `config/splits/` (commitées) : le fichier qui a le plus
+  d'ayahs vérifiées l'emporte. Rouge seulement si un passage n'a aucun récitateur prêt.
+  Omar Hisham : pas de découpe au-delà de 15 min d'enregistrement (`split_max_minutes`).
   `quran-reels split 2:255` ne vérifie que ce passage. Le créneau garde son récitateur
   (`published.json`, champ `reciter`) ; un nouvel essai reprend le même. `calendar` l'affiche.
 - Omar Hisham Al-Arabi (`omar_hisham`) : aucune source par ayah (ni EveryAyah, ni Quran.com,
