@@ -29,7 +29,7 @@ default: [dawn, night, sea]     # when the passage mentions none of the themes
 
 pixabay:                        # search terms per theme: `quran-reels backgrounds search`
   mountains: ["mountains", "mountain peaks clouds"]
-  sea: ["ocean waves", "calm sea"]
+  sea: ["ocean waves", "calm sea", "sea waves rocks", "ocean sunset"]
   rivers: ["river", "waterfall stream"]
   dawn: ["sunrise", "dawn landscape"]
   rain: ["rain clouds", "storm clouds"]
