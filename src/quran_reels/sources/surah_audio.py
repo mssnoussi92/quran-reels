@@ -1,10 +1,11 @@
 """Recitations published only as one file per surah (archive.org), split into ayahs.
 
-No ayah timing exists for these recordings, so the ayahs are found on the pauses. ffmpeg's
-silencedetect lists the silences; the N - 1 cuts (N = the basmala at the start of the file,
-when it has one, then every ayah) are chosen among them by dynamic programming: a long pause
-close to where the reference recording (Alafasy, Quran.com timings) ends that ayah, scaled to
-this recording's length. Every segment is then checked against its expected length: a split
+No ayah timing exists for these recordings, so the ayahs are found on the pauses: ffmpeg's
+silencedetect for clean studio files, or, when reverb fills the gaps, the dips of the loudness
+envelope (deepest quiet moments, in dB below the speech around them). The N - 1 cuts (N = the
+basmala at the start of the file, when it has one, then every ayah) are chosen among them by
+dynamic programming: a marked pause close to where the reference recording (Alafasy,
+Quran.com timings) ends that ayah, scaled to this recording's length. Every segment is then checked against its expected length: a split
 that does not fit stops the render. Wrong text on screen is worse than no video.
 
 Same interface as EveryAyah (fetch, fetch_file, url, seconds…); segments are cut losslessly
@@ -20,19 +21,19 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
+import numpy as np
+
 from quran_reels.models import AyahRef
 from quran_reels.sources.http import Http, read_json, write_json
 
 NOISE = "-35dB"          # silence threshold
 MIN_PAUSE = 0.3          # shortest pause that can separate two ayahs (seconds)
-# Tried in turn, stricter first (fewer pauses inside an ayah): an absolute threshold for
-# clean studio files, then thresholds below the file's own mean loudness, for recordings
-# whose reverb fills the gaps between ayahs.
-ATTEMPTS = [("-35dB", 0.3), (-16, 0.2), (-12, 0.15), (-8, 0.12)]
+FRAME = 0.02             # loudness envelope: 20 ms frames, smoothed over 100 ms
+DIP_DEPTHS = (8.0, 5.0)  # dips at least this many dB below the speech within 1 s, in turn
 PAD = 0.25               # silence kept before and after each ayah
 DEVIATION = 1.0          # cost of being one ayah length away from the expected cut…
-PAUSE_WEIGHT = 1.0       # …against one second more of pause (capped at MAX_PAUSE)
-MAX_PAUSE = 2.0
+PAUSE_WEIGHT = 1.0       # …against one second more of pause, or 10 dB more of dip
+MAX_PAUSE = 2.0          # (capped)
 TOLERANCE = (0.55, 1.5)  # a segment's length / its expected length must stay inside
 
 
@@ -44,20 +45,55 @@ class SplitError(RuntimeError):
 class Pause:
     start: float
     end: float
+    depth: float | None = None      # dips: dB below the speech around
 
     @property
     def length(self) -> float:
         return self.end - self.start
 
     @property
+    def weight(self) -> float:
+        return min(self.length if self.depth is None else self.depth / 10, MAX_PAUSE)
+
+    @property
     def middle(self) -> float:
         return (self.start + self.end) / 2
 
 
-def mean_volume(path: Path) -> float:
-    out = subprocess.run(["ffmpeg", "-nostdin", "-i", str(path), "-af", "volumedetect", "-f",
-                          "null", "-"], capture_output=True, text=True, check=True).stderr
-    return float(re.findall(r"mean_volume: (-?[\d.]+) dB", out)[-1])
+def envelope(path: Path) -> np.ndarray:
+    """Loudness in dB per FRAME, smoothed over 5 frames."""
+    rate = 16000
+    raw = subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-i", str(path), "-ac", "1",
+                          "-ar", str(rate), "-f", "s16le", "-"], capture_output=True,
+                         check=True).stdout
+    x = np.frombuffer(raw, np.int16).astype(np.float32) / 32768
+    size = int(rate * FRAME)
+    n = len(x) // size
+    rms = np.sqrt((x[:n * size].reshape(n, size) ** 2).mean(axis=1) + 1e-10)
+    return np.convolve(20 * np.log10(rms), np.ones(5) / 5, mode="same")
+
+
+def dips(env: np.ndarray, min_depth: float, window: float = 0.4,
+         context: float = 1.0) -> list[Pause]:
+    """Local minima of the envelope at least min_depth dB below the loudest point within
+    `context` seconds on both sides; each spans the frames within 3 dB of its minimum."""
+    w, c, n = int(window / FRAME), int(context / FRAME), len(env)
+    found: list[Pause] = []
+    last = -1
+    for i in range(c, n - c):
+        if i <= last or env[i] > env[max(0, i - w):i + w + 1].min():
+            continue
+        depth = min(env[i - c:i + 1].max(), env[i:i + c + 1].max()) - env[i]
+        if depth < min_depth:
+            continue
+        a, b = i, i
+        while a > 0 and env[a - 1] <= env[i] + 3:
+            a -= 1
+        while b < n - 1 and env[b + 1] <= env[i] + 3:
+            b += 1
+        found.append(Pause(a * FRAME, (b + 1) * FRAME, depth=round(float(depth), 1)))
+        last = b
+    return found
 
 
 def pauses(path: Path, noise: str = NOISE, min_pause: float = MIN_PAUSE) -> tuple[list[Pause], float]:
@@ -92,7 +128,7 @@ def split(found: list[Pause], total: float, expected: list[float]) -> list[tuple
     def cost(j: int, k: int) -> float:     # pause j as cut k
         width = (expected[k] + expected[k + 1]) / 2 * scale
         return (DEVIATION * abs(inner[j].middle - cuts_expected[k]) / width
-                - PAUSE_WEIGHT * min(inner[j].length, MAX_PAUSE))
+                - PAUSE_WEIGHT * inner[j].weight)
 
     m, inf = len(inner), float("inf")
     best = [[inf] * m for _ in range(n - 1)]
@@ -180,28 +216,34 @@ class SurahFiles:
         if surah not in (1, 9):
             labels.insert(0, "basmala")
             expected.insert(0, self.reference(1)[1])
-        errors, mean = [], None
-        for noise, min_pause in ATTEMPTS:
-            if not isinstance(noise, str):  # relative to the file's mean loudness
-                mean = mean_volume(audio) if mean is None else mean
-                noise = f"{mean + noise:.1f}dB"
-            found, total = pauses(audio, noise, min_pause)
+        silences, total = pauses(audio)
+        edges = [p for p in silences if p.start <= 0.05 or p.end >= total - 0.05]
+        env = None
+        attempts = [("silences", f"silencedetect {NOISE} ≥ {MIN_PAUSE} s", silences)]
+        for depth in DIP_DEPTHS:           # clean files first, then reverberant ones
+            attempts.append(("dips", f"loudness dips ≥ {depth:g} dB", depth))
+        errors = []
+        for kind, method, arg in attempts:
+            if kind == "dips":
+                env = envelope(audio) if env is None else env
+                arg = sorted(edges + [p for p in dips(env, arg)
+                                      if all(p.end <= e.start or p.start >= e.end for e in edges)],
+                             key=lambda p: p.start)
             try:
-                cut = split(found, total, expected)
+                cut = split(arg, total, expected)
                 break
             except SplitError as e:
-                errors.append(f"{noise} ≥ {min_pause} s: {e}")
+                errors.append(f"{method}: {e}")
         else:
             raise SystemExit(f"{self.reciter}, surah {surah}: the ayahs could not be found on the "
                              f"pauses ({'; '.join(errors)}); nothing rendered")
         segments = dict(zip(labels, cut))
         scale = sum(b - a for a, b in cut) / sum(expected)
-        print(f"{self.reciter} {surah}: split on {noise} ≥ {min_pause} s pauses: " + ", ".join(
+        print(f"{self.reciter} {surah}: split on {method}: " + ", ".join(
             f"{k} {b - a:.1f} s ({e * scale:.1f})" for k, (a, b), e in zip(labels, cut, expected)),
             file=sys.stderr)
         write_json(path, {"source": self.surah_url(surah), "seconds": round(total, 3),
-                          "method": f"silencedetect {noise} ≥ {min_pause} s, aligned on the "
-                                    "reference lengths (Alafasy)",
+                          "method": f"{method}, aligned on the reference lengths (Alafasy)",
                           "segments": segments})
         return segments
 

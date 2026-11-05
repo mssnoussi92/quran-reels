@@ -39,3 +39,17 @@ def test_pauses_read_from_ffmpeg(tmp_path: Path):
     assert total == pytest.approx(5, abs=0.05)
     assert len(found) == 1 and found[0].start == pytest.approx(2, abs=0.05)
     assert found[0].length == pytest.approx(1, abs=0.05)
+
+
+def test_dips_find_the_quiet_moments_that_reverb_keeps_above_silence():
+    import numpy as np
+
+    from quran_reels.sources.surah_audio import FRAME, dips
+
+    env = np.full(int(6 / FRAME), -20.0)            # 6 s of speech at -20 dB
+    env[int(2 / FRAME):int(2.3 / FRAME)] = -34      # a 14 dB dip at 2 s (reverb, not silence)
+    env[int(4 / FRAME):int(4.1 / FRAME)] = -24      # a shallow one at 4 s
+    [d] = dips(env, 8.0)
+    assert d.start == pytest.approx(2, abs=FRAME) and d.end == pytest.approx(2.3, abs=FRAME)
+    assert d.depth == 14 and d.weight == pytest.approx(1.4)
+    assert len(dips(env, 3.0)) == 2
