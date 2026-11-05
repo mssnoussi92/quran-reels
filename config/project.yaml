@@ -16,14 +16,16 @@ content:
     edition: en-sahih-international   # Quran.com translation slug
     source: quran.com
     label: Sahih International
-  glosses:
-    edition: ar-ghareeb-ibn-qutaybah
+  glosses:                            # word meanings (owner's choice, 2026-11-05)
+    edition: ar-tafsir-muyassar-ghareeb   # غريب التفسير الميسر, King Fahd Complex
     source: tafsir.app
-    source_id: ghareeb-ibn-qutaybah   # tafsir.app book id
-    label: "ابن قتيبة، تفسير غريب القرآن"
-    hashtags: ["#تفسير_القرآن", "#غريب_القرآن"]   # when a word meaning is shown
+    source_id: almuyassar-ghareeb     # tafsir.app book id (was ghareeb-ibn-qutaybah)
+    label: "التفسير الميسر، مجمع الملك فهد"
+    label_en: "Tafsir al-Muyassar, King Fahd Complex"   # image captions
+    hashtags: ["#تفسير_القرآن", "#التفسير_الميسر"]   # when a word meaning is shown
     max_per_ayah: 2                   # entries shown under one ayah
     max_chars: 170                    # whole sentences only, an entry longer than this is left out
+    max_words: 3                      # highlighted words of one meaning (related words, a phrase)
   reciter: alafasy                    # one of `reciters`; QURAN_REELS_RECITER overrides it
   # One MP3 per ayah from EveryAyah (id: its folder), so the text follows the recitation
   # exactly. Planning durations: Quran.com timings of the same recording (timings_id), or the

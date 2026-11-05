@@ -82,9 +82,10 @@ def test_headwords_config_forms():
     assert parsed["93:2"] == [("x",)]          # 93:2 written without quotes reads as 5582
     assert parsed["20:131"] == [("زهرة", "الحياة")]
     assert parsed["2:2"] == [("ريب",), ("هدى",)]
+    assert parse_headwords({"34:12": "أسلنا عين القطر"})["34:12"] == [("أسلنا", "عين", "القطر")]
 
 
-@pytest.mark.parametrize("bad", [{"93:2": "ثلاث كلمات هنا"}, {"93:2": ""}, {"sajā": "سجى"},
+@pytest.mark.parametrize("bad", [{"93:2": "أربع كلمات هنا أيضا"}, {"93:2": ""}, {"sajā": "سجى"},
                                  {"93:2": {"وَاللَّيْلِ إِذَا سَجَى": "سَجَى"}}])
 def test_headwords_config_errors(bad):
     with pytest.raises(SystemExit):

@@ -1,8 +1,8 @@
 """Rules 1-4 of docs/images.md: which gloss entries can become a Word of the day.
 
-1. A gloss entry of Ibn Qutaybah anchored on 1 or 2 words of the ayah (the words chosen in
-   config/glosses.yaml, otherwise its quotation minus the particles at its edges). One post =
-   one entry.
+1. A word-meaning entry (Tafsir al-Muyassar) anchored on 1 to 3 related words of the ayah
+   (glosses.max_words; the words chosen in config/glosses.yaml, otherwise its quotation minus
+   the particles at its edges). One post = one entry.
 2. The gloss is shown whole: its full text (editor's notes already removed) ends with a
    sentence and fits in max_chars. Otherwise the entry is left out, never shortened.
 3. The verse image shows a complete sentence: the ayah starts after a sentence end (the
@@ -133,6 +133,7 @@ def build(cfg: Config, src: Any, progress: bool = True, surahs: list[int] | None
     settings = images_settings(cfg)
     min_scale = float(settings.get("min_scale", 0.7))
     max_chars = int(cfg.content["glosses"].get("max_chars", 170))
+    max_words = int(cfg.content["glosses"].get("max_words", 3))
     edition = cfg.content["glosses"]["edition"]
     src.quran.ensure(src.translation_slug)
     chapters = src.quran.chapters
@@ -177,8 +178,8 @@ def build(cfg: Config, src: Any, progress: bool = True, surahs: list[int] | None
                     if pos is None:
                         left_out["word: quotation not found in the ayah"] += 1
                         continue
-                    if not 1 <= len(pos) <= 2:
-                        left_out["word: more than 2 words highlighted"] += 1
+                    if not 1 <= len(pos) <= max_words:
+                        left_out[f"word: more than {max_words} words highlighted"] += 1
                         continue
                     gloss = whole_gloss(e.text, max_chars)
                     if gloss is None:

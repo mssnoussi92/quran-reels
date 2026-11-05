@@ -62,7 +62,7 @@ _AYAH_KEY = re.compile(r"^\s*(\d{1,3})\s*:\s*(\d{1,3})\s*$")
 
 
 def parse_headwords(raw: Any) -> dict[str, list[tuple[str, ...]]]:
-    """config/glosses.yaml headwords → {"S:A": [choice, ...]}, each choice one or two words.
+    """config/glosses.yaml headwords → {"S:A": [choice, ...]}, each choice 1 to 3 words.
 
     A string is one choice («سجى», «زهرة الحياة»); a list holds one choice per gloss of the
     ayah («[ريب, هدى]»).
@@ -86,8 +86,8 @@ def parse_headwords(raw: Any) -> dict[str, list[tuple[str, ...]]]:
                 raise SystemExit(f"config/glosses.yaml, {ayah}: write the word(s) to highlight, "
                                  "e.g. \"93:2\": سجى")
             chosen = tuple(str(item).split())
-            if not 1 <= len(chosen) <= 2:
-                raise SystemExit(f"config/glosses.yaml, {ayah}: «{item}»: choose one or two words")
+            if not 1 <= len(chosen) <= 3:
+                raise SystemExit(f"config/glosses.yaml, {ayah}: «{item}»: choose 1 to 3 words")
             choices.append(chosen)
         out[ayah] = choices
     return out

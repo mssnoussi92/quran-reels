@@ -1,6 +1,6 @@
 """Daily image posts on Instagram and Facebook (docs/images.md).
 
-Word of the day: a 3-image carousel (the word, its ayah, its meaning by Ibn Qutaybah).
+Word of the day: a 3-image carousel (the word, its ayah, its meaning, Tafsir al-Muyassar).
 Ayah of the day: one image (prepared, disabled in config/images.yaml).
 Fully automatic and deterministic: no AI in the daily loop, no manual validation.
 

@@ -8,8 +8,6 @@ from quran_reels.config import Config
 from quran_reels.images.cards import Content
 from quran_reels.render import _tag
 
-MEANING = "Ibn Qutaybah, Tafsir Gharib al-Qur'an"
-
 
 def hashtags(settings: dict[str, Any], content: Content) -> list[str]:
     conf = settings.get("hashtags") or {}
@@ -22,9 +20,10 @@ def caption(cfg: Config, kind: str, content: Content) -> str:
     """Body without hashtags (Reel.text adds them, capped per platform)."""
     translation = cfg.content["translation"]["label"]
     if kind == "word":
+        meaning = cfg.content["glosses"].get("label_en") or cfg.content["glosses"]["label"]
         return "\n".join([f"Word of the day: {content.word}",
                           f"Surah {content.surah_name_en} {content.ref}", "",
-                          f"Translation: {translation}", f"Meaning: {MEANING}", ""])
+                          f"Translation: {translation}", f"Meaning: {meaning}", ""])
     return "\n".join(["Ayah of the day", f"Surah {content.surah_name_en} {content.context_ref}",
                       "", f"Translation: {translation}", ""])
 

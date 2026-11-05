@@ -14,13 +14,13 @@ e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis 
 | Format | **≈ 1 minute** (cible 60 s, 40–90 s), jamais coupé au milieu d'une phrase ; **sourate courte entière** (≤ 90 s, même très courte) |
 | Basmala | **Au début de chaque vidéo**, même pour quelques versets ; sauf sourate 9 et avant 1:1 (qui est la basmala) |
 | Rythme | **2 vidéos par jour**, heure de Paris : **07:30** lecture dans l'ordre, **19:30** séries thématiques |
-| Images | **Word of the day**, carrousel de 3 images 1080×1350 (le mot, son ayah, sa glose d'Ibn Qutaybah), **1 par jour** à 11:30 UTC sur Instagram et Facebook ; **Ayah of the day** préparé, désactivé (docs/images.md) |
+| Images | **Word of the day**, carrousel de 3 images 1080×1350 (le mot, son ayah, son sens dans le Tafsir al-Muyassar), **1 par jour** à 11:30 UTC sur Instagram et Facebook ; **Ayah of the day** préparé, désactivé (docs/images.md) |
 | Lecture | **Juz' 'Amma d'abord** (114 → 78), puis Al-Fatiha et 2 → 77, passages de `config/plan.yaml` |
 | Thèmes | Ayat al-Kursi, les 7 versets « المنجيات », versets de du'a, versets du rizq… : listes **proposées par l'IA en PR, validées par le propriétaire** |
 | Vendredi | **Les deux créneaux lisent Al-Kahf** (2 passages par vendredi, 38 au total, puis on recommence) |
 | Texte arabe | Uthmani (Hafs), police **Amiri Quran** (OFL) |
 | Traduction | **Sahih International** (anglais), créditée dans chaque légende |
-| Mots difficiles | **Ibn Qutaybah, *Tafsir Gharib al-Qur'an*** (`ar-ghareeb-ibn-qutaybah`), glose en arabe |
+| Mots difficiles | **غريب التفسير الميسر** (Tafsir al-Muyassar, Complexe du Roi Fahd ; `almuyassar-ghareeb` sur tafsir.app), choix du propriétaire le 2026-11-05 (avant : Ibn Qutaybah, *Tafsir Gharib al-Qur'an*), sens en arabe, **1 à 3 mots liés** surlignés |
 | Récitateur | Catalogue dans `config/project.yaml` (`content.reciters`), choisi par `content.reciter` : **Alafasy** (reconnu par Rights Manager, à remplacer) ; enregistrements du **Complexe du Roi Fahd** (licence d'usage gratuit) : **Ali Al-Hudhaifi** en priorité, Muhammad Ayyub, Ibrahim Al-Akhdar |
 | Droits | **Vérification Meta avant chaque publication** : brouillon Facebook + conteneur Instagram, publiés seulement si Meta répond `complete` sans correspondance, sinon rien n'est publié (TikTok compris) |
 | Fond | **choisi selon ce que dit le passage** (montagnes, mer, rivières, jardins, nuit, aube, ciel…) : vidéos Pexels choisies par le propriétaire et scènes générées (aube, nuit, mer), **sans personnes ni animaux** |
@@ -51,7 +51,7 @@ e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis 
 config/            project.yaml (choix éditoriaux), backgrounds.yaml (fonds et thèmes),
                    images.yaml (formats image, heure UTC), exclude.yaml (ayahs jamais en image),
                    image-candidates.yaml (candidats image figés : `quran-reels images build`),
-                   glosses.yaml (choix éditoriaux : 1 ou 2 mots surlignés par glose),
+                   glosses.yaml (choix éditoriaux : 1 à 3 mots surlignés par sens),
                    schedule.yaml (créneaux, files, vendredi), series/*.yaml (séries),
                    plan.yaml (tout le Coran découpé, figé : `quran-reels plan --write`)
 src/quran_reels/
@@ -99,7 +99,7 @@ Commandes :
 
 ```bash
 quran-reels ingest                  # texte, traduction, sourates, index des gloses (4 requêtes)
-quran-reels ingest --all-glosses    # + toutes les gloses d'Ibn Qutaybah (2 394 requêtes, reprise)
+quran-reels ingest --all-glosses    # + tous les sens du Muyassar (≈ 5 070 requêtes, reprise)
 quran-reels passages 2              # découpe la sourate 2 en passages d'≈ 1 min
 quran-reels render 93               # sourate courte entière → out/093_001-011.mp4
 quran-reels render 2:1-5            # un passage → out/002_001-005.mp4 (complète le cache)
@@ -147,7 +147,11 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   une requête par ressource (`/quran/verses/uthmani`, `/chapters`,
   `/quran/translations/{id}?fields=verse_key`, id résolu depuis le slug
   `en-sahih-international`). Les marques de notes `<sup foot_note>` sont retirées.
-- Gloses Ibn Qutaybah (tranché) : `tafsir.app` (Nuqayah). `/sources/sources.json` liste, pour
+- Sens des mots : `almuyassar-ghareeb` (غريب التفسير الميسر, Complexe du Roi Fahd), choisi le
+  2026-11-05 après comparaison (plus clair, ≈ 5 070 ayahs couvertes au lieu de 2 394, citations
+  en écriture uthmanie, même origine que Hudhaifi) ; `siraaj-ghareeb` (السراج, al-Khudairi)
+  saute des mots (منطق الطير, سكينة). Format identique (« ﴿…﴾: sens »), `keys_flag: -1`
+  (keys = ayahs sans entrée). Avant : gloses Ibn Qutaybah : `tafsir.app` (Nuqayah). `/sources/sources.json` liste, pour
   `ghareeb-ibn-qutaybah`, les ayahs qui ont une entrée (`keys`, index global 1–6236 ;
   `keys_flag: 1`) : 2 394 ayahs. `/get.php?src=ghareeb-ibn-qutaybah&s=93&a=2&ver=1` renvoie
   `{"data": "﴿وَاللَّيْلِ إِذَا سَجَى﴾ إذا سكَن. …"}`. Stockage brut par sourate dans
@@ -286,10 +290,10 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   Ibn Qutaybah cite souvent plusieurs mots («وَاللَّيْلِ إِذَا سَجَى», «حَبِطَتْ أَعْمَالُهُمْ»).
   Par défaut on surligne toute la citation, particules de bord retirées («فَإِنْ عُثِرَ» →
   عُثِرَ) : deviner un seul mot s'est révélé faux une fois sur deux sur le corpus.
-- Choix éditorial (validé) : **1 ou 2 mots** de la citation dans `config/glosses.yaml`,
+- Choix éditorial (validé, 3 mots depuis le 2026-11-05) : **1 à 3 mots** de la citation dans `config/glosses.yaml`,
   `"93:2": سجى` (comme la maquette), `"20:131": زهرة الحياة`, ou une liste pour deux gloses
   d'une même ayah `"2:2": [ريب, هدى]`. Diacritiques facultatifs, imla'i ou uthmani. Plus de
-  2 mots → erreur ; mot absent de la citation → avertissement et citation entière gardée.
+  3 mots → erreur ; mot absent de la citation → avertissement et citation entière gardée.
   Deux mots non contigus s'affichent « خَتَمَ … قُلُوبِهِمْ ». Clé sans guillemets (`93:2:`)
   acceptée (YAML la lit en base 60, on la décode).
 - Sur le corpus complet (2 394 ayahs, 3 561 entrées) : 96 % des entrées s'ancrent, 2 301 ayahs
@@ -299,14 +303,14 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
 ## Publications image (`images/`, docs/images.md)
 
 - Formats (`config/images.yaml`) : `word` (carrousel de 3 images : mot en grand, ayah avec le
-  mot surligné + Sahih International, glose d'Ibn Qutaybah mot pour mot) activé, une fois par
+  mot surligné + Sahih International, sens du Muyassar mot pour mot) activé, une fois par
   jour à `time_utc` 11:30 ; `ayah` (une image) préparé, désactivé. 1080×1350, même charte que
   les reels, fond généré en CSS (aucune photo, aucun droit), pas d'audio (pas de Rights
   Manager). Gabarit `images/templates/card.html.j2` d'après `docs/mockup/images/cards.html`.
 - Sélection déterministe, sans IA ni validation : candidats figés dans
   `config/image-candidates.yaml` par `quran-reels images build` (références seulement), à
   refaire après un changement de `glosses.yaml`, du gabarit ou de `min_scale`.
-  1. une entrée de glose ancrée sur 1 ou 2 mots (comme les reels : mots de `glosses.yaml`,
+  1. une entrée de sens ancrée sur 1 à 3 mots liés (`glosses.max_words` ; comme les reels : mots de `glosses.yaml`,
      sinon citation sans particules de bord) ;
   2. glose montrée entière : texte complet (notes `[[…]]` retirées) ≤ 170 caractères et fini
      par une phrase, sinon écartée, jamais raccourcie ;

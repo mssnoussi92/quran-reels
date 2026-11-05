@@ -36,7 +36,7 @@ class Content:
     translations: dict[int, str]
     highlight: dict[int, tuple[int, ...]]  # word positions per ayah
     word: str = ""                         # the highlighted words as shown («…» for a gap)
-    gloss: str = ""                        # Ibn Qutaybah, verbatim and whole
+    gloss: str = ""                        # the word meaning, verbatim and whole
 
     @property
     def context_ref(self) -> str:
