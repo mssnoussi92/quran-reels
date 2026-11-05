@@ -255,9 +255,12 @@ def find_split(audio: Path, labels: list[str], texts: list[str], expected: list[
         scores[labels[i]] = score(i, a, b)
         if scores[labels[i]] < MIN_MATCH:
             wrong.append(f"{labels[i]} ({scores[labels[i]]:.2f})")
-    if wrong:
+    if wrong and len(wrong) == len(scores):
         raise SplitError(f"segments not recognised as their ayah: {', '.join(wrong)}")
-    return dict(zip(labels, cut)), scores
+    if wrong:       # the others stay usable: a passage needs all of its own ayahs checked
+        print(f"not recognised as their ayah: {', '.join(wrong)} (left unchecked)",
+              file=sys.stderr)
+    return dict(zip(labels, cut)), {k: v for k, v in scores.items() if v >= MIN_MATCH}
 
 
 class SurahFiles:
