@@ -13,6 +13,7 @@ platform is retried while the slot's window lasts, never with another passage.
 
 from __future__ import annotations
 
+import json
 import os
 import sys
 from dataclasses import dataclass
@@ -81,9 +82,11 @@ def _output(name: str, value: str) -> None:
 
 
 def run(cfg: Config, state_path: Path, now: datetime | None = None, dry_run: bool = False,
-        check: bool = False, force: bool = False) -> int:
+        check: bool = False, force: bool = False, report: Path | None = None) -> int:
     """check: only say whether something is due (output `due`), for the workflow to skip
-    installing ffmpeg and Chromium. force: run even if schedule.enabled is false."""
+    installing ffmpeg and Chromium. force: run even if schedule.enabled is false.
+    report: JSON of what this run published, for `quran-reels notify` (written even when the
+    run fails half way, with the error)."""
     now = now or datetime.now(UTC)
     series = load_series(cfg)
     sched = load_schedule(cfg, series)
@@ -93,6 +96,8 @@ def run(cfg: Config, state_path: Path, now: datetime | None = None, dry_run: boo
         return 0
     state = State.load(state_path)
     platforms = publish_mod.platforms_for(cfg, None)
+    if dry_run:     # TikTok's only test mode is a real draft in the owner's inbox
+        platforms = [x for x in platforms if x != "tiktok"]
     todo = pending(sched, series, state, now, platforms)
     local = now.astimezone(sched.tz)
     if not todo:
@@ -104,6 +109,22 @@ def run(cfg: Config, state_path: Path, now: datetime | None = None, dry_run: boo
     if check or not todo:
         return 0
 
+    log: dict = {"dry_run": dry_run, "items": [], "errors": []}
+    try:
+        return _publish(cfg, sched, series, state, state_path, todo, platforms, dry_run, log)
+    except BaseException as e:      # SystemExit from the Meta token check included
+        log["errors"].append(f"{type(e).__name__}: {e}" if not isinstance(e, SystemExit)
+                             else str(e))
+        raise
+    finally:
+        if report:
+            report.parent.mkdir(parents=True, exist_ok=True)
+            report.write_text(json.dumps(log, ensure_ascii=False, indent=1), encoding="utf-8")
+
+
+def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: State,
+             state_path: Path, todo: list[Pending], platforms: list[str], dry_run: bool,
+             log: dict) -> int:
     from quran_reels.render import render_passage
 
     meta = [x for x in platforms if x in publish_mod.META]
@@ -119,6 +140,17 @@ def run(cfg: Config, state_path: Path, now: datetime | None = None, dry_run: boo
                                p.item.series.hashtags).video
         results = publish_mod.publish_reel(cfg, video, p.platforms, dry_run, checked)
         failed |= any(r.status is PublishStatus.FAILED for r in results)
+        caption_file = video.with_suffix("") / "caption.txt"
+        caption = caption_file.read_text(encoding="utf-8") if caption_file.is_file() else ""
+        log["items"].append({
+            "key": f"{p.day.isoformat()}/{p.slot.name}", "day": p.day.isoformat(),
+            "time": f"{p.slot.at:%H:%M}", "passage": p.item.key, "label": p.item.label_en,
+            "retry": p.retry, "caption": caption,
+            "results": {r.platform: {"status": r.status.value, "url": r.url, "error": r.error}
+                        for r in results}})
+        if caption:
+            publish_mod._summary("**Légende complète, à copier (TikTok, YouTube)**\n\n"
+                                 f"```text\n{caption.strip()}\n```")
         if dry_run:
             continue
         record = state.slot(p.day, p.slot.name) or {

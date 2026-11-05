@@ -14,12 +14,16 @@ on:
         description: "Only render this passage, e.g. 93 or 2:1-5 (nothing is published)"
         required: false
       dry_run:
-        description: "Run the schedule now as a dry run (drafts, state unchanged)"
+        description: "Run the schedule now as a dry run (drafts, state unchanged, no TikTok)"
         type: boolean
         default: false
+      now:
+        description: "Dry run only: pretend it is this time, e.g. 2026-11-05T07:20+01:00"
+        required: false
 
 permissions:
   contents: write          # the state branch (what was published where)
+  issues: write            # failure alert and captions to copy (quran-reels notify)
 
 concurrency:
   group: accounts          # never two runs posting at the same time (see publish-test)
@@ -52,9 +56,11 @@ jobs:
       - name: What is due
         id: due
         if: inputs.passage == ''
+        env:
+          NOW: ${{ inputs.now }}
         run: |
           if [ "${{ inputs.dry_run }}" = "true" ]; then
-            quran-reels daily --state "$STATE" --check --force
+            quran-reels daily --state "$STATE" --check --force ${NOW:+--now "$NOW"}
           else
             quran-reels daily --state "$STATE" --check
           fi
@@ -88,9 +94,10 @@ jobs:
           TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
           TIKTOK_REFRESH_TOKEN: ${{ secrets.TIKTOK_REFRESH_TOKEN }}
           GH_SECRETS_TOKEN: ${{ secrets.GH_SECRETS_TOKEN }}
+          NOW: ${{ inputs.now }}
         run: |
           if [ "${{ inputs.dry_run }}" = "true" ]; then
-            quran-reels daily --state "$STATE" --dry-run --force
+            quran-reels daily --state "$STATE" --dry-run --force ${NOW:+--now "$NOW"}
           else
             quran-reels daily --state "$STATE"
           fi
@@ -106,6 +113,17 @@ jobs:
               -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
               commit -q -m "État $(date -u +%Y-%m-%dT%H:%MZ)"
           git push -q origin state
+
+      # A failure opens an issue assigned to the owner (push notification in the GitHub app),
+      # closed by the next run that publishes; captions to copy go to a pinned issue.
+      - name: Tell the owner
+        if: always() && inputs.passage == '' && (steps.due.outputs.due == 'true' || failure())
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OUTCOME: ${{ job.status }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          OWNER: ${{ github.repository_owner }}
+        run: quran-reels notify --outcome "$OUTCOME" --run-url "$RUN_URL" --owner "$OWNER"
 
       - name: Keep the video
         if: always()

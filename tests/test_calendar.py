@@ -191,3 +191,26 @@ def test_a_passage_published_by_hand_is_skipped():
     s = schedule(published_by_hand=frozenset({"113:1-5"}))
     days = preview(s, SERIES, State(), date(2026, 11, 7), 2)      # Saturday, Sunday
     assert [i.key for _, slot, _, i in days if slot.name == "morning"] == ["114:1-6", "112:1-4"]
+
+
+def test_daily_writes_a_report_for_notify_even_when_it_stops(world, monkeypatch, tmp_path):
+    import json as _json
+
+    _, answers, path = world
+    report = tmp_path / "out" / "daily-report.json"
+    answers["instagram"] = [PublishStatus.FAILED]
+    assert daily.run(None, path, now=paris(2026, 11, 5, 7, 20), report=report) == 1
+    data = _json.loads(report.read_text(encoding="utf-8"))
+    [entry] = data["items"]
+    assert (entry["key"], entry["passage"], entry["time"]) == ("2026-11-05/morning", "114:1-6",
+                                                              "07:30")
+    assert entry["results"]["instagram"]["status"] == "failed"
+
+    def expired(cfg, platforms):
+        raise SystemExit("Meta token check failed:\ndata access expires in 3 days")
+
+    monkeypatch.setattr(daily.publish_mod, "meta_check", expired)
+    with pytest.raises(SystemExit):
+        daily.run(None, path, now=paris(2026, 11, 5, 19, 20), report=report)
+    data = _json.loads(report.read_text(encoding="utf-8"))
+    assert data["items"] == [] and "expires in 3 days" in data["errors"][0]

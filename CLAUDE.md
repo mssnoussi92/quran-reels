@@ -65,6 +65,7 @@ src/quran_reels/
   publish.py       `quran-reels publish|meta-check|tiktok-auth` : contrôle, publication, résumé
   gh_secrets.py    réécrit un secret Actions (refresh token TikTok) via gh + GH_SECRETS_TOKEN
   daily.py         `quran-reels daily` : créneaux dus maintenant → rendu → publication → état
+  notify.py        `quran-reels notify` : tickets GitHub (alerte d'échec, légendes à copier)
   cli.py           `quran-reels ingest|render|passages|plan|series-check|calendar|daily|publish`
 tests/             pytest, sans réseau
 .github/workflows/ daily.yml (cron 2 créneaux × 3 essais ; ne publie rien tant que
@@ -97,6 +98,7 @@ quran-reels series-check            # séries : phrases entières, ≤ 90 s
 quran-reels calendar --days 14      # ce que les 14 prochains jours publieraient
 quran-reels daily --check           # un créneau est-il dû maintenant ? (rien n'est publié)
 quran-reels daily                   # publie les créneaux dus, écrit state/published.json
+quran-reels notify --outcome failure --run-url …   # tickets GitHub (workflow daily)
 ```
 
 ```bash
@@ -185,6 +187,14 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   réessaie que les plateformes en échec, avec le même passage ; fenêtre de 3 h.
 - État : `published.json` sur la branche `state` (créée au premier passage du workflow),
   commit après chaque créneau. Un passage compte comme publié dès qu'une plateforme l'a.
+- Prévenir le propriétaire (`notify.py`, étape « Tell the owner », `issues: write`) :
+  `daily` écrit `out/daily-report.json` (même s'il s'arrête, avec l'erreur). Échec → ticket
+  « ⚠️ Publication quotidienne en échec » assigné au propriétaire et @mention (notification
+  push dans l'app GitHub), commentaire s'il est déjà ouvert ; fermé par la prochaine
+  publication réussie. Chaque publication met à jour le ticket épinglé « 📋 Légendes à copier
+  (TikTok, YouTube) » : légendes complètes des 4 dernières vidéos (aucune notification).
+  Aussi dans le résumé du run. Dry-run : jamais le ticket d'échec, pas de TikTok (son seul
+  test serait un vrai brouillon) ; entrée `now` du workflow pour simuler l'heure.
 
 ## Rendu
 
