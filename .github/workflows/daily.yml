@@ -1,62 +1,122 @@
 name: daily-reel
 
+# Two videos a day (config/schedule.yaml): 07:30 and 19:30 Paris time, Al-Kahf on Fridays.
+# GitHub's schedule is in UTC and often late, so each slot gets three runs, an hour apart,
+# covering summer and winter time; `quran-reels daily` decides what is due and retries the
+# platforms that failed. Nothing is published while schedule.yaml says enabled: false.
 on:
+  schedule:
+    - cron: "13 5,6,7 * * *"      # morning slot: 07:13 Paris + two retries, winter or summer
+    - cron: "13 17,18,19 * * *"   # evening slot: 19:13 Paris + two retries
   workflow_dispatch:
     inputs:
       passage:
-        description: "Surah or passage to render, e.g. 93 or 2:1-5 (empty = today's pick)"
+        description: "Only render this passage, e.g. 93 or 2:1-5 (nothing is published)"
         required: false
-  # schedule:            # enabled once v1 is validated
-  #   - cron: "17 5 * * *"
+      dry_run:
+        description: "Run the schedule now as a dry run (drafts, state unchanged)"
+        type: boolean
+        default: false
 
 permissions:
-  contents: read         # write only once state/ (what was published where) is committed
+  contents: write          # the state branch (what was published where)
 
 concurrency:
-  group: daily-reel
+  group: accounts          # never two runs posting at the same time (see publish-test)
   cancel-in-progress: false
 
 jobs:
   reel:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+    runs-on: ubuntu-24.04     # pinned: same ffmpeg as tested; ubuntu-latest is moving to 26.04
+    timeout-minutes: 30
+    env:
+      STATE: state-branch/published.json
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - name: Install
+      - name: Install the package
+        run: pip install -e .
+
+      # The state lives on its own branch, so that the daily commits stay out of main.
+      - name: Load the publication state
+        run: |
+          if git ls-remote --exit-code --heads origin state >/dev/null; then
+            git fetch --depth=1 origin state:state
+            git worktree add state-branch state
+          else
+            git worktree add --orphan -b state state-branch
+          fi
+
+      - name: What is due
+        id: due
+        if: inputs.passage == ''
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            quran-reels daily --state "$STATE" --check --force
+          else
+            quran-reels daily --state "$STATE" --check
+          fi
+
+      - name: Install ffmpeg and Chromium
+        if: inputs.passage != '' || steps.due.outputs.due == 'true'
         run: |
           sudo apt-get update && sudo apt-get install -y ffmpeg
-          pip install -e .
           python -m playwright install --with-deps chromium
       # The cache fills up as passages are rendered: restore the latest, save a new one.
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
+        if: inputs.passage != '' || steps.due.outputs.due == 'true'
         with:
           path: .cache
           key: data-${{ hashFiles('config/project.yaml') }}-${{ github.run_id }}
           restore-keys: data-${{ hashFiles('config/project.yaml') }}-
+
       - name: Render a given passage
         if: inputs.passage != ''
         env:
           PASSAGE: ${{ inputs.passage }}
         run: quran-reels render "$PASSAGE"
-      - name: Run
-        if: inputs.passage == ''
-        env:
+
+      - name: Publish the slots due now
+        if: inputs.passage == '' && steps.due.outputs.due == 'true'
+        env:                   # secrets for this step only, not for the installs above
           META_PAGE_ID: ${{ secrets.META_PAGE_ID }}
           META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN }}
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
-        run: quran-reels run
+          TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
+          TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
+          TIKTOK_REFRESH_TOKEN: ${{ secrets.TIKTOK_REFRESH_TOKEN }}
+          GH_SECRETS_TOKEN: ${{ secrets.GH_SECRETS_TOKEN }}
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            quran-reels daily --state "$STATE" --dry-run --force
+          else
+            quran-reels daily --state "$STATE"
+          fi
+
+      - name: Save the publication state
+        if: always() && inputs.passage == '' && steps.due.outputs.due == 'true'
+        working-directory: state-branch
+        run: |
+          [ -f published.json ] || exit 0
+          git add published.json
+          git diff --cached --quiet && exit 0
+          git -c user.name="quran-reels" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -q -m "État $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -q origin state
+
       - name: Keep the video
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: reel
           path: |
             out/*.mp4
             out/*/caption.txt
             out/*/manifest.json
+            out/*/publish.json
             out/*/preview/*.png
           if-no-files-found: ignore
           retention-days: 14

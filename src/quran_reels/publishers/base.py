@@ -26,6 +26,10 @@ class PublisherError(RuntimeError):
         self.transient = transient      # network error or HTTP 5xx: worth asking again
 
 
+class StillProcessing(PublisherError):
+    """The platform has not finished processing the video within the time allowed."""
+
+
 def wait(check: Callable[[], tuple[bool, Any]], what: str, timeout: float = 900,
          interval: float = 10) -> Any:
     """Call check() until it reports done; check raises on a terminal error.
@@ -47,5 +51,5 @@ def wait(check: Callable[[], tuple[bool, Any]], what: str, timeout: float = 900,
         if done:
             return value
         if time.monotonic() > deadline:
-            raise PublisherError(f"{what}: still processing after {timeout:.0f} s")
+            raise StillProcessing(f"{what}: still processing after {timeout:.0f} s")
         time.sleep(interval)

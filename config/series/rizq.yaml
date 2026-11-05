@@ -1,0 +1,29 @@
+# PROPOSAL, to be validated by the owner: remove a line to drop a passage, reorder freely.
+# Made from the 108 ayahs that contain the root ر ز ق (provision), keeping those that say
+# who provides and how provision comes, plus a few on the same theme without the root
+# (marked «theme»). Mushaf order. Whole ayahs ending a sentence (`quran-reels series-check`).
+title_ar: آيات الرزق
+title_en: Provision (rizq) in the Quran
+passages:
+  - "2:245"        # theme: lending to Allah, «Allah withholds and grants abundance»
+  - "2:261"        # theme: spending multiplied
+  - "3:37"         # Maryam's provision
+  - "7:96"         # theme: blessings for the people of faith and taqwa
+  - "10:31"        # «who provides for you from the heaven and the earth?»
+  - "11:6"         # every creature's provision is upon Allah
+  - "14:7"         # theme: «if you are grateful, I will increase you»
+  - "15:19-21"     # its depositories are with Us
+  - "17:31"        # «We provide for them and for you»
+  - "20:132"       # «We ask you not for provision; We provide for you»
+  - "29:60"        # creatures that do not carry their provision
+  - "30:37"        # He extends provision and restricts it
+  - "34:39"        # what you spend, He replaces
+  - "35:3"         # is there a creator other than Allah who provides for you?
+  - "42:19"        # Subtle with His servants, He gives provision
+  - "42:27"        # if He extended provision to all
+  - "51:22-23"     # in the heaven is your provision
+  - "51:56-58"     # Allah is the Provider
+  - "62:9-10"      # theme: after the Friday prayer, seek the bounty of Allah
+  - "65:2-3"       # «He will provide for him from where he does not expect»
+  - "67:15"        # walk among its slopes and eat of His provision
+  - "71:9-12"      # theme: ask forgiveness, He will send rain and wealth

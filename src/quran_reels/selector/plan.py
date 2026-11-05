@@ -10,7 +10,7 @@ Among those cuts, the split whose passages are closest to target_seconds is chos
 inside it are allowed too, and the passages concerned are marked `relaxed`.
 
 Durations come from the reciter's chapter timings on Quran.com, plus the lead and tail
-silences of the video.
+silences of the video and the basmala that opens it (see passage.needs_basmala).
 """
 
 from __future__ import annotations
@@ -21,6 +21,7 @@ from itertools import accumulate
 
 from quran_reels.config import Config
 from quran_reels.models import AyahRef
+from quran_reels.passage import needs_basmala
 from quran_reels.sources import Sources
 
 _SENTENCE_END = re.compile("[.?!][\"'”’»)\\]]*$")
@@ -61,7 +62,9 @@ def split(seconds: list[float], ends: set[int], groups: list[tuple[int, int]],
     def cost(d: float) -> float:
         video = d + overhead
         if video > high:
-            return 1e6 + (video - high) * 1e3
+            # Every second over the limit costs more than any number of passages within it:
+            # an ayah too long on its own stays alone instead of swallowing its neighbours.
+            return 1e6 + (video - high) * 1e5
         if video < low:
             return 1e4 + (low - video) ** 2
         return (video - target) ** 2
@@ -95,8 +98,15 @@ def plan_surah(cfg: Config, surah: int, src: Sources | None = None) -> list[Plan
         raise SystemExit(f"no timing for {surah}:{missing[0]} on Quran.com")
     seconds = [timings[a] for a in range(1, n + 1)]
 
-    if p.get("whole_surah", True) and sum(seconds) + overhead <= high:
-        return [Planned(surah, 1, n, round(sum(seconds) + overhead, 1), whole_surah=True)]
+    def basmala(start: int) -> float:
+        if not needs_basmala(cfg, surah, start):
+            return 0.0
+        return src.quran.timings(1, int(cfg.content["reciter"]["timings_id"]))[1]
+
+    whole = sum(seconds) + overhead + basmala(1)
+    if p.get("whole_surah", True) and whole <= high:
+        return [Planned(surah, 1, n, round(whole, 1), whole_surah=True)]
+    overhead += basmala(2)          # every later passage opens with it too
 
     refs = [AyahRef(surah, a) for a in range(1, n + 1)]
     translations = {r.ayah: t for r, t in src.quran.translate(src.translation_slug, refs).items()}

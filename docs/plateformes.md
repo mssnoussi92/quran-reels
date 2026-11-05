@@ -51,9 +51,12 @@
   `thumb_offset` = milieu de la première ayah glosée) → upload `rupload…/ig-api-upload/…` →
   attente `status_code=FINISHED` → contrôle du quota (`content_publishing_limit`) →
   `media_publish`. En dry-run on s'arrête avant `media_publish`.
-- **Constaté (2026-11-04, runs #4–#7) :** l'upload Instagram répond toujours
-  `400 ProcessingFailedError` alors que le conteneur passe `IN_PROGRESS` puis `FINISHED`. Après
-  une erreur d'upload, on lit donc le conteneur et on n'échoue que s'il est en `ERROR`.
+- **Constaté (2026-11-04, runs #4–#9) :** l'upload Instagram répond presque toujours
+  `400 ProcessingFailedError`. Parfois Instagram a quand même la vidéo (run #7 : conteneur
+  `FINISHED` aussitôt), parfois le conteneur reste `IN_PROGRESS` pour de bon (run #9 : encore
+  après 15 min). Après cette erreur, on lit donc le conteneur : `ERROR` → échec ; sinon on attend
+  4 min, puis on abandonne ce conteneur et on renvoie la vidéo dans un nouveau (3 essais au
+  plus). Un conteneur non publié ne coûte rien : rien n'est posté, il expire après 24 h.
   Le MP4 est aussi encodé sans edit list ni B-frames, AAC 128 kb/s (spécifications Reels).
 - **Dry-runs validés :** Facebook (run #3, brouillon) et Instagram (run #7, conteneur prêt).
 - Légende : celle du rendu (`caption.txt`), raccourcie automatiquement sous 2 200 caractères
@@ -103,6 +106,9 @@ Le bouton « Run workflow » n'apparaît que pour un workflow présent sur `main
   une notification et termine la publication dans l'app (légende : `caption.txt` de l'artefact).
   TikTok garde au plus 5 brouillons en attente par 24 h.
 - Dry-run = même envoi dans la boîte : rien n'est jamais public en mode brouillon.
+- **Vérifié le 2026-11-04 :** connexion `tiktok-auth` OK (compte `quran_words_daily`, scopes
+  `user.info.basic,video.upload`, refresh token enregistré par `GH_SECRETS_TOKEN`), et l'envoi
+  dans la boîte **fonctionne en Sandbox** (publish-test run #8 → `SEND_TO_USER_INBOX`).
 
 ### Connexion TikTok (une fois, puis ≈ 1 fois par an)
 

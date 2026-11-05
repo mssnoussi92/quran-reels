@@ -27,6 +27,10 @@ content:
     id: Alafasy_128kbps               # EveryAyah folder name
     label: Mishary Rashid Alafasy
     timings_id: 7                     # Quran.com chapter recitation, same recording (planning)
+  basmala:
+    enabled: true                     # recited and shown at the start of every video
+    audio: bismillah                  # EveryAyah file of the reciter: bismillah.mp3
+    skip_surahs: [9]                  # At-Tawbah has no basmala (also none before 1:1, it is 1:1)
   passage:
     mode: complete                    # never cut a passage mid-sentence
     target_seconds: 60                # about one minute
@@ -53,10 +57,9 @@ platforms:
   facebook:  { enabled: true,  mode: auto }
   instagram: { enabled: true,  mode: auto }
   tiktok:
-    enabled: false                    # true once tiktok-auth has saved TIKTOK_REFRESH_TOKEN
+    enabled: true                     # tiktok-auth saved TIKTOK_REFRESH_TOKEN (2026-11-04)
     mode: draft                       # inbox upload, posted by hand from the TikTok app
     redirect_uri: https://mssnoussi92.github.io/quran-reels/tiktok-callback.html
   youtube:   { enabled: false, mode: manual }  # locked private until the YouTube audit
 
-schedule:
-  per_day: 1
+# When and what to publish: config/schedule.yaml (slots) and config/series/ (series).

@@ -12,6 +12,11 @@ e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis 
 | Sujet | Choix |
 |---|---|
 | Format | **≈ 1 minute** (cible 60 s, 40–90 s), jamais coupé au milieu d'une phrase ; **sourate courte entière** (≤ 90 s, même très courte) |
+| Basmala | **Au début de chaque vidéo**, même pour quelques versets ; sauf sourate 9 et avant 1:1 (qui est la basmala) |
+| Rythme | **2 vidéos par jour**, heure de Paris : **07:30** lecture dans l'ordre, **19:30** séries thématiques |
+| Lecture | **Juz' 'Amma d'abord** (114 → 78), puis Al-Fatiha et 2 → 77, passages de `config/plan.yaml` |
+| Thèmes | Ayat al-Kursi, versets de du'a, versets du rizq… : listes **proposées par l'IA en PR, validées par le propriétaire** |
+| Vendredi | **Les deux créneaux lisent Al-Kahf** (2 passages par vendredi, 38 au total, puis on recommence) |
 | Texte arabe | Uthmani (Hafs), police **Amiri Quran** (OFL) |
 | Traduction | **Sahih International** (anglais), créditée dans chaque légende |
 | Mots difficiles | **Ibn Qutaybah, *Tafsir Gharib al-Qur'an*** (`ar-ghareeb-ibn-qutaybah`), glose en arabe |
@@ -38,7 +43,9 @@ e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis 
 
 ```
 config/            project.yaml (choix éditoriaux), backgrounds.yaml (fonds sélectionnés),
-                   glosses.yaml (choix éditoriaux : 1 ou 2 mots surlignés par glose)
+                   glosses.yaml (choix éditoriaux : 1 ou 2 mots surlignés par glose),
+                   schedule.yaml (créneaux, files, vendredi), series/*.yaml (séries),
+                   plan.yaml (tout le Coran découpé, figé : `quran-reels plan --write`)
 src/quran_reels/
   models.py        AyahRef, Ayah, GlossEntry, WordGloss, Passage, Reel, PublishResult
   config.py        chargement de config/, chemins (.cache/, out/)
@@ -47,8 +54,8 @@ src/quran_reels/
   passage.py       assemble un passage : texte + traduction + gloses ancrées + audio
   sources/         quran_com (texte, sourates, traduction), tafsir_app (gloses),
                    everyayah (audio), backgrounds (clip ou fond provisoire généré), http
-  selector/        plan.py : découpe d'une sourate en passages d'≈ 1 min (fait) ;
-                   quel passage aujourd'hui (calendrier, séries, historique) : à faire
+  selector/        plan.py : découpe d'une sourate en passages d'≈ 1 min ;
+                   calendar.py : créneaux, files de séries, vendredi, état, vérification des séries
   render/          frames.py (template HTML → PNG, Chromium/Playwright),
                    video.py (minutage audio + ffmpeg → MP4), __init__ (orchestration)
   publishers/      un adaptateur par plateforme, interface commune `Publisher` (dry_run) :
@@ -56,12 +63,15 @@ src/quran_reels/
                    tiktok.py (brouillon dans la boîte TikTok, connexion OAuth)
   publish.py       `quran-reels publish|meta-check|tiktok-auth` : contrôle, publication, résumé
   gh_secrets.py    réécrit un secret Actions (refresh token TikTok) via gh + GH_SECRETS_TOKEN
-  state/           ce qui a été publié où (évite doublons, reprise après échec)
-  cli.py           `quran-reels ingest|render|publish|run`
+  daily.py         `quran-reels daily` : créneaux dus maintenant → rendu → publication → état
+  cli.py           `quran-reels ingest|render|passages|plan|series-check|calendar|daily|publish`
 tests/             pytest, sans réseau
-.github/workflows/ daily.yml (lancement manuel avec un passage → rendu + artefact),
+.github/workflows/ daily.yml (cron 2 créneaux × 3 essais ; ne publie rien tant que
+                   schedule.yaml dit enabled: false ; état sur la branche `state`),
                    publish-test.yml (manuel : dry-run, ou publication réelle avec PUBLIER),
                    tiktok-auth.yml (manuel : échange du code TikTok → TIKTOK_REFRESH_TOKEN)
+                   Runners épinglés sur `ubuntu-24.04` (même ffmpeg 6.1 que les tests ;
+                   `ubuntu-latest` passe à 26.04), actions en versions Node.js 24.
 docs/              site GitHub Pages (CGU, confidentialité, tiktok-login.html, tiktok-callback.html)
 ```
 
@@ -79,6 +89,14 @@ quran-reels render 2:1-5            # un passage → out/002_001-005.mp4 (compl�
 ```
 
 `render 78` sur une sourate trop longue pour une vidéo ne rend rien et liste ses passages.
+
+```bash
+quran-reels plan --write            # tout le Coran → config/plan.yaml (1 887 passages)
+quran-reels series-check            # séries : phrases entières, ≤ 90 s
+quran-reels calendar --days 14      # ce que les 14 prochains jours publieraient
+quran-reels daily --check           # un créneau est-il dû maintenant ? (rien n'est publié)
+quran-reels daily                   # publie les créneaux dus, écrit state/published.json
+```
 
 ```bash
 quran-reels meta-check              # jeton de Page : valide, permissions, accès aux données
@@ -140,7 +158,31 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   sourate 2 : 2:1-5 (57 s), 2:6-9 (52 s), 2:10-13 (60 s)…
 - Bloc entre deux coupures plus long que 90 s (78:37-40) : on coupe à une fin de phrase à
   l'intérieur du groupe, passage signalé « cut inside a tafsir group ». Une ayah seule de plus
-  de 90 s (2:282) dépasse : à éviter par le sélecteur ou à segmenter plus tard.
+  de 90 s (2:282) dépasse : chaque seconde au-delà coûte plus que tout le reste, donc elle reste
+  seule (avant correction, 24:31 et 24:61 avalaient tout l'entre-deux : 24:31-61, 19 min).
+- Tout le Coran : **1 887 passages** (`config/plan.yaml`), dont 19 de plus de 90 s (ayahs ou
+  phrases trop longues, 2:282, 24:31…) laissés de côté par le calendrier pour l'instant.
+
+## Calendrier (`selector/calendar.py`, `daily.py`)
+
+- `config/schedule.yaml` : fuseau `Europe/Paris`, créneaux `morning` 07:30 (file `reading`) et
+  `evening` 19:30 (file `themes`), vendredi → file `kahf` pour les deux, `fallback` (une file
+  finie passe à une autre). `enabled: false` tant que la première publication réelle n'est pas
+  faite.
+- Une file joue ses séries l'une après l'autre ; chaque créneau prend le premier passage pas
+  encore publié. Série `repeat: true` (Al-Kahf) : recommence une fois finie.
+- Série (`config/series/*.yaml`) : `surahs: [...]` (passages de plan.yaml) ou `passages:`
+  écrits à la main, `title_ar`/`title_en` affichés sur le premier écran («آيات الدعاء · ٤ من ٣٨»)
+  et en tête de la légende. `quran-reels series-check` refuse un passage qui commence ou finit
+  au milieu d'une phrase, ou de plus de 90 s.
+- Listes thématiques : proposées (IA, en amont) avec la règle utilisée (racine ر ز ق, «رَبَّنَا»…)
+  et validées par le propriétaire en PR. Les textes viennent toujours des sources au rendu.
+  « السبع المنجيات » : en attente de la liste suivie par le propriétaire (les listes varient).
+- Workflow `daily` : cron `13 5,6,7` et `13 17,18,19` UTC (heure d'été et d'hiver, GitHub est
+  souvent en retard) ; `daily --check` décide sans installer ffmpeg ; un créneau commencé ne
+  réessaie que les plateformes en échec, avec le même passage ; fenêtre de 3 h.
+- État : `published.json` sur la branche `state` (créée au premier passage du workflow),
+  commit après chaque créneau. Un passage compte comme publié dès qu'une plateforme l'a.
 
 ## Rendu
 
@@ -150,6 +192,10 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   `content` par ayah (référence, ayah, traduction, gloses) en fondu de 0,25 s. Fond provisoire
   tant que `backgrounds.yaml` est vide : boucle de 12 s générée (numpy) dans la palette de la
   maquette, ciel de nuit vers l'aube, étoiles qui scintillent, mise en cache.
+- Basmala (`content.basmala`) : `bismillah.mp3` d'EveryAyah (≈ 6 s), texte uthmani et
+  traduction de 1:1 (Quran.com), premier segment du minutage ; écran sans référence ni numéro.
+  Comptée dans le découpage (93 entière : 62 s). Pas pour la sourate 9 (`skip_surahs`) ni
+  quand la vidéo commence à 1:1. Ligne arabe en tête de la légende.
 - MP4 : H.264 High sans B-frames, AAC 48 kHz, `faststart`, **sans edit list** (`-use_editlist 0`) :
   Instagram Reels refuse les edit lists que ffmpeg écrit par défaut.
 - Texte réduit automatiquement (`--k`) s'il dépasse la zone sûre ; avertissement sous 70 %.
@@ -197,7 +243,10 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
 - [x] Dry-run Facebook (run #3, brouillon créé) et Instagram (run #7, conteneur FINISHED, non
       publié). [ ] Première publication réelle (`publish-test`, mode publish + PUBLIER).
       Pas encore d'état anti-doublon (`state/`).
-- [x] App TikTok Sandbox · [ ] connexion (`tiktok-login.html` + `tiktok-auth`) · [ ] test
-      brouillon en Sandbox (`publish-test`, plateforme tiktok)
+- [x] App TikTok Sandbox · [x] connexion (`tiktok-auth`, compte quran_words_daily, refresh
+      token jusqu'à ≈ 2027-11-04) · [x] brouillon dans la boîte TikTok en Sandbox (run #8)
 - [ ] Demande d'audit YouTube
-- [ ] Workflow quotidien
+- [x] Calendrier : 2 créneaux, Juz' 'Amma, séries (Ayat al-Kursi, du'a, rizq), Al-Kahf le
+      vendredi, état, workflow `daily` (désactivé : `schedule.yaml` → `enabled: true` après la
+      première publication réelle)
+- [ ] Liste « السبع المنجيات » à fournir · [ ] d'autres séries avant la fin des thèmes (≈ 2 mois)

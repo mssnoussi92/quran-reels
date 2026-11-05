@@ -210,6 +210,6 @@ class TikTokPublisher:
             self.client.upload(data["upload_url"], reel.video, chunk, count)
             wait(lambda: self._status(access, publish_id), f"tiktok {publish_id}",
                  self.timeout, self.poll_interval)
-        except (TikTokError, KeyError) as e:
+        except (PublisherError, KeyError) as e:      # TikTokError, or still processing
             return PublishResult(self.name, PublishStatus.FAILED, error=str(e))
         return PublishResult(self.name, PublishStatus.DRAFT, remote_id=publish_id)

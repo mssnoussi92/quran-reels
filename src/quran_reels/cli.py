@@ -41,7 +41,24 @@ def main(argv: list[str] | None = None) -> int:
     auth = sub.add_parser("tiktok-auth", help="exchange the TikTok code, save the refresh token")
     auth.add_argument("--code", help="default: $TIKTOK_AUTH_CODE or the workflow input")
 
-    sub.add_parser("run", help="select today's passage, render and publish")
+    plan = sub.add_parser("plan", help="split every surah; --write freezes config/plan.yaml")
+    plan.add_argument("--write", action="store_true")
+
+    sub.add_parser("series-check", help="check config/series: whole sentences, duration")
+
+    cal = sub.add_parser("calendar", help="what the next days publish (nothing is published)")
+    cal.add_argument("--days", type=int, default=14)
+    cal.add_argument("--state", default="state/published.json")
+    cal.add_argument("--from", dest="start", help="first day, YYYY-MM-DD (default: today)")
+
+    for name, text in (("daily", "publish the slots due now (config/schedule.yaml)"),
+                       ("run", "same as daily")):
+        d = sub.add_parser(name, help=text)
+        d.add_argument("--state", default="state/published.json")
+        d.add_argument("--now", help="ISO date-time instead of now, for tests")
+        d.add_argument("--dry-run", action="store_true", help="drafts only, state unchanged")
+        d.add_argument("--check", action="store_true", help="only say whether a slot is due")
+        d.add_argument("--force", action="store_true", help="even if schedule.enabled is false")
 
     args = parser.parse_args(argv)
     cfg = config.load()
@@ -111,6 +128,58 @@ def main(argv: list[str] | None = None) -> int:
         from quran_reels import publish as publish_mod
 
         return publish_mod.tiktok_auth(cfg, args.code)
+
+    if args.command == "plan":
+        from quran_reels.selector.calendar import write_plan
+        from quran_reels.selector.plan import plan_surah
+
+        if args.write:
+            print(write_plan(cfg))
+            return 0
+        n = sum(len(plan_surah(cfg, s)) for s in range(1, 115))
+        print(f"{n} passages (add --write to save config/plan.yaml)")
+        return 0
+
+    if args.command == "series-check":
+        from quran_reels.selector.calendar import check_series, load_series
+
+        bad = 0
+        for c in check_series(cfg, load_series(cfg)):
+            if c.problems:
+                long_only = all(p.startswith("longer than max_seconds") for p in c.problems)
+                bad += not long_only
+                print(f"{'note' if long_only else 'ERROR'} {c.series}: {c.key} "
+                      f"{'; '.join(c.problems)}")
+        print("series OK" if not bad else f"{bad} passage(s) to fix")
+        return 1 if bad else 0
+
+    if args.command == "calendar":
+        from datetime import UTC, date, datetime
+        from pathlib import Path
+
+        from quran_reels.selector.calendar import State, load_schedule, load_series, preview
+
+        series = load_series(cfg)
+        sched = load_schedule(cfg, series)
+        state = State.load(Path(args.state))
+        start = (date.fromisoformat(args.start) if args.start
+                 else datetime.now(UTC).astimezone(sched.tz).date())
+        if not sched.enabled:
+            print("(schedule disabled: this is what it would publish)")
+        for day, slot, queue, item in preview(sched, series, state, start, args.days):
+            what = f"{item.key:<10} {item.label_en or item.series.id}" if item else "— nothing left"
+            print(f"{day:%a %Y-%m-%d} {slot.at:%H:%M} {queue:<8} {what}")
+        return 0
+
+    if args.command in ("daily", "run"):
+        from datetime import datetime
+        from pathlib import Path
+
+        from quran_reels import daily
+
+        now = datetime.fromisoformat(args.now) if args.now else None
+        return daily.run(cfg, Path(args.state), now=now, dry_run=args.dry_run,
+                         check=args.check, force=args.force)
 
     print(f"'{args.command}' is not implemented yet", file=sys.stderr)
     return 2

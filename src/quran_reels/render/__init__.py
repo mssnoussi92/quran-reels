@@ -20,7 +20,7 @@ from pathlib import Path
 from quran_reels import __version__
 from quran_reels.arabic import arabic_digits
 from quran_reels.config import Config
-from quran_reels.models import Passage
+from quran_reels.models import Ayah, Passage
 from quran_reels.passage import build
 from quran_reels.render import video
 from quran_reels.render.frames import FrameRenderer, ayah_context
@@ -45,6 +45,8 @@ def caption(cfg: Config, passage: Passage, limit: int = CAPTION_LIMIT) -> str:
     """
     c = cfg.content
     head = [f"Surah {passage.surah_name_en} ({passage.key}) · سورة {passage.surah_name_ar}", ""]
+    if passage.label_en:
+        head = [passage.label_en, *head]
     tail = [
         f"Recitation: {c['reciter']['label']}",
         f"Translation: {c['translation']['label']}",
@@ -53,7 +55,7 @@ def caption(cfg: Config, passage: Passage, limit: int = CAPTION_LIMIT) -> str:
         cfg.video["handle"],
     ]
     for with_arabic, with_translation in ((True, True), (False, True), (False, False)):
-        body = []
+        body = [passage.basmala.text, ""] if passage.basmala and with_arabic else []
         for a in passage.ayahs:
             if with_arabic:
                 body.append(f"{a.text} ﴿{arabic_digits(a.ref.ayah)}﴾")
@@ -71,6 +73,12 @@ def manifest(cfg: Config, src: Sources, passage: Passage, timeline: video.Timeli
              background: dict) -> dict:
     c = cfg.content
     starts = timeline.starts()
+    basmala = None
+    if passage.basmala:
+        b, starts = passage.basmala, starts[1:]
+        basmala = {"ref": str(b.ref), "text": b.text, "translation": b.translation,
+                   "audio": src.audio.file_url(c["basmala"].get("audio", "bismillah")),
+                   "start": round(timeline.starts()[0], 3), "seconds": round(b.seconds or 0, 3)}
     return {
         "passage": passage.key,
         "surah": {"number": passage.surah, "name_ar": passage.surah_name_ar,
@@ -89,6 +97,9 @@ def manifest(cfg: Config, src: Sources, passage: Passage, timeline: video.Timeli
             "audio": f"https://everyayah.com/data/{src.audio.reciter}/",
         },
         "background": background,
+        "series": {"ar": passage.label_ar, "en": passage.label_en} if passage.label_en
+        or passage.label_ar else None,
+        "basmala": basmala,
         "ayahs": [
             {
                 "ref": str(a.ref),
@@ -111,9 +122,11 @@ def _warn(msg: str) -> None:
     print(f"warning: {msg}", file=sys.stderr)
 
 
-def render_passage(cfg: Config, key: str) -> RenderResult:
+def render_passage(cfg: Config, key: str, label_ar: str = "", label_en: str = "") -> RenderResult:
+    """label_ar / label_en: the series the passage belongs to, on the first frame and caption."""
     src = Sources.from_config(cfg)
     passage = build(cfg, key, src)
+    passage.label_ar, passage.label_en = label_ar, label_en
     v = cfg.video
     work = cfg.out / passage.slug
     if work.exists():
@@ -121,10 +134,13 @@ def render_passage(cfg: Config, key: str) -> RenderResult:
     frames_dir, audio_dir = work / "frames", work / "audio"
 
     # Audio first: it decides how long each frame stays on screen.
+    def name(a: Ayah) -> str:
+        return "basmala" if a is passage.basmala else a.ref.everyayah
+
     samples = []
     wavs = []
-    for a in passage.ayahs:
-        wav = audio_dir / f"{a.ref.everyayah}.wav"
+    for a in passage.segments:
+        wav = audio_dir / f"{name(a)}.wav"
         n = video.decode(a.audio, wav)
         a.seconds = n / video.SAMPLE_RATE
         samples.append(n)
@@ -133,7 +149,9 @@ def render_passage(cfg: Config, key: str) -> RenderResult:
                                     tail=float(v.get("tail_seconds", 1.2)))
     p = cfg.content["passage"]
     whole = passage.start == 1 and passage.end == src.quran.chapters[passage.surah]["verses_count"]
-    if timeline.seconds > p["max_seconds"] or (timeline.seconds < p["min_seconds"] and not whole):
+    themed = bool(label_ar or label_en)       # a theme passage may be one short du'a
+    if timeline.seconds > p["max_seconds"] or (
+            timeline.seconds < p["min_seconds"] and not whole and not themed):
         _warn(f"{passage.key} lasts {timeline.seconds:.1f} s, outside "
               f"{p['min_seconds']}–{p['max_seconds']} s (rendered anyway)")
 
@@ -141,13 +159,14 @@ def render_passage(cfg: Config, key: str) -> RenderResult:
     with FrameRenderer(cfg) as fr:
         static = frames_dir / "static.png"
         fr.render("static", static)
-        for a in passage.ayahs:
-            ctx = ayah_context(passage, a)
-            png = frames_dir / f"{a.ref.everyayah}.png"
+        for a in passage.segments:
+            ctx = ayah_context(passage, a, basmala=a is passage.basmala,
+                               first=a is passage.segments[0])
+            png = frames_dir / f"{name(a)}.png"
             fit = fr.render("content", png, **ctx)
             if fit < 0.7:
-                _warn(f"{a.ref}: text scaled to {fit:.0%} to fit the safe area")
-            fr.render("preview", work / "preview" / f"{a.ref.everyayah}.png", **ctx)
+                _warn(f"{name(a)}: text scaled to {fit:.0%} to fit the safe area")
+            fr.render("preview", work / "preview" / f"{name(a)}.png", **ctx)
             frames.append(png)
 
     bg_path, bg_info = backgrounds.pick(cfg, passage.key)

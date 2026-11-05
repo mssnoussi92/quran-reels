@@ -1,0 +1,26 @@
+# When and what the daily workflow publishes. Editorial choices: change here, not in the code.
+
+enabled: false             # true once the first real post (publish-test, mode publish) is done
+timezone: Europe/Paris     # slot times below are local times there (summer time included)
+
+slots:                     # two videos a day
+  morning:
+    time: "07:30"          # before work and school; 09:30 in Mecca, 06:30 in Casablanca
+    queue: reading
+  evening:
+    time: "19:30"          # after work, the busiest hours on Reels; 21:30 in Mecca
+    queue: themes
+
+fridays:                   # on Fridays both slots read Surah Al-Kahf, two passages a Friday
+  queue: kahf
+
+queues:                    # the series of each queue, played one after the other
+  reading: [juz-amma, mushaf]
+  themes: [ayat-al-kursi, dua, rizq]
+  kahf: [al-kahf]
+
+fallback:                  # a queue that is done hands over to another (add series before!)
+  themes: reading
+
+early_minutes: 20          # a run up to 20 min before the slot time takes the slot
+window_hours: 3            # after 3 h the slot is missed for the day (GitHub can be late)
