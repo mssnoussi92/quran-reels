@@ -73,7 +73,8 @@ class Pause:
 
 
 def duration(path: Path) -> float:
-    """Length of an audio file in seconds, from ffmpeg's header read."""
+    """Length of an audio or video file in seconds, from ffmpeg's header read (no ffprobe:
+    the workflows use the static ffmpeg of imageio-ffmpeg, which comes without it)."""
     out = subprocess.run(["ffmpeg", "-nostdin", "-i", str(path)], capture_output=True,
                          text=True, check=False).stderr      # no output file: exit code 1
     h, m, sec = re.search(r"Duration: (\d+):(\d+):([\d.]+)", out).groups()

@@ -37,6 +37,8 @@ def main(argv: list[str] | None = None) -> int:
 
     passages = sub.add_parser("passages", help="split a surah into passages of about a minute")
     passages.add_argument("surah", type=int)
+    passages.add_argument("--from", dest="first", type=int, default=1, metavar="AYAH",
+                          help="start at this ayah (the ayahs before are published apart)")
 
     split = sub.add_parser("split", help="reciter with one file per surah: find where each "
                                          "ayah starts (speech recognition), check, write "
@@ -128,7 +130,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "passages":
         from quran_reels.selector.plan import plan_surah
 
-        for p in plan_surah(cfg, args.surah):
+        for p in plan_surah(cfg, args.surah, first=args.first):
             notes = [n for n, on in (("whole surah", p.whole_surah),
                                      ("cut inside a tafsir group", p.relaxed)) if on]
             print(f"{p.key:<10} {p.seconds:6.1f} s  {', '.join(notes)}".rstrip())

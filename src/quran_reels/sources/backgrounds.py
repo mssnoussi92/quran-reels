@@ -140,9 +140,9 @@ def make_loop(src: Path, dest: Path, w: int, h: int, fps: int, focus: float = .5
     """Crop/scale to w×h and blend the last `fade` seconds into the first ones: the result
     (fade seconds shorter) loops without a jump. blur (Gaussian sigma, pixels) and dim
     (0..1, darker) soften a busy clip behind the text."""
-    duration = float(subprocess.run(
-        ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0",
-         str(src)], capture_output=True, text=True, check=True).stdout.strip())
+    from quran_reels.sources.surah_audio import duration as media_duration
+
+    duration = media_duration(src)            # ffmpeg only: the static build has no ffprobe
     fade_frames = max(1, round(min(fade, duration / 4) * fps))
     total = int(duration * fps)               # frames after the fps filter, rounded down
     keep = total - fade_frames                # frames in the loop

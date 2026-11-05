@@ -1,6 +1,45 @@
-# Surah Al-Kahf on Fridays, two passages each Friday, then from the start again.
+# Surah Al-Kahf on Friday evenings, from 18:11 (18:1-10 is read every Friday morning:
+# kahf-first-ten.yaml), one passage a Friday, then from 18:11 again.
+# Passages: `quran-reels passages 18 --from 11` (same cuts as config/plan.yaml from 18:15;
+# seconds estimated with Alafasy, the reciter is chosen per passage).
 title_ar: سورة الكهف يوم الجمعة
 title_en: Surah Al-Kahf on Friday
 repeat: true
 hashtags: ["#Jumuah", "#يوم_الجمعة"]
-surahs: [18]
+passages:
+  - "18:11-14"        # 67 s
+  - "18:15-16"        # 57 s
+  - "18:17-18"        # 70 s
+  - "18:19-20"        # 78 s
+  - "18:21-21"        # 50 s
+  - "18:22-22"        # 52 s
+  - "18:23-26"        # 70 s
+  - "18:27-28"        # 52 s
+  - "18:29-29"        # 49 s
+  - "18:30-31"        # 65 s
+  - "18:32-36"        # 84 s
+  - "18:37-38"        # 40 s
+  - "18:39-41"        # 62 s
+  - "18:42-44"        # 55 s
+  - "18:45-46"        # 54 s
+  - "18:47-49"        # 72 s
+  - "18:50-51"        # 62 s
+  - "18:52-54"        # 58 s
+  - "18:55-56"        # 57 s
+  - "18:57-59"        # 79 s
+  - "18:60-62"        # 49 s
+  - "18:63-65"        # 63 s
+  - "18:66-70"        # 60 s
+  - "18:71-73"        # 42 s
+  - "18:74-76"        # 58 s
+  - "18:77-78"        # 58 s
+  - "18:79-81"        # 58 s
+  - "18:82-84"        # 80 s
+  - "18:85-88"        # 69 s
+  - "18:89-91"        # 32 s
+  - "18:92-96"        # 87 s
+  - "18:97-99"        # 46 s
+  - "18:100-102"      # 53 s
+  - "18:103-106"      # 66 s
+  - "18:107-109"      # 50 s
+  - "18:110-110"      # 48 s

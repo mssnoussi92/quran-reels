@@ -11,12 +11,14 @@ slots:                     # two videos a day
     time: "19:30"          # after work, the busiest hours on Reels; 21:30 in Mecca
     queue: themes
 
-fridays:                   # on Fridays both slots read Surah Al-Kahf, two passages a Friday
-  queue: kahf
+fridays:                   # on Fridays both slots read Surah Al-Kahf (owner's choice, 2026-11-05):
+  morning: kahf-first-ten  # its first ten ayahs, in one video, every Friday
+  evening: kahf            # the rest, from 18:11, one passage a Friday, then again
 
 queues:                    # the series of each queue, played one after the other
   reading: [juz-amma, mushaf]
   themes: [ayat-al-kursi, munjiyat, dua, rizq]
+  kahf-first-ten: [kahf-first-ten]
   kahf: [al-kahf]
 
 fallback:                  # a queue that is done hands over to another (add series before!)
