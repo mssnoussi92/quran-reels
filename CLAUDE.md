@@ -14,6 +14,7 @@ e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis 
 | Format | **≈ 1 minute** (cible 60 s, 40–90 s), jamais coupé au milieu d'une phrase ; **sourate courte entière** (≤ 90 s, même très courte) |
 | Basmala | **Au début de chaque vidéo**, même pour quelques versets ; sauf sourate 9 et avant 1:1 (qui est la basmala) |
 | Rythme | **2 vidéos par jour**, heure de Paris : **07:30** lecture dans l'ordre, **19:30** séries thématiques |
+| Images | **Word of the day**, carrousel de 3 images 1080×1350 (le mot, son ayah, sa glose d'Ibn Qutaybah), **1 par jour** à 11:30 UTC sur Instagram et Facebook ; **Ayah of the day** préparé, désactivé (docs/images.md) |
 | Lecture | **Juz' 'Amma d'abord** (114 → 78), puis Al-Fatiha et 2 → 77, passages de `config/plan.yaml` |
 | Thèmes | Ayat al-Kursi, les 7 versets « المنجيات », versets de du'a, versets du rizq… : listes **proposées par l'IA en PR, validées par le propriétaire** |
 | Vendredi | **Les deux créneaux lisent Al-Kahf** (2 passages par vendredi, 38 au total, puis on recommence) |
@@ -48,6 +49,8 @@ e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis 
 
 ```
 config/            project.yaml (choix éditoriaux), backgrounds.yaml (fonds et thèmes),
+                   images.yaml (formats image, heure UTC), exclude.yaml (ayahs jamais en image),
+                   image-candidates.yaml (candidats image figés : `quran-reels images build`),
                    glosses.yaml (choix éditoriaux : 1 ou 2 mots surlignés par glose),
                    schedule.yaml (créneaux, files, vendredi), series/*.yaml (séries),
                    plan.yaml (tout le Coran découpé, figé : `quran-reels plan --write`)
@@ -71,6 +74,10 @@ src/quran_reels/
   publish.py       `quran-reels publish|meta-check|tiktok-auth` : contrôle, publication, résumé
   gh_secrets.py    réécrit un secret Actions (refresh token TikTok) via gh + GH_SECRETS_TOKEN
   daily.py         `quran-reels daily` : créneaux dus maintenant → rendu → publication → état
+  images/          publications image (docs/images.md) : candidates.py (règles 1-4, liste
+                   figée), select.py (exclusions, ordre stable, état), cards.py + templates/
+                   (1080×1350), caption.py, publish.py (carrousel Instagram, post Facebook
+                   multi-photos), daily.py (`quran-reels images run`)
   notify.py        `quran-reels notify` : tickets GitHub (alerte d'échec, légendes à copier)
   cli.py           `quran-reels ingest|render|passages|plan|series-check|calendar|daily|publish`
 tests/             pytest, sans réseau
@@ -78,6 +85,8 @@ tests/             pytest, sans réseau
                    schedule.yaml dit enabled: false ; état sur la branche `state`),
                    publish-test.yml (manuel : dry-run, ou publication réelle avec PUBLIER),
                    tiktok-auth.yml (manuel : échange du code TikTok → TIKTOK_REFRESH_TOKEN)
+                   images.yml (toutes les heures ; `images run --check` décide selon
+                   config/images.yaml ; état images.json sur la branche `state`)
                    Runners épinglés sur `ubuntu-24.04` (même ffmpeg 6.1 que les tests ;
                    `ubuntu-latest` passe à 26.04), actions en versions Node.js 24.
 docs/              site GitHub Pages (CGU, confidentialité, tiktok-login.html, tiktok-callback.html)
@@ -105,6 +114,13 @@ quran-reels calendar --days 14      # ce que les 14 prochains jours publieraient
 quran-reels daily --check           # un créneau est-il dû maintenant ? (rien n'est publié)
 quran-reels daily                   # publie les créneaux dus, écrit state/published.json
 quran-reels notify --outcome failure --run-url …   # tickets GitHub (workflow daily)
+```
+
+```bash
+quran-reels images build            # règles 1-4 → config/image-candidates.yaml (≈ 20 min)
+quran-reels images next --days 7    # la semaine à venir (rien n'est publié)
+quran-reels images render --days 7  # la dessine dans out/images/ (aperçu)
+quran-reels images run              # publie le format dû, écrit state/images.json
 ```
 
 ```bash
@@ -280,6 +296,41 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   affichent au moins une glose. Les autres (entrée rattachée à une autre ayah dans la source,
   citation à cheval sur deux ayahs « * ») sont omises, jamais devinées.
 
+## Publications image (`images/`, docs/images.md)
+
+- Formats (`config/images.yaml`) : `word` (carrousel de 3 images : mot en grand, ayah avec le
+  mot surligné + Sahih International, glose d'Ibn Qutaybah mot pour mot) activé, une fois par
+  jour à `time_utc` 11:30 ; `ayah` (une image) préparé, désactivé. 1080×1350, même charte que
+  les reels, fond généré en CSS (aucune photo, aucun droit), pas d'audio (pas de Rights
+  Manager). Gabarit `images/templates/card.html.j2` d'après `docs/mockup/images/cards.html`.
+- Sélection déterministe, sans IA ni validation : candidats figés dans
+  `config/image-candidates.yaml` par `quran-reels images build` (références seulement), à
+  refaire après un changement de `glosses.yaml`, du gabarit ou de `min_scale`.
+  1. une entrée de glose ancrée sur 1 ou 2 mots (comme les reels : mots de `glosses.yaml`,
+     sinon citation sans particules de bord) ;
+  2. glose montrée entière : texte complet (notes `[[…]]` retirées) ≤ 170 caractères et fini
+     par une phrase, sinon écartée, jamais raccourcie ;
+  3. image 2 = phrase complète : l'ayah grandit à la plus petite suite qui commence après une
+     fin de phrase et en finit une (93:3 → 93:1-3, le serment commence en 93:1) ;
+  4. chaque image lisible : texte réduit au plus à `min_scale` (0,7), sinon écartée ;
+  5. `config/exclude.yaml` (lu à chaque passage, valeurs gardées en texte : `2:55` non cité
+     n'est pas lu comme un nombre en base 60) : ayahs, plages, sourates ; une suite est écartée
+     si une de ses ayahs l'est ;
+  6. rang = hash(graine, tour, id) : ordre stable même si la liste change, pas de répétition
+     avant la fin d'un tour (puis nouvel ordre), jamais deux jours de suite la même sourate
+     quand une autre est disponible.
+- Légende : modèle fixe (`images/caption.py`) ; Instagram garde les 5 premiers hashtags.
+- Publication : URL publique exigée par Instagram (pas d'envoi binaire d'image) → les 3 images
+  sont envoyées sur la Page Facebook **non publiées** (`published=false`), leur URL CDN
+  (`?fields=images`, la plus grande) sert à Instagram (3 conteneurs `is_carousel_item`, un
+  `CAROUSEL`, `media_publish`), puis post Facebook `/feed` avec `attached_media` dans l'ordre.
+  Choisi plutôt que GitHub Pages : pas de JPEG commités chaque jour (≈ 160 Mo/an d'historique),
+  pas d'attente de déploiement, images non publiques avant le post. Dry-run : rien n'est posté,
+  photos supprimées.
+- État : `images.json` sur la branche `state` (un post par jour : id, ayah, mot, résultats par
+  plateforme) ; une plateforme en échec est réessayée avec les mêmes images pendant
+  `window_hours` (6 h). Workflow `images.yml` toutes les heures.
+
 ## Secrets (jamais dans le code ni dans la conversation)
 
 GitHub Actions secrets : `META_PAGE_ID`, `META_PAGE_TOKEN`, `IG_USER_ID`, `TIKTOK_CLIENT_KEY`,
@@ -314,5 +365,7 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
       main, est dans `published_by_hand` (jamais republiée par le calendrier)
 - [x] Série « السبع آيات المنجيات » · [ ] d'autres séries avant la fin des thèmes (≈ 2 mois)
 - [x] Fonds choisis selon le passage (scènes générées + 3 clips Pexels, PR #8)
+- [x] Publications image : Word of the day (activé), Ayah of the day (désactivé) ·
+      [ ] premier dry-run Meta des images · [ ] première publication réelle
 - [x] Vérification des droits Meta avant publication · [x] récitateurs du Complexe du Roi Fahd
       (Hudhaifi, Ayyub, Akhdar) · [ ] choisir le récitateur par défaut, refaire le plan
