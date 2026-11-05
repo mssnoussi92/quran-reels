@@ -68,7 +68,8 @@ def caption(cfg: Config, passage: Passage, limit: int = CAPTION_LIMIT) -> str:
     if passage.label_en:
         head = [passage.label_en, *head]
     tail = [
-        f"Recitation: {c['reciter']['label']}",
+        f"Recitation: {c['reciter']['label']}" + (f" ({c['reciter']['producer']})"
+                                                   if c["reciter"].get("producer") else ""),
         f"Translation: {c['translation']['label']}",
         f"Word meanings: {c['glosses']['label']}",
         "",
@@ -116,6 +117,8 @@ def manifest(cfg: Config, src: Sources, passage: Passage, timeline: video.Timeli
             "glosses": f"https://tafsir.app/{src.glosses.src}",
             "audio": f"https://everyayah.com/data/{src.audio.reciter}/",
         },
+        "reciter": {k: c["reciter"][k] for k in ("name", "label", "producer", "rights")
+                    if c["reciter"].get(k)},
         "background": background,
         "series": {"ar": passage.label_ar, "en": passage.label_en} if passage.label_en
         or passage.label_ar else None,

@@ -36,6 +36,22 @@ class Sources:
             translation_slug=content["translation"]["edition"],
         )
 
+    def ayah_seconds(self, cfg: Config, surah: int) -> dict[int, float]:
+        """Seconds per ayah for planning: Quran.com's timings of the same recording when the
+        reciter has them (timings_id), otherwise the sizes of the EveryAyah files (kbps)."""
+        r = cfg.content["reciter"]
+        if r.get("timings_id"):
+            return self.quran.timings(surah, int(r["timings_id"]))
+        n = self.quran.chapters[surah]["verses_count"]
+        return self.audio.seconds(surah, n, float(r["kbps"]))
+
+    def basmala_seconds(self, cfg: Config) -> float:
+        r = cfg.content["reciter"]
+        if r.get("timings_id"):
+            return self.quran.timings(1, int(r["timings_id"]))[1]
+        stem = r.get("basmala") or cfg.content["basmala"].get("audio", "bismillah")
+        return self.audio.file_seconds(stem, float(r["kbps"]))
+
     def all_refs(self) -> list[AyahRef]:
         return [AyahRef(s, a) for s, c in sorted(self.quran.chapters.items())
                 for a in range(1, c["verses_count"] + 1)]

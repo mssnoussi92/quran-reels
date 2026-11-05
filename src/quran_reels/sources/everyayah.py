@@ -1,11 +1,16 @@
-"""Recitation audio from EveryAyah: one MP3 per ayah."""
+"""Recitation audio from EveryAyah: one MP3 per ayah.
+
+Durations for planning without downloading the MP3s: the files are constant bitrate (128 or
+32 kb/s), so seconds = bytes × 8 / bitrate, read from a HEAD request (one per ayah, cached).
+The ID3 tag counts too: a few hundred bytes, under 0.05 s at 128 kb/s.
+"""
 
 from __future__ import annotations
 
 from pathlib import Path
 
 from quran_reels.models import AyahRef
-from quran_reels.sources.http import Http
+from quran_reels.sources.http import Http, read_json, write_json
 
 BASE = "https://everyayah.com/data"
 
@@ -31,3 +36,17 @@ class EveryAyah:
 
     def fetch(self, ref: AyahRef) -> Path:
         return self.fetch_file(ref.everyayah)
+
+    def seconds(self, surah: int, ayahs: int, kbps: float) -> dict[int, float]:
+        """Seconds per ayah of a surah, from the file sizes (cached per surah)."""
+        path = self.dir / f"sizes-{surah:03d}.json"
+        sizes = read_json(path)["bytes"] if path.is_file() else {}
+        missing = [a for a in range(1, ayahs + 1) if str(a) not in sizes]
+        for a in missing:
+            sizes[str(a)] = self.http.size(self.url(AyahRef(surah, a)))
+        if missing:
+            write_json(path, {"source": f"{BASE}/{self.reciter}/", "bytes": sizes})
+        return {int(a): n * 8 / (kbps * 1000) for a, n in sizes.items()}
+
+    def file_seconds(self, stem: str, kbps: float) -> float:
+        return self.http.size(self.file_url(stem)) * 8 / (kbps * 1000)

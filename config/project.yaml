@@ -24,11 +24,44 @@ content:
     hashtags: ["#تفسير_القرآن", "#غريب_القرآن"]   # when a word meaning is shown
     max_per_ayah: 2                   # entries shown under one ayah
     max_chars: 170                    # whole sentences only, an entry longer than this is left out
-  reciter:
-    id: Alafasy_128kbps               # EveryAyah folder name
-    label: Mishary Rashid Alafasy
-    hashtags: ["#Alafasy", "#مشاري_العفاسي"]
-    timings_id: 7                     # Quran.com chapter recitation, same recording (planning)
+  reciter: alafasy                    # one of `reciters`; QURAN_REELS_RECITER overrides it
+  # One MP3 per ayah from EveryAyah (id: its folder), so the text follows the recitation
+  # exactly. Planning durations: Quran.com timings of the same recording (timings_id), or the
+  # file sizes (constant bitrate, kbps). basmala: the file recited before a surah.
+  # The first Facebook reel (Alafasy, 2026-11-05) was cut by Rights Manager: every reel is now
+  # checked by Meta before it is published (publishers/rights.py).
+  reciters:
+    alafasy:
+      id: Alafasy_128kbps
+      label: Mishary Rashid Alafasy
+      hashtags: ["#Alafasy", "#مشاري_العفاسي"]
+      timings_id: 7
+      rights: "aucune licence connue ; reconnu par Rights Manager sur Facebook (2026-11-05)"
+    # Recorded by the King Fahd Complex (Hafs, its own recordings with the Madinah Mushaf).
+    hudhaifi:
+      id: Hudhaify_128kbps
+      label: Ali Al-Hudhaifi
+      producer: King Fahd Complex
+      hashtags: ["#Hudhaifi", "#علي_الحذيفي"]
+      kbps: 128
+      basmala: bismillah              # same audio as its 1:1
+      rights: "Complexe du Roi Fahd, licence d'usage gratuit (qurancomplex.gov.sa)"
+    ayyoub:
+      id: Muhammad_Ayyoub_128kbps
+      label: Muhammad Ayyub
+      producer: King Fahd Complex
+      hashtags: ["#MuhammadAyyub", "#محمد_أيوب"]
+      kbps: 128
+      basmala: "001001"               # its bismillah.mp3 lasts 2.9 s: cut
+      rights: "Complexe du Roi Fahd, licence d'usage gratuit (qurancomplex.gov.sa)"
+    akhdar:
+      id: Ibrahim_Akhdar_32kbps       # only 32 kb/s mono on EveryAyah
+      label: Ibrahim Al-Akhdar
+      producer: King Fahd Complex
+      hashtags: ["#IbrahimAlAkhdar", "#إبراهيم_الأخضر"]
+      kbps: 32
+      basmala: "001001"               # no bismillah.mp3
+      rights: "Complexe du Roi Fahd, licence d'usage gratuit (qurancomplex.gov.sa)"
   basmala:
     enabled: true                     # recited and shown at the start of every video
     audio: bismillah                  # EveryAyah file of the reciter: bismillah.mp3

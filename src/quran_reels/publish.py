@@ -113,8 +113,9 @@ def load_reel(video: Path) -> Reel:
 
 
 def _report(reel: Reel, results: list[PublishResult], dry_run: bool,
-            token: TokenReport | None) -> str:
-    title = f"## {'🧪 Dry run' if dry_run else '📣 Publication'} {reel.passage.key}"
+            token: TokenReport | None, reciter: str = "") -> str:
+    title = f"## {'🧪 Dry run' if dry_run else '📣 Publication'} {reel.passage.key}" + (
+        f" · {reciter}" if reciter else "")
     rows = ["| Plateforme | Résultat | Droits (Meta) | Identifiant / lien |", "|---|---|---|---|"]
     for r in results:
         label = _TIKTOK_DRAFT if (r.platform, r.status) == ("tiktok", PublishStatus.DRAFT) \
@@ -204,10 +205,13 @@ def publish_reel(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
 
     out = video.with_suffix("") / "publish.json"
     out.write_text(json.dumps({"passage": reel.passage.key, "dry_run": dry_run,
+                               "reciter": (cfg.project.get("content") or {}).get("reciter"),
                                "results": [asdict(r) | {"status": r.status.value}
                                            for r in results_list]},
                               ensure_ascii=False, indent=2), encoding="utf-8")
-    _summary(_report(reel, results_list, dry_run, token))
+    reciter = ((getattr(cfg, "project", None) or {}).get("content") or {}).get("reciter") or {}
+    _summary(_report(reel, results_list, dry_run, token,
+                     reciter.get("label", "") if isinstance(reciter, dict) else ""))
     return results_list
 
 

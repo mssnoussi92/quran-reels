@@ -93,11 +93,28 @@ def parse_headwords(raw: Any) -> dict[str, list[tuple[str, ...]]]:
     return out
 
 
+RECITER_ENV = "QURAN_REELS_RECITER"     # test runs: another reciter of the catalogue
+
+
+def resolve_reciter(project: dict[str, Any]) -> dict[str, Any]:
+    """content.reciter names one of content.reciters (or $QURAN_REELS_RECITER does): the
+    entry replaces the name, so that the rest of the code reads content.reciter.label etc."""
+    content = project.get("content") or {}
+    catalogue = content.get("reciters") or {}
+    chosen = os.environ.get(RECITER_ENV) or content.get("reciter")
+    if isinstance(chosen, str):
+        if chosen not in catalogue:
+            raise SystemExit(f"unknown reciter {chosen!r}: config/project.yaml has "
+                             f"{', '.join(catalogue) or 'no content.reciters'}")
+        content["reciter"] = {"name": chosen, **catalogue[chosen]}
+    return project
+
+
 def load(root: Path | None = None) -> Config:
     root = root or find_root()
     return Config(
         root=root,
-        project=_yaml(root / "config" / "project.yaml"),
+        project=resolve_reciter(_yaml(root / "config" / "project.yaml")),
         backgrounds=_yaml(root / "config" / "backgrounds.yaml"),
         gloss_headwords=parse_headwords(_yaml(root / "config" / "glosses.yaml").get("headwords")),
     )

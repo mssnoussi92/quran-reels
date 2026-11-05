@@ -25,7 +25,7 @@ class Http:
         self.session = requests.Session()
         self.session.headers["User-Agent"] = USER_AGENT
         retry = Retry(total=5, backoff_factor=1.5, status_forcelist=(429, 500, 502, 503, 504),
-                      allowed_methods=("GET",), respect_retry_after_header=True)
+                      allowed_methods=("GET", "HEAD"), respect_retry_after_header=True)
         self.session.mount("https://", HTTPAdapter(max_retries=retry))
         self.min_interval = min_interval
         self.timeout = timeout
@@ -45,6 +45,13 @@ class Http:
         r = self.session.get(url, params=params or None, timeout=self.timeout)
         r.raise_for_status()
         return r
+
+    def size(self, url: str) -> int:
+        """Content-Length of a file, without downloading it."""
+        self._throttle(url)
+        r = self.session.head(url, timeout=self.timeout, allow_redirects=True)
+        r.raise_for_status()
+        return int(r.headers["Content-Length"])
 
     def json(self, url: str, **params: Any) -> Any:
         return self.get(url, **params).json()
