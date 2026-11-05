@@ -82,9 +82,11 @@
 
   .footer { position: absolute; bottom: {{ safe.bottom + 20 }}px; left: 0; right: 0;
       text-align: center; font-family: "Lora"; }
+  /* A tight shadow plus a soft one: readable over a bright horizon or white water. */
   .handle { font-size: 36px; font-weight: 600; letter-spacing: .03em; color: {{ highlight }};
-      text-shadow: 0 2px 12px rgba(0,0,0,.6); }
-  .credit { font-size: 26px; opacity: .65; margin-top: 6px; }
+      text-shadow: 0 1px 3px rgba(0,0,0,.8), 0 2px 14px rgba(0,0,0,.7); }
+  .credit { font-size: 26px; color: rgba(255,255,255,.8); margin-top: 6px;
+      text-shadow: 0 1px 3px rgba(0,0,0,.85), 0 0 12px rgba(0,0,0,.6); }
 </style>
 </head>
 <body>

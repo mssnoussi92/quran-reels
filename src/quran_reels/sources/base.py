@@ -36,4 +36,4 @@ class AudioSource(Protocol):                # everyayah.EveryAyah
     def fetch(self, ref: AyahRef) -> Path: ...
 
 
-# Backgrounds: backgrounds.pick(cfg, passage_key) -> (path, credit), clip list or generated.
+# Backgrounds: backgrounds.pick(cfg, passage) -> (path, info): scene or clip by theme.

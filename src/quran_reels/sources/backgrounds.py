@@ -1,22 +1,160 @@
-"""Background video: a hand-picked clip from config/backgrounds.yaml, or a generated one.
+"""Background video for a passage: chosen from what its translation mentions.
 
-The generated background is provisional, until the clip list is filled. It is a seamless
-12-second loop drawn with numpy (night sky turning to dawn, twinkling stars, slow drifting
-light) and cached in .cache/backgrounds/. Clips and the generated loop are used the same way:
-looped, scaled and cropped to 9:16 by ffmpeg.
+config/backgrounds.yaml lists the backgrounds, each with tags: generated scenes
+(sources/scenes/*.frag) and hand-picked clips (direct file URLs, Pexels, no API key). Its
+`themes` are patterns on the translation (Sahih International): a passage that mentions the
+mountains three times scores `mountains` 3 × the theme's weight. The best-scoring theme that
+has a background wins; the same passage always gets the same background among those with the
+tag. A passage that mentions none takes one of `default`.
+
+Clips are cropped to 9:16 (`focus`: horizontal centre of the crop), scaled to the video size,
+softened (`soften`: a light blur and dimming, so that the text stays readable over white
+water) and made into a seamless loop once (their last seconds blend into their first ones),
+then cached in .cache/backgrounds/. The compositor loops them under the video.
+
+Without any background listed, a provisional night sky is generated with numpy.
 """
 
 from __future__ import annotations
 
 import hashlib
+import os
+import re
 import subprocess
+from collections import Counter
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 
 from quran_reels.config import Config
+from quran_reels.models import Passage
 from quran_reels.sources.http import Http
+
+CLIP_VERSION = 1             # bump when the clip processing changes
+CLIP_FADE = 2.0              # seconds blended at the loop point
+_BRACKETS = re.compile(r"\[[^\]]*\]")
+
+
+@dataclass(frozen=True)
+class Background:
+    id: str
+    tags: tuple[str, ...]
+    scene: str = ""          # generated: sources/scenes/<scene>.frag
+    file: str = ""           # clip: direct file URL
+    page: str = ""           # clip: where it comes from (licence, credit)
+    source: str = ""         # pexels | pixabay | generated
+    focus: float = 0.5       # clip: horizontal centre of the 9:16 crop, 0 left … 1 right
+    extra: dict[str, Any] = field(default_factory=dict, compare=False, hash=False)
+
+
+def catalogue(cfg: Config) -> tuple[list[Background], dict[str, tuple[re.Pattern, float]],
+                                    list[str]]:
+    """(backgrounds, themes, default ids) from config/backgrounds.yaml."""
+    raw = cfg.backgrounds
+    out = []
+    for c in raw.get("backgrounds") or []:
+        if not (c.get("scene") or c.get("file")):
+            continue
+        out.append(Background(
+            id=str(c["id"]), tags=tuple(c.get("tags") or ()), scene=c.get("scene", ""),
+            file=c.get("file", ""), page=c.get("page", ""),
+            source=c.get("source") or ("generated" if c.get("scene") else ""),
+            focus=float(c.get("focus", .5)),
+            extra={k: v for k, v in c.items() if k in ("note", "seconds")}))
+    themes = {}
+    for tag, (pattern, weight) in (raw.get("themes") or {}).items():
+        themes[str(tag)] = (re.compile(pattern, re.IGNORECASE), float(weight))
+    return out, themes, [str(x) for x in raw.get("default") or []]
+
+
+def theme_scores(passage: Passage, themes: dict[str, tuple[re.Pattern, float]]) -> Counter:
+    """Score per theme from the passage's translation (the basmala is not counted). The
+    translator's additions in brackets do not count: «[clouds of] dust» is not about clouds."""
+    text = _BRACKETS.sub(" ", " ".join(a.translation for a in passage.ayahs))
+    scores: Counter = Counter()
+    for tag, (rx, weight) in themes.items():
+        n = len(rx.findall(text))
+        if n:
+            scores[tag] = n * weight
+    return scores
+
+
+def _stable(key: str) -> int:
+    return int(hashlib.sha1(key.encode()).hexdigest(), 16)
+
+
+def choose(cfg: Config, passage: Passage) -> tuple[Background, str, Counter] | None:
+    """The background for a passage, the theme that chose it ("" for the default), scores."""
+    bgs, themes, default = catalogue(cfg)
+    if not bgs:
+        return None
+    scores = theme_scores(passage, themes)
+    order = list(themes)
+    for tag, _ in sorted(scores.items(), key=lambda kv: (-kv[1], order.index(kv[0]))):
+        pool = [b for b in bgs if tag in b.tags]
+        if pool:
+            return pool[_stable(passage.key) % len(pool)], tag, scores
+    pool = [b for b in bgs if b.id in default] or bgs
+    return pool[_stable(passage.key) % len(pool)], "", scores
+
+
+def clip(cfg: Config, bg: Background, http: Http | None = None) -> Path:
+    """A clip cropped to 9:16, at the video size, as a seamless loop (cached)."""
+    v = cfg.video
+    w, h, fps = v["width"], v["height"], v["fps"]
+    soften = cfg.backgrounds.get("soften") or {}
+    blur, dim = float(soften.get("blur", 0)), float(soften.get("dim", 0))
+    digest = hashlib.sha1(
+        f"{bg.file}|{bg.focus}|{w}x{h}|{fps}|{blur}|{dim}|{CLIP_VERSION}".encode())
+    dest = cfg.cache / "backgrounds" / f"clip-{bg.id}-{digest.hexdigest()[:10]}.mp4"
+    if dest.is_file():
+        return dest
+    raw = dest.with_name(f".raw-{bg.id}-{os.getpid()}.mp4")
+    (http or Http(timeout=120)).download(bg.file, raw, min_bytes=200_000)
+    try:
+        make_loop(raw, dest, w, h, fps, bg.focus, blur=blur, dim=dim)
+    finally:
+        raw.unlink(missing_ok=True)
+    return dest
+
+
+def make_loop(src: Path, dest: Path, w: int, h: int, fps: int, focus: float = .5,
+              fade: float = CLIP_FADE, blur: float = 0, dim: float = 0) -> Path:
+    """Crop/scale to w×h and blend the last `fade` seconds into the first ones: the result
+    (fade seconds shorter) loops without a jump. blur (Gaussian sigma, pixels) and dim
+    (0..1, darker) soften a busy clip behind the text."""
+    duration = float(subprocess.run(
+        ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0",
+         str(src)], capture_output=True, text=True, check=True).stdout.strip())
+    fade_frames = max(1, round(min(fade, duration / 4) * fps))
+    total = int(duration * fps)               # frames after the fps filter, rounded down
+    keep = total - fade_frames                # frames in the loop
+    look = f"gblur=sigma={blur}," if blur > 0 else ""
+    if dim > 0:
+        k = 1 - dim
+        look += f"colorchannelmixer=rr={k}:gg={k}:bb={k},"
+    graph = ";".join([
+        (f"[0:v]crop='min(iw,ih*{w}/{h})':'min(ih,iw*{h}/{w})':'(iw-ow)*{focus}':'(ih-oh)/2',"
+         f"scale={w}:{h}:flags=lanczos,{look}fps={fps},setsar=1,format=yuv420p,"
+         "split=3[a][b][c]"),
+        f"[a]trim=start_frame={keep}:end_frame={total},setpts=PTS-STARTPTS[tail]",
+        f"[b]trim=end_frame={fade_frames},setpts=PTS-STARTPTS[head]",
+        f"[c]trim=start_frame={fade_frames}:end_frame={keep},setpts=PTS-STARTPTS[rest]",
+        (f"[tail][head]blend=all_expr='A*(1-N/{fade_frames})+B*N/{fade_frames}':shortest=1,"
+         "setpts=PTS-STARTPTS[mix]"),
+        "[mix][rest]concat=n=2:v=1:a=0[v]",
+    ])
+    tmp = dest.with_name(f".{dest.stem}-{os.getpid()}.mp4")   # own file per process
+    tmp.parent.mkdir(parents=True, exist_ok=True)
+    subprocess.run(
+        ["ffmpeg", "-v", "error", "-y", "-i", str(src), "-filter_complex", graph, "-map", "[v]",
+         "-an", "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p",
+         "-g", str(fps * 2), "-movflags", "+faststart", "-f", "mp4", str(tmp)], check=True)
+    tmp.replace(dest)
+    return dest
+
 
 PROVISIONAL_VERSION = 1
 
@@ -121,15 +259,20 @@ def provisional(cfg: Config, seconds: int = 12) -> Path:
     return dest
 
 
-def pick(cfg: Config, passage_key: str, http: Http | None = None) -> tuple[Path, dict[str, Any]]:
-    """Background file for a passage, and what to credit. Same passage → same clip."""
-    clips = [c for c in cfg.backgrounds if c.get("file")]
-    if not clips:
+def pick(cfg: Config, passage: Passage, http: Http | None = None) -> tuple[Path, dict[str, Any]]:
+    """Background file for a passage, and what the manifest records about it."""
+    chosen = choose(cfg, passage)
+    if chosen is None:
         return provisional(cfg), {"id": f"provisional-v{PROVISIONAL_VERSION}",
                                   "source": "generated"}
-    digest = int(hashlib.sha1(passage_key.encode()).hexdigest(), 16)
-    clip = clips[digest % len(clips)]
-    dest = cfg.cache / "backgrounds" / f"{clip['id']}.mp4"
-    if not dest.is_file():
-        (http or Http()).download(clip["file"], dest, min_bytes=50_000)
-    return dest, clip
+    bg, theme, scores = chosen
+    if bg.scene:
+        from quran_reels.sources import scenes
+        path = scenes.render(cfg, bg.scene)
+    else:
+        path = clip(cfg, bg, http)
+    info = {"id": bg.id, "source": bg.source, "theme": theme or "default",
+            "scores": dict(scores)}
+    if bg.page:
+        info["page"] = bg.page
+    return path, info

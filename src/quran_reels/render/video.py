@@ -130,6 +130,8 @@ def compose(background: Path, static: Path, frames: list[Path], timeline: Timeli
     cmd += ["-filter_complex", ";".join(graph),
             "-map", "[v]", "-map", f"{len(frames) + 2}:a",
             "-c:v", "libx264", "-preset", "medium", "-crf", str(crf),
+            # Capped: a busy clip (white water) at crf 19 alone reached 22 Mb/s, 180 MB a minute.
+            "-maxrate", "6M", "-bufsize", "12M",
             "-profile:v", "high", "-pix_fmt", "yuv420p", "-r", str(fps), "-g", str(fps * 2),
             "-c:a", "aac", "-b:a", "128k", "-ar", str(SAMPLE_RATE), "-ac", str(CHANNELS),
             "-frames:v", str(total), "-movflags", "+faststart",

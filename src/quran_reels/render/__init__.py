@@ -193,7 +193,7 @@ def render_passage(cfg: Config, key: str, label_ar: str = "", label_en: str = ""
             fr.render("preview", work / "preview" / f"{name(a)}.png", **ctx)
             frames.append(png)
 
-    bg_path, bg_info = backgrounds.pick(cfg, passage.key)
+    bg_path, bg_info = backgrounds.pick(cfg, passage)
     audio = video.write_audio(wavs, timeline, audio_dir / "passage.wav")
     out = cfg.out / f"{passage.slug}.mp4"
     video.compose(bg_path, static, frames, timeline, audio, out,

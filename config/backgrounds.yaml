@@ -1,12 +1,69 @@
-# Hand-picked background clips. Direct file URLs, no API key needed.
-# Rules: nature only, no people, no animals, no text or logos, vertical or croppable to 9:16,
-# calm motion, at least 1080 px wide after crop.
+# Backgrounds: generated scenes and hand-picked clips, chosen from what the passage says.
 #
-# - id: night-sky-01
-#   source: pexels            # pexels | pixabay
-#   page: https://www.pexels.com/video/...
-#   file: https://videos.pexels.com/video-files/...
-#   mood: [night, calm]       # used to match a passage's theme
-#   seconds: 20
+# Rules for a clip: nature only, no people, no animals, no text or logos; checked frame by
+# frame before being added. Direct file URL (videos.pexels.com), no API key needed; Pexels
+# licence: free to use, no attribution required (the page is kept for reference).
+#
+# Choice (sources/backgrounds.py): each theme below counts its matches in the passage's
+# translation (Sahih International, without the translator's [additions]) × its weight.
+# Rarer themes come first (a tie goes to them). The best-scoring theme that has a
+# background wins; among the backgrounds with that tag,
+# the same passage always gets the same one. A passage that mentions none takes one of
+# `default`. The manifest of each video records the scores and the theme that chose.
+#
+# About a third of the passages mention one of these themes (2026-11-05, 1 868 passages):
+# sky 163, night 95, gardens 91, rivers 67, sea 54, rain 48, mountains 41, dawn 23.
 
-clips: []
+themes:                         # tag: [pattern, weight per match]; ties go to the first
+  mountains: ['\bmountains?\b', 3]
+  sea: ['\b(seas?|ships?|ocean|waves?)\b', 3]
+  rivers: ['\b(rivers?|springs?|fountains?|streams?)\b', 2]
+  dawn: ['\b(dawn|morning|daybreak|sunrise|forenoon|sun)\b', 2]
+  rain: ['\b(rain|clouds?|winds?|thunder|lightning)\b', 2]
+  gardens: ['\b(gardens?|trees?|plants|vegetation|crops?|palms?|grapes?|olives?|figs?|fruits?|grain|green)\b', 1]
+  night: ['\b(night|stars?|moon|constellations?|darkness(es)?)\b', 2]
+  sky: ['\b(sky|heavens?)\b', 1]
+
+default: [dawn, night, sea]     # when the passage mentions none of the themes
+
+soften:                         # clips only (busy, sharp): keeps the text readable
+  blur: 2.5                     # Gaussian sigma, in pixels at 1080 wide
+  dim: 0.15                     # 15 % darker
+
+backgrounds:
+  # Generated (src/quran_reels/sources/scenes/<scene>.frag): drawn once, cached.
+  - id: dawn
+    scene: dawn
+    tags: [dawn, sky]
+    note: desert dunes at sunrise, light rays, pink clouds
+  - id: night
+    scene: night
+    tags: [night, sky]
+    note: crescent moon, stars, clouds, hills (palette of the mockup)
+  - id: sea
+    scene: sea
+    tags: [sea]
+    note: calm sea at golden hour, the sun's glitter on the waves
+
+  # Pexels clips (landscape 4K, cropped to 9:16 around `focus`).
+  - id: mountains-clouds
+    source: pexels
+    page: https://www.pexels.com/video/4763824/
+    file: https://videos.pexels.com/video-files/4763824/4763824-uhd_3840_2160_24fps.mp4
+    focus: 0.4
+    tags: [mountains, rain, sky]
+    note: aerial view of a green ridge, clouds rising, patches of snow (14 s)
+  - id: forest-sunrise
+    source: pexels
+    page: https://www.pexels.com/video/20732245/
+    file: https://videos.pexels.com/video-files/20732245/20732245-uhd_4096_2160_30fps.mp4
+    focus: 0.65
+    tags: [gardens, dawn]
+    note: sun through the trees of a wet forest (16 s)
+  - id: river
+    source: pexels
+    page: https://www.pexels.com/video/17665187/
+    file: https://videos.pexels.com/video-files/17665187/17665187-uhd_3840_2160_30fps.mp4
+    focus: 0.55
+    tags: [rivers, gardens]
+    note: river rapids between rocks and green trees, fixed camera (13 s)

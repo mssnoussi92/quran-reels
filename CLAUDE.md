@@ -21,7 +21,7 @@ e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis 
 | Traduction | **Sahih International** (anglais), créditée dans chaque légende |
 | Mots difficiles | **Ibn Qutaybah, *Tafsir Gharib al-Qur'an*** (`ar-ghareeb-ibn-qutaybah`), glose en arabe |
 | Récitateur | **Mishary Alafasy** par défaut, paramétrable (`config/project.yaml`) |
-| Fond | vidéos nature libres (Pexels/Pixabay), **sans personnes ni animaux** |
+| Fond | **choisi selon ce que dit le passage** (montagnes, mer, rivières, jardins, nuit, aube, ciel…) : vidéos Pexels choisies par le propriétaire et scènes générées (aube, nuit, mer), **sans personnes ni animaux** |
 | Exécution | GitHub Actions (dépôt public → gratuit), migrable sur le homelab (Docker) |
 | Comptes pro | Page Facebook + Instagram en type **Créateur**, reliés |
 | Signature | **@quran_words_daily** sur chaque image, dans la zone sûre (repartages) |
@@ -43,7 +43,7 @@ e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis 
 ## Architecture
 
 ```
-config/            project.yaml (choix éditoriaux), backgrounds.yaml (fonds sélectionnés),
+config/            project.yaml (choix éditoriaux), backgrounds.yaml (fonds et thèmes),
                    glosses.yaml (choix éditoriaux : 1 ou 2 mots surlignés par glose),
                    schedule.yaml (créneaux, files, vendredi), series/*.yaml (séries),
                    plan.yaml (tout le Coran découpé, figé : `quran-reels plan --write`)
@@ -54,7 +54,8 @@ src/quran_reels/
   ingest.py        `quran-reels ingest` : jeux de données → .cache/
   passage.py       assemble un passage : texte + traduction + gloses ancrées + audio
   sources/         quran_com (texte, sourates, traduction), tafsir_app (gloses),
-                   everyayah (audio), backgrounds (clip ou fond provisoire généré), http
+                   everyayah (audio), backgrounds (choix du fond par thème, clips en boucle),
+                   scenes/ (scènes générées : shaders GLSL dessinés dans Chromium), http
   selector/        plan.py : découpe d'une sourate en passages d'≈ 1 min ;
                    calendar.py : créneaux, files de séries, vendredi, état, vérification des séries
   render/          frames.py (template HTML → PNG, Chromium/Playwright),
@@ -140,7 +141,13 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   les ayahs commentées avec la précédente ont un texte vide).
 - Fonds : l'**émission de nouvelles clés API Pexels est en pause** (nov. 2026). On utilise donc
   une liste sélectionnée à la main (`config/backgrounds.yaml`) d'URL directes de fichiers
-  Pexels/Pixabay, ce qui ne demande pas de clé.
+  `videos.pexels.com`, ce qui ne demande pas de clé. Les pages `www.pexels.com` refusent ce
+  conteneur (403, Cloudflare) : l'URL du fichier se devine pour les vidéos anciennes
+  (`{id}/{id}-uhd_3840_2160_24fps.mp4`), pas pour les récentes (numéro de fichier distinct).
+  Chaque clip est vérifié image par image (personnes, animaux, texte) avant d'être ajouté ;
+  refusé : 1858301 (canards sur le lac). Décision (2026-11-05) : pas de liens à la main ni de
+  clé ; on garde les 3 clips obtenus, et les nouveaux fonds viendront de scènes générées. Ce
+  conteneur n'atteint ni Pixabay, ni Wikimedia Commons, ni NASA (politique réseau).
 
 ## Plateformes (voir docs/plateformes.md)
 
@@ -203,8 +210,21 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
 - Maquette validée : `docs/mockup/apercu-reel-93-2.png`, template `render/templates/reel.html.j2`.
 - Zone sûre (boutons Reels/TikTok) : haut 250 px, bas 420 px, côtés 90 px.
 - Deux calques PNG transparents sur le fond : `static` (voile, signature, crédits, fixe) et un
-  `content` par ayah (référence, ayah, traduction, gloses) en fondu de 0,25 s. Fond provisoire
-  tant que `backgrounds.yaml` est vide : boucle de 12 s générée (numpy) dans la palette de la
+  `content` par ayah (référence, ayah, traduction, gloses) en fondu de 0,25 s.
+- Fond (`sources/backgrounds.py`, `config/backgrounds.yaml`) : les `themes` comptent leurs mots
+  dans la traduction (sans les [ajouts] du traducteur) × leur poids ; le meilleur thème qui a
+  un fond gagne (égalité : le plus rare, listé d'abord), même passage → même fond ; aucun thème
+  → `default`. Le manifeste garde les scores. Environ un tiers des passages ont un thème.
+  Clips : recadrés en 9:16 autour de `focus`, adoucis (`soften` : flou 2,5 px, 15 % plus
+  sombres, pour lire le texte sur l'eau vive), mis en boucle sans saut (les 2 dernières
+  secondes fondues dans les premières), en cache. Signature et crédits : ombre serrée + ombre
+  douce (lisibles sur un horizon clair). Débit vidéo plafonné à 6 Mb/s (un clip d'eau vive
+  seul atteignait 22 Mb/s, 180 Mo la minute). Scènes générées (`sources/scenes/*.frag`,
+  `vec3 scene(uv, t)`) : dessinées par WebGL dans Chromium lancé directement (pas Playwright,
+  dont la surveillance réseau copie chaque image), 540×960, boucle de 30 s dont les 5 premières
+  secondes fondent t + 30 dans t, ≈ 3–4 min la première fois (4 min 30 sur un runner
+  GitHub, run #4 du 2026-11-05), puis en cache. Fichier temporaire propre à chaque processus.
+  Sans aucun fond listé : boucle de 12 s générée (numpy) dans la palette de la
   maquette, ciel de nuit vers l'aube, étoiles qui scintillent, mise en cache.
 - Hashtags (`render.hashtags`, déterministes) : `captions.brand`/`broad` et
   `platforms.*.max_hashtags` dans project.yaml, `content.reciter.hashtags`,
