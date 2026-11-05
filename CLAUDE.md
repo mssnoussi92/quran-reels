@@ -21,7 +21,7 @@ e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis 
 | Texte arabe | Uthmani (Hafs), police **Amiri Quran** (OFL) |
 | Traduction | **Sahih International** (anglais), créditée dans chaque légende |
 | Mots difficiles | **غريب التفسير الميسر** (Tafsir al-Muyassar, Complexe du Roi Fahd ; `almuyassar-ghareeb` sur tafsir.app), choix du propriétaire le 2026-11-05 (avant : Ibn Qutaybah, *Tafsir Gharib al-Qur'an*), sens en arabe, **1 à 3 mots liés** surlignés |
-| Récitateur | Catalogue dans `config/project.yaml` (`content.reciters`), choisi par `content.reciter` : **Alafasy** (reconnu par Rights Manager, à remplacer) ; enregistrements du **Complexe du Roi Fahd** (licence d'usage gratuit) : **Ali Al-Hudhaifi** en priorité, Muhammad Ayyub, Ibrahim Al-Akhdar |
+| Récitateur | Catalogue dans `config/project.yaml` (`content.reciters`), choisi par `content.reciter` : **Alafasy** (reconnu par Rights Manager, à remplacer) ; enregistrements du **Complexe du Roi Fahd** (licence d'usage gratuit) : Ali Al-Hudhaifi, Muhammad Ayyub, Ibrahim Al-Akhdar (écartés par le propriétaire après écoute, 2026-11-05) ; **Omar Hisham Al-Arabi** à l'essai (sourates entières découpées, Facebook seulement) |
 | Droits | **Vérification Meta avant chaque publication** : brouillon Facebook + conteneur Instagram, publiés seulement si Meta répond `complete` sans correspondance, sinon rien n'est publié (TikTok compris) |
 | Fond | **choisi selon ce que dit le passage** (montagnes, mer, rivières, jardins, nuit, aube, ciel…) : vidéos Pexels choisies par le propriétaire et scènes générées (aube, nuit, mer), **sans personnes ni animaux** |
 | Exécution | GitHub Actions (dépôt public → gratuit), migrable sur le homelab (Docker) |
@@ -169,7 +169,22 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   ne répond ni depuis ce conteneur ni depuis les runners GitHub (connexion expirée,
   2026-11-05) : la provenance des fichiers EveryAyah n'a pas pu être comparée à l'original.
   `mp3quran.net` (sourates entières + minutage par ayah, `api/v3/ayat_timing`) répond depuis
-  GitHub : piste de repli. La légende crédite le producteur (« Recitation: Ali Al-Hudhaifi
+  GitHub : piste de repli.
+- Omar Hisham Al-Arabi (`omar_hisham`) : aucune source par ayah (ni EveryAyah, ni Quran.com,
+  mp3quran, QuranicAudio, alquran.cloud) ; seulement des sourates entières copiées sur
+  archive.org par des tiers, sans licence (`omar-hisham-al-arabi`, 320 kb/s, 71 sourates, même
+  enregistrement que `Omar-Hisham` utilisé par surahquran.com ; `OmarHishamAl-Arabi_murattel`
+  est en 16 kHz, 22 kb/s, sans pause : écarté). Ses enregistrements sont aussi diffusés sur
+  Apple Music et Spotify : risque Rights Manager. Style lent pour une partie des sourates :
+  93 dure 5 min 24 s (Alafasy 55 s), 89 et 96 plus de 8 min ; les courtes sont proches
+  d'Alafasy (112 : 19 s, 113 : 24 s, 114 : 40 s). `sources/surah_audio.py` (`surah_url` dans
+  le catalogue) télécharge la sourate et la découpe sur les pauses : `silencedetect` (seuil
+  absolu, puis relatif au volume moyen du fichier, la réverbération remplit les silences),
+  coupes choisies par programmation dynamique près des fins d'ayah d'Alafasy (Quran.com) mises
+  à l'échelle ; un segment hors de 0,55–1,5 × sa durée attendue arrête le rendu. Découpe en
+  cache (`.cache/surah-audio/<id>/split-SSS.json`, segments FLAC), affichée dans le journal.
+  Vérifié sur 93 reconstruite à partir des fichiers d'Hudhaifi et d'Ayyub : coupes à 0,4 et
+  0,6 s près. La légende crédite le producteur (« Recitation: Ali Al-Hudhaifi
   (King Fahd Complex) ») ; `manifest.json` et `publish.json` gardent le récitateur et sa licence.
 - Durées pour le découpage : Quran.com (`timings_id`, Alafasy seulement) ou, sinon, taille des
   fichiers EveryAyah (débit constant, `kbps` : octets × 8 / débit, une requête HEAD par ayah, en
@@ -204,8 +219,10 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   `source: pixabay`, `pixabay_id`, `author`, `page` ; le fichier vient de l'API au premier
   usage (`file_url`, rendu `large`), puis la boucle traitée est en cache. Le manifeste de chaque
   vidéo garde `pixabay_id`, `author`, `page`. 2026-11-05 : 38 candidats, 9 refusés (phare,
-  maisons, lumières de ville, canoës, personnes sur une plage, petit objet sur l'eau), 23
-  proposés (2–3 par thème).
+  maisons, lumières de ville, canoës, personnes sur une plage, petit objet sur l'eau), 22
+  proposés (2–3 par thème), 21 validés par le propriétaire (213423, aurore, refusé), dans
+  `backgrounds.yaml` (`pb-…`). Un clip indisponible (pas de clé, clip retiré, réseau) ne fait
+  jamais échouer un reel : repli sur une scène générée, signalé dans le journal.
 
 ## Plateformes (voir docs/plateformes.md)
 
@@ -385,7 +402,8 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
       vendredi, état, workflow `daily` — **activé** (`enabled: true`) ; 93:1-11, publiée à la
       main, est dans `published_by_hand` (jamais republiée par le calendrier)
 - [x] Série « السبع آيات المنجيات » · [ ] d'autres séries avant la fin des thèmes (≈ 2 mois)
-- [x] Fonds choisis selon le passage (scènes générées + 3 clips Pexels, PR #8)
+- [x] Fonds choisis selon le passage (scènes générées + 3 clips Pexels, PR #8 ; + 21 clips
+      Pixabay validés)
 - [x] Publications image : Word of the day (activé), Ayah of the day (désactivé) ·
       [ ] premier dry-run Meta des images · [ ] première publication réelle
 - [x] Vérification des droits Meta avant publication · [x] récitateurs du Complexe du Roi Fahd
