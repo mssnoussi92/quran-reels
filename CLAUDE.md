@@ -457,9 +457,10 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
       #18) → le fichier vérifié est renvoyé directement en PUBLISHED, brouillon supprimé.
       [x] 114 avec Omar Hisham publiée sur Facebook (publish-test run #19, 2026-11-05),
       Facebook n'y signale aucun problème de droits (constaté par le propriétaire).
-      [ ] **App Meta à passer en Live** : en mode développement, ce qu'elle publie n'est visible
-      que des comptes qui ont un rôle sur l'app (114 « non disponible » pour un autre compte,
-      2026-11-05) ; visible de tous dès le passage en Live, sans republier (docs/plateformes.md).
+      [x] **App Meta passée en Live** (2026-11-05) : en mode développement, ce qu'elle publiait
+      n'était visible que des comptes qui ont un rôle sur l'app (114 « non disponible » pour un
+      autre compte) ; aussitôt après, le lecteur intégré de Facebook sert le reel 114 sans
+      compte (vidéo de 41 s), sans republier (docs/plateformes.md).
 - [x] Récitateurs choisis par passage (6, `content.rotation`) · [x] découpes vérifiées
       (`quran-reels split`, workflow `prepare` chaque nuit) · [ ] Juz' 'Amma et thèmes pour
       tous · [ ] refaire le plan (calculé avec Alafasy) si des passages dépassent 90 s

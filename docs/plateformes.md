@@ -33,7 +33,9 @@
   données : la même page de confidentialité, icône `assets/brand/icon-1024.jpg`, catégorie, e-mail
   de contact), puis « Publier ». Pas d'App Review ni de vérification d'entreprise : l'accès
   standard reste valable en Live pour les personnes qui ont un rôle sur l'app (le propriétaire,
-  donc le jeton de Page actuel continue de marcher).
+  donc le jeton de Page actuel continue de marcher). **Fait le 2026-11-05** ; vérifié aussitôt
+  sans compte : `facebook.com/plugins/video.php?href=…/reel/1455267246753851/` renvoie la vidéo
+  (41 s), lisible depuis le CDN.
 - Page `1494879297031390` · compte Instagram pro `17841475111287268`.
 - La liaison Instagram ↔ Page doit être faite depuis la Page (Paramètres → Comptes liés). Une liaison
   faite seulement via l'Espace Comptes n'expose pas `instagram_business_account` à l'API.
