@@ -1,0 +1,40 @@
+{
+ "queues": {
+  "reading": {
+   "round": 1,
+   "done": [
+    "juz-amma/114:1-6"
+   ]
+  }
+ },
+ "slots": {
+  "2026-11-05/morning": {
+   "queue": "reading",
+   "item": "juz-amma/114:1-6",
+   "passage": "114:1-6",
+   "results": {
+    "facebook": {
+     "status": "published",
+     "id": "1445224961080443",
+     "url": "https://www.facebook.com/reel/1445224961080443/",
+     "error": null,
+     "at": "2026-11-05T08:45:55+00:00"
+    },
+    "instagram": {
+     "status": "published",
+     "id": "18007380584794972",
+     "url": "https://www.instagram.com/reel/DfWod8GEqrE/",
+     "error": null,
+     "at": "2026-11-05T08:45:55+00:00"
+    },
+    "tiktok": {
+     "status": "draft",
+     "id": "v_inbox_file~v2.7704605709593266198",
+     "url": null,
+     "error": null,
+     "at": "2026-11-05T08:45:55+00:00"
+    }
+   }
+  }
+ }
+}
