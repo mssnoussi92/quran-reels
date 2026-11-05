@@ -5,7 +5,7 @@
 
 const float HORIZON = .27;
 const float FOCAL = 1.1;
-const vec2 SUN = vec2(.8, HORIZON + .045);      // on screen
+const vec2 SUN = vec2(.87, HORIZON + .04);      // on screen, right of the credits line
 
 vec3 sky(vec3 r, vec3 sunDir) {
   float h = clamp(r.y / length(r.xz) / .8, 0., 1.);   // 0 at the horizon

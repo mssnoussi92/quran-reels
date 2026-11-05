@@ -145,7 +145,9 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   conteneur (403, Cloudflare) : l'URL du fichier se devine pour les vidéos anciennes
   (`{id}/{id}-uhd_3840_2160_24fps.mp4`), pas pour les récentes (numéro de fichier distinct).
   Chaque clip est vérifié image par image (personnes, animaux, texte) avant d'être ajouté ;
-  refusé : 1858301 (canards sur le lac).
+  refusé : 1858301 (canards sur le lac). Décision (2026-11-05) : pas de liens à la main ni de
+  clé ; on garde les 3 clips obtenus, et les nouveaux fonds viendront de scènes générées. Ce
+  conteneur n'atteint ni Pixabay, ni Wikimedia Commons, ni NASA (politique réseau).
 
 ## Plateformes (voir docs/plateformes.md)
 
@@ -213,8 +215,11 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   dans la traduction (sans les [ajouts] du traducteur) × leur poids ; le meilleur thème qui a
   un fond gagne (égalité : le plus rare, listé d'abord), même passage → même fond ; aucun thème
   → `default`. Le manifeste garde les scores. Environ un tiers des passages ont un thème.
-  Clips : recadrés en 9:16 autour de `focus`, mis en boucle sans saut (les 2 dernières
-  secondes fondues dans les premières), en cache. Scènes générées (`sources/scenes/*.frag`,
+  Clips : recadrés en 9:16 autour de `focus`, adoucis (`soften` : flou 2,5 px, 15 % plus
+  sombres, pour lire le texte sur l'eau vive), mis en boucle sans saut (les 2 dernières
+  secondes fondues dans les premières), en cache. Signature et crédits : ombre serrée + ombre
+  douce (lisibles sur un horizon clair). Débit vidéo plafonné à 6 Mb/s (un clip d'eau vive
+  seul atteignait 22 Mb/s, 180 Mo la minute). Scènes générées (`sources/scenes/*.frag`,
   `vec3 scene(uv, t)`) : dessinées par WebGL dans Chromium lancé directement (pas Playwright,
   dont la surveillance réseau copie chaque image), 540×960, boucle de 30 s dont les 5 premières
   secondes fondent t + 30 dans t, ≈ 3–4 min la première fois, puis en cache.

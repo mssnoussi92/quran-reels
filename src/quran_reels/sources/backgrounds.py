@@ -7,9 +7,10 @@ mountains three times scores `mountains` 3 × the theme's weight. The best-scori
 has a background wins; the same passage always gets the same background among those with the
 tag. A passage that mentions none takes one of `default`.
 
-Clips are cropped to 9:16 (`focus`: horizontal centre of the crop), scaled to the video size
-and made into a seamless loop once (their last seconds blend into their first ones), then
-cached in .cache/backgrounds/. The compositor loops them under the video.
+Clips are cropped to 9:16 (`focus`: horizontal centre of the crop), scaled to the video size,
+softened (`soften`: a light blur and dimming, so that the text stays readable over white
+water) and made into a seamless loop once (their last seconds blend into their first ones),
+then cached in .cache/backgrounds/. The compositor loops them under the video.
 
 Without any background listed, a provisional night sky is generated with numpy.
 """
@@ -102,32 +103,41 @@ def clip(cfg: Config, bg: Background, http: Http | None = None) -> Path:
     """A clip cropped to 9:16, at the video size, as a seamless loop (cached)."""
     v = cfg.video
     w, h, fps = v["width"], v["height"], v["fps"]
-    digest = hashlib.sha1(f"{bg.file}|{bg.focus}|{w}x{h}|{fps}|{CLIP_VERSION}".encode())
+    soften = cfg.backgrounds.get("soften") or {}
+    blur, dim = float(soften.get("blur", 0)), float(soften.get("dim", 0))
+    digest = hashlib.sha1(
+        f"{bg.file}|{bg.focus}|{w}x{h}|{fps}|{blur}|{dim}|{CLIP_VERSION}".encode())
     dest = cfg.cache / "backgrounds" / f"clip-{bg.id}-{digest.hexdigest()[:10]}.mp4"
     if dest.is_file():
         return dest
     raw = dest.with_name(f".raw-{bg.id}.mp4")
     (http or Http(timeout=120)).download(bg.file, raw, min_bytes=200_000)
     try:
-        make_loop(raw, dest, w, h, fps, bg.focus)
+        make_loop(raw, dest, w, h, fps, bg.focus, blur=blur, dim=dim)
     finally:
         raw.unlink(missing_ok=True)
     return dest
 
 
 def make_loop(src: Path, dest: Path, w: int, h: int, fps: int, focus: float = .5,
-              fade: float = CLIP_FADE) -> Path:
+              fade: float = CLIP_FADE, blur: float = 0, dim: float = 0) -> Path:
     """Crop/scale to w×h and blend the last `fade` seconds into the first ones: the result
-    (fade seconds shorter) loops without a jump."""
+    (fade seconds shorter) loops without a jump. blur (Gaussian sigma, pixels) and dim
+    (0..1, darker) soften a busy clip behind the text."""
     duration = float(subprocess.run(
         ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0",
          str(src)], capture_output=True, text=True, check=True).stdout.strip())
     fade_frames = max(1, round(min(fade, duration / 4) * fps))
     total = int(duration * fps)               # frames after the fps filter, rounded down
     keep = total - fade_frames                # frames in the loop
+    look = f"gblur=sigma={blur}," if blur > 0 else ""
+    if dim > 0:
+        k = 1 - dim
+        look += f"colorchannelmixer=rr={k}:gg={k}:bb={k},"
     graph = ";".join([
         (f"[0:v]crop='min(iw,ih*{w}/{h})':'min(ih,iw*{h}/{w})':'(iw-ow)*{focus}':'(ih-oh)/2',"
-         f"scale={w}:{h}:flags=lanczos,fps={fps},setsar=1,format=yuv420p,split=3[a][b][c]"),
+         f"scale={w}:{h}:flags=lanczos,{look}fps={fps},setsar=1,format=yuv420p,"
+         "split=3[a][b][c]"),
         f"[a]trim=start_frame={keep}:end_frame={total},setpts=PTS-STARTPTS[tail]",
         f"[b]trim=end_frame={fade_frames},setpts=PTS-STARTPTS[head]",
         f"[c]trim=start_frame={fade_frames}:end_frame={keep},setpts=PTS-STARTPTS[rest]",

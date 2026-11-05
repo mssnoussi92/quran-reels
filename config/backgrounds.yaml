@@ -26,6 +26,10 @@ themes:                         # tag: [pattern, weight per match]; ties go to t
 
 default: [dawn, night, sea]     # when the passage mentions none of the themes
 
+soften:                         # clips only (busy, sharp): keeps the text readable
+  blur: 2.5                     # Gaussian sigma, in pixels at 1080 wide
+  dim: 0.15                     # 15 % darker
+
 backgrounds:
   # Generated (src/quran_reels/sources/scenes/<scene>.frag): drawn once, cached.
   - id: dawn
