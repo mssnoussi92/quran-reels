@@ -252,10 +252,15 @@ def publish_reel(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
         r = results[name]
         print(f"{name}: {r.status.value} {r.remote_id or ''} {r.url or ''} {r.error or ''}"
               .rstrip(), file=sys.stderr)
-    # 3. Meta's check read again on what went live (it missed Alafasy and Ar-Rifai).
+    # 3. Meta's check read again on what went live (it missed Alafasy and Ar-Rifai). Never
+    #    lets a publication fail: what went out must still be recorded.
     if not dry_run:
-        after_check({n: p for n, p in publishers.items() if n in META}, results,
-                    float(_meta(cfg).get("rights_after_timeout", 300)))
+        try:
+            after_check({n: p for n, p in publishers.items() if n in META}, results,
+                        float(_meta(cfg).get("rights_after_timeout", 300)))
+        except Exception as e:      # noqa: BLE001
+            print(f"warning: rights check after publication failed: {type(e).__name__}: {e}",
+                  file=sys.stderr)
     results_list = [results[n] for n in platforms]
 
     out = video.with_suffix("") / "publish.json"

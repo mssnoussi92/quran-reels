@@ -203,10 +203,17 @@ def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
     failed = False
     if checked and not dry_run:
         graph, env, _ = checked
-        failed |= recheck(cfg, sched, state, publish_mod.meta_publishers(cfg, graph, env, meta),
-                          datetime.now(UTC), log)
+        try:
+            failed |= recheck(cfg, sched, state,
+                              publish_mod.meta_publishers(cfg, graph, env, meta),
+                              datetime.now(UTC), log)
+        except Exception as e:      # noqa: BLE001  (never in the way of the slots due)
+            print(f"warning: recheck of the last reels failed: {type(e).__name__}: {e}",
+                  file=sys.stderr)
         state.save(state_path)
     for p in todo:
+        if (state.slot(p.day, p.slot.name) or {}).get("claimed"):
+            continue        # recheck just took this slot down: not retried
         if not p.retry:     # pick again on the real state: a repeating queue may start over
             got = next_item(sched, series, state, sched.queue_for(p.slot, p.day))
             if got is None:
