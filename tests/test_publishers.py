@@ -192,6 +192,17 @@ def test_facebook_publish(reel):
     assert r.rights["clear"] and r.rights["summary"] == "aucune correspondance"
 
 
+def test_facebook_published_reel_that_answers_does_not_exist_at_first(reel):
+    # Budair's 2:255, publish-test, 2026-11-05: live, yet «does not exist» right after finish
+    routes = facebook_routes()
+    answers = iter([Resp({"error": {"message": "Unsupported get request. Object with ID '222' "
+                                    "does not exist", "code": 100, "error_subcode": 33}}, 400)])
+    normal = routes[("GET", "/222")]
+    routes[("GET", "/222")] = lambda f: next(answers, None) or normal(f)
+    r = FacebookPublisher(graph(routes), PAGE, poll_interval=0).publish(reel)
+    assert (r.status, r.remote_id) == (PublishStatus.PUBLISHED, "222")
+
+
 def test_facebook_match_keeps_the_draft_and_names_the_rights_holder(reel):
     g = graph(facebook_routes(rights=MATCH, matches=CLAIM))
     r = FacebookPublisher(g, PAGE, poll_interval=0).publish(reel)
