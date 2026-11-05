@@ -21,7 +21,7 @@ e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis 
 | Texte arabe | Uthmani (Hafs), police **Amiri Quran** (OFL) |
 | Traduction | **Sahih International** (anglais), créditée dans chaque légende |
 | Mots difficiles | **غريب التفسير الميسر** (Tafsir al-Muyassar, Complexe du Roi Fahd ; `almuyassar-ghareeb` sur tafsir.app), choix du propriétaire le 2026-11-05 (avant : Ibn Qutaybah, *Tafsir Gharib al-Qur'an*), sens en arabe, **1 à 3 mots liés** surlignés |
-| Récitateur | Catalogue dans `config/project.yaml` (`content.reciters`), choisi par `content.reciter` : **Alafasy** (reconnu par Rights Manager, à remplacer) ; enregistrements du **Complexe du Roi Fahd** (licence d'usage gratuit) : Ali Al-Hudhaifi, Muhammad Ayyub, Ibrahim Al-Akhdar (écartés par le propriétaire après écoute, 2026-11-05) ; **Omar Hisham Al-Arabi** à l'essai (sourates entières découpées, Facebook seulement) |
+| Récitateurs | **Choisis par passage** (`content.rotation`, `reciters.py`) parmi ceux du propriétaire (2026-11-05) : **Omar Hisham Al-Arabi, Muhammad Siddiq Al-Minshawi, Saad Al-Ghamdi, Nabil Ar-Rifai, Tawfiq As-Sayegh, Salah Budair** : prêt pour le passage (découpe vérifiée), ≤ 90 s, pas un des 2 derniers publiés, puis le plus proche de 60 s (passage long → récitateur rapide, sourate courte → plus lent). Écartés après écoute : Alafasy (Rights Manager), Hudhaifi, Ayyub, Akhdar |
 | Droits | **Vérification Meta avant chaque publication** : brouillon Facebook + conteneur Instagram, publiés seulement si Meta répond `complete` sans correspondance, sinon rien n'est publié (TikTok compris) |
 | Fond | **choisi selon ce que dit le passage** (montagnes, mer, rivières, jardins, nuit, aube, ciel…) : vidéos Pexels choisies par le propriétaire et scènes générées (aube, nuit, mer), **sans personnes ni animaux** |
 | Exécution | GitHub Actions (dépôt public → gratuit), migrable sur le homelab (Docker) |
@@ -170,6 +170,18 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   2026-11-05) : la provenance des fichiers EveryAyah n'a pas pu être comparée à l'original.
   `mp3quran.net` (sourates entières + minutage par ayah, `api/v3/ayat_timing`) répond depuis
   GitHub : piste de repli.
+- Al-Minshawi (murattal), Al-Ghamdi, Ar-Rifai (Nabil), As-Sayegh, Budair : **mp3quran.net**, un
+  fichier par sourate (`cdn.mp3quran.net/audio/<nom>/r1/SSS.mp3`) **et le minutage par ayah**
+  (`/api/v3/ayat_timing?surah=S&read=R`, R = 112, 30, 87, 17, 43 ; les 114 sourates). Le
+  minutage (bénévoles, approximatif) sert d'estimation des coupes, puis coupe au moment calme et
+  vérification par reconnaissance, comme Omar Hisham. Allure (Alafasy = 1) : As-Sayegh 0,76,
+  Ar-Rifai 0,78, Al-Ghamdi et Budair 0,79, Al-Minshawi 1,16. Pas sur EveryAyah : Nabil Ar-Rifai,
+  As-Sayegh (Ghamadi_40kbps, Minshawy_*, Salah_Al_Budair_128kbps y sont).
+- Choix par passage (`reciters.py`, `content.rotation`) : seulement les récitateurs dont la
+  découpe de la sourate est commitée et chaque ayah du passage (et la basmala) vérifiée ;
+  aucun prêt → rien n'est publié pour ce créneau (l'erreur donne `quran-reels split <passage>`).
+  `quran-reels split 2:255` ne vérifie que ce passage. Le créneau garde son récitateur
+  (`published.json`, champ `reciter`) ; un nouvel essai reprend le même. `calendar` l'affiche.
 - Omar Hisham Al-Arabi (`omar_hisham`) : aucune source par ayah (ni EveryAyah, ni Quran.com,
   mp3quran, QuranicAudio, alquran.cloud) ; seulement des sourates entières copiées sur
   archive.org par des tiers, sans licence (`omar-hisham-al-arabi`, 320 kb/s, 71 sourates, même
