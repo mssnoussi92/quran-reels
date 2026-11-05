@@ -37,17 +37,20 @@ def similarity(a: str, b: str) -> float:
 
 def heard_matches(heard: str, want: str, before: str = "", after: str = "") -> float:
     """How well a segment's recognised text matches its ayah, a repeated ayah included
-    (reciters often recite the last ayah twice). 0 when it matches better with a part of a
-    neighbouring ayah: ayahs that share words (مَلِكِ ٱلنَّاسِ, إِلَـٰهِ ٱلنَّاسِ) would otherwise
-    pass for a repetition."""
+    (reciters often recite the last ayah twice). 0 when it matches better with words of a
+    neighbouring ayah added, even one: the cut is then a word off (بسم الله… قل هو), and ayahs
+    that share words (مَلِكِ ٱلنَّاسِ, إِلَـٰهِ ٱلنَّاسِ) would otherwise pass."""
     h, w = normalize(heard), normalize(want)
     if not h or not w:
         return 0.0
     repeats = max(1, round(len(h) / len(w)))
     score = max(similarity(h, w), similarity(h, w * repeats))
-    for joined in (normalize(before) + w, w + normalize(after)):
-        if joined != w and similarity(h, joined) > score:
-            return 0.0
+    nxt = [normalize(x) for x in after.split() if normalize(x)]
+    prv = [normalize(x) for x in before.split() if normalize(x)]
+    joined = ([w + "".join(nxt[:k]) for k in range(1, len(nxt) + 1)]
+              + ["".join(prv[-k:]) + w for k in range(1, len(prv) + 1)])
+    if any(similarity(h, j) > score + 0.02 for j in joined):
+        return 0.0
     return score
 
 

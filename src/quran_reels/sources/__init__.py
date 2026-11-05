@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
+from pathlib import Path
 
 from quran_reels.config import Config
 from quran_reels.models import AyahRef
@@ -13,6 +15,17 @@ from quran_reels.sources.surah_audio import SurahFiles
 from quran_reels.sources.tafsir_app import TafsirApp
 
 REFERENCE_TIMINGS = 7      # Quran.com recitation whose ayah lengths guide the split (Alafasy)
+
+
+SPLITS_ENV = "QURAN_REELS_SPLITS"     # the state branch's splits/ (prepare workflow)
+
+
+def split_dirs(cfg: Config, reciter_id: str) -> list[Path]:
+    """Where checked splits are read; new ones are written to the last."""
+    dirs = [cfg.root / "config" / "splits" / reciter_id]
+    if os.environ.get(SPLITS_ENV):
+        dirs.append(Path(os.environ[SPLITS_ENV]) / reciter_id)
+    return dirs
 
 
 def surah_texts(quran: QuranCom, surah: int) -> dict[str, str]:
@@ -51,10 +64,11 @@ class Sources:
         quran = QuranCom(cfg.cache, http)
         if r.get("surah_url"):
             audio = SurahFiles(cfg.cache, http, reciter=r["id"], url=r["surah_url"],
-                               splits=cfg.root / "config" / "splits" / r["id"],
+                               splits=split_dirs(cfg, r["id"]),
                                reference=lambda s: quran.timings(s, REFERENCE_TIMINGS),
                                texts=lambda s: surah_texts(quran, s),
-                               mp3quran=r.get("mp3quran"))
+                               mp3quran=r.get("mp3quran"),
+                               max_minutes=r.get("split_max_minutes"))
         else:
             audio = EveryAyah(cfg.cache, http, reciter=r["id"])
         return cls(

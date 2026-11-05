@@ -60,6 +60,7 @@ jobs:
       CONFIRM: ${{ inputs.confirm }}
       RECITERS: ${{ inputs.reciters }}
       WHAT: ${{ inputs.what }}
+      QURAN_REELS_SPLITS: state-branch/splits   # checked splits (prepare workflow)
     steps:
       - name: Confirm a real publication
         if: inputs.mode == 'publish'
@@ -78,6 +79,12 @@ jobs:
           python-version: "3.12"
       - name: Install
         run: pip install -e .
+      - name: Load the checked splits (state branch)
+        run: |
+          if git ls-remote --exit-code --heads origin state >/dev/null; then
+            git fetch --depth=1 origin state:state
+            git worktree add state-branch state
+          fi
       - name: Check the Meta token
         if: contains(inputs.platforms, 'facebook') || contains(inputs.platforms, 'instagram')
         env:

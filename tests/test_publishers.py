@@ -142,12 +142,20 @@ def facebook_routes(publish_status="complete", rights=CLEAR, matches=()):
                                                     "copyright_matches": list(matches)}}
         return {"status": {"video_status": "ready", "processing_phase": {"status": "complete"},
                            "publishing_phase": {"status": publish_status}}}
+    ids = iter(["111", "222"])          # the draft, then the published upload
+
+    def start(f):
+        if f["upload_phase"] != "start":
+            return {"success": True}
+        vid = next(ids)
+        return {"video_id": vid, "upload_url": f"https://rupload.facebook.com/video-upload/v24.0/{vid}"}
     return {
-        ("POST", f"/{PAGE}/video_reels"): lambda f: (
-            {"video_id": "111", "upload_url": "https://rupload.facebook.com/video-upload/v24.0/111"}
-            if f["upload_phase"] == "start" else {"success": True}),
+        ("POST", f"/{PAGE}/video_reels"): start,
         ("POST", "/video-upload/v24.0/111"): {"success": True},
+        ("POST", "/video-upload/v24.0/222"): {"success": True},
         ("GET", "/111"): video,
+        ("GET", "/222"): video,
+        ("DELETE", "/111"): {"success": True},
     }
 
 
@@ -169,7 +177,10 @@ def test_facebook_publish(reel):
     r = FacebookPublisher(g, PAGE, poll_interval=0).publish(reel)
     assert (r.status, r.url) == (PublishStatus.PUBLISHED, "https://www.facebook.com/reel/111/")
     states = [c[2].get("video_state") for c in g.session.find("POST", f"/{PAGE}/video_reels")]
-    assert states == [None, "DRAFT", "PUBLISHED"]       # a draft first, published once checked
+    # a draft first; once checked, uploaded again straight to PUBLISHED (a draft cannot be
+    # published through the API, run #18), and the draft deleted
+    assert states == [None, "DRAFT", None, "PUBLISHED"]
+    assert r.remote_id == "222" and g.session.find("DELETE", "/111")
     assert r.rights["clear"] and r.rights["summary"] == "aucune correspondance"
 
 

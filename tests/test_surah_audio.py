@@ -51,6 +51,10 @@ def test_a_segment_must_be_heard_as_its_ayah_a_repetition_allowed():
     assert heard_matches("ملك الناس ملك الناس", AN_NAS[2]) == 1.0
     assert heard_matches("ملك الناس اله الناس", AN_NAS[2], AN_NAS[1], AN_NAS[3]) == 0
     assert heard_matches("قل اعوذ برب الناس ملك الناس", AN_NAS[2], AN_NAS[1], AN_NAS[3]) == 0
+    # one word of the next ayah is enough to refuse the cut (Al-Ghamdi's 112, «ولم»)
+    assert heard_matches("بسم الله الرحمن الرحيم قل هو", AN_NAS[0], "", "قُلْ هُوَ ٱللَّهُ أَحَدٌ") == 0
+    assert heard_matches("لم يلد ولم يولد ولم", "لَمْ يَلِدْ وَلَمْ يُولَدْ",
+                         "", "وَلَمْ يَكُن لَّهُۥ كُفُوًا أَحَدٌۢ") == 0
 
 
 def test_dips_find_the_quiet_moments_that_reverb_keeps_above_silence():
@@ -81,7 +85,8 @@ def test_the_committed_splits_are_complete():
 
     root = Path(__file__).resolve().parents[1] / "config" / "splits"
     for path in root.glob("*/*.json"):
-        data = read_json(path)
-        times = [t for seg in data["segments"].values() for t in seg]
+        data = read_json(path)      # what rendering uses: the checked segments, in order
+        times = [t for k, seg in data["segments"].items() if k in data["match"] for t in seg]
         assert times == sorted(times), path
-        assert min(data["match"].values()) >= 0.85, path
+        from quran_reels.sources.surah_audio import MIN_MATCH
+        assert min(data["match"].values()) >= MIN_MATCH, path

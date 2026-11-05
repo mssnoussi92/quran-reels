@@ -12,8 +12,9 @@ breath, ayah 6 twice). So the split is found by speech recognition (sources/reco
 3. every segment is recognised again and compared with its ayah: one that does not match
    stops everything. Wrong text on screen is worse than no video.
 
-The verified split is committed in config/splits/<reciter>/SSS.json (times only), so the
-daily pipeline needs neither the model nor the check: `quran-reels split <surah>` makes it.
+The verified split (times only) is in config/splits/<reciter>/SSS.json (committed) or on the
+state branch (splits/, written each night by the prepare workflow for the coming week), so
+the daily pipeline needs neither the model nor the check: `quran-reels split` makes it.
 Same interface as EveryAyah (fetch, basmala, url, seconds…); segments are cut losslessly to
 FLAC, which the renderer decodes like the MP3s.
 """
@@ -40,7 +41,10 @@ MIN_DIP = 2.0            # dips at least this many dB below the speech within 1 
 WINDOW = (1.2, 0.8)      # a cut is looked for this long before / after the ayah's first word
 PAD = 0.25               # quiet kept before and after each ayah
 MAX_PAUSE = 2.0          # weight of a pause: its length, or its depth / 10 dB, capped
-MIN_MATCH = 0.85         # a segment's recognised text must match its ayah this well
+MIN_MATCH = 0.75         # a segment's recognised text must match its ayah this well
+                         # (no neighbour's word either: recognition.heard_matches)
+PUBLISHED_WINDOW = (0.6, 0.4)   # around a published start: cut close to it
+TRIES = 5                # quiet moments tried for one cut before giving up
 RATE = 16000
 MP3QURAN = "https://www.mp3quran.net/api/v3"
 
@@ -66,6 +70,14 @@ class Pause:
     @property
     def weight(self) -> float:
         return min(self.length if self.depth is None else self.depth / 10, MAX_PAUSE)
+
+
+def duration(path: Path) -> float:
+    """Length of an audio file in seconds, from ffmpeg's header read."""
+    out = subprocess.run(["ffmpeg", "-nostdin", "-i", str(path)], capture_output=True,
+                         text=True, check=False).stderr      # no output file: exit code 1
+    h, m, sec = re.search(r"Duration: (\d+):(\d+):([\d.]+)", out).groups()
+    return int(h) * 3600 + int(m) * 60 + float(sec)
 
 
 def decode(path: Path) -> np.ndarray:
@@ -146,13 +158,20 @@ def estimates(starts: list[float | None], speech: tuple[float, float],
     return [est[k] for k in range(1, n)]
 
 
+def ranked(e: float, candidates: list[Pause], after: float,
+           window: tuple[float, float] = WINDOW, scale: float = 0.4) -> list[Pause]:
+    """Quiet moments for a cut expected at e, best first (strong and close), then e itself."""
+    near = [p for p in candidates if p.middle > after and e - window[0] <= p.middle <= e + window[1]]
+    near.sort(key=lambda p: -(p.weight - abs(p.middle - e) / scale))
+    e = max(e, after + 0.1)            # never before the previous cut
+    return near + [Pause(e, e)]
+
+
 def snap(cuts: list[float], candidates: list[Pause], speech: tuple[float, float]) -> list[Pause]:
     """The quiet moment chosen for each cut: the strongest pause near it, in order."""
     chosen, after = [], speech[0]
     for e in cuts:
-        near = [p for p in candidates
-                if p.middle > after and e - WINDOW[0] <= p.middle <= e + WINDOW[1]]
-        p = max(near, key=lambda p: p.weight - abs(p.middle - e) / 0.4) if near else Pause(e, e)
+        p = ranked(e, candidates, after)[0]
         chosen.append(p)
         after = p.middle
     return chosen
@@ -190,6 +209,7 @@ def find_split(audio: Path, labels: list[str], texts: list[str], expected: list[
     total = len(samples) / RATE
     silences, _ = pauses(audio)
     speech = speech_span(silences, total)
+    published = starts is not None
     if starts is None:
         starts = ayah_starts([t.split() for t in texts], recognizer.words(samples))
     candidates = sorted([p for p in silences if speech[0] < p.middle < speech[1]]
@@ -198,17 +218,43 @@ def find_split(audio: Path, labels: list[str], texts: list[str], expected: list[
         near = [p for p in candidates if end - WINDOW[1] <= p.middle <= end + WINDOW[0]]
         stop = max(near, key=lambda p: p.weight - abs(p.middle - end) / 0.4) if near else None
         speech = (speech[0], stop.start + min(PAD, stop.length / 2) - PAD if stop else end)
-    cut = bounds(snap(estimates(starts, speech, expected), candidates, speech), speech, total)
+    window, scale = (PUBLISHED_WINDOW, 0.25) if published else (WINDOW, 0.4)
+    heard: dict[tuple[str, float, float], float] = {}
+
+    def score(i: int, a: float, b: float) -> float:
+        key = (labels[i], round(a, 3), round(b, 3))
+        if key not in heard:
+            text = recognizer.text(samples[int(a * RATE):int(b * RATE)])
+            heard[key] = round(heard_matches(text, texts[i], texts[i - 1] if i else "",
+                                             texts[i + 1] if i + 1 < len(texts) else ""), 2)
+        return heard[key]
+
+    def wanted(i: int) -> bool:
+        return check is None or labels[i] in check
+
+    # Left to right: each cut at the best quiet moment near its estimate whose segment before
+    # it is recognised as its ayah (no word of the next one, none of its own missing).
+    chosen, after = [], speech[0]
+    seg_start = max(speech[0] - PAD, 0.0)
+    for k, e in enumerate(estimates(starts, speech, expected)):
+        options = ranked(e, candidates, after, window, scale)
+        p = options[0]
+        if wanted(k) or wanted(k + 1):
+            for option in options[:TRIES]:
+                if score(k, seg_start, min(option.start + PAD, option.middle)) >= MIN_MATCH:
+                    p = option
+                    break
+        chosen.append(p)
+        after = p.middle
+        seg_start = max(p.end - PAD, p.middle)
+    cut = bounds(chosen, speech, total)
     scores, wrong = {}, []
-    for i, (label, text, (a, b)) in enumerate(zip(labels, texts, cut)):
-        if check is not None and label not in check:
+    for i, (a, b) in enumerate(cut):
+        if not wanted(i):
             continue
-        heard = recognizer.text(samples[int(a * RATE):int(b * RATE)])
-        before = texts[i - 1] if i else ""
-        after = texts[i + 1] if i + 1 < len(texts) else ""
-        scores[label] = round(heard_matches(heard, text, before, after), 2)
-        if scores[label] < MIN_MATCH:
-            wrong.append(f"{label} ({scores[label]:.2f})")
+        scores[labels[i]] = score(i, a, b)
+        if scores[labels[i]] < MIN_MATCH:
+            wrong.append(f"{labels[i]} ({scores[labels[i]]:.2f})")
     if wrong:
         raise SplitError(f"segments not recognised as their ayah: {', '.join(wrong)}")
     return dict(zip(labels, cut)), scores
@@ -219,13 +265,14 @@ class SurahFiles:
 
     The file of every surah but 1 and 9 starts with the basmala; Al-Fatiha's is its first
     ayah. reference(surah) gives Alafasy's ayah lengths (reference(1)[1] the basmala's), and
-    texts(surah) the Uthmani text of {"basmala" | "<ayah>"}. Splits are read from `splits`
-    (committed); a missing one is made with the recogniser, then written there.
+    texts(surah) the Uthmani text of {"basmala" | "<ayah>"}. Splits are read from the
+    folders `splits` (the one with the most checked ayahs wins) and written to the last one.
     """
 
-    def __init__(self, cache: Path, http: Http, reciter: str, url: str, splits: Path,
+    def __init__(self, cache: Path, http: Http, reciter: str, url: str, splits: list[Path],
                  reference: Callable[[int], dict[int, float]],
-                 texts: Callable[[int], dict[str, str]], mp3quran: int | None = None):
+                 texts: Callable[[int], dict[str, str]], mp3quran: int | None = None,
+                 max_minutes: float | None = None):
         self.dir = cache / "surah-audio" / reciter
         self.splits = splits
         self.http = http
@@ -234,6 +281,7 @@ class SurahFiles:
         self.reference = reference
         self.texts = texts
         self.mp3quran = mp3quran      # read id of mp3quran.net's ayah timings, if published
+        self.max_minutes = max_minutes  # longer surah files are not split (word pass too long)
         self._recognizer = None
 
     def published_timing(self, surah: int) -> dict[int, tuple[float, float]]:
@@ -288,7 +336,11 @@ class SurahFiles:
         return path
 
     def split_path(self, surah: int) -> Path:
-        return self.splits / f"{surah:03d}.json"
+        """The split file to read: the one with the most checked ayahs, or where to write."""
+        found = [d / f"{surah:03d}.json" for d in self.splits if (d / f"{surah:03d}.json").is_file()]
+        if not found:
+            return self.splits[-1] / f"{surah:03d}.json"
+        return max(found, key=lambda f: len(read_json(f).get("match", {})))
 
     def segments(self, surah: int) -> dict[str, tuple[float, float]]:
         """{"basmala" | "<ayah>": (start, end)} for a surah, from its committed split."""
@@ -314,6 +366,9 @@ class SurahFiles:
         those already checked with the same cuts are kept), write it to `splits`."""
         from quran_reels.sources.recognition import MODEL, Recognizer
 
+        if self.max_minutes and duration(self.audio(surah)) > self.max_minutes * 60:
+            raise SystemExit(f"{self.reciter}, surah {surah}: recording longer than "
+                             f"{self.max_minutes:g} min, not split")
         texts = self.texts(surah)
         labels = list(texts)
         ref = self.reference(surah)
@@ -347,7 +402,7 @@ class SurahFiles:
                            f"word times recognised by {MODEL}, aligned on the Uthmani text")
                 + f", cut at the quietest moment nearby; each segment recognised by {MODEL}",
                 "segments": segments, "match": scores}
-        write_json(self.split_path(surah), data)
+        write_json(self.splits[-1] / f"{surah:03d}.json", data)
         return data
 
     def _cut(self, surah: int, label: str) -> Path:

@@ -1,0 +1,73 @@
+name: prepare-splits
+
+# Each night, the passages of the coming week are split into ayahs and checked by speech
+# recognition for every reciter of content.rotation (`quran-reels split --upcoming`), so
+# that the daily run finds them ready: it chooses only among reciters checked for the
+# passage. The splits (times only) go to the state branch, splits/<reciter>/SSS.json.
+# Red only when a passage has no reciter ready at all (it would not be published).
+on:
+  schedule:
+    - cron: "41 1 * * *"          # 02:41 Paris in winter: before the morning slot
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "How many days ahead"
+        required: false
+        default: "8"
+
+permissions:
+  contents: write          # the state branch
+
+concurrency:
+  group: accounts          # shares the state branch with the daily run
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    env:
+      QURAN_REELS_SPLITS: state-branch/splits
+      DAYS: ${{ inputs.days || '8' }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      # Speech recognition on CPU (torch ~200 MB from PyTorch's index); ffmpeg is the static
+      # build of imageio-ffmpeg: analysis only, no apt (the Ubuntu mirror can be very slow).
+      - name: Install
+        run: |
+          pip install -q torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -q -e ".[asr]" imageio-ffmpeg
+          mkdir -p ~/bin
+          ln -sf "$(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')" ~/bin/ffmpeg
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+      - name: Load the state branch
+        run: |
+          if git ls-remote --exit-code --heads origin state >/dev/null; then
+            git fetch --depth=1 origin state:state
+            git worktree add state-branch state
+          else
+            git worktree add --orphan -b state state-branch
+          fi
+      - uses: actions/cache@v5       # recordings and the model, from one night to the next
+        with:
+          path: |
+            .cache
+            ~/.cache/huggingface
+          key: prepare-${{ github.run_id }}
+          restore-keys: prepare-
+      - name: Split and check the coming week
+        run: quran-reels split --upcoming "$DAYS" --state state-branch/published.json
+      - name: Save the splits
+        if: always()
+        working-directory: state-branch
+        run: |
+          [ -d splits ] || exit 0
+          git add splits
+          git diff --cached --quiet && exit 0
+          git -c user.name="quran-reels" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -q -m "Découpes $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -q origin state
