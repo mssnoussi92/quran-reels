@@ -435,7 +435,14 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
 - [x] Série « السبع آيات المنجيات » · [ ] d'autres séries avant la fin des thèmes (≈ 2 mois)
 - [x] Fonds choisis selon le passage (scènes générées + 3 clips Pexels, PR #8 ; + 21 clips
       Pixabay validés)
-- [x] Publications image : Word of the day (activé), Ayah of the day (désactivé) ·
-      [ ] premier dry-run Meta des images · [ ] première publication réelle
-- [x] Vérification des droits Meta avant publication · [x] récitateurs du Complexe du Roi Fahd
-      (Hudhaifi, Ayyub, Akhdar) · [ ] choisir le récitateur par défaut, refaire le plan
+- [x] Publications image : Word of the day, Ayah of the day — **désactivés** (2026-11-05) en
+      attendant la validation des tirages avec le Muyassar (`config/image-candidates.yaml` à
+      refaire) · [ ] premier dry-run Meta des images · [ ] première publication réelle
+- [x] Vérification des droits Meta avant publication. Facebook : un brouillon de reel ne se
+      publie pas par l'API (« The video was not uploaded », code 6000, subcode 1363130, run
+      #18) → le fichier vérifié est renvoyé directement en PUBLISHED, brouillon supprimé.
+      [x] 114 avec Omar Hisham publiée sur Facebook (publish-test run #19, 2026-11-05),
+      Facebook n'y signale aucun problème de droits (constaté par le propriétaire).
+- [x] Récitateurs choisis par passage (6, `content.rotation`) · [x] découpes vérifiées
+      (`quran-reels split`, workflow `prepare` chaque nuit) · [ ] Juz' 'Amma et thèmes pour
+      tous · [ ] refaire le plan (calculé avec Alafasy) si des passages dépassent 90 s
