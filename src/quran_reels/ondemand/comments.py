@@ -122,7 +122,7 @@ def _words(d: dict) -> list[str]:
     for w in found:
         mark = "✅" if w["shown"] else ("◻️" if w["usable"] else "✖️")
         tail = f" — {_short(w['gloss'])}" if w["usable"] else f" — _{w['why']}_"
-        lines.append(f"- {mark} **{w['n']}** · {w['ref']} · {w['word']}{tail}")
+        lines.append(f"- {mark} n° **{w['n']}** · {w['ref']} · {w['word']}{tail}")
     lines += ["", ("Pour choisir : réponds `/mots 1 4` (ces numéros, 2 au plus par ayah) · un "
                    "mot précis de la citation : `/mots 4=قلى` · `/mots aucun` · `/mots auto`. "
                    "Le sens vient toujours du Muyassar, tel quel ; un nouvel aperçu suit."),

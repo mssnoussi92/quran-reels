@@ -773,6 +773,6 @@ def test_the_preview_lists_the_words_and_how_to_choose(cfg):
     d["words_mode"] = "auto"
     text = comments.preview(d, {"run": 1}, "https://page", [])
     assert "<b>Mots expliqués</b> : 1 sur 2 (choisis par les règles habituelles)" in text
-    assert "- ✅ **1** · 93:1 · وَٱلضُّحَىٰ — أقسم الله بوقت الضحى." in text
-    assert "- ✖️ **2** · 93:3 · غير — _pas retrouvé" in text
+    assert "- ✅ n° **1** · 93:1 · وَٱلضُّحَىٰ — أقسم الله بوقت الضحى." in text
+    assert "- ✖️ n° **2** · 93:3 · غير — _pas retrouvé" in text
     assert "`/mots 1 4`" in text
