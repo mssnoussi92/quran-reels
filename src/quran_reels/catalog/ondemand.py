@@ -120,10 +120,13 @@ def launcher(cfg: Config, state: dict, src: Any = None) -> dict[str, Any]:
 def posts(cfg: Config, state: dict, src: Any = None, keep: int = 20) -> list[dict]:
     """On-demand requests that reached a platform, newest first (public facts only)."""
     from quran_reels.catalog.posts import results
+    from quran_reels.ondemand.state import OK
 
     names = cfg.content.get("reciters") or {}
     out = []
     for issue, e in (state.get("on_demand") or {}).items():
+        if not any(r.get("status") in OK for r in (e.get("results") or {}).values()):
+            continue            # nothing went out: blocked, YouTube still to upload or cancelled
         key = e.get("passage", "")
         out.append({"issue": int(issue), "url": f"https://github.com/{REPO}/issues/{issue}",
                     "passage": key, "ref": ref(key) if key else "",

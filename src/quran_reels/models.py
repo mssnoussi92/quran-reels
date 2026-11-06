@@ -130,6 +130,7 @@ class PublishStatus(str, Enum):
     DRAFT = "draft"           # unpublished draft (Facebook dry run, TikTok inbox before audit)
     READY = "ready"           # uploaded and processed, not published (Instagram dry run)
     MANUAL = "manual"         # file ready, owner uploads by hand (YouTube before audit)
+    CANCELLED = "cancelled"   # offered, never posted: the owner dropped it (on-demand test)
     BLOCKED = "blocked"       # not published: the rights check found a match or could not end
     REMOVED = "removed"       # published, then taken down: Meta muted or blocked it (claim)
     FAILED = "failed"
