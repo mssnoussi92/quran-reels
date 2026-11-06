@@ -188,9 +188,11 @@ def _long_ayah(fr: FrameRenderer, src: Sources, passage: Passage, a: Ayah, sampl
 
 
 def render_passage(cfg: Config, key: str, label_ar: str = "", label_en: str = "",
-                   series_tags: tuple[str, ...] = ()) -> RenderResult:
+                   series_tags: tuple[str, ...] = (), background: str | None = None
+                   ) -> RenderResult:
     """label_ar / label_en: the series the passage belongs to, on the first frame and caption;
-    series_tags: its hashtags."""
+    series_tags: its hashtags; background: an id of config/backgrounds.yaml imposed by the
+    owner (on-demand reels), otherwise chosen from what the passage says."""
     src = Sources.from_config(cfg)
     passage = build(cfg, key, src)
     passage.label_ar, passage.label_en = label_ar, label_en
@@ -256,7 +258,7 @@ def render_passage(cfg: Config, key: str, label_ar: str = "", label_en: str = ""
                                         lead=float(v.get("lead_seconds", 0.4)),
                                         tail=float(v.get("tail_seconds", 1.2)), screens=screens)
 
-    bg_path, bg_info = backgrounds.pick(cfg, passage)
+    bg_path, bg_info = backgrounds.pick(cfg, passage, force=background)
     audio = video.write_audio(wavs, timeline, audio_dir / "passage.wav")
     out = cfg.out / f"{passage.slug}.mp4"
     video.compose(bg_path, static, frames, timeline, audio, out,

@@ -11,7 +11,7 @@ from quran_reels.catalog import SITE
 
 THEMES = {"mountains": "montagnes", "sea": "mer", "rivers": "rivières", "dawn": "aube",
           "rain": "pluie", "gardens": "jardins", "night": "nuit", "sky": "ciel",
-          "default": "par défaut"}
+          "default": "par défaut", "chosen": "choisi à la main"}
 STATES = {"published": ("publié", "ok"), "partial": ("en partie", "warn"),
           "failed": ("échec", "bad"), "blocked": ("bloqué (droits)", "bad"),
           "claimed": ("revendiqué, retiré", "bad"), "": ("prévu", "plan")}

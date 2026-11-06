@@ -13,3 +13,4 @@ dist/
 .cache/
 out/
 .env
+.previews-branch/

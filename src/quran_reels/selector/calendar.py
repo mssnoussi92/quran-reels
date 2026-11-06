@@ -400,7 +400,7 @@ def check_series(cfg: Config, series: dict[str, Series], src: Any = None) -> lis
     """
     from quran_reels.models import AyahRef
     from quran_reels.passage import needs_basmala
-    from quran_reels.selector.plan import sentence_ends
+    from quran_reels.selector.plan import ends_sentence, sentence_ends, starts_sentence
     from quran_reels.sources import Sources
 
     src = src or Sources.from_config(cfg)
@@ -430,9 +430,9 @@ def check_series(cfg: Config, series: dict[str, Series], src: Any = None) -> lis
             seconds = sum(timings[a] for a in range(start, end + 1)) + overhead + (
                 basmala if needs_basmala(cfg, surah, start) else 0.0)
             problems = []
-            if start > 1 and start - 1 not in ends[surah]:
+            if not starts_sentence(start, ends[surah]):
                 problems.append(f"starts mid-sentence ({surah}:{start - 1} does not end one)")
-            if end < n and end not in ends[surah]:
+            if not ends_sentence(end, n, ends[surah]):
                 problems.append(f"ends mid-sentence ({surah}:{end} does not end one)")
             if seconds > high:
                 fit = _rotation_fit(cfg, key, high)

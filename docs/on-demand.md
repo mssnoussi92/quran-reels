@@ -1,0 +1,110 @@
+# Publication à la demande (aperçu, puis approbation, depuis le téléphone)
+
+Décidé le 2026-11-06. Le propriétaire choisit un passage, un récitateur, un fond et les
+plateformes ; il reçoit un aperçu qu'il ouvre d'un geste sur son téléphone ; rien n'est publié
+tant qu'il n'a pas répondu `/publier`. YouTube reste manuel : MP4 en téléchargement direct,
+titre, description et hashtags prêts à copier, puis `/youtube <lien>` pour le noter.
+
+## Décisions du propriétaire (2026-11-06)
+
+| Question | Choix |
+|---|---|
+| Un reel à la demande remplace-t-il un créneau ? | **Non : en plus** des deux créneaux ; calendrier et files inchangés |
+| Le calendrier arrive à un passage déjà publié à la demande | **Il ne le saute pas** : il le publie à son tour. L'état garde chaque publication à la demande, par plateforme (`on_demand` de `published.json`) |
+| YouTube demandé avec un récitateur revendiqué par Content ID (`platforms.youtube.exclude_reciters` : Budair) | **YouTube refusé** pour cette demande, l'aperçu le dit et propose d'autres récitateurs ; Facebook, Instagram et TikTok continuent |
+
+## Options comparées
+
+### 1. Faire la demande
+
+| | Pour | Contre |
+|---|---|---|
+| Formulaire `workflow_dispatch` | Rien à construire ; réservé aux comptes en écriture | Listes figées dans le YAML (récitateurs, 30 fonds : à tenir à jour à la main), aucun préremplissage par lien, l'aperçu finit dans un run, pas dans une conversation |
+| Formulaire d'issue (`.github/ISSUE_TEMPLATE/*.yml`) | Préremplissable par URL (`?template=…&<id>=…`), listes déroulantes | Le préremplissage ne vaut que pour les champs texte (doc GitHub), l'app GitHub Mobile gère mal les formulaires (libellés non posés), et un dossier de modèles risque de changer le comportement des liens `issues/new?title=…&body=…` du catalogue, qui marchent |
+| **Ticket prérempli depuis le catalogue** (retenu) | Même mécanisme que les tickets du catalogue, déjà utilisé depuis le téléphone (#19–#32) ; vraies listes (récitateurs autorisés, 114 sourates avec leur nombre d'ayahs, fonds avec aperçu) construites depuis `config/` à chaque déploiement ; les cartes ouvrent le formulaire avec le récitateur ou le fond déjà choisi | Demande JavaScript (sans lui : lien vers un ticket vierge à remplir, même format) |
+
+### 2. Approuver
+
+| | Pour | Contre |
+|---|---|---|
+| Environnement avec le propriétaire comme relecteur obligatoire | Barrière gérée par GitHub | L'approbation se fait dans Actions, loin de l'aperçu ; le job en attente occupe le groupe de concurrence `accounts` (GitHub n'y garde qu'un run en attente : un run du calendrier peut annuler l'autre) ; « Prevent self-review » à désactiver |
+| **Commentaire `/publier`** (retenu) | Juste sous l'aperçu, dans l'app comme dans le navigateur, explicite et daté ; `/essai` pour un dry run | La sécurité dépend de notre contrôle de l'auteur (voir Sécurité) |
+| Libellé | Seuls les comptes avec droits de tri peuvent étiqueter | Trois gestes sur téléphone, peu explicite, même contrôle de l'expéditeur à faire |
+
+### 3. Héberger l'aperçu et le MP4 (rien de binaire sur `main`)
+
+| | Pour | Contre |
+|---|---|---|
+| Artefact Actions classique | Déjà en place | Zippé ; téléchargement réservé aux comptes connectés |
+| Artefact non zippé (`upload-artifact` v7, `archive: false`, février 2026) | Un fichier, non zippé | Toujours via la page du run et un compte connecté dans le navigateur ; un seul fichier par artefact ; 90 jours au plus |
+| **Release GitHub `reels`** (retenue pour les MP4) | URL publique stable, sans connexion, **téléchargement direct** (`Content-Disposition: attachment`) → dossier Téléchargements → galerie, et proposé par l'app YouTube ; 2 Go par fichier ; hors historique git ; supprimable | Servie en `application/octet-stream` : une image d'une release ne s'affiche pas dans un commentaire |
+| GitHub Pages | Lecteur intégré | Redéploiement complet à chaque fichier, le catalogue possède déjà Pages, site limité à 1 Go |
+| **Branche `previews`** (retenue pour les petites images et le JSON) | `raw.githubusercontent.com` sert les JPEG en `image/jpeg` (affichés dans le commentaire) et le JSON avec CORS (lu par la page d'aperçu) | Seulement de petits fichiers (≈ 150 Ko par reel) : pas de MP4 dans git |
+
+## Recommandation (implémentée)
+
+1. **Demande** — catalogue, section « À la demande » (ou bouton « Publier à la demande » d'une
+   carte récitateur ou fond) : récitateur (`auto` ou un de `content.rotation`, sauf écartés
+   `claimed`), sourate, entière ou de l'ayah X à Y, fond (`auto` ou un de `backgrounds.yaml`),
+   plateformes → « Préparer » ouvre un ticket prérempli « À la demande : … » → Envoyer.
+2. **Aperçu** (workflow `on-demand`, ≈ 4 min ; découpe en plus si besoin) :
+   - refus motivé, avec des plages valides proposées, si le passage coupe une phrase (règle 4,
+     même contrôle que `series-check`), dépasse 90 s avec ce récitateur, ou si le récitateur,
+     le fond ou une plateforme n'est pas autorisé ;
+   - découpe manquante pour ce récitateur : `quran-reels split` lancé dans le même run (le
+     commentaire dit combien de temps cela prend), enregistrée sur la branche `state` ;
+   - rendu par le pipeline (`render_passage`, fond imposé ou choisi comme d'habitude) ;
+   - commentaire : 3 images clés, MP4 d'aperçu (540p, léger), légendes Facebook, Instagram et
+     TikTok (leurs limites de hashtags), lien vers la page d'aperçu
+     `…/quran-reels/reel.html?r=…` (lecteur, boutons Copier).
+3. **Approbation** — `/publier` (ou `/essai` : même chemin en dry run). Ce qui est publié est
+   **le fichier de l'aperçu** (même empreinte SHA-256), jamais un nouveau rendu.
+4. **Publication** — `publish_reel` comme le calendrier : vérification des droits de Meta
+   d'abord (règle 6 ; une demande sans Facebook ni Instagram passe quand même par un brouillon
+   Meta vérifié puis supprimé), rien n'est publié nulle part si elle n'est pas propre ;
+   TikTok en brouillon. Résultat par plateforme dans `published.json` (`on_demand`).
+5. **YouTube** — seulement si la vérification est propre : MP4 1080p en téléchargement direct,
+   titre (≤ 100 caractères, tiré de la légende), description (la légende de `caption.txt`, avec
+   les crédits) et hashtags (tous, ceux du rendu), chacun à copier ; puis
+   `/youtube https://youtube.com/shorts/…` (lien facultatif) → `youtube: published, by_hand`
+   dans l'état, ticket fermé.
+6. **Reels du calendrier** — même téléchargement direct : après chaque run `daily`, le MP4
+   publié (ou la version YouTube par un autre récitateur) va dans la release ; le ticket
+   épinglé « 📋 Légendes à copier » donne, pour chaque vidéo, le lien MP4, la page YouTube
+   (titre, description, hashtags) et la commande `/youtube <créneau> <lien>` à y commenter.
+
+Commandes (commentaires du propriétaire seulement) : `/publier`, `/essai`, `/apercu` (refaire
+l'aperçu ; modifier le ticket le refait aussi), `/youtube [lien]` ; sur le ticket des
+légendes : `/youtube <jour>/<créneau> [lien]`.
+
+## Sécurité (dépôt et logs publics)
+
+- N'importe qui peut ouvrir un ticket ou commenter : chaque job du workflow ne démarre que si
+  l'auteur est `github.repository_owner` **et** `author_association == OWNER` (contrôlé par
+  GitHub avant tout secret), puis revérifié en Python sur le fichier d'événement.
+- L'aperçu de référence est le dernier commentaire de `github-actions[bot]` portant le
+  marqueur ; l'approbation doit être postérieure et le texte du ticket inchangé depuis
+  (empreinte) ; le run d'aperçu doit être un run de `on-demand.yml` de ce dépôt ; le MP4
+  téléchargé doit avoir l'empreinte annoncée. Une même demande ne republie jamais une
+  plateforme déjà publiée.
+- Le texte du ticket n'est jamais interpolé dans le shell (lu dans le fichier d'événement).
+- Secrets seulement dans l'étape de publication ; aucun identifiant dans les logs (les
+  messages réutilisent ceux de `publish.py`).
+- Le calendrier et les images ne changent pas : la publication à la demande prend le groupe
+  `accounts` (jamais deux publications à la fois) ; l'aperçu n'y entre pas.
+
+## Conservation
+
+- MP4 (release `reels`) et images/JSON (branche `previews`) : **30 jours**, puis supprimés
+  par le workflow (`quran-reels files prune`). Les artefacts entre l'aperçu et la publication :
+  7 jours (au-delà : `/apercu` refait l'aperçu).
+- `published.json` garde chaque demande pour toujours (les liens de fichiers expirent).
+
+## Limites connues
+
+- Le lecteur de la page d'aperçu lit le MP4 depuis la release ; si le navigateur refuse, la
+  page propose le téléchargement (même fichier).
+- Pas de modèle d'issue (voir 1) : un ticket ouvert à la main doit garder le format
+  « ### Récitateur … ### Passage … ### Fond … ### Plateformes ».
+- Le contrôle des droits après publication reste celui du calendrier
+  (`rights_after_timeout`, désactivé).

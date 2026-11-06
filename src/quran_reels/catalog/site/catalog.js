@@ -126,4 +126,58 @@
     if (s) watch.observe(c);
   });
   if (scenes.length && !reduce) requestAnimationFrame(frame);
+
+  // ---- on demand: the form builds a pre-filled issue (docs/on-demand.md), nothing else ------
+  const form = document.getElementById("od-form");
+  if (form) {
+    const q = new URLSearchParams(location.search);
+    for (const name of ["reciter", "background"]) {
+      const v = q.get(name);
+      if (v && form.elements[name].querySelector(`option[value="${CSS.escape(v)}"]`)) form.elements[name].value = v;
+    }
+    const warn = form.querySelector(".od-warn");
+    const ayahs = () => Number(form.elements.surah.selectedOptions[0].dataset.ayahs);
+    function update() {
+      const n = ayahs();
+      for (const k of ["from", "to"]) { form.elements[k].max = n; }
+      if (Number(form.elements.to.value) > n) form.elements.to.value = n;
+      const rec = form.elements.reciter.selectedOptions[0];
+      const yt = form.querySelector('input[value="youtube"]');
+      const msg = [];
+      if (yt.checked && rec.dataset.youtube === "0") {
+        msg.push(`YouTube sera retiré : ${rec.textContent} y est revendiqué par Content ID (les autres plateformes continuent).`);
+      }
+      warn.textContent = msg.join(" "); warn.hidden = !msg.length;
+    }
+    form.addEventListener("change", update);
+    form.elements.from.addEventListener("focus", () => { form.elements.range.value = "part"; });
+    form.elements.to.addEventListener("focus", () => { form.elements.range.value = "part"; });
+    update();
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const f = form.elements, n = ayahs(), s = f.surah.value;
+      let passage = s;
+      if (f.range.value === "part") {
+        const a = Math.max(1, Math.min(n, Number(f.from.value) || 1));
+        const b = Math.max(a, Math.min(n, Number(f.to.value) || a));
+        passage = `${s}:${a}-${b}`;
+      }
+      const platforms = [...form.querySelectorAll('input[name="platform"]:checked')].map((x) => x.value);
+      if (!platforms.length) { warn.textContent = "Choisis au moins une plateforme."; warn.hidden = false; return; }
+      const h = JSON.parse(form.dataset.headings);
+      const rec = f.reciter.selectedOptions[0];
+      const body = [`### ${h.reciter}\n\n${f.reciter.value}`, `### ${h.passage}\n\n${passage}`,
+                    `### ${h.background}\n\n${f.background.value}`,
+                    `### ${h.platforms}\n\n${platforms.join(", ")}`].join("\n\n")
+                   + `\n\n---\n${form.dataset.footer}\n`;
+      const who = f.reciter.value === "auto" ? "auto" : rec.textContent;
+      const title = `${form.dataset.prefix} : ${passage} · ${who}`;
+      const url = `${form.dataset.newIssue}?` + new URLSearchParams({ title, body, labels: "on-demand" });
+      location.href = url;
+    });
+    if (location.hash === "#on-demand" && (q.get("reciter") || q.get("background"))) {
+      document.getElementById("on-demand").scrollIntoView();
+    }
+  }
 })();
+

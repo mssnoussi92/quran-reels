@@ -24,8 +24,57 @@
   {% for n in d.notes %}<p class="notice">{{ n }}</p>{% endfor %}
 
   <nav class="tabs" aria-label="Sections">
-    <a href="#reciters">Récitateurs</a><a href="#backgrounds">Fonds</a><a href="#calendar">Calendrier</a><a href="#posts">Publications</a>
+    {% if d.on_demand %}<a href="#on-demand">Publier</a>{% endif %}<a href="#reciters">Récitateurs</a><a href="#backgrounds">Fonds</a><a href="#calendar">Calendrier</a><a href="#posts">Publications</a>
   </nav>
+
+  {# ---------------------------------------------------------------- on demand #}
+  {% if d.on_demand %}
+  {% set O = d.on_demand %}
+  <section id="on-demand">
+    <h2>Publier à la demande</h2>
+    <p class="muted">Choisis, puis <strong>Préparer</strong> ouvre un ticket prérempli : envoie-le. Un aperçu arrive en
+      commentaire (≈ 4 min ; plus si la récitation doit d'abord être découpée), avec le MP4, des images et les légendes.
+      <strong>Rien n'est publié avant ta réponse <code>/publier</code></strong> dans le ticket. Mêmes règles que le
+      calendrier : phrases entières, {{ O.max_seconds }} s au plus, vérification des droits de Meta.
+      <a href="{{ O.doc }}" rel="noopener">Comment ça marche</a></p>
+    <form id="od-form" class="card od" data-new-issue="{{ O.new_issue }}" data-prefix="{{ O.title_prefix }}"
+          data-footer="{{ O.footer }}" data-headings='{{ O.headings|tojson }}'>
+      <label>Récitateur
+        <select name="reciter">
+          <option value="auto" data-youtube="1">Auto (choisi comme le calendrier)</option>
+          {% for r in O.reciters %}<option value="{{ r.name }}" data-youtube="{{ 1 if r.youtube else 0 }}">{{ r.label }}</option>{% endfor %}
+        </select>
+      </label>
+      <label>Sourate
+        <select name="surah">
+          {% for s in O.surahs %}<option value="{{ s.n }}" data-ayahs="{{ s.ayahs }}">{{ s.n }}. {{ s.name }} · {{ s.ar }} ({{ s.ayahs }} ayahs)</option>{% endfor %}
+        </select>
+      </label>
+      <fieldset>
+        <legend>Ayahs</legend>
+        <label class="inline"><input type="radio" name="range" value="whole" checked> Sourate entière</label>
+        <label class="inline"><input type="radio" name="range" value="part"> De l'ayah
+          <input type="number" name="from" min="1" value="1" inputmode="numeric"> à
+          <input type="number" name="to" min="1" value="1" inputmode="numeric"></label>
+      </fieldset>
+      <label>Fond
+        <select name="background">
+          <option value="auto">Auto (selon ce que dit le passage)</option>
+          {% for b in O.backgrounds %}<option value="{{ b.id }}">{{ b.id }}{% if b.tags %} · {{ b.tags }}{% endif %}</option>{% endfor %}
+        </select>
+      </label>
+      <fieldset>
+        <legend>Plateformes</legend>
+        {% for p in O.platforms %}<label class="inline"><input type="checkbox" name="platform" value="{{ p.id }}" checked> {{ p.label }}</label>{% endfor %}
+      </fieldset>
+      <p class="small notice od-warn" hidden></p>
+      <button type="submit" class="act">Préparer la demande</button>
+    </form>
+    <noscript><p class="notice">Le formulaire a besoin de JavaScript. Sinon :
+      <a href="{{ O.new_issue }}?title={{ O.title_prefix|urlencode }}%20%3A%20">un ticket « {{ O.title_prefix }} : … »</a>
+      avec les sections ### Récitateur, ### Passage, ### Fond, ### Plateformes.</p></noscript>
+  </section>
+  {% endif %}
 
   {# ---------------------------------------------------------------- reciters #}
   {% set R = d.reciters %}
@@ -58,6 +107,7 @@
           {% for x in r.removed %}<li class="claim"><time>{{ x.slot.split('/')[0] }}</time> {{ x.passage }} retiré : {{ x.why }}</li>{% endfor %}
         </ul>
         {% endif %}
+        {% if d.on_demand and r.name in d.on_demand.reciters|map(attribute='name') %}<a class="act" href="?reciter={{ r.name }}#on-demand">Publier à la demande avec {{ r.label }}</a>{% endif %}
         <a class="act{% if r.status == 'rotation' %} danger{% endif %}" href="{{ r.issue }}" rel="noopener">{{ 'Retirer ce récitateur' if r.status == 'rotation' else 'Ajouter ce récitateur à la rotation' }}</a>
       </article>
       {% endfor %}
@@ -116,6 +166,7 @@
           <p class="chips">{% for t in b.tags %}<span class="chip">{{ t|theme }}</span>{% endfor %}</p>
           {% if b.note %}<p class="note">{{ b.note }}</p>{% endif %}
           <p class="use">{% if b.uses %}Utilisé {{ b.uses|length }}× ({% for t, n in b.themes.items() %}{{ t|theme }}{% if n > 1 %} ×{{ n }}{% endif %}{{ ", " if not loop.last }}{% endfor %}) : {% for u in b.uses %}{{ u.passage }}{{ ", " if not loop.last }}{% endfor %}{% else %}Pas encore utilisé{% endif %}{% if b.planned %} · prévu {{ b.planned|length }}× sur {{ d.schedule.days }} jours{% endif %}</p>
+          {% if d.on_demand %}<a class="act" href="?background={{ b.id }}#on-demand">Publier à la demande avec ce fond</a>{% endif %}
           <a class="act danger" href="{{ b.issue }}" rel="noopener">Retirer ce fond</a>
         </div>
       </article>
@@ -254,6 +305,17 @@
       <div class="head"><h4>{{ p.day|capitalize }} · {{ p.slot_fr }} {{ p.time }}</h4><span class="state bad">retiré</span></div>
       <p><b>{{ p.ref }}</b> {{ p.surah }} · {{ p.reciter_label }}</p>
       <p class="small">{{ p.why }}</p>
+    </article>
+    {% endfor %}
+    {% endif %}
+
+    {% if P.on_demand %}
+    <h3>À la demande</h3>
+    {% for p in P.on_demand %}
+    <article class="card post">
+      <div class="head"><h4>{{ p.at }} · <a href="{{ p.url }}" rel="noopener">#{{ p.issue }}</a></h4></div>
+      <p><b>{{ p.ref }}</b> {{ p.surah }} · <span class="muted">{{ p.reciter_label }}</span></p>
+      <p class="pills">{% for r in p.results %}{% if r.url %}<a class="pill {{ r.status }}" href="{{ r.url }}" rel="noopener">{{ r.name }} ↗</a>{% else %}<span class="pill {{ r.status }}">{{ r.name }} : {{ r.label }}</span>{% endif %}{% endfor %}</p>
     </article>
     {% endfor %}
     {% endif %}

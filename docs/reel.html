@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reel · Quran Words Daily</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="style.css">
+<style>
+  /* One reel, for the owner's phone: player, frames, texts to copy (docs/on-demand.md). */
+  main { max-width: 640px; padding: 22px 14px 64px; }
+  header.site { margin-bottom: 14px; }
+  h1 { font-size: 22px; margin: 4px 0 2px; }
+  h2 { font-size: 19px; margin: 26px 0 8px; }
+  .stage { display: inline-block; font: 600 12px/1 system-ui, sans-serif; letter-spacing: .03em;
+    text-transform: uppercase; padding: 6px 10px; border-radius: 999px;
+    background: rgba(246,200,107,.16); color: var(--gold); }
+  .stage.published, .stage.daily, .stage.checked { background: rgba(120,214,160,.16); color: #8fe0b0; }
+  .stage.blocked, .stage.failed { background: rgba(255,120,100,.16); color: #ff9a8a; }
+  .facts { color: var(--muted); font-size: 14.5px; margin: 8px 0 0; }
+  video { width: 100%; max-height: 70vh; background: #000; border-radius: 14px; margin-top: 14px; }
+  .frames { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
+  .frames img { width: 100%; border-radius: 10px; display: block; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; }
+  a.btn, button { display: inline-block; text-decoration: none; text-align: center;
+    background: var(--gold); color: #1a1a1a; border: 0; border-radius: 12px; padding: 12px 16px;
+    font: 600 15px "Lora", Georgia, serif; cursor: pointer; }
+  a.btn.ghost, button.ghost { background: transparent; color: var(--gold);
+    border: 1px solid rgba(246,200,107,.5); }
+  .big { width: 100%; font-size: 16px; padding: 14px 16px; }
+  .copy { background: var(--card); border: 1px solid rgba(246,200,107,.25); border-radius: 14px;
+    padding: 12px 12px 10px; margin: 10px 0; }
+  .copy .head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .copy .head b { font-size: 15px; }
+  .copy .head small { color: var(--muted); font: 13px system-ui, sans-serif; }
+  .copy pre { white-space: pre-wrap; word-break: break-word; margin: 8px 0 0; max-height: 220px;
+    overflow: auto; font: 14px/1.5 "Lora", Georgia, serif; color: var(--text); }
+  .copy button { padding: 8px 14px; font-size: 14px; flex: 0 0 auto; }
+  .copy button.done { background: #8fe0b0; }
+  ol { padding-left: 22px; } ol li { margin: 6px 0; font-size: 15.5px; }
+  .notice { background: rgba(246,200,107,.12); border-left: 3px solid var(--gold); padding: 8px 12px;
+    border-radius: 8px; font-size: 14.5px; margin: 10px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  td { padding: 7px 4px; border-bottom: 1px solid rgba(255,255,255,.08); vertical-align: top; }
+  .hidden { display: none !important; }
+  #error { color: #ff9a8a; }
+</style>
+</head>
+<body>
+<main>
+  <header class="site">
+    <a class="brand" href="./">Quran Words Daily</a>
+    <nav><a href="catalog/#on-demand">À la demande</a><a href="catalog/">Catalogue</a></nav>
+  </header>
+  <p id="loading" class="muted">Chargement…</p>
+  <p id="error" class="hidden"></p>
+  <noscript><p>Cette page a besoin de JavaScript. Tout ce qu'elle montre est aussi dans le ticket GitHub.</p></noscript>
+
+  <article id="reel" class="hidden">
+    <span id="stage" class="stage"></span>
+    <h1 id="title"></h1>
+    <p id="facts" class="facts"></p>
+
+    <video id="player" controls playsinline preload="metadata"></video>
+    <p id="noplay" class="muted small hidden">Le navigateur ne lit pas la vidéo ici : télécharge-la (même fichier).</p>
+    <div class="actions" id="downloads"></div>
+    <div class="frames" id="frames"></div>
+    <div id="notes"></div>
+
+    <section id="approve" class="hidden">
+      <h2>Publier ?</h2>
+      <p>Rien n'est publié tant que tu n'as pas répondu dans le ticket :</p>
+      <div class="copy"><div class="head"><b>/publier</b><button data-copy="/publier">Copier</button></div>
+        <p class="muted small" style="margin:6px 0 0">ou <code>/essai</code> pour un dry run (rien de public)</p></div>
+      <a class="btn big" id="issue-link" href="#">Ouvrir le ticket et répondre</a>
+    </section>
+
+    <section id="results" class="hidden">
+      <h2>Résultat</h2>
+      <table id="results-table"></table>
+    </section>
+
+    <section id="youtube" class="hidden">
+      <h2>📺 YouTube, à la main</h2>
+      <ol>
+        <li><a class="btn" id="yt-file" href="#">⬇️ Télécharger le MP4 1080p</a><br><span class="muted small">Il va dans Téléchargements : la galerie et l'app YouTube le voient.</span></li>
+        <li>App YouTube → ➕ → Short → choisis la vidéo, puis colle :</li>
+      </ol>
+      <div id="yt-texts"></div>
+      <ol start="3">
+        <li>Une fois en ligne, note-le : copie la commande, ouvre le ticket, colle-la avec le lien du Short (facultatif).</li>
+      </ol>
+      <div class="copy"><div class="head"><b id="yt-command"></b><button id="yt-command-copy">Copier</button></div></div>
+      <a class="btn ghost big" id="yt-issue" href="#">Ouvrir le ticket</a>
+    </section>
+
+    <section id="captions-section">
+      <h2>Légendes</h2>
+      <div id="captions"></div>
+    </section>
+  </article>
+  <footer>Quran Words Daily · <a href="catalog/">catalogue</a> · page en lecture seule : rien n'est publié d'ici.</footer>
+</main>
+<script>
+(() => {
+  "use strict";
+  const REPO = "mssnoussi92/quran-reels";
+  const $ = (id) => document.getElementById(id);
+  const params = new URLSearchParams(location.search);
+  const rid = params.get("r") || "";
+  if (!/^(od\/\d+\/[\w-]+|daily\/\d{4}-\d{2}-\d{2}-[a-z]+)$/.test(rid)) {
+    return fail("Adresse incomplète : ouvre cette page depuis le lien du ticket.");
+  }
+  const url = `https://raw.githubusercontent.com/${REPO}/previews/${rid}/reel.json?v=${encodeURIComponent(params.get("v") || Date.now())}`;
+  fetch(url, { cache: "no-store" })
+    .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(show)
+    .catch(() => fail("Rien trouvé pour ce reel (supprimé après 30 jours, ou pas encore prêt : réessaie dans une minute)."));
+
+  function fail(text) {
+    $("loading").classList.add("hidden");
+    const e = $("error"); e.textContent = text; e.classList.remove("hidden");
+  }
+
+  function el(tag, attrs = {}, text = "") {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+    if (text) n.textContent = text;
+    return n;
+  }
+
+  async function copy(text, button) {
+    try { await navigator.clipboard.writeText(text); }
+    catch (_) {
+      const t = el("textarea"); t.value = text; document.body.append(t); t.select();
+      document.execCommand("copy"); t.remove();
+    }
+    const old = button.textContent; button.textContent = "Copié ✓"; button.classList.add("done");
+    setTimeout(() => { button.textContent = old; button.classList.remove("done"); }, 1800);
+  }
+
+  function copyBox(title, text, extra = "") {
+    const box = el("div", { class: "copy" });
+    const head = el("div", { class: "head" });
+    const b = el("b", {}, title);
+    if (extra) b.append(" ", el("small", {}, extra));
+    const button = el("button", {}, "Copier");
+    button.addEventListener("click", () => copy(text, button));
+    head.append(b, button);
+    box.append(head, el("pre", {}, text));
+    return box;
+  }
+
+  function show(d) {
+    $("loading").classList.add("hidden");
+    $("reel").classList.remove("hidden");
+    document.title = `${d.passage} · Quran Words Daily`;
+    const stage = $("stage"); stage.textContent = d.stage_label; stage.classList.add(d.stage);
+    $("title").textContent = d.title;
+    const facts = [d.reciter, d.seconds ? `${Math.round(d.seconds)} s` : "",
+                   d.background ? `fond ${d.background}` : "", (d.platforms || []).join(", ")];
+    $("facts").textContent = facts.filter(Boolean).join(" · ");
+
+    const v = d.video || {};
+    const src = v.preview || v.full;
+    const player = $("player");
+    if (src) {
+      player.src = src;
+      player.addEventListener("error", () => { player.classList.add("hidden"); $("noplay").classList.remove("hidden"); });
+    } else player.classList.add("hidden");
+    const dl = $("downloads");
+    if (v.preview) dl.append(el("a", { class: "btn ghost", href: v.preview }, "⬇️ Aperçu 540p"));
+    if (v.full) dl.append(el("a", { class: "btn ghost", href: v.full }, "⬇️ MP4 1080p"));
+
+    for (const [i, f] of (d.frames || []).entries()) $("frames").append(el("img", { src: f, alt: `image ${i + 1}`, loading: "lazy" }));
+    for (const n of d.notes || []) $("notes").append(el("p", { class: "notice" }, "⚠️ " + n));
+
+    const issueUrl = d.issue && d.issue.url ? d.issue.url
+      : `https://github.com/${REPO}/issues?q=${encodeURIComponent('is:issue is:open "Légendes à copier"')}`;
+    if (d.stage === "preview") {
+      $("approve").classList.remove("hidden");
+      $("issue-link").href = issueUrl;
+    }
+    document.querySelectorAll("button[data-copy]").forEach((b) => b.addEventListener("click", () => copy(b.dataset.copy, b)));
+
+    if ((d.results || []).length) {
+      $("results").classList.remove("hidden");
+      for (const r of d.results) {
+        const tr = el("tr"); const a = el("td", {}, r.name); const b = el("td");
+        if (r.url) b.append(el("a", { href: r.url, rel: "noopener" }, r.label + " ↗")); else b.textContent = r.label;
+        tr.append(a, b); $("results-table").append(tr);
+      }
+    }
+
+    const yt = d.youtube;
+    if (yt && yt.file) {
+      $("youtube").classList.remove("hidden");
+      $("yt-file").href = yt.file;
+      const t = $("yt-texts");
+      t.append(copyBox("Titre", yt.title, `${[...yt.title].length}/100`),
+               copyBox("Description", yt.description), copyBox("Hashtags", yt.hashtags));
+      const cmd = yt.command + " ";
+      $("yt-command").textContent = cmd + "<lien>";
+      $("yt-command-copy").addEventListener("click", (e) => copy(cmd, e.target));
+      $("yt-issue").href = issueUrl;
+    }
+    for (const c of d.captions || []) $("captions").append(copyBox(c.label, c.text));
+  }
+})();
+</script>
+</body>
+</html>

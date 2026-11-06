@@ -295,9 +295,24 @@ def provisional(cfg: Config, seconds: int = 12) -> Path:
     return dest
 
 
-def pick(cfg: Config, passage: Passage, http: Http | None = None) -> tuple[Path, dict[str, Any]]:
-    """Background file for a passage, and what the manifest records about it."""
+CHOSEN = "chosen"           # theme recorded for a background imposed by the owner
+
+
+def by_id(cfg: Config, bg_id: str) -> Background:
+    """A background of config/backgrounds.yaml by its id."""
+    for b in catalogue(cfg)[0]:
+        if b.id == bg_id:
+            return b
+    raise SystemExit(f"background {bg_id!r} is not in config/backgrounds.yaml")
+
+
+def pick(cfg: Config, passage: Passage, http: Http | None = None,
+         force: str | None = None) -> tuple[Path, dict[str, Any]]:
+    """Background file for a passage, and what the manifest records about it.
+    force: the id of a background chosen by the owner (on-demand reels) instead of the theme."""
     chosen = choose(cfg, passage)
+    if force:
+        chosen = (by_id(cfg, force), CHOSEN, chosen[2] if chosen else Counter())
     if chosen is None:
         return provisional(cfg), {"id": f"provisional-v{PROVISIONAL_VERSION}",
                                   "source": "generated"}

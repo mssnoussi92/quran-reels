@@ -145,6 +145,10 @@ def main(argv: list[str] | None = None) -> int:
     cb.add_argument("--no-previews", action="store_true", help="no clip previews (no ffmpeg)")
     cb.add_argument("--days", type=int, default=14)
 
+    from quran_reels.ondemand import cli as on_demand_cli
+
+    on_demand_cli.add_parser(sub)
+
     note = sub.add_parser("notify", help="GitHub issues: failure alert, captions to copy")
     note.add_argument("--outcome", required=True, help="the job status: success or failure")
     note.add_argument("--run-url", required=True)
@@ -452,6 +456,9 @@ def main(argv: list[str] | None = None) -> int:
                             previews=not args.no_previews, days=args.days)
         print(out / "index.html")
         return 0
+
+    if args.command == "on-demand":
+        return on_demand_cli.run(cfg, args)
 
     if args.command == "notify":
         from pathlib import Path
