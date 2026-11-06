@@ -31,6 +31,7 @@ from pathlib import Path
 
 import numpy as np
 
+from quran_reels.arabic import normalize
 from quran_reels.models import AyahRef
 from quran_reels.sources.http import Http, read_json, write_json
 
@@ -45,6 +46,10 @@ MIN_MATCH = 0.75         # a segment's recognised text must match its ayah this 
                          # (no neighbour's word either: recognition.heard_matches)
 PUBLISHED_WINDOW = (0.6, 0.4)   # around a published start: cut close to it
 TRIES = 5                # quiet moments tried for one cut before giving up
+CUT_WINDOW = 3.0         # seconds on each side of a cut, recognised together (check_cut)
+CUT_TOLERANCE = 0.2      # a word may start this much on the wrong side (timestamp precision)
+CUT_CONTEXT = 4          # words of each ayah next to a cut
+LONG_WORDS = 15          # ayahs at least this long keep their word times (several screens)
 RATE = 16000
 MP3QURAN = "https://www.mp3quran.net/api/v3"
 
@@ -195,6 +200,62 @@ def speech_span(silences: list[Pause], total: float) -> tuple[float, float]:
     return start, end
 
 
+def _heard(recognizer, samples: np.ndarray, lo: float, hi: float) -> list:
+    """Words recognised between lo and hi (seconds), with times in the recording."""
+    from quran_reels.sources.recognition import Word
+
+    return [Word(w.text, w.start + lo, w.end + lo)
+            for w in recognizer.words(samples[int(lo * RATE):int(hi * RATE)])]
+
+
+def check_cut(recognizer, samples: np.ndarray, end: float, start: float, left: str,
+              right: str) -> str:
+    """'' when a cut keeps each ayah's words on its side (the left segment ends at `end`, the
+    right one starts at `start`), else what is wrong. The CUT_WINDOW seconds just before the
+    cut and just after it are recognised apart, and their edge words compared with the ayahs':
+    - the last word heard before the cut must not be one of the next ayah's first words
+      («Alif» of 2:1 at the end of Budair's basmala, 2026-11-05);
+    - the first word heard after it must be the next ayah's first word, not a later one (its
+      first word left before the cut: «لا» of 2:256 at the end of his 2:255, heard as «ذكراه»
+      after the cut) nor one of the previous ayah's last words.
+    Word timestamps are not used: around a silence they were off by seconds."""
+    from quran_reels.sources.recognition import similarity
+
+    total = len(samples) / RATE
+    before = recognizer.text(samples[int(max(0.0, end - CUT_WINDOW) * RATE):int(end * RATE)])
+    after = recognizer.text(samples[int(start * RATE):int(min(total, start + CUT_WINDOW) * RATE)])
+    lw = [w for w in left.split() if normalize(w)][-CUT_CONTEXT:]
+    rw = [w for w in right.split() if normalize(w)][:CUT_CONTEXT]
+    heard_before = [w for w in before.split() if normalize(w)]
+    heard_after = [w for w in after.split() if normalize(w)]
+
+    def best(word: str, among: list[str]) -> float:
+        return max((similarity(word, w) for w in among), default=0.0)
+
+    problems = []
+    if heard_before and rw and lw:
+        tail = heard_before[-1]
+        if best(tail, rw) >= 0.6 and best(tail, rw) > best(tail, lw) + 0.1:
+            problems.append(f"«{tail}» of the next ayah is before the cut")
+    if heard_after and rw:
+        head = heard_after[0]
+        own, later, prev = similarity(head, rw[0]), best(head, rw[1:]), best(head, lw)
+        if prev >= 0.6 and prev > own + 0.1:
+            problems.append(f"«{head}» of the previous ayah is after the cut")
+        elif later >= 0.6 and later > own + 0.1:
+            problems.append(f"«{rw[0]}» is not after the cut (heard first: «{head}»)")
+    return "; ".join(problems)
+
+
+def word_times(recognizer, samples: np.ndarray, a: float, b: float, text: str
+               ) -> list[float | None]:
+    """When each word of the ayah starts in its segment (seconds from a), None if unheard."""
+    from quran_reels.sources.recognition import align_words
+
+    return [None if w is None else round(max(w.start - a, 0.0), 2)
+            for w in align_words(text.split(), _heard(recognizer, samples, a, b))]
+
+
 BASMALA_MIN = 2.0         # seconds: no basmala is shorter (Budair 3.7, the quickest ≈ 3)
 
 
@@ -246,6 +307,16 @@ def find_split(audio: Path, labels: list[str], texts: list[str], expected: list[
     def wanted(i: int) -> bool:
         return check is None or labels[i] in check
 
+    cuts: dict[tuple[int, float, float], str] = {}
+
+    def cut_problem(k: int, p: Pause) -> str:
+        """check_cut between labels k and k+1 for the quiet moment p."""
+        end, start = min(p.start + PAD, p.middle), max(p.end - PAD, p.middle)
+        key = (k, round(end, 3), round(start, 3))
+        if key not in cuts:
+            cuts[key] = check_cut(recognizer, samples, end, start, texts[k], texts[k + 1])
+        return cuts[key]
+
     # Left to right: each cut at the best quiet moment near its estimate whose segment before
     # it is recognised as its ayah (no word of the next one, none of its own missing).
     chosen, after = [], speech[0]
@@ -259,26 +330,47 @@ def find_split(audio: Path, labels: list[str], texts: list[str], expected: list[
         p = options[0]
         if wanted(k) or wanted(k + 1):
             for option in options[:TRIES]:
-                if score(k, seg_start, min(option.start + PAD, option.middle)) >= MIN_MATCH:
+                if score(k, seg_start, min(option.start + PAD, option.middle)) >= MIN_MATCH \
+                        and not cut_problem(k, option):
                     p = option
                     break
         chosen.append(p)
         after = p.middle
         seg_start = max(p.end - PAD, p.middle)
     cut = bounds(chosen, speech, total)
+    edges: dict[int, str] = {}           # a cut that moves words of one ayah to the other
+    for k, p in enumerate(chosen):
+        if wanted(k) or wanted(k + 1):
+            problem = cut_problem(k, p)
+            if problem:
+                edges[k] = edges[k + 1] = f"cut {labels[k]}|{labels[k + 1]}: {problem}"
     scores, wrong = {}, []
     for i, (a, b) in enumerate(cut):
         if not wanted(i):
             continue
-        scores[labels[i]] = score(i, a, b)
+        scores[labels[i]] = 0.0 if i in edges else score(i, a, b)
         if scores[labels[i]] < MIN_MATCH:
-            wrong.append(f"{labels[i]} ({scores[labels[i]]:.2f})")
+            wrong.append(f"{labels[i]} ({edges.get(i) or f'{scores[labels[i]]:.2f}'})")
     if wrong and len(wrong) == len(scores):
         raise SplitError(f"segments not recognised as their ayah: {', '.join(wrong)}")
     if wrong:       # the others stay usable: a passage needs all of its own ayahs checked
         print(f"not recognised as their ayah: {', '.join(wrong)} (left unchecked)",
               file=sys.stderr)
     return dict(zip(labels, cut)), {k: v for k, v in scores.items() if v >= MIN_MATCH}
+
+
+def kept_scores(before: dict, segments: dict, scores: dict[str, float],
+                check: set[str] | None, labels: list[str]) -> dict[str, float]:
+    """The new split's checked segments: those just recognised (`scores`), and those of the
+    previous split left out of `check` whose cuts did not move. A segment checked again and
+    refused stays refused, even with the same cuts (an audit that finds no better cut)."""
+    old_segments = {k: tuple(v) for k, v in before.get("segments", {}).items()}
+    out = dict(scores)
+    for k, score in before.get("match", {}).items():
+        if (k not in out and check is not None and k not in check
+                and k in segments and old_segments.get(k) == tuple(segments[k])):
+            out[k] = score
+    return {k: out[k] for k in labels if k in out}
 
 
 class SurahFiles:
@@ -375,6 +467,11 @@ class SurahFiles:
         path = self.split_path(surah)
         return read_json(path).get("match", {}) if path.is_file() else {}
 
+    def word_starts(self, surah: int, ayah: int) -> list[float | None] | None:
+        """When each word (arabic.words) of a long ayah starts in its segment, if known."""
+        path = self.split_path(surah)
+        return read_json(path).get("words", {}).get(str(ayah)) if path.is_file() else None
+
     def checked(self, surah: int, label: str) -> None:
         if self.matches(surah).get(label, 0.0) < MIN_MATCH:
             what = "the basmala" if label == "basmala" else f"{surah}:{label}"
@@ -418,11 +515,7 @@ class SurahFiles:
                                           if starts and int(labels[-1]) in timing else None)
         except SplitError as e:
             raise SystemExit(f"{self.reciter}, surah {surah}: {e}; nothing rendered") from e
-        old_segments = {k: tuple(v) for k, v in before.get("segments", {}).items()}
-        for k, score in before.get("match", {}).items():   # same cuts: still checked
-            if k not in scores and old_segments.get(k) == tuple(segments[k]):
-                scores[k] = score
-        scores = {k: scores[k] for k in labels if k in scores}
+        scores = kept_scores(before, segments, scores, check, labels)
         print(f"{self.reciter} {surah}: " + ", ".join(
             f"{k} {b - a:.1f} s ({scores[k]:.2f})" for k, (a, b) in segments.items()
             if k in scores), file=sys.stderr)
@@ -432,8 +525,58 @@ class SurahFiles:
                            f"word times recognised by {MODEL}, aligned on the Uthmani text")
                 + f", cut at the quietest moment nearby; each segment recognised by {MODEL}",
                 "segments": segments, "match": scores}
+        words = self._long_words(surah, texts, segments, scores, before)
+        if words:
+            data["words"] = words
         write_json(self.splits[-1] / f"{surah:03d}.json", data)
         return data
+
+    def _long_words(self, surah: int, texts: dict[str, str], segments: dict, scores: dict,
+                    before: dict) -> dict[str, list[float | None]]:
+        """Word times of the checked ayahs of LONG_WORDS words or more (shown on several
+        screens, render/): kept from `before` when the segment did not move."""
+        old_words = before.get("words", {})
+        old_segments = {k: tuple(v) for k, v in before.get("segments", {}).items()}
+        samples, out = None, {}
+        for k in scores:
+            if k == "basmala" or len(texts[k].split()) < LONG_WORDS:
+                continue
+            if k in old_words and old_segments.get(k) == tuple(segments[k]):
+                out[k] = old_words[k]
+                continue
+            samples = decode(self.audio(surah)) if samples is None else samples
+            a, b = segments[k]
+            out[k] = word_times(self._recognizer, samples, a, b, texts[k])
+        return out
+
+    def audit(self, surah: int) -> dict[str, str]:
+        """Check the cuts of the committed split next to a checked segment (check_cut), and
+        add the word times of its long ayahs. {label: problem} for the segments to split
+        again (quran-reels split --audit --fix)."""
+        from quran_reels.sources.recognition import Recognizer
+
+        path = self.split_path(surah)
+        data = read_json(path)
+        seg, match = data["segments"], data.get("match", {})
+        texts = self.texts(surah)
+        labels = [k for k in texts if k in seg]
+        if self._recognizer is None:
+            self._recognizer = Recognizer()
+        samples = decode(self.audio(surah))
+        problems: dict[str, str] = {}
+        for left, right in pairwise(labels):
+            if match.get(left, 0) < MIN_MATCH and match.get(right, 0) < MIN_MATCH:
+                continue
+            problem = check_cut(self._recognizer, samples, seg[left][1], seg[right][0],
+                                texts[left], texts[right])
+            if problem:
+                problems[left] = problems[right] = f"cut {left}|{right}: {problem}"
+        words = self._long_words(surah, texts, seg, {k: v for k, v in match.items()
+                                                     if k not in problems}, data)
+        if words != data.get("words", {}):
+            data["words"] = words
+            write_json(path, data)
+        return problems
 
     def _cut(self, surah: int, label: str) -> Path:
         """The segment as a FLAC, named after its cut times: a split made again (the basmala

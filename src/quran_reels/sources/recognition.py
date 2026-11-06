@@ -91,28 +91,28 @@ def match_score(sim: float) -> float:
     return 3 * sim - 2
 
 
-def ayah_starts(ayahs: list[list[str]], heard: list[Word], min_similarity: float = 0.75
-                ) -> list[float | None]:
-    """Start time of each ayah (its first word matched in `heard`), or None.
+def align_words(words: list[str], heard: list[Word], min_similarity: float = 0.75
+                ) -> list[Word | None]:
+    """The heard word matched to each text word (normalised), or None.
 
-    Global alignment of the ayahs' words (normalised) with the heard words; a heard word in
-    no ayah (isti'adha, repetition, misheard) costs the same wherever it is, so a repeated
-    ayah is a tie, which goes to the earliest match: the ayah starts at its first recitation.
+    Global alignment of the text with the heard words; a heard word in no ayah (isti'adha,
+    repetition, misheard) costs the same wherever it is, so a repeated passage is a tie, which
+    goes to the earliest match: a word is placed at its first recitation.
     """
-    flat = [(k, normalize(w)) for k, words in enumerate(ayahs) for w in words if normalize(w)]
+    flat = [normalize(w) for w in words]
     n, m = len(flat), len(heard)
     score = np.zeros((n + 1, m + 1))
     for i in range(1, n + 1):
         score[i][0] = score[i - 1][0] + GAP_TEXT
     for j in range(1, m + 1):
         score[0][j] = score[0][j - 1] + GAP_HEARD
-    sims = np.array([[similarity(flat[i][1], heard[j].text) for j in range(m)] for i in range(n)])
+    sims = np.array([[similarity(flat[i], heard[j].text) for j in range(m)] for i in range(n)])
     for i in range(1, n + 1):
         for j in range(1, m + 1):
             score[i][j] = max(score[i][j - 1] + GAP_HEARD,
                               score[i - 1][j - 1] + match_score(sims[i - 1][j - 1]),
                               score[i - 1][j] + GAP_TEXT)
-    starts: list[float | None] = [None] * len(ayahs)
+    matched: list[Word | None] = [None] * n
     i, j = n, m
     while i > 0:                       # back from the end: heard words first, so matches
         if j > 0 and np.isclose(score[i][j], score[i][j - 1] + GAP_HEARD):
@@ -120,8 +120,21 @@ def ayah_starts(ayahs: list[list[str]], heard: list[Word], min_similarity: float
         elif j > 0 and np.isclose(score[i][j],
                                   score[i - 1][j - 1] + match_score(sims[i - 1][j - 1])):
             if sims[i - 1][j - 1] >= min_similarity:
-                starts[flat[i - 1][0]] = heard[j - 1].start     # the earliest word wins
+                matched[i - 1] = heard[j - 1]
             i, j = i - 1, j - 1
         else:
             i -= 1
+    return matched
+
+
+def ayah_starts(ayahs: list[list[str]], heard: list[Word], min_similarity: float = 0.75
+                ) -> list[float | None]:
+    """Start time of each ayah (its first word matched in `heard`), or None."""
+    owner = [k for k, words in enumerate(ayahs) for w in words if normalize(w)]
+    flat = [w for words in ayahs for w in words if normalize(w)]
+    starts: list[float | None] = [None] * len(ayahs)
+    for k, word in reversed(list(zip(owner, align_words(flat, heard, min_similarity),
+                                     strict=True))):
+        if word is not None:
+            starts[k] = word.start          # the earliest matched word wins
     return starts

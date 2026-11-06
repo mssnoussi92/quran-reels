@@ -46,6 +46,12 @@ def main(argv: list[str] | None = None) -> int:
     split.add_argument("passages", nargs="*", help="surahs (114) or passages (2:255-257): "
                                                    "only their ayahs are checked")
     split.add_argument("--force", action="store_true", help="check again what is checked")
+    split.add_argument("--audit", action="store_true",
+                       help="check the cuts of the committed splits of these surahs (each ayah "
+                            "keeps its words) and add the word times of long ayahs")
+    split.add_argument("--fix", action="store_true",
+                       help="with --audit: split again the surahs with a bad cut, checking "
+                            "again every ayah that was checked")
     split.add_argument("--upcoming", type=int, metavar="DAYS",
                        help="the passages of the next DAYS days, for every reciter of "
                             "content.rotation (the prepare workflow)")
@@ -72,6 +78,17 @@ def main(argv: list[str] | None = None) -> int:
     plan.add_argument("--write", action="store_true")
 
     sub.add_parser("series-check", help="check config/series: whole sentences, duration")
+
+    st = sub.add_parser("state", help="the publication state (published.json, branch state)")
+    st_sub = st.add_subparsers(dest="state_command", required=True)
+    ro = st_sub.add_parser("reopen", help="a slot whose posts were deleted: its passage is "
+                                          "published again (next run in its window, or next "
+                                          "slot of its queue)")
+    ro.add_argument("slot", help="day/slot, e.g. 2026-11-05/evening")
+    ro.add_argument("--why", required=True, help="kept with the old record")
+    ro.add_argument("--claimed", action="store_true",
+                    help="its recording was claimed: never choose its reciter again")
+    ro.add_argument("--state", default="state/published.json")
 
     cal = sub.add_parser("calendar", help="what the next days publish (nothing is published)")
     cal.add_argument("--days", type=int, default=14)
@@ -194,6 +211,28 @@ def main(argv: list[str] | None = None) -> int:
         from quran_reels.sources.surah_audio import MIN_MATCH
 
         src.quran.ensure(src.translation_slug)
+        if args.audit:
+            bad = 0
+            for key in args.passages:
+                surah = parse_passage(key if ":" in key else f"{key}:1-1")[0]
+                if not src.audio.split_path(surah).is_file():
+                    continue
+                problems = src.audio.audit(surah)
+                for label, problem in problems.items():
+                    print(f"{src.audio.reciter} {surah}:{label}: {problem}")
+                if problems and args.fix:
+                    checked = {k for k, v in src.audio.matches(surah).items() if v >= MIN_MATCH}
+                    try:
+                        src.audio.make_split(surah, checked)
+                        problems = src.audio.audit(surah)
+                    except SystemExit as e:
+                        print(e, file=sys.stderr)
+                    for label, problem in problems.items():
+                        print(f"{src.audio.reciter} {surah}:{label}: still {problem}")
+                bad += bool(problems)
+                print(f"{src.audio.reciter} {surah}: "
+                      + ("cuts ok" if not problems else f"{len(problems)} segments to fix"))
+            return 1 if bad else 0
         failed = []
         for key in args.passages:
             surah, start, end = parse_passage(key if ":" in key else f"{key}:1-999")
@@ -276,6 +315,21 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         n = sum(len(plan_surah(cfg, s)) for s in range(1, 115))
         print(f"{n} passages (add --write to save config/plan.yaml)")
+        return 0
+
+    if args.command == "state" and args.state_command == "reopen":
+        from pathlib import Path
+
+        from quran_reels.selector.calendar import State, reopen
+
+        path = Path(args.state)
+        state = State.load(path)
+        record = reopen(state, args.slot, args.why, args.claimed)
+        state.save(path)
+        print(f"{args.slot}: {record['passage']} ({record.get('reciter') or 'reciter unknown'}) "
+              f"back at the head of queue {record['queue']}"
+              + (f"; {record['reciter']} never chosen again" if args.claimed
+                 and record.get("reciter") else ""))
         return 0
 
     if args.command == "series-check":

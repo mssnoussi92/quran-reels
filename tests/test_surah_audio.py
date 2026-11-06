@@ -98,3 +98,57 @@ def test_the_basmala_ends_at_the_reciters_stop_not_at_a_late_published_start():
     silences = [Pause(0.0, 0.19), Pause(1.6, 1.62), Pause(3.9, 4.64)]
     assert basmala_stop(silences, 0.19, 5.2 + 0.4) == Pause(3.9, 4.64)
     assert basmala_stop([Pause(0.0, 0.19)], 0.19, 5.6) is None      # no stop heard: as before
+
+
+class HeardAround:
+    """A recogniser for check_cut: each sample holds its own time, so a clip says where it is;
+    it answers what a reciter says just before or just after the cut."""
+
+    def __init__(self, cut, before, after):
+        self.cut, self.before, self.after = cut, before, after
+
+    def text(self, samples):
+        return self.after if samples[0] >= self.cut - 0.01 else self.before
+
+
+def timed(seconds):
+    import numpy as np
+    return (np.arange(int(seconds * 16000), dtype=np.float64) / 16000).astype(np.float32)
+
+
+LEFT = "وَلَا يَـُٔودُهُۥ حِفْظُهُمَا ۚ وَهُوَ ٱلْعَلِىُّ ٱلْعَظِيمُ"
+RIGHT = "لَآ إِكْرَاهَ فِى ٱلدِّينِ ۖ قَد تَّبَيَّنَ"
+
+
+def test_a_cut_that_leaves_the_next_ayahs_first_word_before_it_is_refused():
+    from quran_reels.sources.surah_audio import check_cut
+    # Budair's old 2:255|2:256 cut, as recognised: «لا» lost before, «ذكراه» first after
+    rec = HeardAround(10.0, "وَهُوَ الْعَلِيُّ الْعَظِيمُ", "ذَكْرَاهَ فِي الدِّينِ")
+    assert "is not after the cut" in check_cut(rec, timed(20), 10.0, 10.0, LEFT, RIGHT)
+    rec = HeardAround(10.0, "وَهُوَ الْعَلِيُّ الْعَظِيمُ", "لَا إِكْرَاهَ فِي الدِّينِ")
+    assert check_cut(rec, timed(20), 10.0, 10.0, LEFT, RIGHT) == ""
+
+
+def test_a_basmala_that_ends_with_the_first_ayahs_word_is_refused():
+    from quran_reels.sources.surah_audio import check_cut
+    basmala = "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ"
+    rec = HeardAround(5.0, "الرَّحِيمِ الم", "الم ذَلِكَ")           # «Alif» kept before the cut
+    assert "of the next ayah is before the cut" in check_cut(rec, timed(12), 5.0, 5.0, basmala,
+                                                             "الٓمٓ")
+
+
+def test_a_segment_refused_again_with_the_same_cuts_is_not_kept_as_checked():
+    from quran_reels.sources.surah_audio import kept_scores
+    before = {"segments": {"2": [1.0, 4.0], "3": [4.0, 9.0], "4": [9.0, 15.0]},
+              "match": {"2": 0.96, "3": 1.0, "4": 1.0}}
+    segments = {"2": [1.0, 4.0], "3": [4.0, 9.0], "4": [9.0, 15.0]}
+    labels = ["2", "3", "4"]
+    # the audit re-checks 2-4: 3 and 4 refused (bad cut 3|4), the same cuts found again
+    assert kept_scores(before, segments, {"2": 0.96}, {"2", "3", "4"}, labels) == {"2": 0.96}
+    # one passage re-checked (2): 3 and 4, left out and not moved, stay checked
+    assert kept_scores(before, segments, {"2": 0.9}, {"2"}, labels) == {
+        "2": 0.9, "3": 1.0, "4": 1.0}
+    # a cut that moved is not kept; everything re-checked (None) keeps nothing old
+    moved = {**segments, "4": [9.5, 15.0]}
+    assert kept_scores(before, moved, {"2": 0.9}, {"2"}, labels) == {"2": 0.9, "3": 1.0}
+    assert kept_scores(before, segments, {"2": 0.9}, None, labels) == {"2": 0.9}

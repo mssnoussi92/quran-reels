@@ -337,6 +337,24 @@ def mark_done(state: State, queue: str, item: Item) -> None:
         done.append(item.id)
 
 
+def reopen(state: State, key: str, why: str, claimed: bool = False) -> dict:
+    """A slot whose posts the owner deleted (a bad cut, a claim): its passage goes back to the
+    head of its queue and the slot is free again, so the next run in its window, or the next
+    slot of its queue, publishes it again. The old record is kept under `removed`, with why.
+    claimed: the recording was claimed, its reciter is never chosen again."""
+    record = state.data["slots"].pop(key, None)
+    if record is None:
+        raise SystemExit(f"{key}: no such slot in the state (day/slot, e.g. 2026-11-05/evening)")
+    done = state.queue(record["queue"])["done"]
+    if record["item"] in done:
+        done.remove(record["item"])
+    state.data.setdefault("removed", []).append({"slot": key, "record": record, "why": why})
+    if claimed and record.get("reciter"):
+        state.data.setdefault("claimed", {}).setdefault(record["reciter"], {
+            "slot": key, "passage": record["passage"], "reason": why})
+    return record
+
+
 def preview(sched: Schedule, series: dict[str, Series], state: State, start: date,
             days: int) -> list[tuple[date, Slot, str, Item | None]]:
     """What the next days would publish if every slot succeeded (the state is not changed)."""

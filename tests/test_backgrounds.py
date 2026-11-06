@@ -1,5 +1,6 @@
 """Background choice from the translation, and seamless clip loops."""
 
+import re
 import subprocess
 from pathlib import Path
 
@@ -68,7 +69,8 @@ def test_make_loop_blends_the_end_into_the_start(tmp_path: Path):
     subprocess.run(["ffmpeg", "-v", "error", "-f", "lavfi", "-i",
                     "testsrc2=s=320x180:r=30:d=4", "-pix_fmt", "yuv420p", str(src)], check=True)
     out = backgrounds.make_loop(src, tmp_path / "loop.mp4", 90, 160, 30, fade=1.0)
-    probe = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v", "-count_frames",
-                            "-show_entries", "stream=width,height,nb_read_frames", "-of", "csv=p=0",
-                            str(out)], capture_output=True, text=True, check=True).stdout
-    assert probe.strip() == "90,160,90"                 # 4 s - 1 s faded, cropped to 9:16
+    # ffmpeg only (the static build of the workflows has no ffprobe): size and frame count
+    log = subprocess.run(["ffmpeg", "-nostdin", "-i", str(out), "-map", "0:v", "-f", "null", "-"],
+                         capture_output=True, text=True, check=True).stderr
+    assert re.search(r"Video: .*\b90x160\b", log)
+    assert int(re.findall(r"frame=\s*(\d+)", log)[-1]) == 90   # 4 s - 1 s faded, 9:16
