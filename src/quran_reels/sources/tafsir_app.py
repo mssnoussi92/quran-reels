@@ -149,6 +149,15 @@ class TafsirApp:
                 self._save_surah(surah, cached)
         return requests
 
+    def missing(self, refs: Iterable[AyahRef], index: Callable[[AyahRef], int]) -> int:
+        """How many of refs have an entry not downloaded yet."""
+        out, loaded = 0, {}
+        for ref in refs:
+            if ref.surah not in loaded:
+                loaded[ref.surah] = self._load_surah(ref.surah)
+            out += str(ref.ayah) not in loaded[ref.surah] and self.has_entry(index(ref))
+        return out
+
     def raw(self, refs: list[AyahRef], index: Callable[[AyahRef], int]) -> dict[AyahRef, str]:
         self.fetch(refs, index)
         out: dict[AyahRef, str] = {}

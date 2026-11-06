@@ -144,6 +144,9 @@ def main(argv: list[str] | None = None) -> int:
                     help="folder holding manifest.json of rendered reels (repeatable; out/ is read)")
     cb.add_argument("--no-previews", action="store_true", help="no clip previews (no ffmpeg)")
     cb.add_argument("--days", type=int, default=14)
+    cb.add_argument("--meanings-minutes", type=float,
+                    help="minutes of Muyassar downloads for the on-demand form (default 15; "
+                         "0: only what is cached)")
 
     from quran_reels.ondemand import cli as on_demand_cli
 
@@ -453,7 +456,9 @@ def main(argv: list[str] | None = None) -> int:
         out = catalog.build(cfg, Path(args.out), state, previous=args.previous,
                             clip_candidates=Path(args.clip_candidates) if args.clip_candidates
                             else None, manifests=[Path(m) for m in args.manifests],
-                            previews=not args.no_previews, days=args.days)
+                            previews=not args.no_previews, days=args.days,
+                            meanings_budget=None if args.meanings_minutes is None
+                            else args.meanings_minutes * 60)
         print(out / "index.html")
         return 0
 

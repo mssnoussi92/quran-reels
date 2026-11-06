@@ -776,3 +776,46 @@ def test_the_preview_lists_the_words_and_how_to_choose(cfg):
     assert "- ✅ n° **1** · 93:1 · وَٱلضُّحَىٰ — أقسم الله بوقت الضحى." in text
     assert "- ✖️ n° **2** · 93:3 · غير — _pas retrouvé" in text
     assert "`/mots 1 4`" in text
+
+
+# ---- the catalogue's form: ayahs and meanings before the issue ----------------------------
+
+def form_src(missing=0):
+    src = word_src()
+    src.quran.chapters = {93: {"verses_count": 3, "name_simple": "Ad-Duhaa",
+                               "name_arabic": "الضحى"}}
+    src.quran.translate = lambda slug, refs: {r: DUHA[r.ayah] for r in refs}
+    src.translation_slug = "en-sahih-international"
+    calls = []
+    src.glosses.missing = lambda refs, index: missing
+    src.glosses.fetch = lambda refs, index: calls.append(len(list(refs)))
+    return src, calls
+
+
+def test_the_form_numbers_the_meanings_like_the_preview(cfg):
+    from quran_reels.catalog import ondemand as od_cat
+    from quran_reels.ondemand import words
+
+    src, _ = form_src()
+    data = od_cat.surah_data(cfg, src, 93)
+    assert data["ends"] == [3] and data["ayahs"] == 3          # 93:1-2 is one sentence
+    for a, b in ((1, 3), (2, 3), (3, 3)):                     # the page counts ayah by ayah
+        page = [(i, m["k"]) for i in range(a, b + 1) for m in data["meanings"].get(str(i), [])]
+        found = words.meanings(cfg, src, f"93:{a}-{b}")
+        assert page == [(int(m.ref.split(":")[1]), m.choice.k) for m in found]
+    third = data["meanings"]["3"]
+    assert [(m["word"], m["usable"], m["auto"]) for m in third] == [
+        ("وَدَّعَكَ", True, True), ("قَلَىٰ", True, True), ("غَيْرُ مَوْجُودٍ", False, False),
+        ("وَدَّعَكَ رَبُّكَ", True, False)]          # the usual rules: 2 per ayah, no overlap
+
+
+def test_meanings_are_downloaded_within_a_budget(cfg, tmp_path):
+    from quran_reels.catalog import ondemand as od_cat
+
+    src, calls = form_src(missing=5)
+    ticks = iter([0, 0, 2000, 2000])                            # the budget is spent after one
+    got = od_cat.surah_files(cfg, src, tmp_path, budget=900, clock=lambda: next(ticks),
+                             surahs=[93, 93])
+    assert got == {"surahs": 2, "with_meanings": 1} and calls == [3]
+    saved = json.loads((tmp_path / "093.json").read_text("utf-8"))
+    assert saved["meanings"] is None and saved["ends"] == [3]   # the second: words after preview

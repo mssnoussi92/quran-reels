@@ -47,7 +47,20 @@ titre, description et hashtags prêts à copier, puis `/youtube <lien>` pour le 
    carte récitateur ou fond) : récitateur (`auto` ou un de `content.rotation`, sauf écartés
    `claimed`), sourate, entière ou de l'ayah X à Y, fond (`auto` ou un de `backgrounds.yaml`),
    plateformes → « Préparer » ouvre un ticket prérempli « À la demande : … » → Envoyer.
-2. **Aperçu** (workflow `on-demand`, ≈ 4 min ; découpe en plus si besoin) :
+   **Avant de créer le ticket** (ajout du 2026-11-06, choix du propriétaire) : le formulaire
+   affiche les ayahs choisies (arabe et Sahih International lus en direct sur Quran.com, rien
+   n'est recopié sur le site), prévient si la plage coupe une phrase (bouton « Prendre » la
+   plage entière la plus proche) et liste sous chaque ayah les sens du Muyassar à cocher,
+   numérotés comme l'aperçu, cochés comme les règles habituelles, 2 au plus par ayah : le
+   ticket part avec sa section « ### Mots ». tafsir.app n'étant pas lisible par un navigateur
+   (pas de CORS), la construction du catalogue écrit `catalog/surahs/SSS.json` (fins de phrase,
+   sens numérotés par le code de l'aperçu) : **les extraits du Muyassar (≤ 170 caractères,
+   phrases entières, ceux qu'un reel peut montrer) sont donc publiés sur le site**, choix du
+   propriétaire. Téléchargés au plus 15 min par construction (≈ 0,5 s par ayah, 5 069 ayahs
+   expliquées), dans l'ordre de lecture (Juz' 'Amma d'abord), gardés dans le cache Actions ;
+   une sourate pas encore chargée se choisit après l'aperçu (`/mots`). Le workflow revérifie
+   tout (phrases, durée, mots).
+2. **Aperçu** (workflow `on-demand`, ≈ 4 à 7 min ; découpe en plus si besoin) :
    - refus motivé, avec des plages valides proposées, si le passage coupe une phrase (règle 4,
      même contrôle que `series-check`), dépasse 90 s avec ce récitateur, ou si le récitateur,
      le fond ou une plateforme n'est pas autorisé ;

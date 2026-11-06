@@ -75,7 +75,8 @@ def _git(args: list[str], cwd: Path) -> str:
 
 def build(cfg: Config, out: Path, state_dir: Path | None = None, previous: str | None = None,
           clip_candidates: Path | None = None, manifests: list[Path] | None = None,
-          previews: bool = True, days: int = 14, now: datetime | None = None) -> Path:
+          previews: bool = True, days: int = 14, now: datetime | None = None,
+          meanings_budget: float | None = None) -> Path:
     from quran_reels.catalog import backgrounds as bg_mod
     from quran_reels.catalog import ondemand as od_mod
     from quran_reels.catalog import posts as posts_mod
@@ -157,6 +158,16 @@ def build(cfg: Config, out: Path, state_dir: Path | None = None, previous: str |
         "notes": notes,
     }
     out.mkdir(parents=True, exist_ok=True)
+    try:                        # the on-demand form: sentence ends and meanings per surah
+        loaded = od_mod.surah_files(cfg, src, out / "surahs", od_mod.MEANINGS_BUDGET
+                                    if meanings_budget is None else meanings_budget)
+        data["on_demand"]["meanings"] = loaded
+        if loaded["with_meanings"] < loaded["surahs"]:
+            notes.append(f"Sens du Muyassar chargés pour {loaded['with_meanings']}/"
+                         f"{loaded['surahs']} sourates "
+                         "(formulaire « Publier ») ; la suite aux prochaines constructions.")
+    except Exception as e:      # noqa: BLE001  (the form still works: words after the preview)
+        print(f"warning: on-demand surah files: {type(e).__name__}: {e}", file=sys.stderr)
     (out / "data.json").write_text(json.dumps(data, ensure_ascii=False, indent=1),
                                    encoding="utf-8")
     from quran_reels.catalog.page import render

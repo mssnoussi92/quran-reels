@@ -8,6 +8,11 @@ publishing (rotation minus claimed), the 114 surahs with their ayah counts, the 
 
 from __future__ import annotations
 
+import json
+import sys
+import time
+from collections.abc import Callable
+from pathlib import Path
 from typing import Any
 
 from quran_reels import reciters as rec
@@ -22,6 +27,68 @@ PLATFORM_LABELS = {"facebook": "Facebook", "instagram": "Instagram",
                    "tiktok": "TikTok (brouillon)", "youtube": "YouTube (à la main)"}
 FOOTER = ("Ouvert depuis le catalogue (" + SITE + "#on-demand). Un aperçu arrive en "
           "commentaire ; rien n'est publié avant ta réponse /publier.")
+
+
+MEANINGS_BUDGET = 15 * 60       # seconds of tafsir.app downloads per build (≈ 0.5 s a request)
+
+
+def surah_data(cfg: Config, src: Any, surah: int, with_meanings: bool = True) -> dict[str, Any]:
+    """What the form shows before the issue exists (docs/on-demand.md): the ayahs ending a
+    sentence (whole passages only) and, per ayah, the Muyassar's meanings as the preview
+    numbers them (ondemand.words, same code), pre-ticked as the usual rules show them. The
+    Arabic and the translation are read by the page from Quran.com, never copied here."""
+    from quran_reels.models import AyahRef
+    from quran_reels.ondemand import words as words_mod
+    from quran_reels.selector.plan import sentence_ends
+
+    n = int(src.quran.chapters[surah]["verses_count"])
+    refs = [AyahRef(surah, a) for a in range(1, n + 1)]
+    texts = {r.ayah: t for r, t in src.quran.translate(src.translation_slug, refs).items()}
+    out: dict[str, Any] = {"surah": surah, "ayahs": n, "ends": sorted(sentence_ends(texts)),
+                           "meanings": None}
+    if not with_meanings:
+        return out
+    key = f"{surah}:1-{n}"
+    found = words_mod.meanings(cfg, src, key)
+    auto = words_mod.auto_numbers(cfg, src, key, found)
+    per_ayah: dict[str, list[dict]] = {}
+    for m in found:
+        per_ayah.setdefault(m.ref.split(":")[1], []).append({
+            "k": m.choice.k, "word": m.word(), "gloss": m.choice.gloss or "",
+            "usable": m.usable, "why": m.why, "auto": m.n in auto})
+    out["meanings"] = per_ayah
+    return out
+
+
+READING_ORDER = [*range(114, 77, -1), *range(1, 78)]   # Juz' 'Amma first, as the calendar
+
+
+def surah_files(cfg: Config, src: Any, out: Path, budget: float = MEANINGS_BUDGET,
+                clock: Callable[[], float] = time.monotonic,
+                surahs: list[int] = READING_ORDER) -> dict[str, int]:
+    """catalog/surahs/SSS.json for the 114 surahs. Meanings not cached yet are downloaded
+    for at most `budget` seconds (the cache keeps them for the next builds); a surah still
+    incomplete gets no meanings: its words are chosen after the preview (/mots)."""
+    from quran_reels.models import AyahRef
+
+    out.mkdir(parents=True, exist_ok=True)
+    start = clock()
+    done = 0
+    for surah in surahs:
+        n = int(src.quran.chapters[surah]["verses_count"])
+        refs = [AyahRef(surah, a) for a in range(1, n + 1)]
+        ready = not src.glosses.missing(refs, src.quran.global_index)
+        if not ready and clock() - start < budget:
+            try:
+                src.glosses.fetch(refs, src.quran.global_index)
+                ready = True
+            except Exception as e:      # noqa: BLE001  (next build)
+                print(f"warning: Muyassar, surah {surah}: {type(e).__name__}", file=sys.stderr)
+        data = surah_data(cfg, src, surah, with_meanings=ready)
+        (out / f"{surah:03d}.json").write_text(json.dumps(data, ensure_ascii=False,
+                                                          separators=(",", ":")), "utf-8")
+        done += ready
+    return {"surahs": len(surahs), "with_meanings": done}
 
 
 def launcher(cfg: Config, state: dict, src: Any = None) -> dict[str, Any]:
@@ -44,6 +111,9 @@ def launcher(cfg: Config, state: dict, src: Any = None) -> dict[str, Any]:
         "new_issue": f"https://github.com/{REPO}/issues/new",
         "title_prefix": TITLE_PREFIX, "headings": LABELS, "footer": FOOTER, "doc": DOC,
         "max_seconds": int(cfg.content["passage"]["max_seconds"]),
+        "max_per_ayah": int(cfg.content["glosses"].get("max_per_ayah", 2)),
+        "translation_id": src.quran.translation_id(src.translation_slug) if src else None,
+        "quran_api": "https://api.quran.com/api/v4",
     }
 
 
