@@ -325,7 +325,7 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
 - [x] Récitateurs choisis par passage (6, `content.rotation`) · [x] découpes vérifiées
       (`quran-reels split`, workflow `prepare` chaque nuit) · [ ] Juz' 'Amma et thèmes pour
       tous · [ ] refaire le plan (calculé avec Alafasy) si des passages dépassent 90 s
-- [ ] Publication à la demande (docs/on-demand.md, `on-demand.yml`) : [ ] dry run sur la branche
+- [ ] Publication à la demande (docs/on-demand.md, `on-demand.yml`) : [x] dry run sur la branche (#34, 2026-11-06 : aperçu, `/essai`, droits Meta propres, MP4 1080p et textes YouTube ; refus #35 et découpe non nette #34)
       [ ] première publication approuvée par le propriétaire depuis son téléphone
 - [x] Catalogue (docs/catalog.md, `catalog.yml`) · [x] Pages passé en « GitHub Actions » par le
       propriétaire, premier déploiement (run #1, 2026-11-05) · [x] libellé « Catalog » créé ·

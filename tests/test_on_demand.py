@@ -203,8 +203,8 @@ def test_a_passage_published_before_is_noted_not_refused(cfg):
     c = verdict(cfg, "sayegh", state=state)
     assert c.ok and c.notes == ["déjà publié : calendrier, 2026-11-01/morning (facebook)",
                                 "déjà publié : à la demande, #7 (tiktok)",
-                                "déjà publié à la main, hors calendrier (schedule.yaml, "
-                                "published_by_hand)"]      # 93:1-11, 2026-11-05
+                                ("déjà publié à la main, hors calendrier (schedule.yaml, "
+                                 "published_by_hand)")]    # 93:1-11, 2026-11-05
 
 
 # ---- who may drive it ---------------------------------------------------------------------
