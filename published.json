@@ -11,6 +11,12 @@
    "done": [
     "ayat-al-kursi/2:255-255"
    ]
+  },
+  "kahf-first-ten": {
+   "round": 1,
+   "done": [
+    "kahf-first-ten/18:1-10"
+   ]
   }
  },
  "slots": {
@@ -71,6 +77,35 @@
    },
    "reciter": "budair",
    "note": "published again with publish-test run 42100977908 (Budair, corrected basmala cut)"
+  },
+  "2026-11-06/morning": {
+   "queue": "kahf-first-ten",
+   "item": "kahf-first-ten/18:1-10",
+   "passage": "18:1-10",
+   "results": {
+    "facebook": {
+     "status": "published",
+     "id": "2176209046300738",
+     "url": "https://www.facebook.com/reel/2176209046300738/",
+     "error": null,
+     "at": "2026-11-06T06:37:13+00:00"
+    },
+    "instagram": {
+     "status": "failed",
+     "id": null,
+     "url": null,
+     "error": "instagram container 17892751575503710: still processing after 240 s",
+     "at": "2026-11-06T06:37:13+00:00"
+    },
+    "tiktok": {
+     "status": "draft",
+     "id": "v_inbox_file~v2.7704943172434331671",
+     "url": null,
+     "error": null,
+     "at": "2026-11-06T06:37:13+00:00"
+    }
+   },
+   "reciter": "budair"
   }
  },
  "removed": [
