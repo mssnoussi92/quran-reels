@@ -18,6 +18,7 @@ posted and expires after 24 hours.
 
 from __future__ import annotations
 
+import os
 import sys
 import time
 
@@ -27,6 +28,7 @@ from quran_reels.publishers.base import PublisherError, StillProcessing
 from quran_reels.publishers.meta import RUPLOAD, Graph, GraphError
 
 CAPTION_LIMIT = 2200
+FROM_ENV = "QURAN_REELS_INSTAGRAM_FROM"     # facebook-copy: the fallback alone (publish-test)
 
 
 class InstagramPublisher:
@@ -154,7 +156,12 @@ class InstagramPublisher:
     def prepare(self, reel: Reel, hosted: str | None = None) -> str:
         """Id of a container holding the processed reel, not published. hosted: Facebook's
         copy of the same file (FacebookPublisher.hosted_url), the fallback of our upload."""
-        return self._ready_container(reel, self._params(reel), hosted)
+        params = self._params(reel)
+        if hosted and os.environ.get(FROM_ENV) == "facebook-copy":
+            copy = self._from_url(params, hosted)
+            if copy:
+                return self._first_ready([copy], self.timeout)
+        return self._ready_container(reel, params, hosted)
 
     def rights(self, container_id: str) -> rights.RightsCheck:
         return rights.check(self.graph, self.name, container_id, self.rights_timeout,

@@ -135,6 +135,27 @@ def clip(cfg: Config, bg: Background, http: Http | None = None) -> Path:
     return dest
 
 
+def motion(path: Path, every: float = 1.0, width: int = 16) -> float:
+    """How fast a clip moves: the mean absolute difference (0-255) between grey frames
+    `every` seconds apart, shrunk to `width` pixels wide so that ripples and leaves average
+    out and only large changes count, median over the clip (a cut counts once). The owner
+    refused pb-moving-clouds, a fast timelapse, as hard on the eyes (2026-11-05): 34.9, the
+    kept clips 0.2-23.5 (their Pixabay previews, 2026-11-06). config/backgrounds.yaml,
+    max_motion."""
+    out = subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-i", str(path), "-vf",
+                          f"fps={1 / every:g},scale={width}:-2,format=gray", "-f", "rawvideo",
+                          "-"], capture_output=True, check=True).stdout
+    info = subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-i", str(path), "-vf",
+                           f"scale={width}:-2", "-frames:v", "1", "-f", "rawvideo",
+                           "-pix_fmt", "gray", "-"], capture_output=True, check=True).stdout
+    size = len(info)
+    if not size or len(out) < 2 * size:
+        raise ValueError(f"{path.name}: too short to measure its motion")
+    frames = np.frombuffer(out[:len(out) // size * size], np.uint8).reshape(-1, size)
+    diffs = np.abs(np.diff(frames.astype(np.int16), axis=0)).mean(axis=1)
+    return round(float(np.median(diffs)), 2)
+
+
 def make_loop(src: Path, dest: Path, w: int, h: int, fps: int, focus: float = .5,
               fade: float = CLIP_FADE, blur: float = 0, dim: float = 0) -> Path:
     """Crop/scale to w×h and blend the last `fade` seconds into the first ones: the result

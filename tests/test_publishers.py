@@ -474,3 +474,12 @@ def test_instagram_keeps_the_first_five_hashtags_facebook_its_own_cap(reel):
     finish = next(c for c in g.session.find("POST", f"/{PAGE}/video_reels")
                   if c[2].get("upload_phase") == "finish")
     assert "#t8" in finish[2]["description"] and "#t9" not in finish[2]["description"]
+
+
+def test_the_fallback_alone_for_a_test_run(reel, monkeypatch):
+    # publish-test, instagram_from: facebook-copy: no upload of ours, Facebook's copy only
+    monkeypatch.setenv("QURAN_REELS_INSTAGRAM_FROM", "facebook-copy")
+    g = graph(instagram_routes())
+    assert InstagramPublisher(g, IG, poll_interval=0).prepare(reel, hosted="https://cdn/x") == "222"
+    (only,) = g.session.find("POST", f"/{IG}/media")
+    assert only[2]["video_url"] == "https://cdn/x" and not g.session.find("POST", "/ig-api-upload")

@@ -37,6 +37,13 @@ pixabay:                        # search terms per theme: `quran-reels backgroun
   night: ["night sky stars", "milky way"]
   sky: ["clouds timelapse", "blue sky clouds"]
 
+# A clip that moves faster than this is left out of the Pixabay candidates
+# (sources/backgrounds.motion: change between frames 1 s apart, 0-255, on its preview).
+# Calibrated 2026-11-06: pb-moving-clouds, refused by the owner (a fast timelapse, hard on the
+# eyes), 34.9; the 21 clips kept, 0.2 (moon) to 23.5 (surf). A first filter: the eye check
+# frame by frame still decides. `quran-reels backgrounds motion` scores the listed clips.
+max_motion: 30
+
 soften:                         # clips only (busy, sharp): keeps the text readable
   blur: 2.5                     # Gaussian sigma, in pixels at 1080 wide
   dim: 0.15                     # 15 % darker

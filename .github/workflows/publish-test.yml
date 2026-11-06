@@ -40,6 +40,11 @@ on:
         description: "reel, or images (dry run of today's Word of the day: photos, carousel, nothing posted)"
         type: choice
         options: [reel, images]
+      instagram_from:
+        description: "Instagram's video: our upload (its fallback: Facebook's copy), or Facebook's copy only (to test the fallback)"
+        type: choice
+        options: [upload, facebook-copy]
+        default: upload
         default: reel
 
 permissions:
@@ -60,6 +65,7 @@ jobs:
       CONFIRM: ${{ inputs.confirm }}
       RECITERS: ${{ inputs.reciters }}
       WHAT: ${{ inputs.what }}
+      QURAN_REELS_INSTAGRAM_FROM: ${{ inputs.instagram_from }}
       QURAN_REELS_SPLITS: state-branch/splits   # checked splits (prepare workflow)
     steps:
       - name: Confirm a real publication
