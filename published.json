@@ -175,5 +175,37 @@
    },
    "why": "Saad Al-Ghamdi: Facebook reel claimed by UMG (muted in Russia), deleted by the owner; Instagram never published"
   }
- ]
+ ],
+ "on_demand": {
+  "39": {
+   "results": {
+    "youtube": {
+     "status": "manual",
+     "video": "https://github.com/mssnoussi92/quran-reels/releases/download/reels/od39-101_001-011-42226352938.mp4",
+     "at": "2026-11-06T13:51:31+00:00"
+    }
+   },
+   "passage": "101:1-11",
+   "reciter": "omar_hisham",
+   "background": null,
+   "platforms": [
+    "youtube"
+   ],
+   "preview": {
+    "run": 42226352938,
+    "sha256": "b319ef363d30e2da9d5deccb1be72aa6c859060f42d9079217e9a55814412244",
+    "rid": "od/39/42226352938"
+   },
+   "approved": {
+    "by": "mssnoussi92",
+    "at": "2026-11-06T13:51:29+00:00",
+    "comment": 6686339031,
+    "mode": "publish"
+   },
+   "rights": {
+    "clear": true,
+    "summary": "facebook : aucune correspondance ; instagram : aucune correspondance"
+   }
+  }
+ }
 }
