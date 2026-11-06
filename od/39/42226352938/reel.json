@@ -1,0 +1,154 @@
+{
+ "kind": "on-demand",
+ "id": "od/39/42226352938",
+ "stage": "preview",
+ "stage_label": "Aperçu : rien n'est publié",
+ "created": "2026-11-06T13:36:27+00:00",
+ "passage": "101:1-11",
+ "surah": {
+  "en": "Al-Qari'ah",
+  "ar": "القارعة"
+ },
+ "title": "101:1-11 · Surah Al-Qari'ah · سورة القارعة",
+ "reciter": "Omar Hisham Al-Arabi",
+ "seconds": 55.1,
+ "background": "pb-alpine-peak (montagnes)",
+ "platforms": [
+  "YouTube (à la main)"
+ ],
+ "issue": {
+  "number": 39,
+  "url": "https://github.com/mssnoussi92/quran-reels/issues/39"
+ },
+ "video": {
+  "preview": "https://github.com/mssnoussi92/quran-reels/releases/download/reels/od39-101_001-011-42226352938-apercu.mp4"
+ },
+ "frames": [
+  "https://raw.githubusercontent.com/mssnoussi92/quran-reels/previews/od/39/42226352938/frame-1.jpg",
+  "https://raw.githubusercontent.com/mssnoussi92/quran-reels/previews/od/39/42226352938/frame-2.jpg",
+  "https://raw.githubusercontent.com/mssnoussi92/quran-reels/previews/od/39/42226352938/frame-3.jpg"
+ ],
+ "captions": [],
+ "youtube": {
+  "title": "Surah Al-Qari'ah (101:1-11) · سورة القارعة",
+  "description": "Surah Al-Qari'ah (101:1-11) · سورة القارعة\n\nبِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ\n\nٱلْقَارِعَةُ ﴿١﴾\n1. The Striking Calamity -\n\nمَا ٱلْقَارِعَةُ ﴿٢﴾\n2. What is the Striking Calamity?\n\nوَمَآ أَدْرَىٰكَ مَا ٱلْقَارِعَةُ ﴿٣﴾\n3. And what can make you know what is the Striking Calamity?\n\nيَوْمَ يَكُونُ ٱلنَّاسُ كَٱلْفَرَاشِ ٱلْمَبْثُوثِ ﴿٤﴾\n4. It is the Day when people will be like moths, dispersed,\n\nوَتَكُونُ ٱلْجِبَالُ كَٱلْعِهْنِ ٱلْمَنفُوشِ ﴿٥﴾\n5. And the mountains will be like wool, fluffed up.\n\nفَأَمَّا مَن ثَقُلَتْ مَوَٰزِينُهُۥ ﴿٦﴾\n6. Then as for one whose scales are heavy [with good deeds],\n\nفَهُوَ فِى عِيشَةٍ رَّاضِيَةٍ ﴿٧﴾\n7. He will be in a pleasant life.\n\nوَأَمَّا مَنْ خَفَّتْ مَوَٰزِينُهُۥ ﴿٨﴾\n8. But as for one whose scales are light,\n\nفَأُمُّهُۥ هَاوِيَةٌ ﴿٩﴾\n9. His refuge will be an abyss.\n\nوَمَآ أَدْرَىٰكَ مَا هِيَهْ ﴿١٠﴾\n10. And what can make you know what that is?\n\nنَارٌ حَامِيَةٌۢ ﴿١١﴾\n11. It is a Fire, intensely hot.\n\nRecitation: Omar Hisham Al-Arabi\nTranslation: Sahih International\nWord meanings: التفسير الميسر، مجمع الملك فهد\n\n@quran_words_daily\n",
+  "hashtags": "#QuranWordsDaily #Quran #SurahAlQariah #سورة_القارعة #القرآن_الكريم #OmarHisham #عمر_هشام_العربي #تفسير_القرآن #التفسير_الميسر",
+  "file": null,
+  "command": ""
+ },
+ "results": [],
+ "notes": [],
+ "words": [
+  {
+   "n": 1,
+   "ref": "101:1",
+   "quoted": "ٱلۡقَارِعَةُ",
+   "word": "ٱلْقَارِعَةُ",
+   "gloss": "السّاعةُ الَّتِي تَقْرَعُ قُلُوبَ النّاسِ بِأَهْوالِها.",
+   "usable": true,
+   "why": "",
+   "shown": true
+  },
+  {
+   "n": 2,
+   "ref": "101:3",
+   "quoted": "وَمَآ أَدۡرَىٰكَ",
+   "word": "أَدْرَىٰكَ",
+   "gloss": "وأيُّ شَيءٍ أعَلَمَكَ بِها؟",
+   "usable": true,
+   "why": "",
+   "shown": false
+  },
+  {
+   "n": 3,
+   "ref": "101:4",
+   "quoted": "كَٱلۡفَرَاشِ ٱلۡمَبۡثُوثِ",
+   "word": "كَٱلْفَرَاشِ ٱلْمَبْثُوثِ",
+   "gloss": "كالفَراشِ المُنْتَشِرِ.",
+   "usable": true,
+   "why": "",
+   "shown": true
+  },
+  {
+   "n": 4,
+   "ref": "101:5",
+   "quoted": "كَٱلۡعِهۡنِ ٱلۡمَنفُوشِ",
+   "word": "كَٱلْعِهْنِ ٱلْمَنفُوشِ",
+   "gloss": "كالصُّوفِ المُتَعَدِّدِ الألوانِ الَّذِي يُنْفَشُ باليدِ، فَيَصِيرُ هَباءً ويَزُولُ.",
+   "usable": true,
+   "why": "",
+   "shown": true
+  },
+  {
+   "n": 5,
+   "ref": "101:6",
+   "quoted": "مَن ثَقُلَتۡ مَوَ ٰ⁠زِينُهُۥ",
+   "word": "مَن ثَقُلَتۡ مَوَ ٰ⁠زِينُهُۥ",
+   "gloss": "",
+   "usable": false,
+   "why": "pas retrouvé dans le texte de l'ayah",
+   "shown": false
+  },
+  {
+   "n": 6,
+   "ref": "101:7",
+   "quoted": "عِيشَةࣲ رَّاضِيَةࣲ",
+   "word": "عِيشَةٍ رَّاضِيَةٍ",
+   "gloss": "حياةٍ مُرْضِيَةٍ في الجنَّةِ.",
+   "usable": true,
+   "why": "",
+   "shown": false
+  },
+  {
+   "n": 7,
+   "ref": "101:8",
+   "quoted": "مَنۡ خَفَّتۡ مَوَ ٰ⁠زِينُهُۥ",
+   "word": "مَنۡ خَفَّتۡ مَوَ ٰ⁠زِينُهُۥ",
+   "gloss": "",
+   "usable": false,
+   "why": "pas retrouvé dans le texte de l'ayah",
+   "shown": false
+  },
+  {
+   "n": 8,
+   "ref": "101:9",
+   "quoted": "فَأُمُّهُۥ هَاوِيَةࣱ",
+   "word": "فَأُمُّهُۥ هَاوِيَةٌ",
+   "gloss": "فَمَأواهُ جَهَنَّمُ؛ لِأنّهُ يَهْوِي فِيها عَلى أُمِّ رَأْسِهِ.",
+   "usable": true,
+   "why": "",
+   "shown": true
+  },
+  {
+   "n": 9,
+   "ref": "101:10",
+   "quoted": "وَمَآ أَدۡرَىٰكَ",
+   "word": "أَدْرَىٰكَ",
+   "gloss": "وأيُّ شَيءٍ أعْلَمكَ؟",
+   "usable": true,
+   "why": "",
+   "shown": false
+  },
+  {
+   "n": 10,
+   "ref": "101:10",
+   "quoted": "مَا هِيَهۡ",
+   "word": "هِيَهْ",
+   "gloss": "ما هذهِ الهاوِيةُ؟.",
+   "usable": true,
+   "why": "",
+   "shown": false
+  },
+  {
+   "n": 11,
+   "ref": "101:11",
+   "quoted": "حَامِيَةُۢ",
+   "word": "حَامِيَةٌۢ",
+   "gloss": "قَدْ حَمِيَتْ مِنَ الوَقُودِ عَلَيها.",
+   "usable": true,
+   "why": "",
+   "shown": false
+  }
+ ],
+ "words_mode": "1, 3, 4, 8"
+}
