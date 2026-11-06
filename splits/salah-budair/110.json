@@ -1,0 +1,28 @@
+{
+ "source": "https://cdn.mp3quran.net/audio/salah-budair/r1/110.mp3",
+ "method": "ayah starts from mp3quran.net (read 43), cut at the quietest moment nearby; each segment recognised by tarteel-ai/whisper-base-ar-quran",
+ "segments": {
+  "basmala": [
+   0.193,
+   4.112
+  ],
+  "1": [
+   4.406,
+   9.38
+  ],
+  "2": [
+   9.38,
+   17.17
+  ],
+  "3": [
+   17.17,
+   26.707
+  ]
+ },
+ "match": {
+  "basmala": 1.0,
+  "1": 1.0,
+  "2": 1.0,
+  "3": 0.91
+ }
+}

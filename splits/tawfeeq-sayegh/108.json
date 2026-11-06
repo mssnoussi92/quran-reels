@@ -1,0 +1,28 @@
+{
+ "source": "https://cdn.mp3quran.net/audio/tawfeeq-sayegh/r1/108.mp3",
+ "method": "ayah starts from mp3quran.net (read 17), cut at the quietest moment nearby; each segment recognised by tarteel-ai/whisper-base-ar-quran",
+ "segments": {
+  "basmala": [
+   0.368,
+   3.099
+  ],
+  "1": [
+   3.581,
+   9.345
+  ],
+  "2": [
+   9.345,
+   12.453
+  ],
+  "3": [
+   12.453,
+   16.021
+  ]
+ },
+ "match": {
+  "basmala": 1.0,
+  "1": 0.97,
+  "2": 1.0,
+  "3": 1.0
+ }
+}
