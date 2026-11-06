@@ -211,26 +211,6 @@ def tiktok_publisher() -> TikTokPublisher:
                            save_refresh=lambda value: save_secret(REFRESH_SECRET, value))
 
 
-def describe_video(url: str) -> str:
-    """Size and codec of a video by URL, from ffmpeg's header read; never the URL itself
-    (signed: the logs are public)."""
-    import re
-    import subprocess
-
-    try:
-        err = subprocess.run(["ffmpeg", "-nostdin", "-hide_banner", "-i", url],
-                             capture_output=True, text=True, timeout=60, check=False).stderr
-    except (OSError, subprocess.TimeoutExpired):
-        return "available"
-    line = next((x for x in err.splitlines() if "Video:" in x), "")
-    size, codec = re.search(r"\b(\d{3,4}x\d{3,4})\b", line), re.search(r"Video: (\w+)", line)
-    rate = re.search(r"(\d+) kb/s", line)
-    if not size:
-        return "available"
-    return f"available, {size[1]} {codec[1] if codec else ''}".rstrip() + (
-        f" {rate[1]} kb/s" if rate else "")
-
-
 def publish_reel(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
                  checked: tuple[Graph, MetaEnv, TokenReport] | None = None
                  ) -> list[PublishResult]:
@@ -249,22 +229,13 @@ def publish_reel(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
     # 1. Meta: upload unpublished everywhere, then read every copyright check.
     results: dict[str, PublishResult] = {}
     prepared: dict[str, str] = {}
-    hosted = None                       # Facebook's copy: Instagram's fallback (instagram.py)
     for name in (p for p in platforms if p in META):
         print(f"{name}: uploading {reel.video.name} unpublished", file=sys.stderr)
         try:
-            if name == "instagram" and hosted:
-                prepared[name] = publishers[name].prepare(reel, hosted=hosted)
-            else:
-                prepared[name] = publishers[name].prepare(reel)
+            prepared[name] = publishers[name].prepare(reel)
         except (PublisherError, KeyError) as e:
             results[name] = PublishResult(name, PublishStatus.FAILED, error=str(e))
-            continue
-        copy = getattr(publishers[name], "hosted_url", None)
-        if name == "facebook" and "instagram" in platforms and copy:
-            hosted = copy(prepared[name])
-            print(f"facebook: copy of the draft for Instagram's fallback: "
-                  f"{describe_video(hosted) if hosted else 'none'}", file=sys.stderr)
+            print(f"{name}: failed {e}", file=sys.stderr)
     checks = {}
     for name, object_id in prepared.items():
         checks[name] = publishers[name].rights(object_id)

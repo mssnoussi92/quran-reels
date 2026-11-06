@@ -411,24 +411,8 @@ def test_gives_up_after_three_stuck_containers(reel):
     assert not g.session.find("POST", f"/{IG}/media_publish")
 
 
-def test_after_a_failed_upload_instagram_takes_facebooks_copy(reel):
-    # 2026-11-06, run #10: three uploaded containers stuck in a row. Facebook's copy of the
-    # draft (its CDN) goes to a container of its own; the first one ready is used.
-    hosted = "https://video.xx.fbcdn.net/v/reel.mp4?sig=1"
-    g = graph(stuck_routes(stuck=1))        # 222: our upload, stuck; 223: Facebook's copy
-    cid = InstagramPublisher(g, IG, poll_interval=0, stuck_after=0).prepare(reel, hosted=hosted)
-    assert cid == "223"                                           # the copy's container
-    first, copy = g.session.find("POST", f"/{IG}/media")
-    assert first[2]["upload_type"] == "resumable" and "video_url" not in first[2]
-    assert copy[2]["video_url"] == hosted and "upload_type" not in copy[2]
-    assert copy[2]["caption"] == first[2]["caption"] and copy[2]["media_type"] == "REELS"
-    assert not g.session.find("POST", "/ig-api-upload/v24.0/223")     # Instagram fetches it
 
 
-def test_a_clean_upload_never_needs_facebooks_copy(reel):
-    g = graph(instagram_routes())
-    assert InstagramPublisher(g, IG, poll_interval=0).prepare(reel, hosted="https://x/y") == "222"
-    assert len(g.session.find("POST", f"/{IG}/media")) == 1
 
 
 def test_an_earlier_stuck_container_that_finishes_late_is_used(reel):
@@ -442,15 +426,6 @@ def test_an_earlier_stuck_container_that_finishes_late_is_used(reel):
     assert len(g.session.find("POST", f"/{IG}/media")) == 2
 
 
-def test_facebook_gives_its_copy_without_printing_it(capsys):
-    from quran_reels.publishers.facebook import FacebookPublisher
-
-    url = "https://video.xx.fbcdn.net/v/reel.mp4?sig=secret"
-    g = graph({("GET", "/444"): {"source": url, "id": "444"}})
-    assert FacebookPublisher(g, PAGE).hosted_url("444") == url
-    g = graph({("GET", "/444"): Resp({"error": {"message": "Unsupported get request"}}, 400)})
-    assert FacebookPublisher(g, PAGE).hosted_url("444") is None
-    assert "sig=secret" not in capsys.readouterr().err
 
 
 def test_slow_processing_after_a_clean_upload_is_not_retried(reel):
@@ -474,12 +449,3 @@ def test_instagram_keeps_the_first_five_hashtags_facebook_its_own_cap(reel):
     finish = next(c for c in g.session.find("POST", f"/{PAGE}/video_reels")
                   if c[2].get("upload_phase") == "finish")
     assert "#t8" in finish[2]["description"] and "#t9" not in finish[2]["description"]
-
-
-def test_the_fallback_alone_for_a_test_run(reel, monkeypatch):
-    # publish-test, instagram_from: facebook-copy: no upload of ours, Facebook's copy only
-    monkeypatch.setenv("QURAN_REELS_INSTAGRAM_FROM", "facebook-copy")
-    g = graph(instagram_routes())
-    assert InstagramPublisher(g, IG, poll_interval=0).prepare(reel, hosted="https://cdn/x") == "222"
-    (only,) = g.session.find("POST", f"/{IG}/media")
-    assert only[2]["video_url"] == "https://cdn/x" and not g.session.find("POST", "/ig-api-upload")

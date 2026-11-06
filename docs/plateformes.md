@@ -72,14 +72,12 @@
   après 15 min). Après cette erreur, on lit donc le conteneur : `ERROR` → échec ; sinon on attend
   4 min, puis on abandonne ce conteneur et on renvoie la vidéo dans un nouveau (3 essais au
   plus). Un conteneur non publié ne coûte rien : rien n'est posté, il expire après 24 h.
-- **Secours (2026-11-06)** : le 2026-11-06 au matin (run #10), trois conteneurs de suite sont
-  restés `IN_PROGRESS` ; Instagram n'est sorti qu'au run suivant. Désormais, dès que notre
-  upload échoue, un second conteneur est créé avec `video_url` = la copie Facebook du
-  brouillon (`GET /{video_id}?fields=source` : CDN de Meta, signé, non listé, comme pour les
-  images ; jamais affichée, les logs sont publics), qu'Instagram va chercher lui-même. Le
-  premier conteneur prêt est publié (le nôtre d'abord à égalité) ; les conteneurs abandonnés
-  restent surveillés aux essais suivants. Sans Facebook dans le run (Instagram seul), pas de
-  copie : comme avant.
+- **2026-11-06** : le matin (run #10), trois conteneurs de suite sont restés `IN_PROGRESS` ;
+  Instagram n'est sorti qu'au run suivant. Les conteneurs mis de côté restent désormais
+  surveillés aux essais suivants : le premier prêt est publié. **Essayé et abandonné** : faire
+  prendre à Instagram la copie Facebook du brouillon (`video_url` = `GET /{video}?fields=source`,
+  publish-test run #24) : cette copie est en 720×1280 à 201 kb/s, et Instagram l'a refusée
+  (conteneur `ERROR`, code 2207076).
   Le MP4 est aussi encodé sans edit list ni B-frames, AAC 128 kb/s (spécifications Reels).
 - **Dry-runs validés :** Facebook (run #3, brouillon) et Instagram (run #7, conteneur prêt).
 - **Première publication réelle (2026-11-05, publish-test run #12) :** 93:1-11 publiée sur

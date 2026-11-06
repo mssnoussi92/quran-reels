@@ -84,12 +84,9 @@ class FakeMeta:
             raise GraphError("(#10) Application does not have permission for this action")
         self.log.append(("remove", self.name))
 
-    def prepare(self, reel, hosted=None):
-        self.log.append(("prepare", self.name) + ((hosted,) if hosted else ()))
+    def prepare(self, reel):
+        self.log.append(("prepare", self.name))
         return f"{self.name}-id"
-
-    def hosted_url(self, video_id):
-        return f"https://cdn/{video_id}.mp4" if self.name == "facebook" else None
 
     def rights(self, object_id):
         return self.check
@@ -150,8 +147,7 @@ def test_clear_everywhere_publishes_everywhere(world):
     results = go()
     assert [r.status for r in results.values()] == [PublishStatus.PUBLISHED,
                                                      PublishStatus.PUBLISHED, PublishStatus.DRAFT]
-    assert log == [("prepare", "facebook"),     # Instagram gets Facebook's copy as fallback
-                   ("prepare", "instagram", "https://cdn/facebook-id.mp4"), ("commit", "facebook"),
+    assert log == [("prepare", "facebook"), ("prepare", "instagram"), ("commit", "facebook"),
                    ("commit", "instagram"), ("publish", "tiktok"),
                    ("after", "facebook"), ("after", "instagram")]     # read again once live
 

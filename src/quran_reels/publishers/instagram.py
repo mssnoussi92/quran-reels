@@ -8,17 +8,18 @@ container is ready but nothing is posted, and Instagram drops it after 24 hours.
 rupload answers 400 ProcessingFailedError to most uploads. Sometimes Instagram has the video
 anyway (run #7: container FINISHED at once), sometimes the container stays IN_PROGRESS for
 good (run #9: still after 15 min; 2026-11-06, run #10: three containers in a row). After that
-error, the video also goes to a container that Instagram fills itself from Facebook's copy of
-the draft reel (`hosted`: video_url, Meta's CDN, signed and unlisted, as for the image posts),
-when there is one; the first container to finish is used, our upload's first. None ready
-within stuck_after seconds: the video is uploaded again to a new container, up to `attempts`
-times, the earlier ones still watched. An unpublished container costs nothing: it is not
-posted and expires after 24 hours.
+error, a container not ready within stuck_after seconds is set aside and the video goes to a
+new container, up to `attempts` times; the ones set aside are still watched, and the first
+container ready is used. An unpublished container costs nothing: it is not posted and
+expires after 24 hours.
+
+Tried and dropped (2026-11-06, publish-test run #24): having Instagram fetch Facebook's copy
+of the draft (video_url = GET /{video}?fields=source). That copy is 720x1280 at 201 kb/s,
+and Instagram refused it anyway (container ERROR, code 2207076).
 """
 
 from __future__ import annotations
 
-import os
 import sys
 import time
 
@@ -28,7 +29,6 @@ from quran_reels.publishers.base import PublisherError, StillProcessing
 from quran_reels.publishers.meta import RUPLOAD, Graph, GraphError
 
 CAPTION_LIMIT = 2200
-FROM_ENV = "QURAN_REELS_INSTAGRAM_FROM"     # facebook-copy: the fallback alone (publish-test)
 
 
 class InstagramPublisher:
@@ -84,18 +84,6 @@ class InstagramPublisher:
             return cid, True
         return cid, False
 
-    def _from_url(self, params: dict[str, str], url: str) -> str | None:
-        """A container that Instagram fills from a public URL (Facebook's copy of the reel)."""
-        p = {k: v for k, v in params.items() if k != "upload_type"} | {"video_url": url}
-        try:
-            cid = str(self.graph.post(f"{self.ig_user_id}/media", **p)["id"])
-        except GraphError as e:
-            print(f"warning: instagram container from Facebook's copy: {e}", file=sys.stderr)
-            return None
-        print(f"instagram: container {cid} takes the video from Facebook's copy",
-              file=sys.stderr)
-        return cid
-
     def _first_ready(self, cids: list[str], timeout: float) -> str:
         """The first of cids whose processing is done (in their order at each round); one in
         ERROR is dropped; transient errors are asked again. StillProcessing after timeout."""
@@ -119,20 +107,14 @@ class InstagramPublisher:
                                       f"after {timeout:.0f} s")
             time.sleep(self.poll_interval)
 
-    def _ready_container(self, reel: Reel, params: dict[str, str],
-                         hosted: str | None = None) -> str:
-        """Id of a container holding the processed video (status FINISHED). hosted: a public
-        URL of the same file (Facebook's copy), tried as soon as our upload fails."""
+    def _ready_container(self, reel: Reel, params: dict[str, str]) -> str:
+        """Id of a container holding the processed video (status FINISHED)."""
         watched: list[str] = []         # containers still processing after a failed upload
         for attempt in range(1, self.attempts + 1):
             cid, failed = self._upload(reel, params)
             if not failed:
                 return self._first_ready([cid, *watched], self.timeout)
             watched.append(cid)
-            if hosted and attempt == 1:
-                copy = self._from_url(params, hosted)
-                if copy:
-                    watched.append(copy)
             try:
                 return self._first_ready(watched, self.stuck_after)
             except StillProcessing:
@@ -153,15 +135,9 @@ class InstagramPublisher:
             params["thumb_offset"] = str(reel.cover_ms)
         return params
 
-    def prepare(self, reel: Reel, hosted: str | None = None) -> str:
-        """Id of a container holding the processed reel, not published. hosted: Facebook's
-        copy of the same file (FacebookPublisher.hosted_url), the fallback of our upload."""
-        params = self._params(reel)
-        if hosted and os.environ.get(FROM_ENV) == "facebook-copy":
-            copy = self._from_url(params, hosted)
-            if copy:
-                return self._first_ready([copy], self.timeout)
-        return self._ready_container(reel, params, hosted)
+    def prepare(self, reel: Reel) -> str:
+        """Id of a container holding the processed reel, not published."""
+        return self._ready_container(reel, self._params(reel))
 
     def rights(self, container_id: str) -> rights.RightsCheck:
         return rights.check(self.graph, self.name, container_id, self.rights_timeout,
