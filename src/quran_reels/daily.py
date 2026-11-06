@@ -16,10 +16,15 @@ A reel claimed after publication (Meta mutes or blocks it: publish.after_check r
 `recheck` at the next runs, for RECHECK_DAYS) is taken down from Facebook and Instagram, its
 slot is marked `claimed` and not retried, its passage goes back to the head of its queue, and
 its reciter joins the state's `claimed` list: the rotation never picks it again.
+
+YouTube (uploaded by hand) has its own claims: when the rotation picks a reciter that YouTube
+claims (platforms.youtube.exclude_reciters), the run renders the passage again by another one
+into out/youtube/ for the owner to upload, and the captions issue says so.
 """
 
 from __future__ import annotations
 
+import dataclasses
 import json
 import os
 import sys
@@ -45,6 +50,7 @@ from quran_reels.selector.calendar import (
 )
 
 RECHECK_DAYS = 2          # reels read again at each run for this long after publication
+YOUTUBE_DIR = "youtube"    # out/youtube/: the version for YouTube, when it differs
 
 
 @dataclass
@@ -191,6 +197,39 @@ def copy_text(cfg: Config, video: Path) -> str:
     return reel.text(publish_mod.max_hashtags(cfg, "tiktok"))
 
 
+def youtube_version(cfg: Config, p: Pending, reciter: str | None,
+                    claimed: set[str]) -> dict | None:
+    """The reel again for YouTube when it claims `reciter` (Content ID: a Short over 1 min
+    with a claim is blocked worldwide), by a ready reciter it does not claim, in
+    out/youtube/. None when the same video goes to YouTube. Never fails the run."""
+    from quran_reels import reciters as rec
+    from quran_reels.render import render_passage
+
+    if cfg is None or not reciter:
+        return None
+    yt = (cfg.project.get("platforms") or {}).get("youtube") or {}
+    if yt.get("mode") != "manual" or reciter not in rec.excluded_on(cfg, "youtube"):
+        return None
+    try:
+        other = rec.choose_for(cfg, "youtube", reciter, rec.options(cfg, p.item.key, claimed))
+        if other is None:
+            return {"reciter": None, "error": "aucun autre récitateur prêt pour ce passage"}
+        ycfg = dataclasses.replace(rec.with_reciter(cfg, other), out_dir=cfg.out / YOUTUBE_DIR)
+        video = render_passage(ycfg, p.item.key, p.item.label_ar, p.item.label_en,
+                               p.item.series.hashtags).video
+        caption = publish_mod.load_reel(video).text(publish_mod.max_hashtags(cfg, "youtube"))
+        print(f"{p.item.key}: YouTube version by {other} ({reciter} is claimed there): "
+              f"out/{YOUTUBE_DIR}/{video.name}")
+        names = cfg.content.get("reciters") or {}
+        return {"reciter": other, "video": f"{YOUTUBE_DIR}/{video.name}", "caption": caption,
+                "label": (names.get(other) or {}).get("label", other),
+                "instead_of": (names.get(reciter) or {}).get("label", reciter)}
+    except (Exception, SystemExit) as e:     # noqa: BLE001  (the reel is out already)
+        print(f"warning: YouTube version of {p.item.key}: {type(e).__name__}: {e}",
+              file=sys.stderr)
+        return {"reciter": None, "error": f"{type(e).__name__}: {e}"}
+
+
 def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: State,
              state_path: Path, todo: list[Pending], platforms: list[str], dry_run: bool,
              log: dict) -> int:
@@ -237,13 +276,15 @@ def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
         failed |= any(r.status in (PublishStatus.FAILED, PublishStatus.BLOCKED,
                                    PublishStatus.REMOVED) for r in results)
         caption = copy_text(cfg, video)
+        youtube = youtube_version(cfg, p, reciter, rec.claimed_reciters(state))
         log["items"].append({
             "key": f"{p.day.isoformat()}/{p.slot.name}", "day": p.day.isoformat(),
             "time": f"{p.slot.at:%H:%M}", "passage": p.item.key, "label": p.item.label_en,
             "reciter": reciter,
             "retry": p.retry, "caption": caption,
             "results": {r.platform: {"status": r.status.value, "url": r.url, "error": r.error}
-                        for r in results}})
+                        for r in results},
+            **({"youtube": youtube} if youtube else {})})
         if caption:
             publish_mod._summary("**Légende à coller sur le brouillon TikTok**\n\n"
                                  f"```text\n{caption.strip()}\n```")
@@ -253,6 +294,8 @@ def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
             "queue": p.queue, "item": p.item.id, "passage": p.item.key, "results": {}}
         if reciter:
             record["reciter"] = reciter
+        if youtube and youtube.get("reciter"):
+            record["youtube"] = {"reciter": youtube["reciter"], "video": youtube["video"]}
         for r in results:
             record["results"][r.platform] = {
                 "status": r.status.value, "id": r.remote_id, "url": r.url, "error": r.error,

@@ -148,6 +148,8 @@ jobs:
           path: |
             out/*.mp4
             out/*/caption.txt
+            out/youtube/*.mp4
+            out/youtube/*/caption.txt
             out/*/manifest.json
             out/*/publish.json
             out/*/preview/*.png

@@ -122,7 +122,7 @@ content:
       label: Salah Budair
       hashtags: ["#SalahBudair", "#صلاح_البدير"]
       basmala: "001001"
-      rights: "aucune licence connue ; mp3quran.net"
+      rights: "aucune licence connue ; mp3quran.net ; YouTube : Al-Kahf (al-Haram 1426-1427 H) dans Content ID, Short 18:1-10 bloqué partout (2026-11-06) ; Meta : rien"
     # EveryAyah, one file per ayah (catalogue ticket #19). Its files are 48 or 64 kb/s
     # (22 kHz, no length header; 24 of 40 sampled at 48): planned at 48 kb/s, so that a passage
     # never lasts longer than planned (90 s on Facebook); the 64 kb/s ones are overestimated by
@@ -171,7 +171,16 @@ platforms:
     mode: draft                       # inbox upload, posted by hand from the TikTok app
     max_hashtags: 5                   # TikTok accepts 5 (seen by the owner, 2026-11-05)
     redirect_uri: https://mssnoussi92.github.io/quran-reels/tiktok-callback.html
-  youtube:   { enabled: false, mode: manual }  # locked private until the YouTube audit
+  youtube:                           # locked private until the YouTube audit: by hand
+    enabled: false
+    mode: manual
+    # YouTube has its own claims (Content ID), not Meta's: Salah Budair's Al-Kahf (al-Haram,
+    # 1426-1427 H) is registered there; the Short 18:1-10 (1:28) was blocked worldwide
+    # (2026-11-06): a Short over 1 min with any Content ID claim is. When the rotation picks
+    # one of these, the run also renders a version with another reciter for YouTube
+    # (out/youtube/, daily.py); Shorts take up to 3 min.
+    exclude_reciters: [budair]
+    max_seconds: 180
 
 # Hashtags at the end of every caption, in this order (the first ones are kept when a platform
 # allows fewer): brand, broad[0], the series' first tag, the surah (#SurahAdDuhaa,

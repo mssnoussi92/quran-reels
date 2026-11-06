@@ -30,6 +30,7 @@ class Config:
     project: dict[str, Any]
     backgrounds: dict[str, Any]           # config/backgrounds.yaml
     gloss_headwords: dict[str, list[tuple[str, ...]]]   # "93:2" → [("سجى",)]
+    out_dir: Path | None = None           # None: <root>/out (the YouTube version: out/youtube)
 
     @property
     def cache(self) -> Path:
@@ -37,7 +38,7 @@ class Config:
 
     @property
     def out(self) -> Path:
-        return self.root / "out"
+        return self.out_dir or self.root / "out"
 
     @property
     def fonts(self) -> Path:

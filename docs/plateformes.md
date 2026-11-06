@@ -238,6 +238,24 @@ github.com → photo de profil → Settings → Developer settings → Personal 
   → Demander l'audit (formulaire YouTube API Services) dès que le projet Google Cloud existe.
   En attendant, le MP4 du jour est mis à disposition et mis en ligne à la main.
 - Shorts : vertical, 3 min maximum.
+- **Droits : Content ID, pas Rights Manager.** YouTube a ses propres empreintes, que Meta n'a
+  pas forcément : la sourate Al-Kahf de **Salah Budair** (al-Haram, 1426-1427 H, déposée au
+  nom de « الشيخ صلاح البدير ») est dans Content ID. Le Short 18:1-10 (1:28), propre sur
+  Facebook et Instagram, y a été **bloqué dans le monde entier** le 2026-11-06 : un Short de
+  plus d'une minute qui a une revendication Content ID active, quelle qu'elle soit, est bloqué
+  partout ([aide YouTube](https://support.google.com/youtube/answer/15424877)) ; sous une
+  minute, la politique du titulaire s'applique (suivi, monétisation ou blocage). Une
+  revendication n'est pas un avertissement pour la chaîne ; ne pas la contester (enregistrement
+  du récitateur).
+- **Version YouTube à part** (choix du propriétaire, 2026-11-06) : quand la rotation choisit un
+  récitateur de `platforms.youtube.exclude_reciters`, le run `daily` publie la vidéo sur Meta
+  et TikTok comme d'habitude et rend aussi le passage par un autre récitateur prêt, au plus
+  `max_seconds` (180 s, la limite des Shorts), le plus proche de 60 s : `out/youtube/<passage>.mp4`
+  dans l'artefact « reel » du run ; le ticket « 📋 Légendes à copier » dit quel fichier mettre
+  et donne sa légende (`daily.youtube_version`, état : `youtube` du créneau). 18:1-10 sur
+  YouTube : Tawfiq As-Sayegh (109 s).
+- Nouveau récitateur sur YouTube : mettre en ligne en **privé**, attendre quelques minutes,
+  regarder les revendications (YouTube Studio → Contenu → Restrictions), puis rendre public.
 - OAuth Google : un projet en statut **« Test »** reçoit des refresh tokens qui expirent au bout
   de 7 jours. Il faut passer l'écran de consentement en **« En production »** (écran « app non
   validée » accepté pour un usage personnel) pour garder un refresh token durable.
