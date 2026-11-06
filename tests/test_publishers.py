@@ -33,8 +33,10 @@ class FakeSession:
         self.calls = []
         self.headers = {}
 
-    def request(self, method, url, timeout=None, params=None, data=None, headers=None):
+    def request(self, method, url, timeout=None, params=None, data=None, headers=None,
+                files=None):
         fields = dict(params or {}) | (dict(data) if isinstance(data, dict) else {})
+        fields |= {f"file:{k}": v[0] for k, v in (files or {}).items()}
         self.calls.append((method, url, fields, headers or {}))
         for (m, suffix), answer in self.routes.items():
             if m == method and url.split("?")[0].endswith(suffix):
@@ -411,6 +413,23 @@ def test_gives_up_after_three_stuck_containers(reel):
     assert not g.session.find("POST", f"/{IG}/media_publish")
 
 
+
+
+
+
+def test_an_earlier_stuck_container_that_finishes_late_is_used(reel):
+    # the first container finishes while the second upload is watched (its states: read
+    # after the upload error, first watch, then while watching the second)
+    states = iter(["IN_PROGRESS", "IN_PROGRESS", "FINISHED"])
+    routes = stuck_routes(stuck=2)
+    routes[("GET", "/222")] = status_only(lambda f: {"status_code": next(states, "FINISHED")})
+    g = graph(routes)
+    assert InstagramPublisher(g, IG, poll_interval=0, stuck_after=0).prepare(reel) == "222"
+    assert len(g.session.find("POST", f"/{IG}/media")) == 2
+
+
+
+
 def test_slow_processing_after_a_clean_upload_is_not_retried(reel):
     routes = instagram_routes() | {("GET", "/222"): status_only({"status_code": "IN_PROGRESS"})}
     g = graph(routes)
@@ -432,3 +451,21 @@ def test_instagram_keeps_the_first_five_hashtags_facebook_its_own_cap(reel):
     finish = next(c for c in g.session.find("POST", f"/{PAGE}/video_reels")
                   if c[2].get("upload_phase") == "finish")
     assert "#t8" in finish[2]["description"] and "#t9" not in finish[2]["description"]
+
+
+def test_the_facebook_cover_is_the_frame_instagram_shows(reel, tmp_path):
+    import subprocess
+
+    from quran_reels.publishers.facebook import FacebookPublisher
+
+    subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-f", "lavfi", "-i",
+                    "color=c=navy:s=108x192:d=5:r=10", "-c:v", "libx264", "-pix_fmt", "yuv420p",
+                    "-y", str(reel.video)], check=True)
+    g = graph({("POST", "/444/thumbnails"): {"success": True}})
+    assert FacebookPublisher(g, PAGE).cover("444", reel) is True
+    (call,) = g.session.find("POST", "/444/thumbnails")
+    assert call[2]["is_preferred"] == "true" and call[2]["file:source"] == "cover.jpg"
+    assert (tmp_path / "093_001-011" / "cover.jpg").stat().st_size > 0
+    denied = graph({("POST", "/444/thumbnails"): Resp({"error": {
+        "message": "(#200) Permissions error", "code": 200}}, 403)})
+    assert FacebookPublisher(denied, PAGE).cover("444", reel) is False    # never fatal

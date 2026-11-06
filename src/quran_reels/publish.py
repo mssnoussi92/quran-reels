@@ -235,6 +235,7 @@ def publish_reel(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
             prepared[name] = publishers[name].prepare(reel)
         except (PublisherError, KeyError) as e:
             results[name] = PublishResult(name, PublishStatus.FAILED, error=str(e))
+            print(f"{name}: failed {e}", file=sys.stderr)
     checks = {}
     for name, object_id in prepared.items():
         checks[name] = publishers[name].rights(object_id)
@@ -269,6 +270,18 @@ def publish_reel(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
         r = results[name]
         print(f"{name}: {r.status.value} {r.remote_id or ''} {r.url or ''} {r.error or ''}"
               .rstrip(), file=sys.stderr)
+    # A dry run leaves nothing behind on Facebook: its draft is deleted once Instagram has its
+    # container (the image dry run does the same with its photos).
+    if dry_run and "facebook" in prepared:
+        cover = getattr(publishers["facebook"], "cover", None)
+        if cover:                   # on the draft: tells whether the token allows it
+            cover(prepared["facebook"], reel)
+        try:
+            publishers["facebook"].remove(prepared["facebook"])
+            print(f"facebook: dry run, draft {prepared['facebook']} deleted", file=sys.stderr)
+        except Exception as e:      # noqa: BLE001  (a leftover draft is harmless)
+            print(f"warning: facebook draft {prepared['facebook']} not deleted: {e}",
+                  file=sys.stderr)
     # 3. Meta's check read again on what went live (it missed Alafasy and Ar-Rifai). Never
     #    lets a publication fail: what went out must still be recorded.
     seconds = after_timeout(cfg)                # 0: off

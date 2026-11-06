@@ -60,7 +60,13 @@
   `offset`, `file_size`) → finish avec `video_state=DRAFT` (toujours, depuis le 2026-11-05) →
   attente du traitement (`GET /{video_id}?fields=status`) → vérification des droits (ci-dessous)
   → finish à nouveau avec `video_state=PUBLISHED` → attente de la mise en ligne. En dry-run on
-  s'arrête avant : le brouillon reste dans Meta Business Suite → Contenu → Brouillons.
+  s'arrête avant, et le brouillon est supprimé une fois le conteneur Instagram prêt (depuis le
+  2026-11-06 ; avant, il restait dans Meta Business Suite → Contenu → Brouillons).
+- Couverture Facebook (2026-11-06) : après la publication, `POST /{video}/thumbnails`
+  (`source` = l'image à `thumb_offset`, la même qu'Instagram ; `is_preferred=true`) ; sinon
+  Facebook choisit lui-même. Permissions `pages_manage_engagement` et `pages_read_user_content` ;
+  sans elles, un avertissement et rien d'autre. Le dry-run l'essaie sur le brouillon : posée
+  sur le brouillon de 114 (publish-test run #25, 2026-11-06), le jeton actuel suffit.
 - Instagram : `POST /{ig}/media` (`media_type=REELS`, `upload_type=resumable`, légende,
   `thumb_offset` = milieu de la première ayah glosée) → upload `rupload…/ig-api-upload/…` →
   attente `status_code=FINISHED` → vérification des droits (ci-dessous) → contrôle du quota
@@ -71,6 +77,12 @@
   après 15 min). Après cette erreur, on lit donc le conteneur : `ERROR` → échec ; sinon on attend
   4 min, puis on abandonne ce conteneur et on renvoie la vidéo dans un nouveau (3 essais au
   plus). Un conteneur non publié ne coûte rien : rien n'est posté, il expire après 24 h.
+- **2026-11-06** : le matin (run #10), trois conteneurs de suite sont restés `IN_PROGRESS` ;
+  Instagram n'est sorti qu'au run suivant. Les conteneurs mis de côté restent désormais
+  surveillés aux essais suivants : le premier prêt est publié. **Essayé et abandonné** : faire
+  prendre à Instagram la copie Facebook du brouillon (`video_url` = `GET /{video}?fields=source`,
+  publish-test run #24) : cette copie est en 720×1280 à 201 kb/s, et Instagram l'a refusée
+  (conteneur `ERROR`, code 2207076).
   Le MP4 est aussi encodé sans edit list ni B-frames, AAC 128 kb/s (spécifications Reels).
 - **Dry-runs validés :** Facebook (run #3, brouillon) et Instagram (run #7, conteneur prêt).
 - **Première publication réelle (2026-11-05, publish-test run #12) :** 93:1-11 publiée sur

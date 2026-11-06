@@ -17,7 +17,7 @@ fridays:                   # on Fridays both slots read Surah Al-Kahf (owner's c
 
 queues:                    # the series of each queue, played one after the other
   reading: [juz-amma, mushaf]
-  themes: [ayat-al-kursi, munjiyat, dua, rizq]
+  themes: [ayat-al-kursi, munjiyat, dua, rizq, sabr, tawba]
   kahf-first-ten: [kahf-first-ten]
   kahf: [al-kahf]
 

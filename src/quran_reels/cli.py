@@ -127,6 +127,9 @@ def main(argv: list[str] | None = None) -> int:
     se.add_argument("--theme", action="append", help="only this theme (repeatable)")
     se.add_argument("--per-theme", type=int, default=4)
     se.add_argument("--out", default="out/pixabay/candidates.json")
+    mo = bgs_sub.add_parser("motion", help="how fast clips move (max_motion in backgrounds.yaml)")
+    mo.add_argument("files", nargs="*", help="video files; default: every Pixabay clip listed "
+                                             "(their previews)")
 
     cat = sub.add_parser("catalog", help="read-only catalogue for the owner (docs/catalog.md)")
     cat_sub = cat.add_subparsers(dest="catalog_command", required=True)
@@ -393,6 +396,28 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "images":
         return _images(cfg, args)
+
+    if args.command == "backgrounds" and args.backgrounds_command == "motion":
+        from pathlib import Path
+
+        from quran_reels.sources.backgrounds import motion
+        from quran_reels.sources.pixabay import Pixabay
+
+        limit = float(cfg.backgrounds.get("max_motion") or 0)
+        if args.files:
+            clips = [(Path(f).name, Path(f)) for f in args.files]
+        else:
+            client = Pixabay(cfg.cache)
+            clips = [(c["id"], client.preview(client.video(int(c["pixabay_id"])) or
+                                              {"id": c["pixabay_id"]}))
+                     for c in cfg.backgrounds.get("backgrounds") or [] if c.get("pixabay_id")]
+        fast = 0
+        for name, path in clips:
+            score = motion(path)
+            over = bool(limit) and score > limit
+            fast += over
+            print(f"{score:6.2f}  {name}" + ("  ← faster than max_motion" if over else ""))
+        return 1 if fast else 0
 
     if args.command == "backgrounds":
         import json

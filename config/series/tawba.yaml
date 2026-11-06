@@ -1,0 +1,28 @@
+# PROPOSAL, to be validated by the owner: remove a line to drop a passage, reorder freely.
+# Made from the 69 ayahs that contain the root ت و ب (repentance; quran.ai concordance,
+# 2026-11-06), keeping those that call to repent or say that Allah accepts repentance, as whole
+# sentences, plus a few on seeking forgiveness (root غ ف ر, marked «theme»). Left out: the
+# rulings (4:16, 5:34, 5:39, 24:5), war (9:5, 9:11), repentance refused (3:90, 4:18), the
+# passages of other series (66:8, 40:7-9: du'a; 71:9-12: rizq), Juz' 'Amma (110:3), and
+# those that start mid-sentence or last over 90 s (3:133-136, 25:68-71).
+# Mushaf order.
+title_ar: آيات التوبة والاستغفار
+title_en: Repentance and forgiveness in the Quran
+hashtags: ["#Tawba", "#التوبة"]
+passages:
+  - "2:37"         # Adam received words from his Lord
+  - "4:17"         # repentance soon after
+  - "4:110"        # theme: whoever seeks forgiveness will find Allah Forgiving
+  - "6:54"         # your Lord has decreed mercy upon Himself
+  - "7:153"        # after repentance, your Lord is Forgiving
+  - "9:104"        # Allah accepts repentance from His servants
+  - "9:117-118"    # the three who were left behind
+  - "11:1-4"       # seek forgiveness of your Lord, then repent to Him
+  - "11:52"        # Hud: He will send rain upon you
+  - "11:90"        # Shu'ayb: «my Lord is Merciful and Affectionate»
+  - "16:119"       # those who did wrong out of ignorance, then repented
+  - "20:82"        # «I am the Perpetual Forgiver of whoever repents»
+  - "39:53-54"     # «do not despair of the mercy of Allah»
+  - "40:1-3"       # Forgiver of sin, Acceptor of repentance
+  - "42:25"        # He accepts repentance and pardons misdeeds
+  - "47:19"        # theme: ask forgiveness for your sin

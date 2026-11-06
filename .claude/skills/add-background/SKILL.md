@@ -14,9 +14,11 @@ and the same passage always gets the same one.
    `quran-reels backgrounds search` (needs `PIXABAY_API_KEY`; never print it). Pixabay's rules:
    answers cached 24 h, at most one request every 0.7 s, previews one every 5 s, honour
    `Retry-After` (their CDN answers 429 otherwise).
-2. **Sort** on tags first, then check each preview (`_tiny.mp4`) frame by frame: 8 frames, zoom
-   on beaches and lakes, and its speed (mean absolute difference between frames 1 s apart: a
-   timelapse that moves fast is out).
+2. **Sort** on tags first; the search already leaves out a clip that moves faster than
+   `max_motion` (30, `config/backgrounds.yaml`: its preview's change between frames 1 s apart,
+   16 px wide; the refused fast clouds scored 34.9, the kept clips at most 23.5) and gives each
+   candidate its `motion`. Then check each preview (`_tiny.mp4`) frame by frame: 8 frames, zoom
+   on beaches and lakes. `quran-reels backgrounds motion [files]` scores clips by hand.
 3. **Propose** 2–3 per theme to the owner with stills (SendUserFile). Add only the approved
    ones to `config/backgrounds.yaml`: `source: pixabay`, `pixabay_id`, `author`, `page`,
    `tags`, `note`.

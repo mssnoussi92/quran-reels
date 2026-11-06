@@ -4,13 +4,17 @@ prepare: start → binary upload to rupload.facebook.com → finish with video_s
 for processing. The reel is then a draft in Meta Business Suite (Content → Drafts).
 rights: copyright_check_information of the draft (publishers/rights.py).
 commit: the same file uploaded again, finished with video_state=PUBLISHED, then the draft
-deleted. A draft reel cannot be published through the API: its upload session ended with the
+deleted, then its cover set (cover: the frame Instagram uses, reel.cover_ms, as the preferred
+thumbnail, POST /{video}/thumbnails; never in the way of the publication). A draft reel cannot be published through the API: its upload session ended with the
 draft, and finishing it again fails («The video was not uploaded», code 6000, subcode 1363130,
 publish-test run #18, 2026-11-05).
-A dry run stops after the check: the draft stays unpublished.
+A dry run stops after the check; publish_reel then deletes the draft.
 """
 
 from __future__ import annotations
+
+import subprocess
+import sys
 
 from quran_reels.models import PublishResult, PublishStatus, Reel
 from quran_reels.publishers import rights
@@ -69,6 +73,28 @@ class FacebookPublisher:
              self.timeout, self.poll_interval)
         return video_id
 
+    def cover(self, video_id: str, reel: Reel) -> bool:
+        """Set the reel's cover: the frame Instagram shows (reel.cover_ms, the middle of the
+        first ayah with a word meaning), as its preferred thumbnail; Facebook picks a frame
+        itself otherwise. Needs pages_manage_engagement and pages_read_user_content. Never
+        fails the publication: False, with a warning."""
+        if reel.cover_ms is None:
+            return False
+        jpg = reel.video.with_suffix("") / "cover.jpg"
+        try:
+            jpg.parent.mkdir(parents=True, exist_ok=True)
+            subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-ss",
+                            f"{reel.cover_ms / 1000:.3f}", "-i", str(reel.video), "-frames:v",
+                            "1", "-q:v", "2", "-y", str(jpg)], capture_output=True, check=True)
+            self.graph.post_file(f"{video_id}/thumbnails", "source", jpg, is_preferred="true")
+        except (OSError, subprocess.CalledProcessError, PublisherError) as e:
+            why = "no frame" if isinstance(e, subprocess.CalledProcessError) else str(e)
+            print(f"warning: facebook reel {video_id}: cover not set ({why})", file=sys.stderr)
+            return False
+        print(f"facebook: cover of {video_id} set ({reel.cover_ms / 1000:.1f} s into the reel)",
+              file=sys.stderr)
+        return True
+
     def rights(self, video_id: str) -> rights.RightsCheck:
         return rights.check(self.graph, self.name, video_id, self.rights_timeout,
                             self.poll_interval)
@@ -101,6 +127,7 @@ class FacebookPublisher:
                 self.graph.delete(draft_id)
         except GraphError:
             pass                        # a leftover draft in Business Suite, harmless
+        self.cover(video_id, reel)
         link = None
         try:
             link = self.graph.get(video_id, fields="permalink_url").get("permalink_url")

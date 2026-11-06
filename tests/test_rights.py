@@ -241,3 +241,10 @@ def test_the_check_after_publication_stops_at_its_timeout():
     assert publish_mod.after_check({"facebook": fb}, results, 300, 30, clock=lambda: t[0],
                                    sleep=lambda s: t.__setitem__(0, t[0] + s)) is None
     assert t[0] == 300 and results["facebook"].status == PublishStatus.PUBLISHED
+
+
+def test_a_dry_run_deletes_its_facebook_draft(world):
+    go, log, _ = world
+    results = go(dry_run=True)
+    assert results["facebook"].status is PublishStatus.DRAFT
+    assert ("remove", "facebook") in log and ("commit", "facebook") not in log

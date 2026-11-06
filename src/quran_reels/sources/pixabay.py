@@ -5,7 +5,9 @@ Their rules (pixabay.com/api/docs), followed here:
 - rate limit 100 requests per 60 s: at most one request every 0.7 s, and a pause until the
   window resets when X-RateLimit-Remaining reaches 0;
 - no systematic mass downloads: a search returns metadata only; a clip is downloaded once,
-  when the owner has approved it (config/backgrounds.yaml), then kept in the cache.
+  when the owner has approved it (config/backgrounds.yaml), then kept in the cache. Only the
+  small preview of a candidate is fetched, at most one every 5 s (their CDN answers 429
+  otherwise), to measure how fast it moves (max_motion), and kept in the cache.
 
 The key (PIXABAY_API_KEY: GitHub secret, or the session's environment) travels as a query
 parameter, as the API requires. It is never printed: errors are rebuilt from the status and
@@ -17,6 +19,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import sys
 import time
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -24,11 +27,12 @@ from typing import Any
 
 import requests
 
-from quran_reels.sources.http import USER_AGENT, read_json, write_json
+from quran_reels.sources.http import USER_AGENT, Http, read_json, write_json
 
 API = "https://pixabay.com/api/videos/"
 CACHE_HOURS = 24
 MIN_INTERVAL = 0.7                 # seconds between requests: under 100 per minute
+PREVIEW_INTERVAL = 5.0             # seconds between preview downloads (their CDN)
 
 # Words in a clip's tags that rule it out before anyone looks at it (people, animals, text,
 # towns). Only a first filter: every candidate is still checked frame by frame.
@@ -55,6 +59,7 @@ class Pixabay:
         self.session = session or requests.Session()
         self.session.headers["User-Agent"] = USER_AGENT
         self._last = 0.0
+        self._last_preview = 0.0
 
     # ---- requests -----------------------------------------------------------------------
 
@@ -117,6 +122,25 @@ class Pixabay:
         raise PixabayError(f"pixabay video {video_id}: no file")
 
 
+    def preview(self, hit: dict, http: Http | None = None) -> Path:
+        """The clip's small preview (tiny, else small), cached; one download every 5 s."""
+        videos = hit.get("videos") or {}
+        url = (videos.get("tiny") or videos.get("small") or {}).get("url")
+        if not url:
+            raise PixabayError(f"pixabay video {hit.get('id')}: no preview")
+        dest = self.dir / "previews" / f"{int(hit['id'])}.mp4"
+        if dest.is_file():
+            return dest
+        wait = self._last_preview + PREVIEW_INTERVAL - time.monotonic()
+        if wait > 0:
+            time.sleep(wait)
+        try:
+            (http or Http(timeout=60)).download(url, dest, min_bytes=10_000)
+        finally:
+            self._last_preview = time.monotonic()
+        return dest
+
+
 def tags_of(hit: dict) -> set[str]:
     return {t.strip().lower() for t in (hit.get("tags") or "").split(",") if t.strip()}
 
@@ -140,13 +164,17 @@ def summary(hit: dict, theme: str) -> dict:
 
 
 def candidates(cfg: Any, themes: list[str] | None = None, per_theme: int = 4,
-               min_seconds: int = 8) -> list[dict]:
+               min_seconds: int = 8, client: Pixabay | None = None) -> list[dict]:
     """Up to per_theme new clips per theme, from the search terms in config/backgrounds.yaml:
-    nature films, no excluded tag, long enough, not already listed. To be checked frame by
-    frame before anything is added."""
+    nature films, no excluded tag, long enough, not already listed, not moving faster than
+    max_motion (its preview, sources/backgrounds.motion). To be checked frame by frame before
+    anything is added."""
+    from quran_reels.sources.backgrounds import motion
+
+    limit = float(cfg.backgrounds.get("max_motion") or 0)
     terms = (cfg.backgrounds.get("pixabay") or {})
     listed = {int(c.get("pixabay_id") or 0) for c in cfg.backgrounds.get("backgrounds") or []}
-    client = Pixabay(cfg.cache)
+    client = client or Pixabay(cfg.cache)
     out: list[dict] = []
     seen: set[int] = set(listed)
     for theme in themes or list(terms):
@@ -158,6 +186,17 @@ def candidates(cfg: Any, themes: list[str] | None = None, per_theme: int = 4,
                 if hit["id"] in seen or ruled_out(hit) or (hit.get("duration") or 0) < min_seconds:
                     continue
                 seen.add(hit["id"])
-                out.append(summary(hit, theme) | {"query": q})
+                score = None
+                if limit:
+                    try:
+                        score = motion(client.preview(hit))
+                    except Exception as e:      # noqa: BLE001  (the eye check still comes)
+                        print(f"pixabay {hit['id']}: motion not measured ({type(e).__name__})",
+                              file=sys.stderr)
+                    if score is not None and score > limit:
+                        print(f"pixabay {hit['id']}: moves too fast (motion {score:g} > "
+                              f"{limit:g}), left out", file=sys.stderr)
+                        continue
+                out.append(summary(hit, theme) | {"query": q, "motion": score})
                 picked += 1
     return out

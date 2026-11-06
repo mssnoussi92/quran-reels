@@ -74,3 +74,43 @@ def test_make_loop_blends_the_end_into_the_start(tmp_path: Path):
                          capture_output=True, text=True, check=True).stderr
     assert re.search(r"Video: .*\b90x160\b", log)
     assert int(re.findall(r"frame=\s*(\d+)", log)[-1]) == 90   # 4 s - 1 s faded, 9:16
+
+
+def _clip(path, lum):
+    import subprocess
+    subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-f", "lavfi", "-i",
+                    "color=c=gray:s=64x36:d=5:r=10", "-vf", f"format=gray,geq=lum='{lum}'",
+                    "-c:v", "libx264", "-pix_fmt", "yuv420p", "-y", str(path)], check=True)
+    return path
+
+
+def test_motion_tells_a_still_clip_from_a_flashing_one(tmp_path):
+    from quran_reels.sources.backgrounds import motion
+
+    still = motion(_clip(tmp_path / "still.mp4", "128"))
+    flashing = motion(_clip(tmp_path / "flash.mp4", "if(mod(floor(T),2),230,20)"))
+    assert still < 1 and flashing > 150
+
+
+def test_the_search_leaves_out_a_clip_that_moves_too_fast(monkeypatch, tmp_path):
+    from types import SimpleNamespace
+
+    from quran_reels.sources import backgrounds, pixabay
+
+    def hit(i):
+        return {"id": i, "tags": "clouds, sky", "duration": 20,
+                "videos": {"tiny": {"url": f"https://cdn/{i}.mp4"}}}
+
+    class Client:
+        def search(self, q):
+            return [hit(1), hit(2), hit(3)]
+
+        def preview(self, h):
+            return tmp_path / f"{h['id']}.mp4"
+
+    scores = {"1.mp4": 34.9, "2.mp4": 9.5, "3.mp4": 23.5}
+    monkeypatch.setattr(backgrounds, "motion", lambda p: scores[p.name])
+    cfg = SimpleNamespace(cache=tmp_path, backgrounds={
+        "max_motion": 30, "pixabay": {"sky": ["clouds"]}, "backgrounds": []})
+    found = pixabay.candidates(cfg, per_theme=4, client=Client())
+    assert [(c["id"], c["motion"]) for c in found] == [(2, 9.5), (3, 23.5)]

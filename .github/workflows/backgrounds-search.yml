@@ -21,13 +21,18 @@ permissions:
 jobs:
   search:
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 20      # previews: one every 5 s, to measure their motion
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - run: pip install -e .
+      - name: Install (and the static ffmpeg, to measure the previews' motion)
+        run: |
+          pip install -q -e . imageio-ffmpeg==0.8.1
+          mkdir -p ~/bin
+          ln -sf "$(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')" ~/bin/ffmpeg
+          echo "$HOME/bin" >> "$GITHUB_PATH"
       - name: Search
         env:
           PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
