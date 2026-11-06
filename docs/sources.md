@@ -42,7 +42,8 @@
   les fichiers à 64 kb/s sont surestimés d'un tiers. Pas de `bismillah.mp3` : basmala = 1:1.
   Toujours « prêt » (un fichier par ayah, rien à découper) : `prepare` le saute. Durées par
   requêtes HEAD (une par ayah de la sourate, en cache `.cache/everyayah/`).
-  **AbdulSamad** (`AbdulSamad_64kbps_QuranExplorer.Com`, ticket #18) **en attente** : le
+  **AbdulSamad** (`AbdulSamad_64kbps_QuranExplorer.Com`, ticket #18) **non retenu** (ticket
+  fermé par le propriétaire, 2026-11-06 ; il reste parmi les candidats du catalogue) : le
   fichier de la 1re ayah de chaque sourate commence par ≈ 6–9 s de récitation puis une pause
   avant l'ayah (112:1 16,8 s, 112:2 5,9 s ; 114, 93, 18 pareil) : c'est la basmala
   (reconnaissance, 2026-11-06 : « بسم الله الرحمن الرحيم » avant la pause, puis l'ayah) ;

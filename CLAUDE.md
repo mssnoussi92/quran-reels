@@ -181,8 +181,9 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
 - Récitateur choisi par passage (`reciters.py`, `content.rotation`) parmi ceux dont la découpe
   du passage est vérifiée ; workflow `prepare` chaque nuit pour les 8 jours suivants. Fares
   Abbad : **un fichier par ayah** (EveryAyah), toujours prêt, rien à découper ; fichiers à 48 ou
-  64 kb/s, durées prévues à 48 kb/s (jamais plus courtes que la réalité). AbdulSamad (#18) en
-  attente : basmala dans le fichier de la 1re ayah, nom inconnu (docs/sources.md).
+  64 kb/s, durées prévues à 48 kb/s (jamais plus courtes que la réalité). AbdulSamad (#18) non
+  retenu : basmala dans le fichier de la 1re ayah, nom inconnu (docs/sources.md). Husary
+  (#32) en essai : dans la liste, pas dans la rotation, essai sur Facebook seul à faire.
 - Fonds : clips Pexels (liste à la main) et Pixabay (`PIXABAY_API_KEY`, jamais affichée),
   scènes générées ; skill `add-background`.
 
@@ -299,6 +300,6 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
       tous · [ ] refaire le plan (calculé avec Alafasy) si des passages dépassent 90 s
 - [x] Catalogue (docs/catalog.md, `catalog.yml`) · [x] Pages passé en « GitHub Actions » par le
       propriétaire, premier déploiement (run #1, 2026-11-05) · [x] libellé « Catalog » créé ·
-      [x] premiers tickets appliqués (#19–#28) · [ ] #18 AbdulSamad en attente (basmala dans
+      [x] premiers tickets appliqués (#19–#28) · [x] #18 AbdulSamad non retenu (basmala dans
       la 1re ayah, confirmée par reconnaissance ; nom inconnu) · [ ] #32 Husary : ajouté à la
       liste, reel 112 vérifié, essai sur Facebook seul à faire
