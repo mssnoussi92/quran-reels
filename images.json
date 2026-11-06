@@ -1,0 +1,30 @@
+{
+ "word": {
+  "round": 1,
+  "done": [
+   "42:17#0"
+  ],
+  "posts": {
+   "2026-11-06": {
+    "id": "42:17#0",
+    "surah": 42,
+    "ayah": "42:17",
+    "word": "بِٱلْحَقِّ",
+    "results": {
+     "facebook": {
+      "status": "published",
+      "id": "1494879297031390_122095909239545959",
+      "url": "https://www.facebook.com/122095909263545959/posts/122095909239545959",
+      "error": null
+     },
+     "instagram": {
+      "status": "published",
+      "id": "18640616260033459",
+      "url": "https://www.instagram.com/p/DfZhD2KGOym/",
+      "error": null
+     }
+    }
+   }
+  }
+ }
+}
