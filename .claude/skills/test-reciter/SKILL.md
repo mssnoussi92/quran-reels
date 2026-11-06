@@ -11,7 +11,8 @@ few minutes after going live. So the owner checks every new reciter on Facebook 
 
 | Result so far | Reciters |
 |---|---|
-| no claim | Omar Hisham (114), Salah Budair (2:255) |
+| no claim | Omar Hisham (114), Salah Budair (2:255) on Meta |
+| claimed on YouTube only | Salah Budair (Content ID, 18:1-10): in `platforms.youtube.exclude_reciters` |
 | claimed, removed | Alafasy, Nabil Ar-Rifai, Saad Al-Ghamdi |
 | not published yet | check `content.rotation` and the state's reciters |
 
@@ -33,7 +34,11 @@ few minutes after going live. So the owner checks every new reciter on Facebook 
    - Claimed: the owner deletes it; remove the reciter from `content.rotation` with a comment
      (who claimed, where), add a `claim` line for it in `src/quran_reels/catalog/history.yaml`
      (shown by the catalogue), update the Récitateurs row of CLAUDE.md and this table.
-6. A test that stands in for a calendar slot: record it in the state (republish skill).
+6. **YouTube** (by hand, Content ID, not Meta's): the owner uploads a new reciter's first Short
+   as private and looks at the claims before making it public. Claimed there only: add the
+   reciter to `platforms.youtube.exclude_reciters` (its reels then get a YouTube version by
+   another reciter, `daily.youtube_version`), a line in `catalog/history.yaml`.
+7. A test that stands in for a calendar slot: record it in the state (republish skill).
 
 Limits: Facebook Reels 3–90 s (18:1-10 fits only with Budair, 87.6 s); Omar Hisham's
 recordings over 15 min are not split (`split_max_minutes`).

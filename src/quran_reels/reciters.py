@@ -108,6 +108,29 @@ def choose(cfg: Config, key: str, recent: list[str], claimed: Iterable[str] = ()
     return best.name, opts
 
 
+def excluded_on(cfg: Config, platform: str) -> set[str]:
+    """Reciters a platform claims but the others do not (platforms.<name>.exclude_reciters):
+    YouTube's Content ID has Salah Budair, Meta does not."""
+    return set(((cfg.project.get("platforms") or {}).get(platform) or {})
+               .get("exclude_reciters") or [])
+
+
+def choose_for(cfg: Config, platform: str, reciter: str, opts: list[Option]) -> str | None:
+    """Who recites the passage on `platform`: the rotation's choice, unless the platform
+    excludes it; then the ready reciter closest to target_seconds within the platform's
+    max_seconds (YouTube Shorts: 3 min) that it does not exclude. None: no one fits."""
+    excluded = excluded_on(cfg, platform)
+    if reciter not in excluded:
+        return reciter
+    conf = (cfg.project.get("platforms") or {}).get(platform) or {}
+    p = cfg.content["passage"]
+    high = float(conf.get("max_seconds") or p["max_seconds"])
+    target = float(p.get("target_seconds", 60))
+    fits = [o for o in opts if o.seconds is not None and o.seconds <= high
+            and o.name not in excluded]
+    return min(fits, key=lambda o: abs(o.seconds - target)).name if fits else None
+
+
 def claimed_reciters(state) -> set[str]:
     """Reciters taken out after a claim (selector.calendar.State, key `claimed`)."""
     return set(state.data.get("claimed") or {})

@@ -85,12 +85,25 @@ def failure_text(report: dict | None, run_url: str) -> str:
     return "\n".join(lines)
 
 
+def _youtube(item: dict) -> list[str]:
+    """What to put on YouTube when it is not this video (daily.youtube_version)."""
+    y = item.get("youtube")
+    if not y:
+        return []
+    if not y.get("reciter"):
+        return ["", (f"**YouTube : ne pas mettre cette vidéo** (récitateur revendiqué par "
+                     f"Content ID) ; pas d'autre version : {y.get('error', '')}")]
+    return ["", (f"**YouTube : pas cette vidéo** ({y['instead_of']} y est revendiqué par Content "
+                 f"ID) mais `{y['video']}`, récitée par {y['label']}, dans l'artefact « reel » "
+                 "du run. Sa légende :"), "", "```text", y["caption"].strip(), "```"]
+
+
 def _entry(item: dict, dry_run: bool) -> str:
     title = f"### {_when(item)} · {item['passage']}" + (" (dry run)" if dry_run else "")
     if item.get("label"):
         title += f" · {item['label']}"
     return "\n".join([f"<!-- entry {item['key']} -->", title, "", _results(item), "",
-                      "```text", item["caption"].strip(), "```"])
+                      "```text", item["caption"].strip(), "```", *_youtube(item)])
 
 
 _ENTRY = re.compile(r"<!-- entry (\S+) -->")

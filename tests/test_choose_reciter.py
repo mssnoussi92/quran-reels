@@ -76,3 +76,18 @@ def test_options_mark_claimed_reciters_not_ready(monkeypatch):
     opts = reciters.options(None, "2:255", claimed={"rifai"})
     assert [(o.name, o.seconds) for o in opts] == [("rifai", None), ("budair", 50.0)]
     assert "revendiqué" in opts[0].why
+
+
+def test_a_platform_that_claims_the_reciter_gets_another_one():
+    class C:
+        def __init__(self):
+            self.content = {"passage": {"max_seconds": 90, "target_seconds": 60}}
+            self.project = {"platforms": {"youtube": {"exclude_reciters": ["budair"],
+                                                      "max_seconds": 180}}}
+    opts = [Option("omar_hisham", None, "not split"), Option("minshawi", 132.1),
+            Option("sayegh", 109.0), Option("budair", 87.6)]
+    assert reciters.choose_for(C(), "youtube", "sayegh", opts) == "sayegh"     # not claimed
+    assert reciters.choose_for(C(), "youtube", "budair", opts) == "sayegh"     # 18:1-10
+    assert reciters.choose_for(C(), "facebook", "budair", opts) == "budair"    # Meta: fine
+    long = [Option("minshawi", 200.0), Option("budair", 87.6)]
+    assert reciters.choose_for(C(), "youtube", "budair", long) is None         # over 3 min

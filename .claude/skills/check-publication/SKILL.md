@@ -32,6 +32,7 @@ session « Quran Words Daily – planificateur », or a person). Read, don't gue
 5. **Nothing ran for a due slot** (scheduler down): dispatch `daily.yml` on `main`, no inputs,
    while the window is open (3 h after 07:30 / 19:30 Paris). Publish nothing else on your own.
 6. **Report in French, short:** passage, reciter, link per platform, the TikTok draft waiting
-   in the inbox (caption in the pinned issue « 📋 Légendes à copier »), what the owner should
-   do. For a reciter's first publication, remind them to look at Facebook's copyright page
+   in the inbox (caption in the pinned issue « 📋 Légendes à copier »), the YouTube file (the
+   same MP4, or `youtube/<passage>.mp4` by another reciter when the slot has `youtube`), what
+   the owner should do. For a reciter's first publication, remind them to look at Facebook's copyright page
    (« Mises en application des droits d'auteur ») a few minutes after.

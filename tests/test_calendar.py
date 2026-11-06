@@ -1,5 +1,6 @@
 """Calendar: slots, queues, Fridays, state and retries, without network or rendering."""
 
+import json
 from datetime import UTC, date, datetime, time
 from zoneinfo import ZoneInfo
 
@@ -282,6 +283,49 @@ def test_a_reel_taken_down_after_publication_comes_back_with_another_reciter(wor
     daily.run(None, path, now=paris(2026, 11, 7, 7, 20))                  # Saturday
     assert [c[0] for c in calls["publish"]] == ["114:1-6", "114:1-6"]
     assert State.load(path).slot(date(2026, 11, 7), "morning")["reciter"] == "ghamdi"
+
+
+def test_a_reciter_youtube_claims_gets_a_youtube_version(world, two_reciters, monkeypatch,
+                                                        tmp_path):
+    """Meta publishes the rotation's choice; YouTube (by hand) gets the same passage by a
+    reciter it does not claim, rendered into out/youtube/ and named in the report."""
+    from types import SimpleNamespace
+
+    from quran_reels import reciters
+    from quran_reels.config import Config
+    from quran_reels.reciters import Option
+
+    calls, _, path = world
+    cfg = Config(root=tmp_path, backgrounds=[], gloss_headwords={}, project={
+        "content": {"passage": {"max_seconds": 90, "target_seconds": 60},
+                    "reciters": {"rifai": {"label": "Nabil Ar-Rifai"},
+                                 "ghamdi": {"label": "Saad Al-Ghamdi"}}},
+        "platforms": {"youtube": {"mode": "manual", "exclude_reciters": ["rifai"],
+                                  "max_seconds": 180}}})
+    monkeypatch.setattr(reciters, "options", lambda cfg, key, claimed=(): [
+        Option("rifai", 50.0), Option("ghamdi", 120.0)])     # over 90 s: fine on YouTube
+    outs = []
+
+    def render(cfg, key, label_ar="", label_en="", series_tags=()):
+        outs.append(cfg.out)
+        calls["render"].append((key, label_en))
+        return SimpleNamespace(video=cfg.out / "114_001-006.mp4")
+
+    import quran_reels.render as render_mod
+    monkeypatch.setattr(render_mod, "render_passage", render)
+    monkeypatch.setattr(daily.publish_mod, "load_reel", lambda video: SimpleNamespace(
+        text=lambda n=None: f"caption {video.parent.name}\n"))
+    report = tmp_path / "report.json"
+    assert daily.run(cfg, path, now=paris(2026, 11, 5, 7, 20), report=report) == 0
+    assert outs == [tmp_path / "out", tmp_path / "out" / "youtube"]
+    assert calls["publish"] == [("114_001-006", ("facebook", "instagram"))]   # Meta: rifai
+    item = json.loads(report.read_text(encoding="utf-8"))["items"][0]
+    assert item["reciter"] == "rifai"
+    assert item["youtube"] == {"reciter": "ghamdi", "video": "youtube/114_001-006.mp4",
+                               "caption": "caption youtube\n", "label": "Saad Al-Ghamdi",
+                               "instead_of": "Nabil Ar-Rifai"}
+    assert State.load(path).slot(date(2026, 11, 5), "morning")["youtube"] == {
+        "reciter": "ghamdi", "video": "youtube/114_001-006.mp4"}
 
 
 def test_later_runs_take_down_a_reel_claimed_after_its_check(world, two_reciters, monkeypatch):

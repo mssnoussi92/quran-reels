@@ -12,6 +12,8 @@ reciters:                     # name in content.reciters → events, oldest firs
     - {date: 2026-11-05, kind: removed, text: "écarté après écoute"}
   akhdar:
     - {date: 2026-11-05, kind: removed, text: "écarté après écoute"}
+  budair:
+    - {date: 2026-11-06, kind: claim, text: "YouTube seulement (Content ID) : Short 18:1-10 bloqué dans le monde entier (Al-Kahf, al-Haram 1426-1427 H) ; rien sur Facebook ni Instagram ; ses vidéos ont une version YouTube par un autre récitateur"}
   omar_hisham:
     - {date: 2026-11-05, kind: check, text: "114 publiée sur Facebook (publish-test run #19) : aucun problème de droits signalé"}
   fares_abbad:

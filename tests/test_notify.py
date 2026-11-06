@@ -143,3 +143,20 @@ def test_a_reel_taken_down_after_publication_warns_about_the_tiktok_draft(tmp_pa
     assert "retiré après publication" in alert["body"] and "MUTE dans 24 territoires" in alert["body"]
     assert "ne publie pas le brouillon TikTok" in alert["body"]
     assert not [i for i in gh.issues if i["title"] == notify.CAPTIONS_TITLE]   # nothing to copy
+
+
+def test_the_captions_issue_says_which_video_goes_to_youtube():
+    from quran_reels.notify import merge_captions
+    item = {"key": "2026-11-06/morning", "day": "2026-11-06", "time": "07:30",
+            "passage": "18:1-10", "label": "", "reciter": "budair", "retry": False,
+            "caption": "Al-Kahf by Salah Budair\n",
+            "results": {"facebook": {"status": "published", "url": "https://f", "error": None}},
+            "youtube": {"reciter": "sayegh", "video": "youtube/018_001-010.mp4",
+                        "caption": "Al-Kahf by Tawfiq As-Sayegh\n", "label": "Tawfiq As-Sayegh",
+                        "instead_of": "Salah Budair"}}
+    body = merge_captions("", {"items": [item]})
+    assert "**YouTube : pas cette vidéo** (Salah Budair y est revendiqué" in body
+    assert "`youtube/018_001-010.mp4`, récitée par Tawfiq As-Sayegh" in body
+    assert "Al-Kahf by Tawfiq As-Sayegh" in body
+    item["youtube"] = {"reciter": None, "error": "aucun autre récitateur prêt pour ce passage"}
+    assert "**YouTube : ne pas mettre cette vidéo**" in merge_captions("", {"items": [item]})
