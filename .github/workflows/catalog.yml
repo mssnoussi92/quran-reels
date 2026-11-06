@@ -38,7 +38,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 40       # up to 15 min of Muyassar downloads (on-demand form) until all cached
     outputs:
       build: ${{ steps.new.outputs.build }}
     steps:
@@ -58,8 +58,9 @@ jobs:
         id: new
         run: |
           now="$GITHUB_SHA $(git -C state-branch rev-parse HEAD 2>/dev/null) $(TZ=Europe/Paris date +%F)"
+          # While the on-demand form misses meanings of some surahs, every build adds some.
           prev=$(curl -fsSL "$SITE_URL/catalog/data.json" 2>/dev/null | python3 -c \
-            'import json,sys; d=json.load(sys.stdin); print(d.get("commit",""), d.get("state_commit",""), d.get("built_date",""))' \
+            'import json,sys; d=json.load(sys.stdin); m=(d.get("on_demand") or {}).get("meanings") or {}; print(d.get("commit",""), d.get("state_commit",""), d.get("built_date","") if m.get("with_meanings", 0) >= m.get("surahs", 114) else "incomplete")' \
             2>/dev/null || true)
           if [ "${{ github.event_name }}" = "workflow_run" ] && [ "$prev" = "$now" ]; then
             echo "Nothing new (main, state and day unchanged): not built."

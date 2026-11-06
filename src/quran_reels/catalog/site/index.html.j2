@@ -39,7 +39,8 @@
       calendrier : phrases entières, {{ O.max_seconds }} s au plus, vérification des droits de Meta.
       <a href="{{ O.doc }}" rel="noopener">Comment ça marche</a></p>
     <form id="od-form" class="card od" data-new-issue="{{ O.new_issue }}" data-prefix="{{ O.title_prefix }}"
-          data-footer="{{ O.footer }}" data-headings='{{ O.headings|tojson }}'>
+          data-footer="{{ O.footer }}" data-headings='{{ O.headings|tojson }}'
+          data-api="{{ O.quran_api }}" data-tid="{{ O.translation_id or '' }}" data-max-per-ayah="{{ O.max_per_ayah }}">
       <label>Récitateur
         <select name="reciter">
           <option value="auto" data-youtube="1">Auto (choisi comme le calendrier)</option>
@@ -58,18 +59,15 @@
           <input type="number" name="from" min="1" value="1" inputmode="numeric"> à
           <input type="number" name="to" min="1" value="1" inputmode="numeric"></label>
       </fieldset>
+      <div class="od-passage" id="od-passage" aria-live="polite">
+        <p class="small muted">Choisis une sourate : ses ayahs s'affichent ici (texte de Quran.com), avec les sens du
+          Muyassar à cocher pour les mots surlignés et expliqués.</p>
+      </div>
       <label>Fond
         <select name="background">
           <option value="auto">Auto (selon ce que dit le passage)</option>
           {% for b in O.backgrounds %}<option value="{{ b.id }}">{{ b.id }}{% if b.tags %} · {{ b.tags }}{% endif %}</option>{% endfor %}
         </select>
-      </label>
-      <label>Mots expliqués (surlignés, sens du Muyassar)
-        <select name="words">
-          <option value="auto">Auto (règles habituelles)</option>
-          <option value="aucun">Aucun</option>
-        </select>
-        <span class="small">Pour choisir les mots : l'aperçu les liste, numérotés ; réponds <code>/mots 2 5</code> ou coche-les sur la page d'aperçu.</span>
       </label>
       <fieldset>
         <legend>Plateformes</legend>

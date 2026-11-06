@@ -109,3 +109,10 @@ cartes récitateur et fond ont « Publier à la demande avec … » (`?reciter=�
 `?background=…#on-demand`, le formulaire s'ouvre présélectionné). Les publications à la
 demande sont listées dans « Publications » (`catalog/ondemand.py`).
 
+Depuis le 2026-11-06, le formulaire montre aussi, **avant** le ticket, les ayahs choisies (lues
+en direct sur Quran.com), un avertissement si la plage coupe une phrase, et les sens du
+Muyassar à cocher (`catalog/surahs/SSS.json`, écrits par `ondemand.surah_files` avec le code
+et la numérotation de l'aperçu ; extraits publiés sur le site, choix du propriétaire). Les sens
+sont téléchargés au plus 15 min par construction (`--meanings-minutes`), Juz' 'Amma d'abord ;
+une note du catalogue dit combien de sourates sont prêtes.
+

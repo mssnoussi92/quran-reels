@@ -9,6 +9,8 @@ usual rules (config/glosses.yaml, at most max_per_ayah per ayah).
 
 from __future__ import annotations
 
+import contextlib
+import io
 from dataclasses import dataclass
 from typing import Any
 
@@ -116,3 +118,23 @@ def shown_numbers(found: list[Meaning], manifest: dict) -> set[int]:
     shown = {(a["ref"], g["lemma"]) for a in manifest.get("ayahs") or []
              for g in a.get("glosses") or []}
     return {m.n for m in found if (m.ref, m.quoted) in shown}
+
+
+def auto_numbers(cfg: Config, src: Any, key: str, found: list[Meaning]) -> set[int]:
+    """Numbers the usual rules show (passage.anchor without a choice): pre-ticked in forms."""
+    from quran_reels.passage import anchor
+
+    surah, start, end = parse_passage(key)
+    refs = [AyahRef(surah, a) for a in range(start, end + 1)]
+    texts = src.quran.text(refs)
+    entries = src.glosses.entries(refs, src.quran.global_index)
+    out: set[int] = set()
+    for r in refs:
+        with contextlib.redirect_stderr(io.StringIO()):     # warnings: the preview gives them
+            shown = anchor(r, entries[r], texts[r], cfg)
+        for g in shown:
+            m = next((m for m in found if m.ref == str(r) and m.n not in out and m.usable
+                      and m.quoted == g.lemma), None)
+            if m:
+                out.add(m.n)
+    return out

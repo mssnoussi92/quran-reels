@@ -55,6 +55,10 @@ class QuranCom:
                 return int(t["id"])
         raise SystemExit(f"translation {slug!r} not found on Quran.com")
 
+    def translation_id(self, slug: str) -> int:
+        """Quran.com's id of a translation (the catalogue's form reads it from the API)."""
+        return self._translation_id(slug, False)
+
     def ensure(self, translation_slug: str) -> None:
         needed = ["chapters.json", "uthmani.json", f"translation-{translation_slug}.json"]
         if not all((self.dir / n).is_file() for n in needed):
