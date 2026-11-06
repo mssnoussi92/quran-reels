@@ -230,6 +230,9 @@ def collect(cfg: Config, state: dict, history: dict, state_dir: Path | None,
     cards = []
     for name, r in listed.items():
         status = "rotation" if name in rotation else "retired"
+        story = (history.get("reciters") or {}).get(name) or []
+        if status == "retired" and story and story[-1].get("kind") == "test":
+            status = "testing"          # added to the list, its Facebook test still to come
         if not rotation and name == default:
             status = "rotation"
         events = [dict(e, date=str(e.get("date", ""))) for e in

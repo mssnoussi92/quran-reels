@@ -42,12 +42,22 @@
   les fichiers à 64 kb/s sont surestimés d'un tiers. Pas de `bismillah.mp3` : basmala = 1:1.
   Toujours « prêt » (un fichier par ayah, rien à découper) : `prepare` le saute. Durées par
   requêtes HEAD (une par ayah de la sourate, en cache `.cache/everyayah/`).
-  **AbdulSamad** (`AbdulSamad_64kbps_QuranExplorer.Com`, ticket #18) **en attente** : le
+  **AbdulSamad** (`AbdulSamad_64kbps_QuranExplorer.Com`, ticket #18) **non retenu** (ticket
+  fermé par le propriétaire, 2026-11-06 ; il reste parmi les candidats du catalogue) : le
   fichier de la 1re ayah de chaque sourate commence par ≈ 6–9 s de récitation puis une pause
-  avant l'ayah (112:1 16,8 s, 112:2 5,9 s ; 114, 93, 18 pareil), sans doute la basmala :
+  avant l'ayah (112:1 16,8 s, 112:2 5,9 s ; 114, 93, 18 pareil) : c'est la basmala
+  (reconnaissance, 2026-11-06 : « بسم الله الرحمن الرحيم » avant la pause, puis l'ayah) ;
   avec la basmala ajoutée par le pipeline, elle serait récitée deux fois et le texte de
   l'ayah 1 affiché pendant ; nom complet du récitateur inconnu (crédit) ; très lent (2:255 :
-  94 s seule) ; son `bismillah.mp3` est encodé à part (22 kHz, 40 kb/s).
+  94 s seule) ; encodages mêlés (64 kb/s, VBR avec en-tête Xing, d'autres débits sur 25
+  fichiers tirés) : durées par la taille peu fiables ; son `bismillah.mp3` est encodé à part
+  (22 kHz, 40 kb/s).
+- **Husary** (`husary`, EveryAyah `Husary_128kbps`, Mahmoud Khalil Al-Husary, ticket #32) :
+  **en essai**, dans `content.reciters` mais pas dans la rotation. 128 kb/s constants (40
+  fichiers sur 40), `bismillah.mp3` = son 1:1 (5,1 s), fichiers de 1re ayah sans basmala
+  (reconnaissance) ; allure proche d'Alafasy (2:255 : 61 s ; 112 entière : 31,7 s avec la
+  basmala). Reel 112 rendu et vérifié par reconnaissance (basmala, début de chaque ayah, fin
+  sans mot de trop). Prochaine étape : premier reel sur Facebook seul (skill `test-reciter`).
 - Choix par passage (`reciters.py`, `content.rotation`) : seulement les récitateurs dont la
   découpe de la sourate est commitée et chaque ayah du passage (et la basmala) vérifiée ;
   aucun prêt → rien n'est publié pour ce créneau (l'erreur donne `quran-reels split <passage>`).

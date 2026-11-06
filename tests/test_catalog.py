@@ -93,6 +93,15 @@ def test_every_reciter_has_the_same_sample_from_its_source(cfg):
     assert all("retirer" in parse_qs(urlparse(by[n]["issue"]).query)["title"][0] for n in rotation)
 
 
+def test_a_reciter_added_for_a_test_is_shown_as_testing(cfg):
+    out = rec_mod.collect(cfg, {}, load_history(), None, None)
+    by = {r["name"]: r for r in out["list"]}
+    assert by["husary"]["status"] == "testing"               # history: kind test, not rotation
+    assert by["husary"]["sample"][0] == "https://everyayah.com/data/Husary_128kbps/bismillah.mp3"
+    assert "rotation" in parse_qs(urlparse(by["husary"]["issue"]).query)["title"][0]
+    assert by["hudhaifi"]["status"] == "retired"
+
+
 def test_published_videos_and_claims_come_from_the_state(cfg):
     state = {"slots": {
         "2026-11-05/evening": {"passage": "2:255-255", "reciter": "budair",
@@ -292,7 +301,7 @@ def test_history_is_dated_facts(cfg):
     for name, events in history["reciters"].items():
         assert name in listed, name
         for e in events:
-            assert e["kind"] in ("claim", "removed", "check", "added") and e["text"] and e["date"]
+            assert e["kind"] in ("claim", "removed", "check", "added", "test") and e["text"] and e["date"]
     for r in history["backgrounds"]["refused"]:
         assert r["id"] and r["reason"] and r["page"].startswith("https://")
     listed_bgs = {b["id"] for b in cfg.backgrounds["backgrounds"]}
