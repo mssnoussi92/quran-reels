@@ -1,0 +1,313 @@
+name: on-demand
+
+# On-demand reels (docs/on-demand.md), driven from the owner's phone:
+#   1. the catalogue opens a pre-filled issue «À la demande : …» (reciter, passage, background,
+#      platforms) → this workflow checks it, splits the recording if needed, renders it and
+#      comments a preview (key frames, light MP4, captions, page with copy buttons);
+#   2. the owner answers /publier (or /essai: dry run) → the previewed MP4, and nothing else,
+#      is published: Meta's rights check first (rule 6), TikTok as a draft;
+#      /mots 2 5 chooses which word meanings of the source are shown (new preview);
+#   3. YouTube by hand: 1080p MP4 as a direct download once the check is clean, then
+#      /youtube <link> records it (also on the captions issue: /youtube <day>/<slot> <link>).
+#
+# The repository is public: anyone can open an issue or comment. A job starts only for the
+# owner's own issues and comments (conditions below, checked by GitHub before any secret),
+# and `quran-reels on-demand route` checks again on the event file. Issue texts are never
+# put in a shell command: the steps read them from GitHub.
+on:
+  issues:
+    types: [opened, edited]
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: "Request issue number (the captions issue for youtube)"
+        required: true
+      command:
+        description: "preview, dry-run, publish (needs your /publier after the preview), youtube, words"
+        type: choice
+        options: [preview, dry-run, publish, youtube, words]
+        default: preview
+      args:
+        description: "youtube: [day/slot] [link]; words: 2 5=قلى, aucun or auto"
+        required: false
+        default: ""
+
+permissions:
+  contents: write          # release `reels` (MP4s), branch `previews` (frames), branch `state`
+  issues: write            # comments, label
+  actions: read            # the preview's artifact, read by the publication
+
+jobs:
+  route:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issues' && github.event.issue.state == 'open' &&
+       startsWith(github.event.issue.title, 'À la demande') &&
+       github.event.issue.user.login == github.repository_owner &&
+       github.event.issue.author_association == 'OWNER' &&
+       github.event.sender.login == github.repository_owner) ||
+      (github.event_name == 'issue_comment' && !github.event.issue.pull_request &&
+       github.event.comment.user.login == github.repository_owner &&
+       github.event.comment.author_association == 'OWNER' &&
+       startsWith(github.event.comment.body, '/'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      command: ${{ steps.route.outputs.command }}
+      issue: ${{ steps.route.outputs.issue }}
+      kind: ${{ steps.route.outputs.kind }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install -q -e .
+      - id: route
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: quran-reels on-demand route
+
+  preview:
+    needs: route
+    if: needs.route.outputs.command == 'preview' || needs.route.outputs.command == 'words'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75        # a split (speech recognition) can take a while
+    concurrency:               # an edited request replaces the preview being made
+      group: on-demand-preview-${{ needs.route.outputs.issue }}
+      cancel-in-progress: true
+    env:
+      ISSUE: ${{ needs.route.outputs.issue }}
+      STATE: state-branch/published.json
+      QURAN_REELS_SPLITS: state-branch/splits
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install the package
+        run: pip install -q -e .
+      - name: Load the state branch (claimed reciters, checked splits)
+        run: |
+          if git ls-remote --exit-code --heads origin state >/dev/null; then
+            git fetch --depth=1 origin state:state
+            git worktree add state-branch state
+          else
+            mkdir -p state-branch
+          fi
+      # /mots 2 5: the owner's choice of word meanings goes into the request, then a new
+      # preview checks it (numbers of the previous preview's list).
+      - name: Write the chosen word meanings in the request
+        id: words
+        if: needs.route.outputs.command == 'words'
+        run: quran-reels on-demand words --issue "$ISSUE"
+      - name: Check the request
+        id: check
+        if: steps.words.outputs.skip != 'true'
+        run: quran-reels on-demand check --issue "$ISSUE" --state "$STATE"
+
+      # A recording not split yet for this passage: split and checked here, as the prepare
+      # workflow does each night (torch on CPU, Whisper model from the prepare cache).
+      - uses: actions/cache/restore@v5
+        if: steps.check.outputs.status == 'split'
+        with:
+          path: |
+            .cache
+            ~/.cache/huggingface
+          key: prepare-${{ github.run_id }}
+          restore-keys: prepare-
+      - name: Split the recording (speech recognition)
+        id: split
+        if: steps.check.outputs.status == 'split'
+        env:
+          RECITER: ${{ steps.check.outputs.reciter }}
+          KEY: ${{ steps.check.outputs.key }}
+        run: |
+          start=$(date +%s)
+          pip install -q torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -q -e ".[asr]" imageio-ffmpeg==0.8.1
+          mkdir -p ~/bin
+          ln -sf "$(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')" ~/bin/ffmpeg
+          export PATH="$HOME/bin:$PATH"
+          QURAN_REELS_RECITER="$RECITER" quran-reels split "$KEY" || echo "::warning::split of $KEY ($RECITER) not checked"
+          echo "seconds=$(( $(date +%s) - start ))" >> "$GITHUB_OUTPUT"
+      - name: Save the splits (state branch)
+        if: steps.check.outputs.status == 'split'
+        working-directory: state-branch
+        run: |
+          [ -e .git ] && [ -d splits ] || exit 0
+          git add splits
+          git diff --cached --quiet && exit 0
+          git -c user.name="quran-reels" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -q -m "Découpes (à la demande #$ISSUE) $(date -u +%Y-%m-%dT%H:%MZ)"
+          for i in 1 2 3 4; do
+            git push -q origin HEAD:state && exit 0
+            sleep $((2 ** i)); git fetch -q --depth=5 origin state && git rebase -q FETCH_HEAD || exit 0
+          done
+          echo "::warning::splits not saved (the state branch moved); the next run splits again"
+      - name: Check again after the split
+        id: recheck
+        if: steps.check.outputs.status == 'split'
+        env:
+          SPLIT_SECONDS: ${{ steps.split.outputs.seconds }}
+        run: quran-reels on-demand check --issue "$ISSUE" --state "$STATE" --split-seconds "${SPLIT_SECONDS:-0}"
+
+      - name: Install ffmpeg and Chromium
+        if: steps.check.outputs.status == 'ok' || steps.recheck.outputs.status == 'ok'
+        run: |
+          # Static ffmpeg of imageio-ffmpeg, no apt (the Ubuntu mirror can take 40 min).
+          pip install -q imageio-ffmpeg==0.8.1
+          mkdir -p ~/bin
+          ln -sf "$(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')" ~/bin/ffmpeg
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+          python -m playwright install chromium
+          python -c "from playwright.sync_api import sync_playwright as p; pw = p().start(); pw.chromium.launch().close(); pw.stop()" \
+            || python -m playwright install --with-deps chromium
+      - uses: actions/cache@v5
+        if: steps.check.outputs.status == 'ok' || steps.recheck.outputs.status == 'ok'
+        with:
+          path: .cache
+          key: data-${{ hashFiles('config/project.yaml') }}-${{ github.run_id }}
+          restore-keys: data-${{ hashFiles('config/project.yaml') }}-
+      - name: Render and comment the preview
+        if: steps.check.outputs.status == 'ok' || steps.recheck.outputs.status == 'ok'
+        env:
+          SPLIT_SECONDS: ${{ steps.split.outputs.seconds }}
+          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}    # an approved Pixabay clip, first use
+        run: |
+          quran-reels on-demand preview --issue "$ISSUE" --state "$STATE" \
+            ${SPLIT_SECONDS:+--split-seconds "$SPLIT_SECONDS"}
+      # For the publication: the very file that was previewed (its SHA-256 is in the comment).
+      - uses: actions/upload-artifact@v6
+        if: steps.check.outputs.status == 'ok' || steps.recheck.outputs.status == 'ok'
+        with:
+          name: on-demand-${{ needs.route.outputs.issue }}-${{ github.run_id }}
+          path: |
+            out/*.mp4
+            out/*/manifest.json
+            out/*/caption.txt
+            out/*/preview/*.png
+            out/on-demand/checked.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Say it failed
+        if: failure()
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment "$ISSUE" --repo "$GITHUB_REPOSITORY" --body \
+            "❌ L'aperçu a échoué ($RUN_URL). Rien n'est publié. Réessayer : \`/apercu\`."
+
+  publish:
+    needs: route
+    if: needs.route.outputs.command == 'publish' || needs.route.outputs.command == 'dry-run'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45        # Meta's rights check, Instagram's slow containers
+    concurrency:
+      group: accounts          # never two runs posting at once (daily, images, publish-test)
+      cancel-in-progress: false
+    env:
+      ISSUE: ${{ needs.route.outputs.issue }}
+      MODE: ${{ needs.route.outputs.command }}
+      STATE: state-branch/published.json
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install the package and ffmpeg (Facebook cover frame)
+        run: |
+          pip install -q -e . imageio-ffmpeg==0.8.1
+          mkdir -p ~/bin
+          ln -sf "$(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')" ~/bin/ffmpeg
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+      - name: Load the publication state
+        run: |
+          if git ls-remote --exit-code --heads origin state >/dev/null; then
+            git fetch --depth=1 origin state:state
+            git worktree add state-branch state
+          else
+            git worktree add --orphan -b state state-branch
+          fi
+      - name: Publish the previewed reel (or a dry run)
+        env:                   # secrets for this step only
+          META_PAGE_ID: ${{ secrets.META_PAGE_ID }}
+          META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
+          TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
+          TIKTOK_REFRESH_TOKEN: ${{ secrets.TIKTOK_REFRESH_TOKEN }}
+          GH_SECRETS_TOKEN: ${{ secrets.GH_SECRETS_TOKEN }}   # saves TikTok's new refresh token
+        run: quran-reels on-demand publish --issue "$ISSUE" --mode "$MODE" --state "$STATE"
+      - name: Save the publication state
+        if: always() && needs.route.outputs.command == 'publish'
+        working-directory: state-branch
+        run: |
+          [ -f published.json ] || exit 0
+          git add published.json
+          git diff --cached --quiet && exit 0
+          git -c user.name="quran-reels" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -q -m "État (à la demande #$ISSUE) $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -q origin HEAD:state
+      - name: Say it failed
+        if: failure()
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment "$ISSUE" --repo "$GITHUB_REPOSITORY" --body \
+            "❌ La publication a échoué ou est incomplète ($RUN_URL) : le détail est dans le commentaire ci-dessus s'il y en a un. Réessayer les plateformes manquantes : \`/publier\` (une plateforme déjà publiée ne l'est jamais deux fois)."
+
+  youtube:
+    needs: route
+    if: needs.route.outputs.command == 'youtube'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    concurrency:
+      group: accounts          # writes the state branch, like the daily run
+      cancel-in-progress: false
+    env:
+      ISSUE: ${{ needs.route.outputs.issue }}
+      KIND: ${{ needs.route.outputs.kind }}
+      STATE: state-branch/published.json
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install -q -e .
+      - name: Load the publication state
+        run: |
+          git fetch --depth=1 origin state:state
+          git worktree add state-branch state
+      - name: Record the YouTube upload
+        run: quran-reels on-demand youtube --issue "$ISSUE" --kind "$KIND" --state "$STATE"
+      - name: Save the publication state
+        working-directory: state-branch
+        run: |
+          git add published.json
+          git diff --cached --quiet && exit 0
+          git -c user.name="quran-reels" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -q -m "YouTube à la main (#$ISSUE) $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -q origin HEAD:state
+
+  # GitHub keeps one pending run per concurrency group: a waiting publication can be
+  # cancelled by the daily run. Say so, so that the owner sends the command again.
+  cancelled:
+    needs: [route, publish, youtube]
+    if: always() && (needs.publish.result == 'cancelled' || needs.youtube.result == 'cancelled')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      ISSUE: ${{ needs.route.outputs.issue }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - run: |
+          gh issue comment "$ISSUE" --repo "$GITHUB_REPOSITORY" --body \
+            "⏸️ Commande annulée par GitHub (une autre publication occupait les comptes) : rien n'a été publié par ce run. Renvoie-la (\`/publier\`, \`/essai\` ou \`/youtube …\`)."

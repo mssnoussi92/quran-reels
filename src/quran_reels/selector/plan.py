@@ -45,6 +45,16 @@ def sentence_ends(translations: dict[int, str]) -> set[int]:
     return {a for a, t in translations.items() if _SENTENCE_END.search(t.strip())}
 
 
+def starts_sentence(start: int, ends: set[int]) -> bool:
+    """A passage may start at ayah 1 or after an ayah that ends a sentence."""
+    return start == 1 or start - 1 in ends
+
+
+def ends_sentence(end: int, ayahs: int, ends: set[int]) -> bool:
+    """A passage may end with the surah or with an ayah that ends a sentence."""
+    return end == ayahs or end in ends
+
+
 def split(seconds: list[float], ends: set[int], groups: list[tuple[int, int]],
           target: float, low: float, high: float, overhead: float) -> list[tuple[int, int, bool]]:
     """(start, end, relaxed) passages covering ayahs 1..len(seconds)."""
@@ -114,7 +124,7 @@ def plan_surah(cfg: Config, surah: int, src: Sources | None = None,
     refs = [AyahRef(surah, a) for a in range(1, n + 1)]
     translations = {r.ayah: t for r, t in src.quran.translate(src.translation_slug, refs).items()}
     ends = sentence_ends(translations)
-    if not 1 <= first <= n or (first > 1 and first - 1 not in ends):
+    if not 1 <= first <= n or not starts_sentence(first, ends):
         raise SystemExit(f"{surah}:{first}: a passage cannot start there "
                          f"({surah}:{first - 1} does not end a sentence)")
     shift = first - 1                       # split() numbers the ayahs from 1

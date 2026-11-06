@@ -93,19 +93,28 @@ def choose(cfg: Config, key: str, recent: list[str], claimed: Iterable[str] = ()
            ) -> tuple[str, list[Option]]:
     """The reciter for a passage, and every option considered (for the log).
     recent: reciters published so far, oldest first; claimed: never chosen."""
-    rot = cfg.content.get("rotation") or {}
-    p = cfg.content["passage"]
-    high, target = float(p["max_seconds"]), float(p.get("target_seconds", 60))
     opts = options(cfg, key, claimed)
-    fits = [o for o in opts if o.seconds is not None and o.seconds <= high]
-    if not fits:
+    name = best(cfg, opts, recent)
+    if name is None:
         why = "; ".join(f"{o.name}: {o.why or f'{o.seconds} s'}" for o in opts)
         raise SystemExit(f"{key}: no reciter of the rotation is ready ({why}); "
                          f"prepare it with: quran-reels split {key}")
+    return name, opts
+
+
+def best(cfg: Config, opts: list[Option], recent: list[str]) -> str | None:
+    """The rotation's rule on given options: ready and within max_seconds, not one of the last
+    `avoid_last` published unless none else fits, then the closest to target_seconds (ties:
+    the list's order). None when no option fits."""
+    rot = cfg.content.get("rotation") or {}
+    p = cfg.content["passage"]
+    high, target = float(p["max_seconds"]), float(p.get("target_seconds", 60))
+    fits = [o for o in opts if o.seconds is not None and o.seconds <= high]
+    if not fits:
+        return None
     avoid = set(recent[-int(rot.get("avoid_last", 2)):]) if rot.get("avoid_last", 2) else set()
     pool = [o for o in fits if o.name not in avoid] or fits
-    best = min(pool, key=lambda o: abs(o.seconds - target))     # min keeps the list order
-    return best.name, opts
+    return min(pool, key=lambda o: abs(o.seconds - target)).name     # min keeps the list order
 
 
 def excluded_on(cfg: Config, platform: str) -> set[str]:

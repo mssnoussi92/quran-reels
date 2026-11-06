@@ -93,17 +93,30 @@ def _youtube(item: dict) -> list[str]:
     if not y.get("reciter"):
         return ["", (f"**YouTube : ne pas mettre cette vidéo** (récitateur revendiqué par "
                      f"Content ID) ; pas d'autre version : {y.get('error', '')}")]
+    files = item.get("files") or {}
+    where = (f"[ce MP4]({files['youtube_mp4']}), récitée par {y['label']}"
+             if files.get("youtube_mp4") else
+             f"`{y['video']}`, récitée par {y['label']}, dans l'artefact « reel » du run")
     return ["", (f"**YouTube : pas cette vidéo** ({y['instead_of']} y est revendiqué par Content "
-                 f"ID) mais `{y['video']}`, récitée par {y['label']}, dans l'artefact « reel » "
-                 "du run. Sa légende :"), "", "```text", y["caption"].strip(), "```"]
+                 f"ID) mais {where}. Sa légende :"), "", "```text", y["caption"].strip(), "```"]
+
+
+def _files(item: dict) -> list[str]:
+    """Direct downloads (release `reels`) and the YouTube page, from ondemand.flow.daily_files."""
+    f = item.get("files")
+    if not f:
+        return []
+    return ["", (f"⬇️ [MP4]({f['mp4']}) · 📺 [YouTube : MP4, titre, description, hashtags à "
+                 f"copier]({f['page']})"),
+            f"Mis en ligne sur YouTube ? Commente ici `{f['command']} <lien>`"]
 
 
 def _entry(item: dict, dry_run: bool) -> str:
     title = f"### {_when(item)} · {item['passage']}" + (" (dry run)" if dry_run else "")
     if item.get("label"):
         title += f" · {item['label']}"
-    return "\n".join([f"<!-- entry {item['key']} -->", title, "", _results(item), "",
-                      "```text", item["caption"].strip(), "```", *_youtube(item)])
+    return "\n".join([f"<!-- entry {item['key']} -->", title, "", _results(item), *_files(item),
+                      "", "```text", item["caption"].strip(), "```", *_youtube(item)])
 
 
 _ENTRY = re.compile(r"<!-- entry (\S+) -->")
@@ -129,8 +142,9 @@ def merge_captions(body: str, report: dict, keep: int = KEEP_CAPTIONS) -> str:
     entries = list(new.items()) + [(k, v) for k, v in old.items() if k not in new]
     head = ("Légendes des dernières vidéos, à coller sur le brouillon TikTok (il arrive dans "
             "ta boîte) : 5 hashtags, la limite de TikTok. Mis à jour à chaque publication ; "
-            "les plus récentes en haut. Tous les hashtags (YouTube) : caption.txt dans "
-            "l'artefact du run.")
+            "les plus récentes en haut. YouTube (à la main) : le lien ⬇️ MP4 de chaque vidéo "
+            "s'enregistre sur le téléphone, la page 📺 donne titre, description et tous les "
+            "hashtags à copier ; puis commente `/youtube <jour>/<créneau> <lien>` ici.")
     return "\n\n".join([head, *(v for _, v in entries[:keep])]) + "\n"
 
 

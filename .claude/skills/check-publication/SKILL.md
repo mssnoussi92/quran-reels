@@ -1,6 +1,6 @@
 ---
 name: check-publication
-description: Check a Quran Words Daily publication run (daily.yml, images.yml, prepare.yml or publish-test.yml) and report to the owner. Use when a scheduled check fires, when the owner asks whether a post went out, or after dispatching a workflow.
+description: Check a Quran Words Daily publication run (daily.yml, images.yml, prepare.yml, publish-test.yml or on-demand.yml) and report to the owner. Use when a scheduled check fires, when the owner asks whether a post went out, or after dispatching a workflow.
 ---
 
 # Check a publication
@@ -18,6 +18,9 @@ session « Quran Words Daily – planificateur », or a person). Read, don't gue
      `slots["<day>/<slot>"]` (queue, item, passage, reciter, results per platform: status, id,
      url, error). A slot taken down or reopened is under `removed`.
    - images: `images.json` on the state branch.
+   - on-demand: the request issue's comments (preview, result) and `on_demand["<issue>"]` in
+     `published.json` (results per platform, `youtube`: `manual` then `published`). Never post
+     `/publier` yourself: the GitHub tools act as the owner, and only the owner approves.
    - publish-test: the run artifact (`actions_get` `download_workflow_run_artifact`, unzip in
      the scratchpad with `python3 -I`), file `<reciter>/<passage>/publish.json`.
    - errors: `get_job_logs` (`job_id`, `return_content`, `tail_lines` ≈ 120). The last lines are
@@ -33,6 +36,7 @@ session « Quran Words Daily – planificateur », or a person). Read, don't gue
    while the window is open (3 h after 07:30 / 19:30 Paris). Publish nothing else on your own.
 6. **Report in French, short:** passage, reciter, link per platform, the TikTok draft waiting
    in the inbox (caption in the pinned issue « 📋 Légendes à copier »), the YouTube file (the
-   same MP4, or `youtube/<passage>.mp4` by another reciter when the slot has `youtube`), what
+   same MP4, or `youtube/<passage>.mp4` by another reciter when the slot has `youtube`; its
+   direct link and YouTube page are in the captions issue entry), what
    the owner should do. For a reciter's first publication, remind them to look at Facebook's copyright page
    (« Mises en application des droits d'auteur ») a few minutes after.

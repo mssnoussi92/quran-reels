@@ -3,7 +3,8 @@
 `quran-reels catalog build` reads config/*.yaml, config/series/*.yaml and the state branch
 (published.json, images.json, splits/), and writes a static folder:
 
-    index.html   four sections: reciters, backgrounds, calendar and series, recent posts
+    index.html   five sections: on-demand form, reciters, backgrounds, calendar and series,
+                 recent posts
     data.json    everything the page shows, for other tools
     catalog.css, catalog.js
     previews/    a few seconds of each stock clip in 360p (never the clip itself)
@@ -76,6 +77,7 @@ def build(cfg: Config, out: Path, state_dir: Path | None = None, previous: str |
           clip_candidates: Path | None = None, manifests: list[Path] | None = None,
           previews: bool = True, days: int = 14, now: datetime | None = None) -> Path:
     from quran_reels.catalog import backgrounds as bg_mod
+    from quran_reels.catalog import ondemand as od_mod
     from quran_reels.catalog import posts as posts_mod
     from quran_reels.catalog import reciters as rec_mod
     from quran_reels.catalog import schedule as sched_mod
@@ -149,7 +151,9 @@ def build(cfg: Config, out: Path, state_dir: Path | None = None, previous: str |
                      "fridays": sched.friday_queues, "days": days},
         "reciters": reciters, "backgrounds": backgrounds,
         "calendar": calendar, "queues": queues, "words": words,
-        "posts": posts | {"images": posts_mod.images(_json(images_state))},
+        "posts": posts | {"images": posts_mod.images(_json(images_state)),
+                          "on_demand": od_mod.posts(cfg, state.data, src)},
+        "on_demand": od_mod.launcher(cfg, state.data, src),
         "notes": notes,
     }
     out.mkdir(parents=True, exist_ok=True)

@@ -97,3 +97,29 @@ def test_repository_glosses_yaml_is_valid():
 
     root = Path(__file__).resolve().parents[1]
     assert config.load(root).gloss_headwords["93:2"] == [("سجى",)]
+
+
+# ---- the owner's choice (on-demand reels, /mots) -----------------------------------------
+
+AYAH_93_3 = "مَا وَدَّعَكَ رَبُّكَ وَمَا قَلَىٰ"
+R93_3 = AyahRef(93, 3)
+E93_3 = [entry("93:3", "مَا وَدَّعَكَ", "ما تركك."), entry("93:3", "وَمَا قَلَى", "وما أبغضك."),
+         entry("93:3", "وَدَّعَكَ رَبُّكَ", "ما تركك ربك.")]
+
+
+def test_a_selection_replaces_the_rules():
+    [g] = anchor(R93_3, E93_3, AYAH_93_3, cfg(), [(1, ())])
+    assert (g.lemma, g.word) == ("وَمَا قَلَى", "قَلَىٰ")         # particles trimmed as usual
+    [g] = anchor(R93_3, E93_3, AYAH_93_3, cfg(), [(0, ("ما", "ودعك"))])
+    assert g.positions == (0, 1)
+    assert anchor(R93_3, E93_3, AYAH_93_3, cfg(), []) == []        # none
+    picked = anchor(R93_3, E93_3, AYAH_93_3, cfg(), [(1, ()), (0, ())])
+    assert [g.lemma for g in picked] == ["وَمَا قَلَى", "مَا وَدَّعَكَ"]   # the owner's order
+
+
+@pytest.mark.parametrize("selection, why", [
+    ([(5, ())], "cannot be shown"), ([(0, ("قلى",))], "is not in"),
+    ([(0, ()), (2, ())], "the same word")])
+def test_a_selection_that_cannot_be_shown_stops_the_rendering(selection, why):
+    with pytest.raises(SystemExit, match=why):
+        anchor(R93_3, E93_3, AYAH_93_3, cfg(), selection)

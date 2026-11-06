@@ -129,6 +129,17 @@ jobs:
               commit -q -m "État $(date -u +%Y-%m-%dT%H:%MZ)"
           git push -q origin state
 
+      # Direct downloads for the phone (docs/on-demand.md): each reel that went out is put in
+      # the release `reels` (not zipped, no sign-in), with a page giving the YouTube title,
+      # description and hashtags; the captions issue links them. Never fails the run.
+      - name: Direct downloads (MP4, YouTube page)
+        if: always() && inputs.passage == '' && steps.due.outputs.due == 'true'
+        continue-on-error: true
+        timeout-minutes: 5
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: quran-reels on-demand daily-files --report out/daily-report.json
+
       # A failure opens an issue assigned to the owner (push notification in the GitHub app),
       # closed by the next run that publishes; captions to copy go to a pinned issue.
       - name: Tell the owner

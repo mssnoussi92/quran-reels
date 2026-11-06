@@ -97,3 +97,15 @@ applique la modification en PR. Aucune écriture directe depuis la page.
   construit si `main`, `state` et le jour n'ont pas changé (comparés au `data.json` déployé).
   Le site = copie de `docs/` (servi tel quel, `.nojekyll`) + `catalog/` ; le déploiement
   n'a lieu que si la construction réussit.
+
+## Publier à la demande (2026-11-06)
+
+Exception au « ne publie rien » : la section **Publier** (`#on-demand`) n'écrit toujours rien
+elle-même, mais construit un ticket prérempli « À la demande : … » que le workflow
+`on-demand` vérifie, prévisualise et publie après la réponse `/publier` du propriétaire
+(docs/on-demand.md). Listes construites depuis `config/` à chaque déploiement : récitateurs
+autorisés (rotation sans les `claimed`), 114 sourates avec leur nombre d'ayahs, fonds. Les
+cartes récitateur et fond ont « Publier à la demande avec … » (`?reciter=…#on-demand`,
+`?background=…#on-demand`, le formulaire s'ouvre présélectionné). Les publications à la
+demande sont listées dans « Publications » (`catalog/ondemand.py`).
+

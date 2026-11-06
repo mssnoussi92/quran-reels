@@ -25,6 +25,7 @@ e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis 
 | Droits | **Vérification Meta avant chaque publication** : brouillon Facebook + conteneur Instagram, publiés seulement si Meta répond `complete` sans correspondance, sinon rien n'est publié (TikTok compris). Elle n'a vu ni Alafasy, ni Ar-Rifai, ni Al-Ghamdi (revendications arrivées quelques minutes après la publication). Contrôle après publication prêt (`rights_after_timeout` > 0 : relu 5 min puis à chaque run pendant 2 jours ; muet ou bloqué → retiré de Facebook et Instagram + alerte, récitateur écarté) mais **désactivé : le propriétaire vérifie lui-même pour l'instant** (2026-11-05) ; nouveaux récitateurs testés sur Facebook seul, Instagram ensuite |
 | Fond | **choisi selon ce que dit le passage** (montagnes, mer, rivières, jardins, nuit, aube, ciel…) : vidéos Pexels choisies par le propriétaire et scènes générées (aube, nuit, mer), **sans personnes ni animaux** |
 | Exécution | GitHub Actions (dépôt public → gratuit), migrable sur le homelab (Docker) |
+| À la demande | Reel choisi depuis le téléphone (récitateur, sourate entière ou ayahs X à Y, fond, plateformes, **mots expliqués** : `/mots 1 4` parmi les sens numérotés du Muyassar, jamais écrits) : catalogue → ticket prérempli → **aperçu** en commentaire → publié seulement après **`/publier`** du propriétaire ; **en plus** des 2 créneaux ; le calendrier **ne saute pas** un passage publié à la demande ; YouTube refusé pour un récitateur revendiqué par Content ID (choix du 2026-11-06, docs/on-demand.md) |
 | Comptes pro | Page Facebook + Instagram en type **Créateur**, reliés |
 | Signature | **@quran_words_daily** sur chaque image, dans la zone sûre (repartages) |
 | Hashtags | Fin de légende, dans l'ordre : `#QuranWordsDaily`, `#Quran`, 1er tag de la série, sourate (`#SurahAdDuhaa` `#سورة_الضحى`), `#القرآن_الكريم`, autres tags de la série, récitateur, gloses (`#تفسير_القرآن`) ; **Instagram et TikTok : les 5 premiers** (leur limite), Facebook 8, `caption.txt` tous (YouTube à la main) |
@@ -82,6 +83,13 @@ src/quran_reels/
                    (1080×1350), caption.py, publish.py (carrousel Instagram, post Facebook
                    multi-photos), daily.py (`quran-reels images run`)
   notify.py        `quran-reels notify` : tickets GitHub (alerte d'échec, légendes à copier)
+  ondemand/        publication à la demande (docs/on-demand.md) : request.py (ticket), check.py
+                   (mêmes règles que le calendrier, plages valides proposées), commands.py
+                   (propriétaire seulement, approbation), flow.py (`quran-reels on-demand
+                   route|check|preview|publish|youtube|words|daily-files`), words.py (sens du
+                   Muyassar numérotés, choix `/mots` vérifié → `passage.build(glosses=…)`),
+                   media.py (aperçu 540p, images clés), files.py (release `reels`, branche
+                   `previews`), state.py
   catalog/         `quran-reels catalog build` : catalogue public en lecture seule
                    (docs/catalog.md) : récitateurs (+ candidats EveryAyah), fonds (aperçus
                    360p), calendrier et séries, publications ; décisions par tickets préremplis ;
@@ -98,16 +106,20 @@ tests/             pytest, sans réseau
                    config/images.yaml ; état images.json sur la branche `state`)
                    catalog.yml (push main config/docs, après daily/images/prepare, chaque jour,
                    à la main : docs/ + catalog/ → GitHub Pages, source « GitHub Actions »)
+                   on-demand.yml (tickets « À la demande » et commentaires `/publier`,
+                   `/essai`, `/apercu`, `/mots`, `/youtube` **du propriétaire seulement** ; aperçu hors
+                   groupe `accounts`, publication dans `accounts`)
                    Runners épinglés sur `ubuntu-24.04` (`ubuntu-latest` passe à 26.04),
                    actions en versions Node.js 24. **Pas d'apt** : le miroir Ubuntu a mis
                    40 min à installer ffmpeg (run du soir du 2026-11-05, bloqué) ; ffmpeg =
                    build statique d'imageio-ffmpeg (pip, épinglé 0.8.1 : ffmpeg 9.0.2,
                    libx264, aac ; les tests passent avec), sans ffprobe (durées lues par
                    ffmpeg) ; Chromium de Playwright, `--with-deps` seulement s'il ne démarre pas.
-docs/              site GitHub Pages (CGU, confidentialité, tiktok-login.html, tiktok-callback.html),
+docs/              site GitHub Pages (CGU, confidentialité, tiktok-login.html, tiktok-callback.html,
+                   reel.html : aperçu d'un reel et textes YouTube à copier),
                    déployé par catalog.yml avec le catalogue (/quran-reels/catalog/) ;
                    notes : sources.md, calendrier.md, rendu.md, images.md, plateformes.md,
-                   catalog.md
+                   catalog.md, on-demand.md
 .claude/skills/    procédures pour les sessions Claude (voir « Skills »)
 ```
 
@@ -144,6 +156,12 @@ quran-reels images run              # publie le format dû, écrit state/images.
 
 ```bash
 quran-reels catalog build --state state-branch --out _site/catalog   # catalogue (lecture seule)
+```
+
+```bash
+quran-reels on-demand check --issue 42       # une demande : règles, refus motivé, découpe ?
+quran-reels on-demand preview --issue 42     # rendu + aperçu commenté (workflow on-demand)
+quran-reels on-demand daily-files            # MP4 du calendrier en téléchargement direct
 ```
 
 ```bash
@@ -200,6 +218,11 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   part de Meta : Salah Budair y est revendiqué (Short 18:1-10 bloqué partout le 2026-11-06 ;
   un Short de plus d'1 min revendiqué l'est toujours) → **version YouTube à part** par un autre
   récitateur (`platforms.youtube.exclude_reciters`, `out/youtube/`, ticket des légendes).
+  **Téléchargement direct** (2026-11-06) : chaque MP4 publié (et sa version YouTube) va dans la
+  release GitHub `reels` (URL publique, non zippée, 30 jours) ; la page `reel.html` donne titre
+  (≤ 100 car., tiré de la légende), description (`caption.txt`) et hashtags à copier ; mise en
+  ligne notée par `/youtube <jour>/<créneau> <lien>` sur le ticket des légendes (état :
+  `results.youtube`, `by_hand`).
 
 ## Découpage et calendrier (détails : docs/calendrier.md)
 
@@ -220,7 +243,13 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   attend la fin, relance une fois en cas d'échec (sauf prepare) et résume (skill
   `check-publication`).
 - Échec → ticket « ⚠️ Publication quotidienne en échec » (`notify.py`) ; légendes TikTok dans
-  le ticket épinglé « 📋 Légendes à copier ».
+  le ticket épinglé « 📋 Légendes à copier », avec pour chaque vidéo le lien MP4 direct, la page
+  YouTube et la commande `/youtube`.
+- **À la demande** (docs/on-demand.md) : `on_demand` de `published.json`, une entrée par ticket,
+  un résultat par plateforme (YouTube : `manual` puis `published` + `by_hand`) ; le calendrier
+  ne le lit pas (il republie le passage à son tour, choix du propriétaire). Aperçus : images et
+  `reel.json` sur la branche `previews` (jamais fusionnée), MP4 dans la release `reels` ;
+  supprimés après 30 jours.
 
 ## Rendu (détails : docs/rendu.md)
 
@@ -299,6 +328,8 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
 - [x] Récitateurs choisis par passage (6, `content.rotation`) · [x] découpes vérifiées
       (`quran-reels split`, workflow `prepare` chaque nuit) · [ ] Juz' 'Amma et thèmes pour
       tous · [ ] refaire le plan (calculé avec Alafasy) si des passages dépassent 90 s
+- [ ] Publication à la demande (docs/on-demand.md, `on-demand.yml`) : [x] dry run sur la branche (#34, 2026-11-06 : aperçu, `/essai`, droits Meta propres, MP4 1080p et textes YouTube ; refus #35 et découpe non nette #34)
+      [ ] première publication approuvée par le propriétaire depuis son téléphone
 - [x] Catalogue (docs/catalog.md, `catalog.yml`) · [x] Pages passé en « GitHub Actions » par le
       propriétaire, premier déploiement (run #1, 2026-11-05) · [x] libellé « Catalog » créé ·
       [x] premiers tickets appliqués (#19–#28) · [x] #18 AbdulSamad non retenu (basmala dans

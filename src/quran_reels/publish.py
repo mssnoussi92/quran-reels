@@ -119,6 +119,26 @@ def load_reel(video: Path) -> Reel:
                 cover_ms=int((cover["start"] + cover["seconds"] / 2) * 1000))
 
 
+YOUTUBE_TITLE_MAX = 100        # YouTube refuses a longer title
+
+
+def youtube_texts(reel: Reel, max_tags: int | None = None) -> dict[str, str]:
+    """What to paste on YouTube for a reel, from its rendered caption (no new wording):
+    title = the caption's first paragraph (series, surah and reference) on one line, cut at a
+    separator under YouTube's limit; description = the caption with its credits and handle;
+    hashtags = the rendered ones (all, as caption.txt, unless platforms.youtube.max_hashtags)."""
+    head = [line.strip() for line in reel.caption.strip().split("\n\n", 1)[0].splitlines()
+            if line.strip()]
+    title = " · ".join(head)
+    while len(title) > YOUTUBE_TITLE_MAX and " · " in title:
+        title = title.rsplit(" · ", 1)[0]
+    if len(title) > YOUTUBE_TITLE_MAX:
+        title = title[:YOUTUBE_TITLE_MAX - 1].rsplit(" ", 1)[0] + "…"
+    tags = reel.hashtags if max_tags is None else reel.hashtags[:max_tags]
+    return {"title": title.replace("<", "").replace(">", ""),
+            "description": reel.caption.strip() + "\n", "hashtags": " ".join(tags)}
+
+
 def _report(reel: Reel, results: list[PublishResult], dry_run: bool,
             token: TokenReport | None, reciter: str = "") -> str:
     title = f"## {'🧪 Dry run' if dry_run else '📣 Publication'} {reel.passage.key}" + (
