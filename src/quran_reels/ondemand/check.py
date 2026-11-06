@@ -134,6 +134,16 @@ def chunks(surah: int, start: int, end: int, ayahs: int, ends: set[int],
     return out
 
 
+def by_hand(cfg: Config) -> frozenset[str]:
+    """Passages posted outside the calendar (config/schedule.yaml, published_by_hand)."""
+    try:
+        from quran_reels.selector.calendar import load_schedule
+
+        return load_schedule(cfg).published_by_hand
+    except (SystemExit, OSError, AttributeError, TypeError):
+        return frozenset()
+
+
 def published_before(state: dict, key: str) -> list[str]:
     """Where this passage already went: calendar slots and earlier on-demand requests."""
     out = []
@@ -287,4 +297,7 @@ def check(cfg: Config, req: Request, state: dict, src: Any = None,
     if out.key:
         for where in published_before(state, out.key):
             out.notes.append(f"déjà publié : {where}")
+        if out.key in by_hand(cfg):
+            out.notes.append("déjà publié à la main, hors calendrier (schedule.yaml, "
+                             "published_by_hand)")
     return out

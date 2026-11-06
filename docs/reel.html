@@ -34,7 +34,8 @@
   .copy .head b { font-size: 15px; }
   .copy .head small { color: var(--muted); font: 13px system-ui, sans-serif; }
   .copy pre { white-space: pre-wrap; word-break: break-word; margin: 8px 0 0; max-height: 220px;
-    overflow: auto; font: 14px/1.5 "Lora", Georgia, serif; color: var(--text); }
+    overflow: auto; font: 14px/1.5 "Lora", Georgia, serif; color: var(--text);
+    unicode-bidi: plaintext; }   /* each line in its own direction: Arabic lines read right to left */
   .copy button { padding: 8px 14px; font-size: 14px; flex: 0 0 auto; }
   .copy button.done { background: #8fe0b0; }
   ol { padding-left: 22px; } ol li { margin: 6px 0; font-size: 15.5px; }
@@ -165,6 +166,7 @@
     const src = v.preview || v.full;
     const player = $("player");
     if (src) {
+      if ((d.frames || []).length) player.poster = d.frames[0];
       player.src = src;
       player.addEventListener("error", () => { player.classList.add("hidden"); $("noplay").classList.remove("hidden"); });
     } else player.classList.add("hidden");
