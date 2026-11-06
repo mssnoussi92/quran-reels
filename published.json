@@ -17,6 +17,12 @@
    "done": [
     "kahf-first-ten/18:1-10"
    ]
+  },
+  "kahf": {
+   "round": 1,
+   "done": [
+    "al-kahf/18:11-14"
+   ]
   }
  },
  "slots": {
@@ -106,6 +112,35 @@
     }
    },
    "reciter": "budair"
+  },
+  "2026-11-06/evening": {
+   "queue": "kahf",
+   "item": "al-kahf/18:11-14",
+   "passage": "18:11-14",
+   "results": {
+    "facebook": {
+     "status": "published",
+     "id": "1185465110827294",
+     "url": "https://www.facebook.com/reel/1185465110827294/",
+     "error": null,
+     "at": "2026-11-06T18:32:17+00:00"
+    },
+    "instagram": {
+     "status": "failed",
+     "id": null,
+     "url": null,
+     "error": "instagram container 17892916341503710, 17892917463503710, 17892918489503710: still processing after 240 s",
+     "at": "2026-11-06T18:32:17+00:00"
+    },
+    "tiktok": {
+     "status": "draft",
+     "id": "v_inbox_file~v2.7705127882683795478",
+     "url": null,
+     "error": null,
+     "at": "2026-11-06T18:32:17+00:00"
+    }
+   },
+   "reciter": "sayegh"
   }
  },
  "removed": [
