@@ -23,7 +23,7 @@ from typing import Any
 from quran_reels import reciters as rec
 from quran_reels.config import Config
 from quran_reels.models import AyahRef
-from quran_reels.ondemand.request import AUTO, Request
+from quran_reels.ondemand.request import AUTO, Request, words_text
 from quran_reels.reciters import Option
 from quran_reels.selector.plan import ends_sentence, sentence_ends, starts_sentence
 
@@ -58,6 +58,7 @@ class Checked:
     not_ready: str = ""                        # why the split is needed (for a refusal)
     reciter_label: str = ""
     options: list[Option] = field(default_factory=list)
+    glosses: dict | None = None                # the owner's word meanings (passage.build)
 
     @property
     def ok(self) -> bool:
@@ -69,10 +70,11 @@ class Checked:
                 "background": self.background, "platforms": list(self.platforms),
                 "problems": self.problems, "suggestions": [str(s) for s in self.suggestions],
                 "alternatives": [str(s) for s in self.alternatives], "notes": self.notes,
-                "split": self.split, "request": {
+                "split": self.split, "words": words_text(self.request.words), "request": {
                     "reciter": self.request.reciter, "passage": self.request.passage,
                     "background": self.request.background,
-                    "platforms": list(self.request.platforms)}}
+                    "platforms": list(self.request.platforms),
+                    "words": words_text(self.request.words)}}
 
 
 def allowed_reciters(cfg: Config, state: dict) -> list[str]:
@@ -161,9 +163,11 @@ def published_before(state: dict, key: str) -> list[str]:
 
 def check(cfg: Config, req: Request, state: dict, src: Any = None,
           seconds: Callable[[str, str], Option] | None = None,
-          plan: dict[int, list[tuple[int, int]]] | None = None) -> Checked:
+          plan: dict[int, list[tuple[int, int]]] | None = None,
+          meanings: Callable[[str], list] | None = None) -> Checked:
     """The verdict on a request. seconds(reciter, key) → Option (reciters.passage_seconds by
-    default); plan: {surah: [(start, end)]} (config/plan.yaml by default)."""
+    default); plan: {surah: [(start, end)]} (config/plan.yaml by default); meanings(key) →
+    the source's word meanings for the passage (ondemand.words.meanings by default)."""
     if src is None:
         from quran_reels.sources import Sources
 
@@ -286,6 +290,15 @@ def check(cfg: Config, req: Request, state: dict, src: Any = None,
                 break
 
     out.reciter_label = label(cfg, out.reciter) if out.reciter else ""
+    if out.key and req.words is not None:          # the owner's word meanings (/mots)
+        if not req.words:
+            out.glosses = {}
+        else:
+            from quran_reels.ondemand import words as words_mod
+
+            found = (meanings or (lambda k: words_mod.meanings(cfg, src, k)))(out.key)
+            out.glosses, problems = words_mod.selection(cfg, found, req.words)
+            out.problems += problems
     if out.reciter and "youtube" in out.platforms and \
             out.reciter in rec.excluded_on(cfg, "youtube"):
         out.platforms = tuple(p for p in out.platforms if p != "youtube")

@@ -64,6 +64,13 @@
           {% for b in O.backgrounds %}<option value="{{ b.id }}">{{ b.id }}{% if b.tags %} · {{ b.tags }}{% endif %}</option>{% endfor %}
         </select>
       </label>
+      <label>Mots expliqués (surlignés, sens du Muyassar)
+        <select name="words">
+          <option value="auto">Auto (règles habituelles) : à changer après l'aperçu</option>
+          <option value="aucun">Aucun</option>
+        </select>
+        <span class="small">Pour choisir les mots : l'aperçu les liste, numérotés ; réponds <code>/mots 2 5</code> ou coche-les sur la page d'aperçu.</span>
+      </label>
       <fieldset>
         <legend>Plateformes</legend>
         {% for p in O.platforms %}<label class="inline"><input type="checkbox" name="platform" value="{{ p.id }}" checked> {{ p.label }}</label>{% endfor %}

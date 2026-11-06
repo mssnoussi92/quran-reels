@@ -655,3 +655,124 @@ def test_state_records_each_platform():
     od_state.record(state, 42, {"key": "93:1-11", "reciter": "x", "platforms": ["facebook"]},
                     {"run": 1}, [PublishResult("facebook", PublishStatus.PUBLISHED)], {})
     assert od_state.done_platforms(state, 42) == {"facebook"}
+
+
+# ---- which words are highlighted and explained (/mots) -------------------------------------
+
+def test_the_words_section():
+    from quran_reels.ondemand.request import parse_words, with_words, words_text
+
+    assert parse_words("auto") is None and parse_words("") is None
+    assert parse_words("aucun") == () and parse_words("Aucun") == ()
+    assert parse_words("2, 5=زهرة الحياة, 7") == ((2, ()), (5, ("زهرة", "الحياة")), (7, ()))
+    assert parse_words("٢ ٤") == ((2, ()), (4, ()))                    # Arabic-Indic digits
+    for bad in ("x", "2 2", "5=a b c d"):
+        with pytest.raises(ValueError):
+            parse_words(bad)
+    text = with_words(CATALOGUE_BODY, ((2, ()), (4, ("قلى",))))
+    assert parse(text).words == ((2, ()), (4, ("قلى",)))
+    assert text.index("### Mots") < text.index("---")              # before the footer
+    assert parse(with_words(text, ())).words == ()                 # replaced, not added
+    assert with_words(text, ()).count("### Mots") == 1
+    assert words_text(None) == "auto" and parse(body(parse(text))) == parse(text)
+
+
+TEXTS_93 = {1: "وَٱلضُّحَىٰ", 2: "وَٱلَّيْلِ إِذَا سَجَىٰ", 3: "مَا وَدَّعَكَ رَبُّكَ وَمَا قَلَىٰ"}
+ENTRIES_93 = {1: [("وَالضُّحَى", "أقسم الله بوقت الضحى.")], 2: [("سَجَى", "اشتد ظلامه.")],
+              3: [("مَا وَدَّعَكَ", "ما تركك."), ("وَمَا قَلَى", "وما أبغضك."),
+                  ("غَيْرُ مَوْجُودٍ", "نص."), ("وَدَّعَكَ رَبُّكَ", "ما تركك ربك.")]}
+
+
+def word_src():
+    from quran_reels.models import GlossEntry
+
+    quran = SimpleNamespace(text=lambda refs: {r: TEXTS_93[r.ayah] for r in refs},
+                            global_index=lambda r: r.ayah)
+    glosses = SimpleNamespace(entries=lambda refs, index: {
+        r: [GlossEntry(r, lemma, text, "ar-tafsir-muyassar-ghareeb")
+            for lemma, text in ENTRIES_93[r.ayah]] for r in refs})
+    return SimpleNamespace(quran=quran, glosses=glosses)
+
+
+def test_the_preview_numbers_every_meaning_of_the_source(cfg):
+    from quran_reels.ondemand import words
+
+    found = words.meanings(cfg, word_src(), "93:1-3")
+    assert [(m.n, m.ref, m.word()) for m in found if m.usable] == [
+        (1, "93:1", "وَٱلضُّحَىٰ"), (2, "93:2", "سَجَىٰ"), (3, "93:3", "وَدَّعَكَ"),
+        (4, "93:3", "قَلَىٰ"), (6, "93:3", "وَدَّعَكَ رَبُّكَ")]
+    assert found[4].why == "pas retrouvé dans le texte de l'ayah"
+    manifest = {"ayahs": [{"ref": "93:2", "glosses": [{"lemma": "سَجَى"}]}]}
+    assert words.shown_numbers(found, manifest) == {2}
+
+
+@pytest.mark.parametrize("chosen, problem", [
+    (((9, ()),), "il n'y en a que 6"), (((5, ()),), "pas retrouvé"),
+    (((3, ("قلى",)),), "n'est pas dans la citation"),
+    (((3, ()), (6, ())), "surlignent le même mot"),
+    (((3, ()), (4, ()), (1, ())), None)])
+def test_the_owners_choice_is_checked(cfg, chosen, problem):
+    from quran_reels.ondemand import words
+
+    found = words.meanings(cfg, word_src(), "93:1-3")
+    picked, problems = words.selection(cfg, found, chosen)
+    if problem:
+        assert problem in problems[0]
+    else:
+        assert not problems
+        assert picked == {"93:3": [(0, ()), (1, ())], "93:1": [(0, ())]}
+
+
+def test_at_most_max_per_ayah(cfg):
+    import copy
+
+    from quran_reels.ondemand import words
+
+    one = copy.deepcopy(cfg)
+    one.project["content"]["glosses"]["max_per_ayah"] = 1
+    found = words.meanings(one, word_src(), "93:1-3")
+    _, problems = words.selection(one, found, ((3, ()), (4, ())))
+    assert problems == ["93:3 : 2 mots choisis, 1 au plus par ayah (la place à l'écran)"]
+
+
+def test_check_passes_the_choice_to_the_rendering(cfg):
+    from quran_reels.ondemand import words
+
+    found = words.meanings(cfg, word_src(), "93:1-3")
+    c = verdict(cfg, "sayegh", 1, 3, meanings=lambda key: found)
+    assert c.glosses is None                                   # the usual rules
+    req = Request("sayegh", 93, 1, 3, words=((4, ("قلى",)),))
+    c = check(cfg, req, {}, src=SRC, seconds=seconds, plan={93: [(1, 11)]},
+              meanings=lambda key: found)
+    assert c.ok and c.glosses == {"93:3": [(1, ("قلى",))]}
+    req = Request("sayegh", 93, 1, 3, words=())
+    assert check(cfg, req, {}, src=SRC, seconds=seconds, plan={},
+                 meanings=lambda key: found).glosses == {}
+    req = Request("sayegh", 93, 1, 3, words=((9, ()),))
+    assert "il n'y en a que 6" in check(cfg, req, {}, src=SRC, seconds=seconds, plan={},
+                                         meanings=lambda key: found).problems[0]
+
+
+def test_mots_rewrites_the_request_then_previews_again(world):
+    assert flow.route("issue_comment", payload("/mots 2 4=قلى"), OWNER)["command"] == "words"
+    assert flow.run_words(world.gh, 42, "2 4=قلى") is True
+    assert "### Mots\n\n2, 4=قلى" in world.gh.edits[-1]["body"]
+    assert flow.run_words(world.gh, 42, "deux") is False
+    assert "`/mots`" in world.gh.posted[-1]
+
+
+def test_the_preview_lists_the_words_and_how_to_choose(cfg):
+    from quran_reels.ondemand import page
+
+    d = page.data(cfg, reel(), kind="on-demand", rid="od/42/1", stage="preview", created="t",
+                  reciter="x", seconds=50, platforms=["facebook"])
+    d["words"] = [{"n": 1, "ref": "93:1", "word": "وَٱلضُّحَىٰ", "gloss": "أقسم الله بوقت الضحى.",
+                   "usable": True, "why": "", "shown": True},
+                  {"n": 2, "ref": "93:3", "word": "غير", "gloss": "", "usable": False,
+                   "why": "pas retrouvé dans le texte de l'ayah", "shown": False}]
+    d["words_mode"] = "auto"
+    text = comments.preview(d, {"run": 1}, "https://page", [])
+    assert "<b>Mots expliqués</b> : 1 sur 2 (choisis par les règles habituelles)" in text
+    assert "- ✅ **1** · 93:1 · وَٱلضُّحَىٰ — أقسم الله بوقت الضحى." in text
+    assert "- ✖️ **2** · 93:3 · غير — _pas retrouvé" in text
+    assert "`/mots 1 4`" in text

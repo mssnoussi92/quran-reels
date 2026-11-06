@@ -19,7 +19,14 @@ from quran_reels.ondemand.check import Checked, check, label
 from quran_reels.ondemand.commands import Refused, approval, authorized, command
 from quran_reels.ondemand.files import Hosting
 from quran_reels.ondemand.gh import GitHub
-from quran_reels.ondemand.request import RequestError, is_request, parse
+from quran_reels.ondemand.request import (
+    RequestError,
+    is_request,
+    parse,
+    parse_words,
+    with_words,
+    words_text,
+)
 from quran_reels.selector.calendar import State
 
 WORKFLOW = ".github/workflows/on-demand.yml"
@@ -140,7 +147,8 @@ def run_preview(cfg: Config, gh: GitHub, hosting: Hosting, number: int, state: d
         return 0
     gh.react(number, "eyes")
     pcfg = rec.with_reciter(cfg, checked.reciter)
-    result = render_passage(pcfg, checked.key, background=checked.background)
+    result = render_passage(pcfg, checked.key, background=checked.background,
+                            glosses=checked.glosses)
     video = result.video
     reel = publish_mod.load_reel(video)
     manifest = json.loads((video.with_suffix("") / "manifest.json").read_text(encoding="utf-8"))
@@ -166,6 +174,8 @@ def run_preview(cfg: Config, gh: GitHub, hosting: Hosting, number: int, state: d
                   platforms=list(checked.platforms), background=shown_bg, issue=issue,
                   video={"preview": preview_url},
                   frames=[hosting.raw_url(f"{rid}/{p.name}") for p in shots], notes=notes)
+    d["words"] = word_list(pcfg, checked.key, manifest)
+    d["words_mode"] = words_text(checked.request.words)
     files[f"{rid}/reel.json"] = json.dumps(d, ensure_ascii=False, indent=1)
     hosting.publish(files, f"Aperçu #{number} {checked.key}")
     meta = {"run": int(run_id) if str(run_id).isdigit() else run_id,
@@ -173,13 +183,41 @@ def run_preview(cfg: Config, gh: GitHub, hosting: Hosting, number: int, state: d
             "body": comments.body_hash(issue_data.get("body")), "rid": rid,
             "key": checked.key, "slug": result.passage.slug, "reciter": checked.reciter,
             "background": checked.background, "platforms": list(checked.platforms),
-            "seconds": round(result.seconds, 1)}
+            "seconds": round(result.seconds, 1), "words": words_text(checked.request.words)}
     (work / "checked.json").write_text(json.dumps(checked.as_dict() | {"meta": meta},
                                                   ensure_ascii=False, indent=1), "utf-8")
     gh.comment(number, comments.preview(d, meta, hosting.page_url(rid, "1"), notes))
     gh.label(number, LABEL, description="Publication à la demande (docs/on-demand.md)")
     output("rid", rid)
     return 0
+
+
+def word_list(cfg: Config, key: str, manifest: dict) -> list[dict]:
+    """The source's word meanings for the passage, numbered, those the reel shows marked."""
+    from quran_reels.ondemand import words as words_mod
+    from quran_reels.sources import Sources
+
+    try:
+        found = words_mod.meanings(cfg, Sources.from_config(cfg), key)
+    except Exception as e:      # noqa: BLE001  (the list is a help, the reel is rendered)
+        print(f"warning: word meanings of {key}: {type(e).__name__}: {e}", file=sys.stderr)
+        return []
+    shown = words_mod.shown_numbers(found, manifest)
+    return [m.as_dict(m.n in shown) for m in found]
+
+
+def run_words(gh: GitHub, number: int, args: str) -> bool:
+    """`/mots …`: the choice is written in the request's «Mots» section (the preview that
+    follows checks it). False, with a comment, when it cannot be read."""
+    issue = _request_issue(gh, number)
+    try:
+        chosen = parse_words(args)
+    except ValueError as e:
+        gh.comment(number, f"⛔ `/mots` : {e}" + comments.FOOTER)
+        return False
+    gh.edit_issue(number, body=with_words(issue.get("body") or "", chosen))
+    gh.react(number, "eyes")
+    return True
 
 
 def artifact_name(number: int, run_id: str) -> str:

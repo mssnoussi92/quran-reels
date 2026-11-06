@@ -16,7 +16,7 @@ from quran_reels.ondemand.check import Checked
 MARKER = "on-demand-preview"
 _MARK = re.compile(r"<!-- " + MARKER + r" (\{.*?\}) -->", re.DOTALL)
 FOOTER = ("\n\n<sub>Rien n'est publié sans ta réponse. Commandes : `/publier` · `/essai` "
-          "(dry run) · `/apercu` · `/youtube <lien>` — "
+          "(dry run) · `/apercu` · `/mots` · `/youtube <lien>` — "
           "[comment ça marche](https://github.com/mssnoussi92/quran-reels/blob/main/docs/"
           "on-demand.md)</sub>")
 
@@ -92,6 +92,7 @@ def preview(d: dict, meta: dict, page: str, notes: list[str]) -> str:
         lines.append(f"> ⚠️ {n}")
     if notes:
         lines.append("")
+    lines += _words(d)
     lines += [("**Pour publier, réponds `/publier`.** Essai sans rien publier : `/essai` · "
                "refaire l'aperçu : `/apercu` (ou modifie le ticket)."), "",
               "<details><summary>Légendes</summary>", ""]
@@ -99,6 +100,34 @@ def preview(d: dict, meta: dict, page: str, notes: list[str]) -> str:
         lines += [f"**{c['label']}**", "", *_block(c["text"]), ""]
     lines.append("</details>")
     return "\n".join(lines) + FOOTER
+
+
+def _short(text: str, n: int = 90) -> str:
+    text = " ".join(text.split())
+    return text if len(text) <= n else text[:n - 1].rsplit(" ", 1)[0] + "…"
+
+
+def _words(d: dict) -> list[str]:
+    """The source's word meanings for the passage, numbered, ✅ for those shown: the owner
+    picks with /mots (ondemand/words.py)."""
+    found = d.get("words") or []
+    shown = [w for w in found if w["shown"]]
+    mode = d.get("words_mode", "auto")
+    how = {"auto": "choisis par les règles habituelles", "aucun": "aucun, à ta demande"}.get(
+        mode, f"ton choix : {mode}")
+    if not found:
+        return ["**Mots expliqués** : le Muyassar n'explique aucun mot de ce passage.", ""]
+    lines = [(f"<details><summary><b>Mots expliqués</b> : {len(shown)} sur {len(found)} "
+              f"({how})</summary>"), ""]
+    for w in found:
+        mark = "✅" if w["shown"] else ("◻️" if w["usable"] else "✖️")
+        tail = f" — {_short(w['gloss'])}" if w["usable"] else f" — _{w['why']}_"
+        lines.append(f"- {mark} **{w['n']}** · {w['ref']} · {w['word']}{tail}")
+    lines += ["", ("Pour choisir : réponds `/mots 1 4` (ces numéros, 2 au plus par ayah) · un "
+                   "mot précis de la citation : `/mots 4=قلى` · `/mots aucun` · `/mots auto`. "
+                   "Le sens vient toujours du Muyassar, tel quel ; un nouvel aperçu suit."),
+              "", "</details>", ""]
+    return lines
 
 
 def _rights(r: dict) -> str:

@@ -20,7 +20,8 @@ def add_parser(sub: argparse._SubParsersAction) -> None:
     for name, text in (("check", "check the request (comments a refusal or a split)"),
                        ("preview", "render, upload the preview, comment it"),
                        ("publish", "publish the previewed reel after the owner's approval"),
-                       ("youtube", "record a YouTube upload made by hand")):
+                       ("youtube", "record a YouTube upload made by hand"),
+                       ("words", "/mots: write the chosen word meanings in the request")):
         p = od_sub.add_parser(name, help=text)
         p.add_argument("--issue", type=int, required=True)
         p.add_argument("--state", default="state/published.json")
@@ -67,7 +68,7 @@ def run(cfg: Config, args: argparse.Namespace) -> int:
         if event == "workflow_dispatch" and out["command"] and out["issue"]:
             title = gh.issue(int(out["issue"])).get("title") or ""
             out["kind"] = "captions" if title == flow.CAPTIONS_TITLE else "request"
-        if out["command"] not in ("", "preview", "publish", "dry-run", "youtube"):
+        if out["command"] not in ("", "preview", "publish", "dry-run", "youtube", "words"):
             out["command"] = ""
         if out.get("why"):
             print(f"ignored: {out['why']}")
@@ -96,4 +97,8 @@ def run(cfg: Config, args: argparse.Namespace) -> int:
         return flow.run_publish(cfg, gh, hosting, args.issue, args.mode, state_path, comment_id)
     if args.od_command == "youtube":
         return flow.run_youtube(cfg, gh, args.issue, rest, state_path, comment_id, args.kind)
+    if args.od_command == "words":
+        ok = flow.run_words(gh, args.issue, rest)
+        flow.output("skip", "false" if ok else "true")
+        return 0
     return 2

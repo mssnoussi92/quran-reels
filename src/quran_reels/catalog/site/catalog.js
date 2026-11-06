@@ -168,7 +168,8 @@
       const rec = f.reciter.selectedOptions[0];
       const body = [`### ${h.reciter}\n\n${f.reciter.value}`, `### ${h.passage}\n\n${passage}`,
                     `### ${h.background}\n\n${f.background.value}`,
-                    `### ${h.platforms}\n\n${platforms.join(", ")}`].join("\n\n")
+                    `### ${h.platforms}\n\n${platforms.join(", ")}`,
+                    `### ${h.words}\n\n${f.words.value}`].join("\n\n")
                    + `\n\n---\n${form.dataset.footer}\n`;
       const who = f.reciter.value === "auto" ? "auto" : rec.textContent;
       const title = `${form.dataset.prefix} : ${passage} · ${who}`;

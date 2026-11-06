@@ -57,6 +57,16 @@ titre, description et hashtags prêts à copier, puis `/youtube <lien>` pour le 
    - commentaire : 3 images clés, MP4 d'aperçu (540p, léger), légendes Facebook, Instagram et
      TikTok (leurs limites de hashtags), lien vers la page d'aperçu
      `…/quran-reels/reel.html?r=…` (lecteur, boutons Copier).
+   - **mots expliqués** : la liste numérotée de tous les sens que غريب التفسير الميسر donne
+     pour les ayahs du passage, ✅ pour ceux affichés (par défaut : les règles habituelles,
+     `glosses.yaml`, 2 au plus par ayah). Le propriétaire choisit en répondant `/mots 1 4 7`
+     (ou en cochant sur la page d'aperçu, qui écrit la commande), un mot précis de la citation
+     avec `/mots 4=قلى`, aucun avec `/mots aucun`, retour aux règles avec `/mots auto`. Le
+     choix est écrit dans la section « ### Mots » du ticket, vérifié (numéro existant, sens
+     affichable en phrases entières, mot présent dans la citation, 2 au plus par ayah, pas
+     deux sens sur le même mot) et un nouvel aperçu suit. **Le sens n'est jamais écrit ni
+     modifié** : seulement choisi parmi ceux de la source (règle 1). Ajouté le 2026-11-06 à
+     la demande du propriétaire.
 3. **Approbation** — `/publier` (ou `/essai` : même chemin en dry run). Ce qui est publié est
    **le fichier de l'aperçu** (même empreinte SHA-256), jamais un nouveau rendu.
 4. **Publication** — `publish_reel` comme le calendrier : vérification des droits de Meta
@@ -74,8 +84,8 @@ titre, description et hashtags prêts à copier, puis `/youtube <lien>` pour le 
    (titre, description, hashtags) et la commande `/youtube <créneau> <lien>` à y commenter.
 
 Commandes (commentaires du propriétaire seulement) : `/publier`, `/essai`, `/apercu` (refaire
-l'aperçu ; modifier le ticket le refait aussi), `/youtube [lien]` ; sur le ticket des
-légendes : `/youtube <jour>/<créneau> [lien]`.
+l'aperçu ; modifier le ticket le refait aussi), `/mots …` (mots expliqués), `/youtube [lien]` ;
+sur le ticket des légendes : `/youtube <jour>/<créneau> [lien]`.
 
 ## Sécurité (dépôt et logs publics)
 
@@ -105,6 +115,8 @@ légendes : `/youtube <jour>/<créneau> [lien]`.
 - Le lecteur de la page d'aperçu lit le MP4 depuis la release ; si le navigateur refuse, la
   page propose le téléchargement (même fichier).
 - Pas de modèle d'issue (voir 1) : un ticket ouvert à la main doit garder le format
-  « ### Récitateur … ### Passage … ### Fond … ### Plateformes ».
+  « ### Récitateur … ### Passage … ### Fond … ### Plateformes » (« ### Mots » facultatif).
+- Les numéros de `/mots` sont ceux du dernier aperçu : changer le passage les renumérote
+  (le nouvel aperçu montre ce qui est affiché).
 - Le contrôle des droits après publication reste celui du calendrier
   (`rights_after_timeout`, désactivé).

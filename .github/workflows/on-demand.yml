@@ -6,6 +6,7 @@ name: on-demand
 #      comments a preview (key frames, light MP4, captions, page with copy buttons);
 #   2. the owner answers /publier (or /essai: dry run) → the previewed MP4, and nothing else,
 #      is published: Meta's rights check first (rule 6), TikTok as a draft;
+#      /mots 2 5 chooses which word meanings of the source are shown (new preview);
 #   3. YouTube by hand: 1080p MP4 as a direct download once the check is clean, then
 #      /youtube <link> records it (also on the captions issue: /youtube <day>/<slot> <link>).
 #
@@ -24,12 +25,12 @@ on:
         description: "Request issue number (the captions issue for youtube)"
         required: true
       command:
-        description: "preview, dry-run, publish (needs your /publier after the preview), youtube"
+        description: "preview, dry-run, publish (needs your /publier after the preview), youtube, words"
         type: choice
-        options: [preview, dry-run, publish, youtube]
+        options: [preview, dry-run, publish, youtube, words]
         default: preview
       args:
-        description: "youtube only: [day/slot] [link]"
+        description: "youtube: [day/slot] [link]; words: 2 5=قلى, aucun or auto"
         required: false
         default: ""
 
@@ -70,7 +71,7 @@ jobs:
 
   preview:
     needs: route
-    if: needs.route.outputs.command == 'preview'
+    if: needs.route.outputs.command == 'preview' || needs.route.outputs.command == 'words'
     runs-on: ubuntu-24.04
     timeout-minutes: 75        # a split (speech recognition) can take a while
     concurrency:               # an edited request replaces the preview being made
@@ -96,8 +97,15 @@ jobs:
           else
             mkdir -p state-branch
           fi
+      # /mots 2 5: the owner's choice of word meanings goes into the request, then a new
+      # preview checks it (numbers of the previous preview's list).
+      - name: Write the chosen word meanings in the request
+        id: words
+        if: needs.route.outputs.command == 'words'
+        run: quran-reels on-demand words --issue "$ISSUE"
       - name: Check the request
         id: check
+        if: steps.words.outputs.skip != 'true'
         run: quran-reels on-demand check --issue "$ISSUE" --state "$STATE"
 
       # A recording not split yet for this passage: split and checked here, as the prepare

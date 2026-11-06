@@ -188,13 +188,14 @@ def _long_ayah(fr: FrameRenderer, src: Sources, passage: Passage, a: Ayah, sampl
 
 
 def render_passage(cfg: Config, key: str, label_ar: str = "", label_en: str = "",
-                   series_tags: tuple[str, ...] = (), background: str | None = None
-                   ) -> RenderResult:
+                   series_tags: tuple[str, ...] = (), background: str | None = None,
+                   glosses: dict | None = None) -> RenderResult:
     """label_ar / label_en: the series the passage belongs to, on the first frame and caption;
     series_tags: its hashtags; background: an id of config/backgrounds.yaml imposed by the
-    owner (on-demand reels), otherwise chosen from what the passage says."""
+    owner (on-demand reels), otherwise chosen from what the passage says; glosses: the word
+    meanings chosen by the owner (passage.build), otherwise the usual rules."""
     src = Sources.from_config(cfg)
-    passage = build(cfg, key, src)
+    passage = build(cfg, key, src, glosses)
     passage.label_ar, passage.label_en = label_ar, label_en
     passage.series_tags = tuple(series_tags)
     v = cfg.video

@@ -16,7 +16,7 @@ from quran_reels.ondemand.gh import BOT
 
 COMMANDS = {"/publier": "publish", "/publish": "publish", "/essai": "dry-run",
             "/dry-run": "dry-run", "/apercu": "preview", "/aperçu": "preview",
-            "/preview": "preview", "/youtube": "youtube"}
+            "/preview": "preview", "/youtube": "youtube", "/mots": "words", "/words": "words"}
 
 
 class Refused(Exception):
