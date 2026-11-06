@@ -90,7 +90,9 @@ titre, description et hashtags prêts à copier, puis `/youtube <lien>` pour le 
    titre (≤ 100 caractères, tiré de la légende), description (la légende de `caption.txt`, avec
    les crédits) et hashtags (tous, ceux du rendu), chacun à copier ; puis
    `/youtube https://youtube.com/shorts/…` (lien facultatif) → `youtube: published, by_hand`
-   dans l'état, ticket fermé.
+   dans l'état, ticket fermé. Pas mis en ligne (demande de test, #39) : ticket fermé « non
+   prévu », `youtube: cancelled` (+ `note`) écrit à la main dans l'état ; le catalogue ne liste
+   que les demandes arrivées sur une plateforme.
 6. **Reels du calendrier** — même téléchargement direct : après chaque run `daily`, le MP4
    publié (ou la version YouTube par un autre récitateur) va dans la release ; le ticket
    épinglé « 📋 Légendes à copier » donne, pour chaque vidéo, le lien MP4, la page YouTube

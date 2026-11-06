@@ -35,7 +35,8 @@ CAPTIONS_TITLE = "📋 Légendes à copier (TikTok, YouTube)"     # notify.CAPTI
 _RESULT_LABELS = {"published": "publié", "draft": "brouillon, non publié", "ready":
                   "conteneur prêt, non publié", "blocked": "non publié (droits)",
                   "removed": "retiré après publication", "failed": "échec",
-                  "manual": "à mettre en ligne à la main"}
+                  "manual": "à mettre en ligne à la main",
+                  "cancelled": "annulé, pas mis en ligne"}
 
 
 def output(name: str, value: str) -> None:

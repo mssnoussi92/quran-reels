@@ -827,3 +827,20 @@ def test_meanings_are_downloaded_within_a_budget(cfg, tmp_path):
     assert got == {"surahs": 2, "with_meanings": 1} and calls == [3]
     saved = json.loads((tmp_path / "093.json").read_text("utf-8"))
     assert saved["meanings"] is None and saved["ends"] == [3]   # the second: words after preview
+
+
+def test_the_catalogue_lists_only_requests_that_reached_a_platform(cfg):
+    from quran_reels.catalog import ondemand as catalog_od
+
+    def request(**results):
+        return {"passage": "101:1-11", "reciter": "omar_hisham",
+                "approved": {"at": "2026-11-06T13:51:29+00:00"},
+                "results": {p: {"status": s} for p, s in results.items()}}
+
+    state = {"on_demand": {"39": request(youtube="cancelled"), "40": request(youtube="manual"),
+                           "41": request(facebook="blocked", instagram="blocked"),
+                           "42": request(facebook="published", youtube="cancelled")}}
+    posts = catalog_od.posts(cfg, state)
+    assert [p["issue"] for p in posts] == [42]
+    assert {r["platform"]: r["label"] for r in posts[0]["results"]}["youtube"] == (
+        "annulé (pas mis en ligne)")

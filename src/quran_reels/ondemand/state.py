@@ -7,6 +7,10 @@
                                      "youtube": {"status": "manual" | "published",
                                                  "by_hand": true, "url", "at"}}}}
 
+YouTube stays `manual` until `/youtube`; a request the owner drops without uploading it (a
+test, #39) is closed « not planned » and its YouTube result set to `cancelled` by hand, with a
+`note`. Neither counts as a post: the catalogue lists only requests that reached a platform.
+
 One entry per request (issue), one result per platform. The calendar does not read it: a
 passage published on demand is published again when the calendar reaches it (owner's choice,
 2026-11-06). YouTube is marked by hand (`/youtube`), on a request or on a calendar slot.

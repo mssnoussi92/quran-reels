@@ -31,7 +31,8 @@ _DAYS = ["lun.", "mar.", "mer.", "jeu.", "ven.", "sam.", "dim."]
 _MONTHS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.",
            "nov.", "déc."]
 _STATUS = {"published": "publié", "draft": "brouillon", "ready": "prêt (dry run)",
-           "manual": "à publier à la main", "failed": "échec",
+           "manual": "à publier à la main", "cancelled": "annulé (pas mis en ligne)",
+           "failed": "échec",
            "blocked": "bloqué par la vérification des droits",
            "removed": "retiré après publication (Meta l'a rendu muet ou bloqué)"}
 

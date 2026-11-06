@@ -16,7 +16,7 @@ from quran_reels.config import Config
 from quran_reels.selector.calendar import Schedule, Series
 
 STATUS = {"published": "publié", "draft": "brouillon", "ready": "prêt (dry run)",
-          "manual": "à publier à la main", "failed": "échec", "blocked": "bloqué (droits)",
+          "manual": "à publier à la main", "cancelled": "annulé (pas mis en ligne)", "failed": "échec", "blocked": "bloqué (droits)",
           "removed": "retiré (Meta l'a rendu muet ou bloqué)"}
 PLATFORMS = {"facebook": "Facebook", "instagram": "Instagram", "tiktok": "TikTok",
              "youtube": "YouTube"}
