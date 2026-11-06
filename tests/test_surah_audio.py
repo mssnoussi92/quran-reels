@@ -1,5 +1,6 @@
 """Recitations published one file per surah: where each ayah starts, and where to cut."""
 
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -152,3 +153,17 @@ def test_a_segment_refused_again_with_the_same_cuts_is_not_kept_as_checked():
     moved = {**segments, "4": [9.5, 15.0]}
     assert kept_scores(before, moved, {"2": 0.9}, {"2"}, labels) == {"2": 0.9, "3": 1.0}
     assert kept_scores(before, segments, {"2": 0.9}, None, labels) == {"2": 0.9}
+
+
+@pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="needs ffmpeg")
+def test_a_cut_that_starts_on_a_tiny_frame(tmp_path):
+    # ffmpeg 9.0.2 (the workflows' static build) refused this cut of an MP3 with «flac:
+    # invalid block size: 11» (Omar Hisham 101:2, 2026-11-06): same times, generated audio.
+    from quran_reels.sources.surah_audio import cut, duration
+
+    mp3 = tmp_path / "s.mp3"
+    subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-f", "lavfi", "-i",
+                    "sine=frequency=440:sample_rate=44100:duration=12", "-ac", "2",
+                    "-c:a", "libmp3lame", "-b:a", "320k", str(mp3)], check=True)
+    out = cut(mp3, 7.080, 8.490, tmp_path / "c.flac")
+    assert abs(duration(out) - 1.41) < 0.03
