@@ -21,7 +21,7 @@ e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis 
 | Texte arabe | Uthmani (Hafs), police **Amiri Quran** (OFL) |
 | Traduction | **Sahih International** (anglais), créditée dans chaque légende |
 | Mots difficiles | **غريب التفسير الميسر** (Tafsir al-Muyassar, Complexe du Roi Fahd ; `almuyassar-ghareeb` sur tafsir.app), choix du propriétaire le 2026-11-05 (avant : Ibn Qutaybah, *Tafsir Gharib al-Qur'an*), sens en arabe, **1 à 3 mots liés** surlignés |
-| Récitateurs | **Choisis par passage** (`content.rotation`, `reciters.py`) parmi ceux du propriétaire (2026-11-05) : **Omar Hisham Al-Arabi, Muhammad Siddiq Al-Minshawi, Tawfiq As-Sayegh, Salah Budair** : prêt pour le passage (découpe vérifiée), ≤ 90 s, pas un des 2 derniers publiés, puis le plus proche de 60 s (passage long → récitateur rapide, sourate courte → plus lent). Écartés : Alafasy, **Nabil Ar-Rifai** (Rights Manager : 2:255 rendue muette par Facebook dans 24 territoires, 2026-11-05) et **Saad Al-Ghamdi** (2:255 revendiquée par UMG, muette en Russie, le même soir), Hudhaifi, Ayyub, Akhdar (après écoute) ; un récitateur revendiqué après publication est écarté automatiquement (`claimed`) |
+| Récitateurs | **Choisis par passage** (`content.rotation`, `reciters.py`) parmi ceux du propriétaire (2026-11-05) : **Omar Hisham Al-Arabi, Muhammad Siddiq Al-Minshawi, Tawfiq As-Sayegh, Salah Budair, Fares Abbad** (EveryAyah, ajouté depuis le catalogue, ticket #19, directement dans la rotation sans essai sur Facebook seul : choix du propriétaire) : prêt pour le passage (découpe vérifiée), ≤ 90 s, pas un des 2 derniers publiés, puis le plus proche de 60 s (passage long → récitateur rapide, sourate courte → plus lent). Écartés : Alafasy, **Nabil Ar-Rifai** (Rights Manager : 2:255 rendue muette par Facebook dans 24 territoires, 2026-11-05) et **Saad Al-Ghamdi** (2:255 revendiquée par UMG, muette en Russie, le même soir), Hudhaifi, Ayyub, Akhdar (après écoute) ; un récitateur revendiqué après publication est écarté automatiquement (`claimed`) |
 | Droits | **Vérification Meta avant chaque publication** : brouillon Facebook + conteneur Instagram, publiés seulement si Meta répond `complete` sans correspondance, sinon rien n'est publié (TikTok compris). Elle n'a vu ni Alafasy, ni Ar-Rifai, ni Al-Ghamdi (revendications arrivées quelques minutes après la publication). Contrôle après publication prêt (`rights_after_timeout` > 0 : relu 5 min puis à chaque run pendant 2 jours ; muet ou bloqué → retiré de Facebook et Instagram + alerte, récitateur écarté) mais **désactivé : le propriétaire vérifie lui-même pour l'instant** (2026-11-05) ; nouveaux récitateurs testés sur Facebook seul, Instagram ensuite |
 | Fond | **choisi selon ce que dit le passage** (montagnes, mer, rivières, jardins, nuit, aube, ciel…) : vidéos Pexels choisies par le propriétaire et scènes générées (aube, nuit, mer), **sans personnes ni animaux** |
 | Exécution | GitHub Actions (dépôt public → gratuit), migrable sur le homelab (Docker) |
@@ -179,7 +179,10 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   plus) : `quran-reels split <passage>`, `quran-reels split --audit --fix <sourates>`. Le texte
   reconnu n'est que comparé, jamais affiché ni publié.
 - Récitateur choisi par passage (`reciters.py`, `content.rotation`) parmi ceux dont la découpe
-  du passage est vérifiée ; workflow `prepare` chaque nuit pour les 8 jours suivants.
+  du passage est vérifiée ; workflow `prepare` chaque nuit pour les 8 jours suivants. Fares
+  Abbad : **un fichier par ayah** (EveryAyah), toujours prêt, rien à découper ; fichiers à 48 ou
+  64 kb/s, durées prévues à 48 kb/s (jamais plus courtes que la réalité). AbdulSamad (#18) en
+  attente : basmala dans le fichier de la 1re ayah, nom inconnu (docs/sources.md).
 - Fonds : clips Pexels (liste à la main) et Pixabay (`PIXABAY_API_KEY`, jamais affichée),
   scènes générées ; skill `add-background`.
 
@@ -274,7 +277,7 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
       main, est dans `published_by_hand` (jamais republiée par le calendrier)
 - [x] Série « السبع آيات المنجيات » · [ ] d'autres séries avant la fin des thèmes (≈ 2 mois)
 - [x] Fonds choisis selon le passage (scènes générées + 3 clips Pexels, PR #8 ; + 21 clips
-      Pixabay validés)
+      Pixabay validés ; tickets du catalogue : 2 retirés, 3 clips de mer ajoutés, 4 écartés)
 - [x] Publications image : Word of the day **activé** (tirages du 6 au 12 novembre avec le
       Muyassar validés par le propriétaire le 2026-11-05 ; candidats refaits : 8 599 mots,
       4 913 ayahs), Ayah of the day désactivé · [ ] premier dry-run Meta des images ·
@@ -291,5 +294,7 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
 - [x] Récitateurs choisis par passage (6, `content.rotation`) · [x] découpes vérifiées
       (`quran-reels split`, workflow `prepare` chaque nuit) · [ ] Juz' 'Amma et thèmes pour
       tous · [ ] refaire le plan (calculé avec Alafasy) si des passages dépassent 90 s
-- [x] Catalogue (docs/catalog.md, `catalog.yml`) · [ ] Pages passé en « GitHub Actions » par le
-      propriétaire et premier déploiement · [ ] libellé `catalog` créé dans le dépôt
+- [x] Catalogue (docs/catalog.md, `catalog.yml`) · [x] Pages passé en « GitHub Actions » par le
+      propriétaire, premier déploiement (run #1, 2026-11-05) · [x] libellé « Catalog » créé ·
+      [x] premiers tickets appliqués (#19–#28) · [ ] #18 AbdulSamad en attente (basmala dans
+      la 1re ayah, nom inconnu)

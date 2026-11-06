@@ -83,6 +83,10 @@ backgrounds:
   # people, no animals, no text). File URL from the API by id, downloaded on first use.
   # 21 of 38 candidates; 213423 (aurora) declined by the owner. 95188 (pb-moving-clouds)
   # removed after its first use (2:255, 2026-11-05): clouds move too fast, hard on the eyes.
+  # Catalogue tickets (2026-11-05): pb-grey-clouds and pb-cumulus-forest removed by the
+  # owner (#20, #21); of 7 sea clips approved (#22-#28), 3 passed the frame-by-frame check
+  # and are below (pb-golden-surf, pb-aerial-shore, pb-dusk-sea); the others are in the
+  # catalogue's refused list (src/quran_reels/catalog/history.yaml) with the reason.
   - id: pb-alpine-peak
     source: pixabay
     pixabay_id: 22512
@@ -118,6 +122,27 @@ backgrounds:
     page: https://pixabay.com/videos/id-133508/
     tags: [sea]
     note: waves over golden sand, blue sky, vertical (10 s)
+  - id: pb-golden-surf
+    source: pixabay
+    pixabay_id: 4006
+    author: outlinez
+    page: https://pixabay.com/videos/id-4006/
+    tags: [sea]
+    note: small waves on wet sand, golden sunset light, close-up (40 s, 1080p)
+  - id: pb-aerial-shore
+    source: pixabay
+    pixabay_id: 24216
+    author: javlemus
+    page: https://pixabay.com/videos/id-24216/
+    tags: [sea]
+    note: aerial, straight down, waves breaking on a brown sand shore (31 s, 1080p)
+  - id: pb-dusk-sea
+    source: pixabay
+    pixabay_id: 22183
+    author: Artvan93
+    page: https://pixabay.com/videos/id-22183/
+    tags: [sea]
+    note: calm sea at dusk, pink horizon, low over the shore (31 s, 1080p)
   - id: pb-forest-waterfall
     source: pixabay
     pixabay_id: 228847
@@ -153,20 +178,6 @@ backgrounds:
     page: https://pixabay.com/videos/id-59291/
     tags: [dawn]
     note: sun above a valley of fog, 4K (19 s)
-  - id: pb-cumulus-forest
-    source: pixabay
-    pixabay_id: 291622
-    author: adege
-    page: https://pixabay.com/videos/id-291622/
-    tags: [rain, sky]
-    note: cumulus over a forest line, timelapse 4K (15 s)
-  - id: pb-grey-clouds
-    source: pixabay
-    pixabay_id: 215149
-    author: adege
-    page: https://pixabay.com/videos/id-215149/
-    tags: [rain]
-    note: grey clouds over hills, timelapse 4K (40 s)
   - id: pb-storm
     source: pixabay
     pixabay_id: 223338

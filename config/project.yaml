@@ -30,7 +30,9 @@ content:
   rotation:                           # reciter chosen per passage (src/quran_reels/reciters.py)
     # Removed (2026-11-05), their 2:255 reel muted by Facebook (recording claimed), like
     # Alafasy before: Nabil Ar-Rifai (24 territories), Saad Al-Ghamdi (UMG, Russia).
-    reciters: [omar_hisham, minshawi, sayegh, budair]   # ties: this order
+    # Added (2026-11-05, catalogue ticket #19, the owner's choice: straight into the
+    # rotation, without the Facebook-only test): Fares Abbad.
+    reciters: [omar_hisham, minshawi, sayegh, budair, fares_abbad]   # ties: this order
     avoid_last: 2                     # not one of the last 2 published, unless none else fits
   # One MP3 per ayah from EveryAyah (id: its folder), so the text follows the recitation
   # exactly. Planning durations: Quran.com timings of the same recording (timings_id), or the
@@ -121,6 +123,17 @@ content:
       hashtags: ["#SalahBudair", "#صلاح_البدير"]
       basmala: "001001"
       rights: "aucune licence connue ; mp3quran.net"
+    # EveryAyah, one file per ayah (catalogue ticket #19). Its files are 48 or 64 kb/s
+    # (22 kHz, no length header; 24 of 40 sampled at 48): planned at 48 kb/s, so that a passage
+    # never lasts longer than planned (90 s on Facebook); the 64 kb/s ones are overestimated by
+    # a third. No bismillah.mp3: the basmala is its 1:1.
+    fares_abbad:
+      id: Fares_Abbad_64kbps
+      label: Fares Abbad
+      hashtags: ["#FaresAbbad", "#فارس_عباد"]
+      kbps: 48
+      basmala: "001001"
+      rights: "aucune licence connue ; EveryAyah (fichiers 48 ou 64 kb/s)"
   basmala:
     enabled: true                     # recited and shown at the start of every video
     audio: bismillah                  # EveryAyah file of the reciter: bismillah.mp3
