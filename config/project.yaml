@@ -134,6 +134,16 @@ content:
       kbps: 48
       basmala: "001001"
       rights: "aucune licence connue ; EveryAyah (fichiers 48 ou 64 kb/s)"
+    # EveryAyah, one file per ayah (catalogue ticket #32): Mahmoud Khalil Al-Husary, murattal.
+    # 128 kb/s constant (40 of 40 sampled), bismillah.mp3 is his 1:1, first-ayah files hold the
+    # ayah only (checked by recognition, 2026-11-06). Not in the rotation until his first reel
+    # is checked on Facebook alone (rule 6, test-reciter skill).
+    husary:
+      id: Husary_128kbps
+      label: Mahmoud Khalil Al-Husary
+      hashtags: ["#Husary", "#محمود_خليل_الحصري"]
+      kbps: 128
+      rights: "aucune licence connue ; EveryAyah ; enregistrements très diffusés : risque Rights Manager"
   basmala:
     enabled: true                     # recited and shown at the start of every video
     audio: bismillah                  # EveryAyah file of the reciter: bismillah.mp3

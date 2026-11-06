@@ -35,14 +35,15 @@
       depuis la source (jamais copié ici). Rotation : choisi par passage parmi {{ R.rotation|length }} récitateurs prêts,
       pas un des {{ R.avoid_last }} derniers publiés, puis le plus proche de 60 s.</p>
 
-    {% for group, title in [("rotation", "Dans la rotation"), ("retired", "Retirés")] %}
+    {% for group, title in [("rotation", "Dans la rotation"), ("testing", "En essai"), ("retired", "Retirés")] %}
+    {% if R.list|selectattr("status", "equalto", group)|list %}
     <h3>{{ title }}</h3>
     <div class="grid">
       {% for r in R.list if r.status == group %}
       <article class="card rec{% if r.claimed %} claimed{% endif %}" id="rec-{{ r.name }}">
         <div class="head">
           <h4>{{ r.label }}</h4>
-          <span class="badge {{ 'rot' if r.status == 'rotation' else 'out' }}">{{ 'rotation' if r.status == 'rotation' else 'retiré' }}</span>
+          <span class="badge {{ {'rotation': 'rot', 'testing': 'cand'}.get(r.status, 'out') }}">{{ {'rotation': 'rotation', 'testing': 'en essai'}.get(r.status, 'retiré') }}</span>
         </div>
         <p class="meta">{% if r.producer %}{{ r.producer }} · {% endif %}<a href="{{ r.source.page }}" rel="noopener">{{ r.source.name }}</a> · {{ r.source.kind }}{% if r.splits is not none %} · découpes : {{ r.splits }} sourate{{ 's' if r.splits != 1 }}{% endif %}</p>
         <button class="play" type="button" data-urls='{{ r.sample|tojson }}'><span class="ico">▶</span> Écouter 112</button>
@@ -62,6 +63,7 @@
       </article>
       {% endfor %}
     </div>
+    {% endif %}
     {% endfor %}
 
     <details class="cands" id="candidates">

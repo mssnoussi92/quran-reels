@@ -18,6 +18,8 @@ reciters:                     # name in content.reciters → events, oldest firs
     - {date: 2026-11-05, kind: check, text: "114 publiée sur Facebook (publish-test run #19) : aucun problème de droits signalé"}
   fares_abbad:
     - {date: 2026-11-05, kind: added, text: "ajouté à la rotation depuis le catalogue (ticket #19), sans essai sur Facebook seul (choix du propriétaire) ; fichiers EveryAyah 48 ou 64 kb/s, durées prévues à 48 kb/s"}
+  husary:
+    - {date: 2026-11-06, kind: test, text: "ajouté à la liste depuis le catalogue (ticket #32), pas encore dans la rotation : premier reel sur Facebook seul, puis Instagram si aucune revendication"}
   rifai:
     - {date: 2026-11-05, kind: claim, text: "2:255 rendue muette par Facebook dans 24 territoires (Rights Manager) ; retiré de la rotation"}
   ghamdi:
