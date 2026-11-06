@@ -14,6 +14,9 @@ name: on-demand
 # and `quran-reels on-demand route` checks again on the event file. Issue texts are never
 # put in a shell command: the steps read them from GitHub.
 on:
+  push:                    # TEMPORARY (tests before merge): registers the workflow so that it can
+    branches: [ccr-43503d98-ebtn1x]   # be dispatched on this branch; every job is skipped
+    paths: [".github/workflows/on-demand.yml"]
   issues:
     types: [opened, edited]
   issue_comment:
