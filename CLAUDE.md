@@ -16,7 +16,7 @@ e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis 
 | Rythme | **2 vidéos par jour**, heure de Paris : **07:30** lecture dans l'ordre, **19:30** séries thématiques |
 | Images | **Word of the day**, carrousel de 3 images 1080×1350 (le mot, son ayah, son sens dans le Tafsir al-Muyassar), **1 par jour** à 11:30 UTC sur Instagram et Facebook ; **Ayah of the day** préparé, désactivé (docs/images.md) |
 | Lecture | **Juz' 'Amma d'abord** (114 → 78), puis Al-Fatiha et 2 → 77, passages de `config/plan.yaml` |
-| Thèmes | Ayat al-Kursi, les 7 versets « المنجيات », versets de du'a, versets du rizq… : listes **proposées par l'IA en PR, validées par le propriétaire** |
+| Thèmes | Ayat al-Kursi, les 7 versets « المنجيات », versets de du'a, versets du rizq, puis (proposés le 2026-11-06) la patience (ص ب ر) et le repentir (ت و ب)… : listes **proposées par l'IA en PR, validées par le propriétaire** |
 | Vendredi | **Al-Kahf sur les deux créneaux** (choix du propriétaire, 2026-11-05) : le matin, **les 10 premières ayahs (18:1-10) en une seule vidéo, chaque vendredi** ; le soir, la suite **à partir de 18:11**, un passage par vendredi (36), puis on recommence |
 | Texte arabe | Uthmani (Hafs), police **Amiri Quran** (OFL) |
 | Traduction | **Sahih International** (anglais), créditée dans chaque légende |
@@ -278,7 +278,8 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
 - [x] Calendrier : 2 créneaux, Juz' 'Amma, séries (Ayat al-Kursi, munjiyat, du'a, rizq), Al-Kahf le
       vendredi, état, workflow `daily` — **activé** (`enabled: true`) ; 93:1-11, publiée à la
       main, est dans `published_by_hand` (jamais republiée par le calendrier)
-- [x] Série « السبع آيات المنجيات » · [ ] d'autres séries avant la fin des thèmes (≈ 2 mois)
+- [x] Série « السبع آيات المنجيات » · [x] séries patience (29 passages) et repentir (16) proposées
+      (2026-11-06, `sabr.yaml`, `tawba.yaml`, après rizq dans la file `themes`)
 - [x] Fonds choisis selon le passage (scènes générées + 3 clips Pexels, PR #8 ; + 21 clips
       Pixabay validés ; tickets du catalogue : 2 retirés, 3 clips de mer ajoutés, 4 écartés)
 - [x] Publications image : Word of the day **activé** (tirages du 6 au 12 novembre avec le

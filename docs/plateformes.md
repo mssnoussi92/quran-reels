@@ -65,7 +65,8 @@
 - Couverture Facebook (2026-11-06) : après la publication, `POST /{video}/thumbnails`
   (`source` = l'image à `thumb_offset`, la même qu'Instagram ; `is_preferred=true`) ; sinon
   Facebook choisit lui-même. Permissions `pages_manage_engagement` et `pages_read_user_content` ;
-  sans elles, un avertissement et rien d'autre. Le dry-run l'essaie sur le brouillon.
+  sans elles, un avertissement et rien d'autre. Le dry-run l'essaie sur le brouillon : posée
+  sur le brouillon de 114 (publish-test run #25, 2026-11-06), le jeton actuel suffit.
 - Instagram : `POST /{ig}/media` (`media_type=REELS`, `upload_type=resumable`, légende,
   `thumb_offset` = milieu de la première ayah glosée) → upload `rupload…/ig-api-upload/…` →
   attente `status_code=FINISHED` → vérification des droits (ci-dessous) → contrôle du quota

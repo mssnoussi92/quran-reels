@@ -1,0 +1,41 @@
+# PROPOSAL, to be validated by the owner: remove a line to drop a passage, reorder freely.
+# Made from the 93 ayahs that contain the root ص ب ر (patience; quran.ai concordance,
+# 2026-11-06), keeping those where patience is commanded, praised or rewarded, as whole
+# sentences. Left out: the «patience» of the people of the Fire or of idolaters (2:175, 14:21,
+# 25:42, 38:6, 41:24, 52:16), the dialogue of Musa and al-Khidr (18:67-82), rulings and
+# battle numbers (4:25, 8:65-66), Juz' 'Amma (read in the morning: 90:17, 103:3) and the
+# passages of other series (2:250, 7:126: du'a); 13:22-24 starts mid-sentence (13:19-24 is
+# over 90 s). Mushaf order.
+title_ar: آيات الصبر
+title_en: Patience (sabr) in the Quran
+hashtags: ["#Sabr", "#الصبر"]
+passages:
+  - "2:45-46"      # seek help through patience and prayer
+  - "2:153"        # «Allah is with the patient»
+  - "2:155-157"    # the test, and good tidings to the patient
+  - "3:186"        # «that is of the matters of determination»
+  - "3:200"        # «be patient and persevere»
+  - "7:128"        # Musa to his people: seek help through Allah and be patient
+  - "8:46"         # do not dispute, and be patient
+  - "11:9-11"      # except those who are patient and do righteous deeds
+  - "11:114-115"   # Allah does not waste the reward of those who do good
+  - "12:83"        # Ya'qub: «patience is most fitting»
+  - "12:90"        # Yusuf: «whoever fears Allah and is patient»
+  - "14:12"        # the messengers: «we will surely be patient»
+  - "16:96"        # what is with Allah remains
+  - "16:126-128"   # «your patience is not but through Allah»
+  - "20:130"       # be patient over what they say, and exalt your Lord
+  - "29:58-59"     # those who are patient and rely upon their Lord
+  - "30:60"        # «the promise of Allah is truth»
+  - "31:17"        # Luqman to his son
+  - "32:24"        # leaders guiding when they were patient
+  - "37:102"       # Isma'il: «you will find me among the patient»
+  - "38:41-44"     # Ayyub: «We found him patient»
+  - "39:10"        # the patient are given their reward without account
+  - "40:55"        # be patient, ask forgiveness, exalt your Lord
+  - "41:34-35"     # repel evil with what is better
+  - "42:43"        # whoever is patient and forgives
+  - "46:35"        # as were the messengers of determination
+  - "52:48-49"     # «you are in Our eyes»
+  - "70:5-7"       # «be patient with a gracious patience»
+  - "73:10"        # be patient over what they say
