@@ -84,9 +84,12 @@ class FakeMeta:
             raise GraphError("(#10) Application does not have permission for this action")
         self.log.append(("remove", self.name))
 
-    def prepare(self, reel):
-        self.log.append(("prepare", self.name))
+    def prepare(self, reel, hosted=None):
+        self.log.append(("prepare", self.name) + ((hosted,) if hosted else ()))
         return f"{self.name}-id"
+
+    def hosted_url(self, video_id):
+        return f"https://cdn/{video_id}.mp4" if self.name == "facebook" else None
 
     def rights(self, object_id):
         return self.check
@@ -147,7 +150,8 @@ def test_clear_everywhere_publishes_everywhere(world):
     results = go()
     assert [r.status for r in results.values()] == [PublishStatus.PUBLISHED,
                                                      PublishStatus.PUBLISHED, PublishStatus.DRAFT]
-    assert log == [("prepare", "facebook"), ("prepare", "instagram"), ("commit", "facebook"),
+    assert log == [("prepare", "facebook"),     # Instagram gets Facebook's copy as fallback
+                   ("prepare", "instagram", "https://cdn/facebook-id.mp4"), ("commit", "facebook"),
                    ("commit", "instagram"), ("publish", "tiktok"),
                    ("after", "facebook"), ("after", "instagram")]     # read again once live
 
@@ -241,3 +245,10 @@ def test_the_check_after_publication_stops_at_its_timeout():
     assert publish_mod.after_check({"facebook": fb}, results, 300, 30, clock=lambda: t[0],
                                    sleep=lambda s: t.__setitem__(0, t[0] + s)) is None
     assert t[0] == 300 and results["facebook"].status == PublishStatus.PUBLISHED
+
+
+def test_a_dry_run_deletes_its_facebook_draft(world):
+    go, log, _ = world
+    results = go(dry_run=True)
+    assert results["facebook"].status is PublishStatus.DRAFT
+    assert ("remove", "facebook") in log and ("commit", "facebook") not in log

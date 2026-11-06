@@ -7,19 +7,24 @@ container is ready but nothing is posted, and Instagram drops it after 24 hours.
 
 rupload answers 400 ProcessingFailedError to most uploads. Sometimes Instagram has the video
 anyway (run #7: container FINISHED at once), sometimes the container stays IN_PROGRESS for
-good (run #9: still after 15 min). After that error, a container that is not ready within
-stuck_after seconds is abandoned and the video goes to a new container, up to `attempts`
-times. An unpublished container costs nothing: it is not posted and expires after 24 hours.
+good (run #9: still after 15 min; 2026-11-06, run #10: three containers in a row). After that
+error, the video also goes to a container that Instagram fills itself from Facebook's copy of
+the draft reel (`hosted`: video_url, Meta's CDN, signed and unlisted, as for the image posts),
+when there is one; the first container to finish is used, our upload's first. None ready
+within stuck_after seconds: the video is uploaded again to a new container, up to `attempts`
+times, the earlier ones still watched. An unpublished container costs nothing: it is not
+posted and expires after 24 hours.
 """
 
 from __future__ import annotations
 
 import sys
+import time
 
 from quran_reels.models import PublishResult, PublishStatus, Reel
 from quran_reels.publishers import rights
 from quran_reels.publishers.base import PublisherError, StillProcessing
-from quran_reels.publishers.meta import RUPLOAD, Graph, GraphError, wait
+from quran_reels.publishers.meta import RUPLOAD, Graph, GraphError
 
 CAPTION_LIMIT = 2200
 
@@ -77,21 +82,63 @@ class InstagramPublisher:
             return cid, True
         return cid, False
 
-    def _ready_container(self, reel: Reel, params: dict[str, str]) -> str:
-        """Id of a container holding the processed video (status FINISHED)."""
+    def _from_url(self, params: dict[str, str], url: str) -> str | None:
+        """A container that Instagram fills from a public URL (Facebook's copy of the reel)."""
+        p = {k: v for k, v in params.items() if k != "upload_type"} | {"video_url": url}
+        try:
+            cid = str(self.graph.post(f"{self.ig_user_id}/media", **p)["id"])
+        except GraphError as e:
+            print(f"warning: instagram container from Facebook's copy: {e}", file=sys.stderr)
+            return None
+        print(f"instagram: container {cid} takes the video from Facebook's copy",
+              file=sys.stderr)
+        return cid
+
+    def _first_ready(self, cids: list[str], timeout: float) -> str:
+        """The first of cids whose processing is done (in their order at each round); one in
+        ERROR is dropped; transient errors are asked again. StillProcessing after timeout."""
+        deadline = time.monotonic() + timeout
+        live, error = list(cids), None
+        while True:
+            for cid in list(live):
+                try:
+                    done, _ = self._status(cid)
+                except GraphError as e:
+                    if not e.transient:
+                        live.remove(cid)
+                        error = e
+                    continue
+                if done:
+                    return cid
+            if not live:
+                raise error or GraphError("instagram: no container left")
+            if time.monotonic() >= deadline:
+                raise StillProcessing(f"instagram container {', '.join(live)}: still processing "
+                                      f"after {timeout:.0f} s")
+            time.sleep(self.poll_interval)
+
+    def _ready_container(self, reel: Reel, params: dict[str, str],
+                         hosted: str | None = None) -> str:
+        """Id of a container holding the processed video (status FINISHED). hosted: a public
+        URL of the same file (Facebook's copy), tried as soon as our upload fails."""
+        watched: list[str] = []         # containers still processing after a failed upload
         for attempt in range(1, self.attempts + 1):
             cid, failed = self._upload(reel, params)
-            timeout = self.stuck_after if failed else self.timeout
+            if not failed:
+                return self._first_ready([cid, *watched], self.timeout)
+            watched.append(cid)
+            if hosted and attempt == 1:
+                copy = self._from_url(params, hosted)
+                if copy:
+                    watched.append(copy)
             try:
-                wait(lambda c=cid: self._status(c), f"instagram container {cid}", timeout,
-                     self.poll_interval)
-                return cid
+                return self._first_ready(watched, self.stuck_after)
             except StillProcessing:
-                if not failed or attempt == self.attempts:
+                if attempt == self.attempts:
                     raise
-            print(f"warning: instagram container {cid} still IN_PROGRESS {timeout:.0f} s after "
-                  f"the upload error, uploading again to a new container "
-                  f"({attempt + 1}/{self.attempts})", file=sys.stderr)
+            print(f"warning: instagram container {', '.join(watched)} still IN_PROGRESS "
+                  f"{self.stuck_after:.0f} s after the upload error, uploading again to a new "
+                  f"container ({attempt + 1}/{self.attempts})", file=sys.stderr)
         raise AssertionError("unreachable")
 
     def _params(self, reel: Reel) -> dict[str, str]:
@@ -104,9 +151,10 @@ class InstagramPublisher:
             params["thumb_offset"] = str(reel.cover_ms)
         return params
 
-    def prepare(self, reel: Reel) -> str:
-        """Id of a container holding the processed reel, not published."""
-        return self._ready_container(reel, self._params(reel))
+    def prepare(self, reel: Reel, hosted: str | None = None) -> str:
+        """Id of a container holding the processed reel, not published. hosted: Facebook's
+        copy of the same file (FacebookPublisher.hosted_url), the fallback of our upload."""
+        return self._ready_container(reel, self._params(reel), hosted)
 
     def rights(self, container_id: str) -> rights.RightsCheck:
         return rights.check(self.graph, self.name, container_id, self.rights_timeout,

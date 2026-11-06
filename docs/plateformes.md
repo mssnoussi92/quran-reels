@@ -60,7 +60,8 @@
   `offset`, `file_size`) → finish avec `video_state=DRAFT` (toujours, depuis le 2026-11-05) →
   attente du traitement (`GET /{video_id}?fields=status`) → vérification des droits (ci-dessous)
   → finish à nouveau avec `video_state=PUBLISHED` → attente de la mise en ligne. En dry-run on
-  s'arrête avant : le brouillon reste dans Meta Business Suite → Contenu → Brouillons.
+  s'arrête avant, et le brouillon est supprimé une fois le conteneur Instagram prêt (depuis le
+  2026-11-06 ; avant, il restait dans Meta Business Suite → Contenu → Brouillons).
 - Instagram : `POST /{ig}/media` (`media_type=REELS`, `upload_type=resumable`, légende,
   `thumb_offset` = milieu de la première ayah glosée) → upload `rupload…/ig-api-upload/…` →
   attente `status_code=FINISHED` → vérification des droits (ci-dessous) → contrôle du quota
@@ -71,6 +72,14 @@
   après 15 min). Après cette erreur, on lit donc le conteneur : `ERROR` → échec ; sinon on attend
   4 min, puis on abandonne ce conteneur et on renvoie la vidéo dans un nouveau (3 essais au
   plus). Un conteneur non publié ne coûte rien : rien n'est posté, il expire après 24 h.
+- **Secours (2026-11-06)** : le 2026-11-06 au matin (run #10), trois conteneurs de suite sont
+  restés `IN_PROGRESS` ; Instagram n'est sorti qu'au run suivant. Désormais, dès que notre
+  upload échoue, un second conteneur est créé avec `video_url` = la copie Facebook du
+  brouillon (`GET /{video_id}?fields=source` : CDN de Meta, signé, non listé, comme pour les
+  images ; jamais affichée, les logs sont publics), qu'Instagram va chercher lui-même. Le
+  premier conteneur prêt est publié (le nôtre d'abord à égalité) ; les conteneurs abandonnés
+  restent surveillés aux essais suivants. Sans Facebook dans le run (Instagram seul), pas de
+  copie : comme avant.
   Le MP4 est aussi encodé sans edit list ni B-frames, AAC 128 kb/s (spécifications Reels).
 - **Dry-runs validés :** Facebook (run #3, brouillon) et Instagram (run #7, conteneur prêt).
 - **Première publication réelle (2026-11-05, publish-test run #12) :** 93:1-11 publiée sur

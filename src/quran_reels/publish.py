@@ -229,12 +229,20 @@ def publish_reel(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
     # 1. Meta: upload unpublished everywhere, then read every copyright check.
     results: dict[str, PublishResult] = {}
     prepared: dict[str, str] = {}
+    hosted = None                       # Facebook's copy: Instagram's fallback (instagram.py)
     for name in (p for p in platforms if p in META):
         print(f"{name}: uploading {reel.video.name} unpublished", file=sys.stderr)
         try:
-            prepared[name] = publishers[name].prepare(reel)
+            if name == "instagram" and hosted:
+                prepared[name] = publishers[name].prepare(reel, hosted=hosted)
+            else:
+                prepared[name] = publishers[name].prepare(reel)
         except (PublisherError, KeyError) as e:
             results[name] = PublishResult(name, PublishStatus.FAILED, error=str(e))
+            continue
+        copy = getattr(publishers[name], "hosted_url", None)
+        if name == "facebook" and "instagram" in platforms and copy:
+            hosted = copy(prepared[name])
     checks = {}
     for name, object_id in prepared.items():
         checks[name] = publishers[name].rights(object_id)
@@ -269,6 +277,15 @@ def publish_reel(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
         r = results[name]
         print(f"{name}: {r.status.value} {r.remote_id or ''} {r.url or ''} {r.error or ''}"
               .rstrip(), file=sys.stderr)
+    # A dry run leaves nothing behind on Facebook: its draft is deleted once Instagram has its
+    # container (the image dry run does the same with its photos).
+    if dry_run and "facebook" in prepared:
+        try:
+            publishers["facebook"].remove(prepared["facebook"])
+            print(f"facebook: dry run, draft {prepared['facebook']} deleted", file=sys.stderr)
+        except Exception as e:      # noqa: BLE001  (a leftover draft is harmless)
+            print(f"warning: facebook draft {prepared['facebook']} not deleted: {e}",
+                  file=sys.stderr)
     # 3. Meta's check read again on what went live (it missed Alafasy and Ar-Rifai). Never
     #    lets a publication fail: what went out must still be recorded.
     seconds = after_timeout(cfg)                # 0: off

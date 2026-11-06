@@ -7,10 +7,12 @@ commit: the same file uploaded again, finished with video_state=PUBLISHED, then 
 deleted. A draft reel cannot be published through the API: its upload session ended with the
 draft, and finishing it again fails («The video was not uploaded», code 6000, subcode 1363130,
 publish-test run #18, 2026-11-05).
-A dry run stops after the check: the draft stays unpublished.
+A dry run stops after the check; publish_reel then deletes the draft.
 """
 
 from __future__ import annotations
+
+import sys
 
 from quran_reels.models import PublishResult, PublishStatus, Reel
 from quran_reels.publishers import rights
@@ -68,6 +70,18 @@ class FacebookPublisher:
         wait(lambda: self._status(video_id, published=False), f"facebook reel {video_id}",
              self.timeout, self.poll_interval)
         return video_id
+
+    def hosted_url(self, video_id: str) -> str | None:
+        """Facebook's copy of the processed reel (its CDN: signed, unlisted), from which
+        Instagram can take the video when our upload to it fails (instagram.py). Never
+        printed: the logs are public. None when Facebook does not give one."""
+        try:
+            url = self.graph.get(video_id, fields="source").get("source")
+        except GraphError as e:
+            print(f"warning: facebook reel {video_id}: no copy for Instagram ({e})",
+                  file=sys.stderr)
+            return None
+        return url if isinstance(url, str) and url.startswith("https://") else None
 
     def rights(self, video_id: str) -> rights.RightsCheck:
         return rights.check(self.graph, self.name, video_id, self.rights_timeout,
