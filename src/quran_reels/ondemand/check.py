@@ -55,6 +55,8 @@ class Checked:
     alternatives: list[Suggestion] = field(default_factory=list)   # other reciters, same key
     notes: list[str] = field(default_factory=list)
     split: str = ""                            # this reciter's recording to split first
+    not_ready: str = ""                        # why the split is needed (for a refusal)
+    reciter_label: str = ""
     options: list[Option] = field(default_factory=list)
 
     @property
@@ -177,10 +179,10 @@ def check(cfg: Config, req: Request, state: dict, src: Any = None,
             out.problems.append(f"récitateur « {req.reciter} » inconnu (au choix : auto, "
                                 f"{', '.join(allowed)})")
         elif req.reciter not in allowed:
-            why = ("écarté après une revendication sur Meta" if req.reciter in
-                   (state.get("claimed") or {}) else "hors de la rotation")
+            reason = ("écarté après une revendication sur Meta" if req.reciter in
+                      (state.get("claimed") or {}) else "hors de la rotation")
             out.problems.append(f"{label(cfg, req.reciter)} n'est pas autorisé pour la "
-                                f"publication ({why}) ; au choix : auto, {', '.join(allowed)}")
+                                f"publication ({reason}) ; au choix : auto, {', '.join(allowed)}")
     if req.background != AUTO:
         ids = [str(b.get("id")) for b in cfg.backgrounds.get("backgrounds") or []]
         if req.background not in ids:
@@ -230,6 +232,10 @@ def check(cfg: Config, req: Request, state: dict, src: Any = None,
         opt = secs(req.reciter, out.key)
         out.seconds = opt.seconds
         if opt.seconds is None:
+            out.not_ready = why(opt)
+            out.alternatives = [Suggestion(label(cfg, n), o.seconds) for n in allowed
+                                if n != req.reciter for o in [secs(n, out.key)]
+                                if o.seconds is not None and o.seconds <= high]
             if catalogue[req.reciter].get("surah_url") and not out.problems:
                 out.split = req.reciter
             elif not out.problems:
@@ -269,6 +275,7 @@ def check(cfg: Config, req: Request, state: dict, src: Any = None,
             if len(out.suggestions) >= MAX_SUGGESTIONS:
                 break
 
+    out.reciter_label = label(cfg, out.reciter) if out.reciter else ""
     if out.reciter and "youtube" in out.platforms and \
             out.reciter in rec.excluded_on(cfg, "youtube"):
         out.platforms = tuple(p for p in out.platforms if p != "youtube")

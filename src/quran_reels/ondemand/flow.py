@@ -110,9 +110,11 @@ def run_check(cfg: Config, gh: GitHub, number: int, state: dict,
         return "refused", checked, issue
     if checked.split:
         if split_seconds is not None:      # split already tried in this run
-            msg = (f"la découpe de {label(cfg, checked.split)} pour {checked.key} n'a pas pu "
-                   f"être vérifiée ({_minutes(split_seconds)}) : choisis un autre récitateur "
-                   "ou `auto`")
+            msg = (f"la récitation de {label(cfg, checked.split)} a été découpée en "
+                   f"{_minutes(split_seconds)}, mais {checked.key} n'est pas entièrement "
+                   f"vérifié ({checked.not_ready}) : une coupe entre deux ayahs n'est pas "
+                   "nette (un mot d'une ayah entendu dans la voisine), elle ne sera pas "
+                   "publiée ainsi. Choisis un autre récitateur ou `auto`")
             if comment:
                 gh.comment(number, comments.refused(checked, [msg], req.passage))
             return "refused", checked, issue

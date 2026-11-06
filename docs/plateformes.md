@@ -266,6 +266,14 @@ github.com → photo de profil → Settings → Developer settings → Personal 
   dans l'artefact « reel » du run ; le ticket « 📋 Légendes à copier » dit quel fichier mettre
   et donne sa légende (`daily.youtube_version`, état : `youtube` du créneau). 18:1-10 sur
   YouTube : Tawfiq As-Sayegh (109 s).
+- **Téléchargement direct depuis le téléphone** (2026-11-06, docs/on-demand.md) : les artefacts
+  Actions sont zippés et demandent une connexion. Chaque MP4 publié va donc aussi dans la
+  release GitHub `reels` (pré-version, URL publique `…/releases/download/reels/<fichier>.mp4`,
+  servie en téléchargement : Téléchargements → galerie → app YouTube), supprimé après 30 jours.
+  Le ticket « 📋 Légendes à copier » donne pour chaque vidéo ce lien, la page
+  `reel.html?r=daily/<jour>-<créneau>` (titre ≤ 100 caractères tiré de la légende, description =
+  `caption.txt`, tous les hashtags, boutons Copier) et la commande à commenter une fois en ligne :
+  `/youtube <jour>/<créneau> <lien>` (état : `results.youtube` du créneau, `by_hand`).
 - Nouveau récitateur sur YouTube : mettre en ligne en **privé**, attendre quelques minutes,
   regarder les revendications (YouTube Studio → Contenu → Restrictions), puis rendre public.
 - OAuth Google : un projet en statut **« Test »** reçoit des refresh tokens qui expirent au bout

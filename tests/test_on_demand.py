@@ -163,6 +163,8 @@ def test_too_long_for_the_reciter_is_refused_with_pieces_and_other_reciters(cfg)
 def test_a_recording_not_split_yet_is_split_first(cfg):
     c = verdict(cfg, "omar_hisham")
     assert not c.problems and c.split == "omar_hisham" and not c.ok
+    assert c.not_ready == "sourate 93 pas encore découpée"
+    assert "Tawfiq As-Sayegh (57 s)" in [str(a) for a in c.alternatives]
 
 
 def test_auto_follows_the_rotation_rule(cfg):
