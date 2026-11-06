@@ -19,12 +19,13 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from quran_reels import __version__
-from quran_reels.arabic import arabic_digits
+from quran_reels.arabic import arabic_digits, words
 from quran_reels.config import Config
 from quran_reels.models import Ayah, Passage, Reel
 from quran_reels.passage import build
+from quran_reels.render import screens as screens_mod
 from quran_reels.render import video
-from quran_reels.render.frames import FrameRenderer, ayah_context
+from quran_reels.render.frames import FrameRenderer, ayah_context, part_context
 from quran_reels.sources import Sources, backgrounds, basmala_stem
 
 
@@ -91,7 +92,8 @@ def caption(cfg: Config, passage: Passage, limit: int = CAPTION_LIMIT) -> str:
 
 
 def manifest(cfg: Config, src: Sources, passage: Passage, timeline: video.Timeline,
-             background: dict) -> dict:
+             background: dict, screens: dict[str, list[dict]] | None = None) -> dict:
+    """screens: {ref: [{start, words, translation}]} for the ayahs shown on several screens."""
     c = cfg.content
     starts = timeline.starts()
     basmala = None
@@ -135,6 +137,9 @@ def manifest(cfg: Config, src: Sources, passage: Passage, timeline: video.Timeli
                 "audio": src.audio.url(a.ref),
                 "start": round(start, 3),
                 "seconds": round(a.seconds or 0, 3),
+                **({"screens": [{**sc, "start": round(start + sc["start"], 3)}
+                                for sc in (screens or {})[str(a.ref)]]}
+                   if str(a.ref) in (screens or {}) else {}),
             }
             for a, start in zip(passage.ayahs, starts)
         ],
@@ -144,6 +149,42 @@ def manifest(cfg: Config, src: Sources, passage: Passage, timeline: video.Timeli
 
 def _warn(msg: str) -> None:
     print(f"warning: {msg}", file=sys.stderr)
+
+
+def _long_ayah(fr: FrameRenderer, src: Sources, passage: Passage, a: Ayah, samples: int,
+               stem: Path, first: bool) -> list[tuple[Path, dict, int]] | None:
+    """A long ayah on 2 to MAX_PARTS screens, each readable (render/screens.py): [(png,
+    context, samples)], or None when no split reads better than the whole."""
+    tokens = words(a.text)
+    seconds = samples / video.SAMPLE_RATE
+    starts = getattr(src.audio, "word_starts", None)
+    word_starts = starts(a.ref.surah, a.ref.ayah) if starts else None
+    best: tuple[float, list] | None = None
+    for k in range(2, screens_mod.MAX_PARTS + 1):
+        parts = screens_mod.plan(tokens, a.translation, k, seconds, word_starts)
+        if len(parts) < 2:
+            break
+        out, fits = [], []
+        for i, part in enumerate(parts):
+            ctx = part_context(passage, a, part.first, part.end, part.translation,
+                               first=first and i == 0)
+            png = stem.with_name(f"{stem.name}-{i + 1}.png")
+            fits.append(fr.render("content", png, **ctx))
+            out.append((png, ctx, part.start))
+        if best is None or min(fits) > best[0]:
+            best = (min(fits), out)
+        if min(fits) >= screens_mod.MIN_FIT:
+            break
+    if best is None:
+        return None
+    fit, out = best
+    if fit < screens_mod.MIN_FIT:
+        _warn(f"{a.ref}: on {len(out)} screens, text still scaled to {fit:.0%}")
+    bounds = [round(t * video.SAMPLE_RATE) for _, _, t in out[1:]]
+    edges = [0, *bounds, samples]
+    print(f"{a.ref}: {len(out)} screens from " + ", ".join(f"{t:.1f} s" for _, _, t in out),
+          file=sys.stderr)
+    return [(png, ctx, edges[i + 1] - edges[i]) for i, (png, ctx, _) in enumerate(out)]
 
 
 def render_passage(cfg: Config, key: str, label_ar: str = "", label_en: str = "",
@@ -182,19 +223,38 @@ def render_passage(cfg: Config, key: str, label_ar: str = "", label_en: str = ""
         _warn(f"{passage.key} lasts {timeline.seconds:.1f} s, outside "
               f"{p['min_seconds']}–{p['max_seconds']} s (rendered anyway)")
 
-    frames = []
+    frames, screens, shown = [], [], {}
     with FrameRenderer(cfg) as fr:
         static = frames_dir / "static.png"
         fr.render("static", static)
-        for a in passage.segments:
-            ctx = ayah_context(passage, a, basmala=a is passage.basmala,
-                               first=a is passage.segments[0])
+        for a, n in zip(passage.segments, samples, strict=True):
+            first = a is passage.segments[0]
+            ctx = ayah_context(passage, a, basmala=a is passage.basmala, first=first)
             png = frames_dir / f"{name(a)}.png"
             fit = fr.render("content", png, **ctx)
-            if fit < 0.7:
+            if fit < screens_mod.MIN_FIT and a is not passage.basmala:
+                parts = _long_ayah(fr, src, passage, a, n, frames_dir / name(a), first)
+                if parts:
+                    at = 0
+                    for i, (png_i, ctx_i, n_i) in enumerate(parts):
+                        fr.render("preview", work / "preview" / f"{name(a)}-{i + 1}.png",
+                                  **ctx_i)
+                        frames.append(png_i)
+                        screens.append(n_i)
+                        shown.setdefault(str(a.ref), []).append({
+                            "start": at / video.SAMPLE_RATE,
+                            "words": " ".join(t["text"] for t in ctx_i["tokens"]),
+                            "translation": ctx_i["translation"]})
+                        at += n_i
+                    continue
                 _warn(f"{name(a)}: text scaled to {fit:.0%} to fit the safe area")
             fr.render("preview", work / "preview" / f"{name(a)}.png", **ctx)
             frames.append(png)
+            screens.append(n)
+    if len(screens) != len(samples):
+        timeline = video.build_timeline(samples, fps=v["fps"],
+                                        lead=float(v.get("lead_seconds", 0.4)),
+                                        tail=float(v.get("tail_seconds", 1.2)), screens=screens)
 
     bg_path, bg_info = backgrounds.pick(cfg, passage)
     audio = video.write_audio(wavs, timeline, audio_dir / "passage.wav")
@@ -203,7 +263,8 @@ def render_passage(cfg: Config, key: str, label_ar: str = "", label_en: str = ""
                   width=v["width"], height=v["height"], fade=float(v.get("fade_seconds", 0.25)))
 
     (work / "manifest.json").write_text(
-        json.dumps(manifest(cfg, src, passage, timeline, bg_info), ensure_ascii=False, indent=2),
+        json.dumps(manifest(cfg, src, passage, timeline, bg_info, shown), ensure_ascii=False,
+                   indent=2),
         encoding="utf-8")
     tags = hashtags(cfg, passage)
     room = CAPTION_LIMIT - len(" ".join(tags)) - 2       # all of them, even on Instagram

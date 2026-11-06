@@ -62,3 +62,40 @@ Meaning: Ibn Qutaybah, Tafsir Gharib al-Qur'an
   ajusté plus tard selon les statistiques.
 - Plus tard : TikTok accepte les publications photo par l'API depuis un domaine vérifié (notre
   préfixe GitHub Pages l'est), mais l'app est en Sandbox.
+
+## Implémentation
+
+*Déplacé de CLAUDE.md le 2026-11-05 (texte inchangé) ; CLAUDE.md en garde le résumé.*
+
+- Formats (`config/images.yaml`) : `word` (carrousel de 3 images : mot en grand, ayah avec le
+  mot surligné + Sahih International, sens du Muyassar mot pour mot) activé, une fois par
+  jour à `time_utc` 11:30 ; `ayah` (une image) préparé, désactivé. 1080×1350, même charte que
+  les reels, fond généré en CSS (aucune photo, aucun droit), pas d'audio (pas de Rights
+  Manager). Gabarit `images/templates/card.html.j2` d'après `docs/mockup/images/cards.html`.
+- Sélection déterministe, sans IA ni validation : candidats figés dans
+  `config/image-candidates.yaml` par `quran-reels images build` (références seulement), à
+  refaire après un changement de `glosses.yaml`, du gabarit ou de `min_scale`.
+  1. une entrée de sens ancrée sur 1 à 3 mots liés (`glosses.max_words` ; comme les reels : mots de `glosses.yaml`,
+     sinon citation sans particules de bord) ;
+  2. glose montrée entière : texte complet (notes `[[…]]` retirées) ≤ 170 caractères et fini
+     par une phrase, sinon écartée, jamais raccourcie ;
+  3. image 2 = phrase complète : l'ayah grandit à la plus petite suite qui commence après une
+     fin de phrase et en finit une (93:3 → 93:1-3, le serment commence en 93:1) ;
+  4. chaque image lisible : texte réduit au plus à `min_scale` (0,7), sinon écartée ;
+  5. `config/exclude.yaml` (lu à chaque passage, valeurs gardées en texte : `2:55` non cité
+     n'est pas lu comme un nombre en base 60) : ayahs, plages, sourates ; une suite est écartée
+     si une de ses ayahs l'est ;
+  6. rang = hash(graine, tour, id) : ordre stable même si la liste change, pas de répétition
+     avant la fin d'un tour (puis nouvel ordre), jamais deux jours de suite la même sourate
+     quand une autre est disponible.
+- Légende : modèle fixe (`images/caption.py`) ; Instagram garde les 5 premiers hashtags.
+- Publication : URL publique exigée par Instagram (pas d'envoi binaire d'image) → les 3 images
+  sont envoyées sur la Page Facebook **non publiées** (`published=false`), leur URL CDN
+  (`?fields=images`, la plus grande) sert à Instagram (3 conteneurs `is_carousel_item`, un
+  `CAROUSEL`, `media_publish`), puis post Facebook `/feed` avec `attached_media` dans l'ordre.
+  Choisi plutôt que GitHub Pages : pas de JPEG commités chaque jour (≈ 160 Mo/an d'historique),
+  pas d'attente de déploiement, images non publiques avant le post. Dry-run : rien n'est posté,
+  photos supprimées.
+- État : `images.json` sur la branche `state` (un post par jour : id, ayah, mot, résultats par
+  plateforme) ; une plateforme en échec est réessayée avec les mêmes images pendant
+  `window_hours` (6 h). Workflow `images.yml` toutes les heures.
