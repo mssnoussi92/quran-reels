@@ -3,7 +3,7 @@
  "id": "daily/2026-11-06-evening",
  "stage": "daily",
  "stage_label": "Publié par le calendrier",
- "created": "2026-11-06T18:32:23+00:00",
+ "created": "2026-11-06T18:37:34+00:00",
  "passage": "18:11-14",
  "surah": {
   "en": "Al-Kahf",
@@ -47,19 +47,9 @@
  },
  "results": [
   {
-   "name": "Facebook",
-   "url": "https://www.facebook.com/reel/1185465110827294/",
-   "label": "publié"
-  },
-  {
    "name": "Instagram",
-   "url": null,
-   "label": "échec"
-  },
-  {
-   "name": "TikTok (brouillon)",
-   "url": null,
-   "label": "brouillon, non publié"
+   "url": "https://www.instagram.com/reel/DfaQ9bWEcqR/",
+   "label": "publié"
   }
  ],
  "notes": []
