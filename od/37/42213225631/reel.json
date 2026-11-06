@@ -1,0 +1,153 @@
+{
+ "kind": "on-demand",
+ "id": "od/37/42213225631",
+ "stage": "preview",
+ "stage_label": "Aperçu : rien n'est publié",
+ "created": "2026-11-06T11:57:09+00:00",
+ "passage": "9:39-40",
+ "surah": {
+  "en": "At-Tawbah",
+  "ar": "التوبة"
+ },
+ "title": "9:39-40 · Surah At-Tawbah · سورة التوبة",
+ "reciter": "Fares Abbad",
+ "seconds": 58.4,
+ "background": "dawn (par défaut)",
+ "platforms": [
+  "TikTok (brouillon)"
+ ],
+ "issue": {
+  "number": 37,
+  "url": "https://github.com/mssnoussi92/quran-reels/issues/37"
+ },
+ "video": {
+  "preview": "https://github.com/mssnoussi92/quran-reels/releases/download/reels/od37-009_039-040-42213225631-apercu.mp4"
+ },
+ "frames": [
+  "https://raw.githubusercontent.com/mssnoussi92/quran-reels/previews/od/37/42213225631/frame-1.jpg",
+  "https://raw.githubusercontent.com/mssnoussi92/quran-reels/previews/od/37/42213225631/frame-2.jpg",
+  "https://raw.githubusercontent.com/mssnoussi92/quran-reels/previews/od/37/42213225631/frame-3.jpg"
+ ],
+ "captions": [
+  {
+   "label": "TikTok",
+   "text": "Surah At-Tawbah (9:39-40) · سورة التوبة\n\nإِلَّا تَنفِرُوا۟ يُعَذِّبْكُمْ عَذَابًا أَلِيمًا وَيَسْتَبْدِلْ قَوْمًا غَيْرَكُمْ وَلَا تَضُرُّوهُ شَيْـًٔا ۗ وَٱللَّهُ عَلَىٰ كُلِّ شَىْءٍ قَدِيرٌ ﴿٣٩﴾\n39. If you do not go forth, He will punish you with a painful punishment and will replace you with another people, and you will not harm Him at all. And Allāh is over all things competent.\n\nإِلَّا تَنصُرُوهُ فَقَدْ نَصَرَهُ ٱللَّهُ إِذْ أَخْرَجَهُ ٱلَّذِينَ كَفَرُوا۟ ثَانِىَ ٱثْنَيْنِ إِذْ هُمَا فِى ٱلْغَارِ إِذْ يَقُولُ لِصَـٰحِبِهِۦ لَا تَحْزَنْ إِنَّ ٱللَّهَ مَعَنَا ۖ فَأَنزَلَ ٱللَّهُ سَكِينَتَهُۥ عَلَيْهِ وَأَيَّدَهُۥ بِجُنُودٍ لَّمْ تَرَوْهَا وَجَعَلَ كَلِمَةَ ٱلَّذِينَ كَفَرُوا۟ ٱلسُّفْلَىٰ ۗ وَكَلِمَةُ ٱللَّهِ هِىَ ٱلْعُلْيَا ۗ وَٱللَّهُ عَزِيزٌ حَكِيمٌ ﴿٤٠﴾\n40. If you do not aid him [i.e., the Prophet (ﷺ)] - Allāh has already aided him when those who disbelieved had driven him out [of Makkah] as one of two, when they were in the cave and he [i.e., Muḥammad (ﷺ)] said to his companion, \"Do not grieve; indeed Allāh is with us.\" And Allāh sent down His tranquility upon him and supported him with soldiers [i.e., angels] you did not see and made the word of those who disbelieved the lowest, while the word of Allāh - that is the highest. And Allāh is Exalted in Might and Wise.\n\nRecitation: Fares Abbad\nTranslation: Sahih International\nWord meanings: التفسير الميسر، مجمع الملك فهد\n\n@quran_words_daily\n\n#QuranWordsDaily #Quran #SurahAtTawbah #سورة_التوبة #القرآن_الكريم\n"
+  }
+ ],
+ "youtube": null,
+ "results": [],
+ "notes": [],
+ "words": [
+  {
+   "n": 1,
+   "ref": "9:39",
+   "quoted": "يُعَذِّبۡكُمۡ",
+   "word": "يُعَذِّبْكُمْ",
+   "gloss": "يُنْزِلْ عقوبتَه بكم.",
+   "usable": true,
+   "why": "",
+   "shown": true
+  },
+  {
+   "n": 2,
+   "ref": "9:40",
+   "quoted": "إِلَّا تَنصُرُوهُ",
+   "word": "تَنصُرُوهُ",
+   "gloss": "إن لم تَنْصُروا النبيَّ ﷺ.",
+   "usable": true,
+   "why": "",
+   "shown": true
+  },
+  {
+   "n": 3,
+   "ref": "9:40",
+   "quoted": "ثَانِيَ ٱثۡنَيۡنِ",
+   "word": "ثَانِىَ ٱثْنَيْنِ",
+   "gloss": "أحدَ اثنين، والثاني هو أبوبكرٍ الصدّيقُ رضي الله عنه.",
+   "usable": true,
+   "why": "",
+   "shown": true
+  },
+  {
+   "n": 4,
+   "ref": "9:40",
+   "quoted": "ٱلۡغَارِ",
+   "word": "ٱلْغَارِ",
+   "gloss": "النَّقْبِ في الَجبَلِ، وهو في جبلِ ثورٍ ب«مكةَ».",
+   "usable": true,
+   "why": "",
+   "shown": false
+  },
+  {
+   "n": 5,
+   "ref": "9:40",
+   "quoted": "لِصَـٰحِبِهِۦ",
+   "word": "لِصَـٰحِبِهِۦ",
+   "gloss": "أبي بكرٍ الصديقِ رضي الله عنه.",
+   "usable": true,
+   "why": "",
+   "shown": false
+  },
+  {
+   "n": 6,
+   "ref": "9:40",
+   "quoted": "سَكِينَتَهُۥ",
+   "word": "سَكِينَتَهُۥ",
+   "gloss": "طمأنينتَه.",
+   "usable": true,
+   "why": "",
+   "shown": false
+  },
+  {
+   "n": 7,
+   "ref": "9:40",
+   "quoted": "بِجُنُودࣲ",
+   "word": "بِجُنُودٍ",
+   "gloss": "هم الملائكةُ، يَحْرُسُونه ويَصْرِفُون أبصارَ الكفارِ عنه.",
+   "usable": true,
+   "why": "",
+   "shown": false
+  },
+  {
+   "n": 8,
+   "ref": "9:40",
+   "quoted": "كَلِمَةَ ٱلَّذِينَ كَفَرُواْ",
+   "word": "كَلِمَةَ ٱلَّذِينَ كَفَرُوا۟",
+   "gloss": "أي: دعوةَ الشِّركِ والكفرِ.",
+   "usable": true,
+   "why": "",
+   "shown": false
+  },
+  {
+   "n": 9,
+   "ref": "9:40",
+   "quoted": "ٱلسُّفۡلَىٰ",
+   "word": "ٱلسُّفْلَىٰ",
+   "gloss": "المغلوبةَ.",
+   "usable": true,
+   "why": "",
+   "shown": false
+  },
+  {
+   "n": 10,
+   "ref": "9:40",
+   "quoted": "كَلِمَةُ ٱللَّهِ",
+   "word": "وَكَلِمَةُ ٱللَّهِ",
+   "gloss": "كلمةُ التوحيدِ.",
+   "usable": true,
+   "why": "",
+   "shown": false
+  },
+  {
+   "n": 11,
+   "ref": "9:40",
+   "quoted": "ٱلۡعُلۡيَا",
+   "word": "ٱلْعُلْيَا",
+   "gloss": "الغالبةُ.",
+   "usable": true,
+   "why": "",
+   "shown": false
+  }
+ ],
+ "words_mode": "auto"
+}
