@@ -77,6 +77,17 @@ class Pause:
         return min(self.length if self.depth is None else self.depth / 10, MAX_PAUSE)
 
 
+def cut(audio: Path, a: float, b: float, dest: Path) -> Path:
+    """Seconds a to b of a recording, as a FLAC. The block size is fixed: input seeking can
+    start on a frame of a few samples, and the FLAC encoder of ffmpeg 9 (the static build of
+    the workflows) refuses a first block under 16 samples («invalid block size: 11», Omar
+    Hisham 101:2, 2026-11-06)."""
+    subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-y", "-ss", f"{a:.3f}", "-to",
+                    f"{b:.3f}", "-i", str(audio), "-c:a", "flac", "-frame_size", "4096",
+                    str(dest)], check=True)
+    return dest
+
+
 def duration(path: Path) -> float:
     """Length of an audio or video file in seconds, from ffmpeg's header read (no ffprobe:
     the workflows use the static ffmpeg of imageio-ffmpeg, which comes without it)."""
@@ -586,9 +597,7 @@ class SurahFiles:
         name = label.zfill(3) if label != "basmala" else "bsm"
         dest = self.dir / f"{surah:03d}{name}-{round(a * 1000)}-{round(b * 1000)}.flac"
         if not dest.is_file():
-            subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-y", "-ss", f"{a:.3f}",
-                            "-to", f"{b:.3f}", "-i", str(self.audio(surah)),
-                            "-c:a", "flac", str(dest)], check=True)
+            cut(self.audio(surah), a, b, dest)
         return dest
 
     def fetch(self, ref: AyahRef) -> Path:
