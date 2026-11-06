@@ -273,6 +273,9 @@ def publish_reel(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
     # A dry run leaves nothing behind on Facebook: its draft is deleted once Instagram has its
     # container (the image dry run does the same with its photos).
     if dry_run and "facebook" in prepared:
+        cover = getattr(publishers["facebook"], "cover", None)
+        if cover:                   # on the draft: tells whether the token allows it
+            cover(prepared["facebook"], reel)
         try:
             publishers["facebook"].remove(prepared["facebook"])
             print(f"facebook: dry run, draft {prepared['facebook']} deleted", file=sys.stderr)

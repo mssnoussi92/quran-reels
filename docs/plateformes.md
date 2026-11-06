@@ -62,6 +62,10 @@
   → finish à nouveau avec `video_state=PUBLISHED` → attente de la mise en ligne. En dry-run on
   s'arrête avant, et le brouillon est supprimé une fois le conteneur Instagram prêt (depuis le
   2026-11-06 ; avant, il restait dans Meta Business Suite → Contenu → Brouillons).
+- Couverture Facebook (2026-11-06) : après la publication, `POST /{video}/thumbnails`
+  (`source` = l'image à `thumb_offset`, la même qu'Instagram ; `is_preferred=true`) ; sinon
+  Facebook choisit lui-même. Permissions `pages_manage_engagement` et `pages_read_user_content` ;
+  sans elles, un avertissement et rien d'autre. Le dry-run l'essaie sur le brouillon.
 - Instagram : `POST /{ig}/media` (`media_type=REELS`, `upload_type=resumable`, légende,
   `thumb_offset` = milieu de la première ayah glosée) → upload `rupload…/ig-api-upload/…` →
   attente `status_code=FINISHED` → vérification des droits (ci-dessous) → contrôle du quota
