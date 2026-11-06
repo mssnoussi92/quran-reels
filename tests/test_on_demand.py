@@ -490,6 +490,14 @@ def test_tiktok_alone_still_goes_through_metas_check(world):
                            (["tiktok"], False, "minshawi")]
 
 
+def test_youtube_alone_checks_the_rights_and_shows_no_empty_table(world):
+    world.meta["platforms"] = ["youtube"]
+    world.gh._comments[0] = bot_preview(world.meta)
+    assert go(world) == 0
+    assert world.calls == [(["facebook", "instagram"], True, "minshawi")]     # rights only
+    text = world.gh.posted[-1]
+    assert "| Plateforme |" not in text and "Télécharger le MP4 1080p" in text
+
 def test_a_dry_run_changes_no_state_and_skips_tiktok(world):
     world.gh._comments.append(owner_comment("/essai", 13))
     assert go(world, "dry-run", 13) == 0

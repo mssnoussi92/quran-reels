@@ -141,8 +141,9 @@ def result(d: dict, rows: list[dict], page: str, rights_only: dict | None = None
            tiktok_caption: str = "") -> str:
     icon = {"published": "📣", "partial": "📣", "dry-run": "🧪", "blocked": "⛔",
             "failed": "❌"}.get(d["stage"], "📣")
-    lines = [f"## {icon} {d['stage_label']} · {d['title']}", "", _facts(d), "",
-             "| Plateforme | Résultat | Droits (Meta) |", "|---|---|---|"]
+    lines = [f"## {icon} {d['stage_label']} · {d['title']}", "", _facts(d)]
+    if rows:                    # none when only YouTube was asked (rights checked, see below)
+        lines += ["", "| Plateforme | Résultat | Droits (Meta) |", "|---|---|---|"]
     for r in rows:
         what = f"[{r['label']}]({r['url']})" if r.get("url") else r["label"]
         if r.get("error"):
