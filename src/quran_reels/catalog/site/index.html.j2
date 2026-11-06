@@ -22,9 +22,10 @@
   <p class="muted small">Mis à jour le {{ d.built_local }} ({{ d.timezone }}){% if d.commit %} · main <code>{{ d.commit[:7] }}</code>{% endif %}{% if d.state_commit %} · state <code>{{ d.state_commit[:7] }}</code>{% endif %}
     {% if not d.schedule.enabled %} · <strong>calendrier désactivé</strong>{% endif %}</p>
   {% for n in d.notes %}<p class="notice">{{ n }}</p>{% endfor %}
+  {% if d.on_demand %}<p><a class="act cta" href="#on-demand">➕ Publier un reel à la demande</a></p>{% endif %}
 
   <nav class="tabs" aria-label="Sections">
-    {% if d.on_demand %}<a href="#on-demand">Publier</a>{% endif %}<a href="#reciters">Récitateurs</a><a href="#backgrounds">Fonds</a><a href="#calendar">Calendrier</a><a href="#posts">Publications</a>
+    <a href="#reciters">Récitateurs</a><a href="#backgrounds">Fonds</a><a href="#calendar">Calendrier</a><a href="#posts">Publications</a>
   </nav>
 
   {# ---------------------------------------------------------------- on demand #}

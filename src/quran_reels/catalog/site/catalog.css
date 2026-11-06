@@ -166,3 +166,5 @@ form.od input[type=radio], form.od input[type=checkbox] { width: 20px; height: 2
 form.od fieldset { border: 1px solid rgba(246,200,107,.18); border-radius: 12px; padding: 8px 12px 10px; margin: 0; }
 form.od legend { color: var(--muted); font-size: 14px; padding: 0 4px; }
 form.od button.act { font-size: 16px; padding: 13px; border: 0; cursor: pointer; }
+a.act.cta { display: block; text-align: center; font-size: 16px; padding: 12px; background: var(--gold);
+  color: #1a1a1a; font-weight: 600; }
