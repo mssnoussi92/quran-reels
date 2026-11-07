@@ -2,7 +2,8 @@
  "word": {
   "round": 1,
   "done": [
-   "42:17#0"
+   "42:17#0",
+   "34:12#0"
   ],
   "posts": {
    "2026-11-06": {
@@ -21,6 +22,26 @@
       "status": "published",
       "id": "18640616260033459",
       "url": "https://www.instagram.com/p/DfZhD2KGOym/",
+      "error": null
+     }
+    }
+   },
+   "2026-11-07": {
+    "id": "34:12#0",
+    "surah": 34,
+    "ayah": "34:12",
+    "word": "غُدُوُّهَا شَهْرٌ",
+    "results": {
+     "facebook": {
+      "status": "published",
+      "id": "1494879297031390_122096647437545959",
+      "url": "https://www.facebook.com/122095909263545959/posts/122096647437545959",
+      "error": null
+     },
+     "instagram": {
+      "status": "published",
+      "id": "18114614036146295",
+      "url": "https://www.instagram.com/p/DfcF4LnDrid/",
       "error": null
      }
     }
