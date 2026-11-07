@@ -3,7 +3,8 @@
   "reading": {
    "round": 1,
    "done": [
-    "juz-amma/114:1-6"
+    "juz-amma/114:1-6",
+    "juz-amma/113:1-5"
    ]
   },
   "themes": {
@@ -141,6 +142,35 @@
     }
    },
    "reciter": "sayegh"
+  },
+  "2026-11-07/morning": {
+   "queue": "reading",
+   "item": "juz-amma/113:1-5",
+   "passage": "113:1-5",
+   "results": {
+    "facebook": {
+     "status": "published",
+     "id": "1799577337919927",
+     "url": "https://www.facebook.com/reel/1799577337919927/",
+     "error": null,
+     "at": "2026-11-07T06:22:25+00:00"
+    },
+    "instagram": {
+     "status": "published",
+     "id": "17993095092069431",
+     "url": "https://www.instagram.com/reel/DfbhB-GgGXY/",
+     "error": null,
+     "at": "2026-11-07T06:22:25+00:00"
+    },
+    "tiktok": {
+     "status": "draft",
+     "id": "v_inbox_file~v2.7705309219280701462",
+     "url": null,
+     "error": null,
+     "at": "2026-11-07T06:22:25+00:00"
+    }
+   },
+   "reciter": "fares_abbad"
   }
  },
  "removed": [
