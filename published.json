@@ -10,7 +10,8 @@
   "themes": {
    "round": 1,
    "done": [
-    "ayat-al-kursi/2:255-255"
+    "ayat-al-kursi/2:255-255",
+    "munjiyat/9:51-51"
    ]
   },
   "kahf-first-ten": {
@@ -171,6 +172,39 @@
     }
    },
    "reciter": "fares_abbad"
+  },
+  "2026-11-07/evening": {
+   "queue": "themes",
+   "item": "munjiyat/9:51-51",
+   "passage": "9:51-51",
+   "results": {
+    "facebook": {
+     "status": "published",
+     "id": "1135234855664308",
+     "url": "https://www.facebook.com/reel/1135234855664308/",
+     "error": null,
+     "at": "2026-11-07T18:24:22+00:00"
+    },
+    "instagram": {
+     "status": "published",
+     "id": "18092977178666892",
+     "url": "https://www.instagram.com/reel/DfczucJD5jt/",
+     "error": null,
+     "at": "2026-11-07T18:24:22+00:00"
+    },
+    "tiktok": {
+     "status": "draft",
+     "id": "v_inbox_file~v2.7705495880153057302",
+     "url": null,
+     "error": null,
+     "at": "2026-11-07T18:24:22+00:00"
+    }
+   },
+   "reciter": "budair",
+   "youtube": {
+    "reciter": "sayegh",
+    "video": "youtube/009_051-051.mp4"
+   }
   }
  },
  "removed": [
