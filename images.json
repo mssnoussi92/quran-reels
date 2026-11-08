@@ -3,7 +3,8 @@
   "round": 1,
   "done": [
    "42:17#0",
-   "34:12#0"
+   "34:12#0",
+   "21:24#2"
   ],
   "posts": {
    "2026-11-06": {
@@ -42,6 +43,26 @@
       "status": "published",
       "id": "18114614036146295",
       "url": "https://www.instagram.com/p/DfcF4LnDrid/",
+      "error": null
+     }
+    }
+   },
+   "2026-11-08": {
+    "id": "21:24#2",
+    "surah": 21,
+    "ayah": "21:24",
+    "word": "ذِكْرُ",
+    "results": {
+     "facebook": {
+      "status": "published",
+      "id": "1494879297031390_122097414027545959",
+      "url": "https://www.facebook.com/122095909263545959/posts/122097414027545959",
+      "error": null
+     },
+     "instagram": {
+      "status": "published",
+      "id": "18134560951802009",
+      "url": "https://www.instagram.com/p/DfeqtvBk2Jn/",
       "error": null
      }
     }
