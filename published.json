@@ -12,7 +12,8 @@
    "round": 1,
    "done": [
     "ayat-al-kursi/2:255-255",
-    "munjiyat/9:51-51"
+    "munjiyat/9:51-51",
+    "munjiyat/6:17-17"
    ]
   },
   "kahf-first-ten": {
@@ -235,6 +236,35 @@
     }
    },
    "reciter": "minshawi"
+  },
+  "2026-11-08/evening": {
+   "queue": "themes",
+   "item": "munjiyat/6:17-17",
+   "passage": "6:17-17",
+   "results": {
+    "facebook": {
+     "status": "published",
+     "id": "1224802519897715",
+     "url": "https://www.facebook.com/reel/1224802519897715/",
+     "error": null,
+     "at": "2026-11-08T18:24:55+00:00"
+    },
+    "instagram": {
+     "status": "published",
+     "id": "18112893734612901",
+     "url": "https://www.instagram.com/reel/DffYJoHiQMv/",
+     "error": null,
+     "at": "2026-11-08T18:24:55+00:00"
+    },
+    "tiktok": {
+     "status": "draft",
+     "id": "v_inbox_file~v2.7705866093621315606",
+     "url": null,
+     "error": null,
+     "at": "2026-11-08T18:24:55+00:00"
+    }
+   },
+   "reciter": "fares_abbad"
   }
  },
  "removed": [
