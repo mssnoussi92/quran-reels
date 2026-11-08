@@ -7,6 +7,11 @@ Comptes : Facebook `quranwordsdaily` · Instagram / TikTok / YouTube `quran_word
 e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis son téléphone
 (pas de PC) : tout doit tourner dans le cloud (session Claude, GitHub Actions).
 
+**Le contredire, toujours** (demande du propriétaire, 2026-11-08) : quand une de ses idées ou de ses
+décisions, ou une des tiennes, est fausse ou plus faible qu'une autre (source, récitateur, fond, série,
+choix technique), dis-le franchement, avec la raison et ce que tu ferais à la place. Il tranche ; ne suis
+jamais en silence, ne passe jamais outre en silence.
+
 ## Décisions validées
 
 | Sujet | Choix |
