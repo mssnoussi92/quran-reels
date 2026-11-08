@@ -4,7 +4,8 @@
    "round": 1,
    "done": [
     "juz-amma/114:1-6",
-    "juz-amma/113:1-5"
+    "juz-amma/113:1-5",
+    "juz-amma/112:1-4"
    ]
   },
   "themes": {
@@ -205,6 +206,35 @@
     "reciter": "sayegh",
     "video": "youtube/009_051-051.mp4"
    }
+  },
+  "2026-11-08/morning": {
+   "queue": "reading",
+   "item": "juz-amma/112:1-4",
+   "passage": "112:1-4",
+   "results": {
+    "facebook": {
+     "status": "published",
+     "id": "1843990706602607",
+     "url": "https://www.facebook.com/reel/1843990706602607/",
+     "error": null,
+     "at": "2026-11-08T06:21:52+00:00"
+    },
+    "instagram": {
+     "status": "published",
+     "id": "18126967663910654",
+     "url": "https://www.instagram.com/reel/DfeGHxSCNMD/",
+     "error": null,
+     "at": "2026-11-08T06:21:52+00:00"
+    },
+    "tiktok": {
+     "status": "draft",
+     "id": "v_inbox_file~v2.7705681042036590614",
+     "url": null,
+     "error": null,
+     "at": "2026-11-08T06:21:52+00:00"
+    }
+   },
+   "reciter": "minshawi"
   }
  },
  "removed": [
