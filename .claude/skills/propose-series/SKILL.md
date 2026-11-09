@@ -23,3 +23,5 @@ from Quran.com and the gloss edition at render time.
 5. **Splits**: `QURAN_REELS_RECITER=<name> quran-reels split <passages>` for the rotation's
    reciters, or let the nightly `prepare` workflow do the next 8 days.
 6. **Open a PR** listing every passage with its rule; the owner validates or edits the list.
+
+The pull request is the owner's to merge: never merge it yourself.

@@ -32,3 +32,5 @@ and the same passage always gets the same one.
    cfg = config.load()
    print(backgrounds.choose(cfg, build(cfg, "2:255-255"))[0].id)
    ```
+
+The pull request is the owner's to merge: never merge it yourself.

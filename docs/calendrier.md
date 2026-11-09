@@ -76,6 +76,19 @@
   sur la nouvelle tête et poussé de nouveau, 5 essais ; avant, un push refusé perdait le
   créneau et le run suivant republiait le même passage partout. Seul un vrai conflit (deux
   écritures des mêmes lignes) échoue, avec une erreur sur le run.
+- **Publication à la main** (`publish-test` en `mode: publish` : un créneau rouvert, le premier
+  reel d'un récitateur) : `quran-reels state record <jour>/<créneau> --publish publish.json
+  --reciter <id>` écrit le créneau **et** remet son passage parmi les publiés de sa file
+  (`calendar.record_by_hand`). Écrire le créneau à la main ne suffit pas : après un `state
+  reopen`, le passage est en tête de sa file et le créneau suivant le publierait une seconde
+  fois. Le créneau porte `by_hand` : le run quotidien ne le complète pas (Instagram attend que
+  le propriétaire ait vu les droits sur Facebook).
+- **Créneau jamais tenté** : un créneau des 2 derniers jours dont la fenêtre est finie et qui
+  n'a aucune entrée dans l'état (ni rouvert, ni déjà signalé) est noté sous `missed` par le
+  premier run qui passe (`daily --check`, sortie `missed`) et signalé une fois dans le ticket
+  d'échec, même si ce run publie normalement son propre créneau ; pas en dry run ni avec une
+  heure simulée. Les runs du cron tardif de GitHub servent ainsi de témoin indépendant du
+  planificateur.
 - Prévenir le propriétaire (`notify.py`, étape « Tell the owner », `issues: write`) :
   `daily` écrit `out/daily-report.json` (même s'il s'arrête, avec l'erreur). Échec → ticket
   « ⚠️ Publication quotidienne en échec » assigné au propriétaire et @mention (notification

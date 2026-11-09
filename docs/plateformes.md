@@ -259,6 +259,11 @@ github.com → photo de profil → Settings → Developer settings → Personal 
   ajouté d'office). Rien d'autre.
 - Generate token → copier (affiché une seule fois) → dépôt → Settings → Secrets and variables →
   Actions → New repository secret → nom `GH_SECRETS_TOKEN`.
+- Son échéance est lue à chaque publication (`gh_secrets.token_expiry`, en-tête
+  `github-authentication-token-expiration` de la réponse de GitHub) et imprimée dans le journal
+  (« GH_SECRETS_TOKEN: valid until … »). À 14 jours ou moins, le ticket d'alerte le dit une
+  fois. Expiré, le prochain refresh token de TikTok ne peut plus être enregistré : refaire le
+  jeton comme ci-dessus, puis la connexion TikTok si un run échoue sur le rafraîchissement.
 
 ## YouTube Shorts — manuel puis automatique après audit
 
