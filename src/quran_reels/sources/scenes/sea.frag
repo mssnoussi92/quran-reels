@@ -1,7 +1,8 @@
 #version 300 es
 // Calm sea at golden hour: the sun low on the right, a glittering path towards the viewer,
-// a slow swell, soft clouds. A small ray tracer: each pixel below the horizon hits the
-// water plane, whose waves reflect the sky.
+// a swell rolling in, soft clouds drifting and changing shape. A small ray tracer: each pixel
+// below the horizon hits the water plane, whose waves reflect the sky. Motion at the pace of
+// filmed clouds and waves: Facebook called the generated scenes «a static image».
 
 const float HORIZON = .27;
 const float FOCAL = 1.1;
@@ -20,8 +21,8 @@ float swell(vec2 q, float t, int octaves) {
   // Crests parallel to the shore, rolling towards the viewer, slowly changing.
   // A second, crossing wave train breaks up the lines.
   vec2 c = mat2(.8, -.6, .6, .8) * q;
-  return fbm(vec3(q * vec2(.17, .42) + vec2(t * .015, t * .14), t * .06), octaves)
-       + .35 * fbm(vec3(c * vec2(.5, .9) + vec2(-t * .05, t * .2), 7.3), max(octaves - 2, 1));
+  return fbm(vec3(q * vec2(.17, .42) + vec2(t * .02, t * .17), t * .08), octaves)
+       + .35 * fbm(vec3(c * vec2(.5, .9) + vec2(-t * .06, t * .24), 7.3), max(octaves - 2, 1));
 }
 
 vec3 scene(vec2 uv, float t) {
@@ -37,14 +38,16 @@ vec3 scene(vec2 uv, float t) {
     // Soft clouds, long and thin, warm near the sun.
     float band = smoothstep(HORIZON + .02, HORIZON + .1, uv.y) * (1. - smoothstep(.62, .85, uv.y));
     if (band > .01) {
-      vec3 q = vec3(p * vec2(1.2, 6.5) + vec2(t * .008, 0.), t * .01) * 1.3;
+      vec2 w = p * vec2(1.2, 6.5) + vec2(t * .045, 0.);
+      float warp = fbm(vec3(w * vec2(.6, .3), t * .04 + 3.), 3);   // banks roll and stretch
+      vec3 q = vec3(w + vec2(.7 * warp, 0.), t * .035) * 1.3;
       float n = fbm(q, 6);
-      float cover = smoothstep(.55, .78, n) * band;
+      float cover = smoothstep(.45, .7, n) * band;
       if (cover > 0.) {
         float lit = clamp((fbm(q + vec3(-.06, -.1, 0.), 4) - n) * 7. + .4, 0., 1.);
         vec3 cloud = mix(hex(112., 104., 136.), hex(255., 196., 150.), lit);
         cloud += hex(255., 190., 130.) * .45 * exp(-ds / .12);
-        col = mix(col, cloud, cover * .7);
+        col = mix(col, cloud, cover * .78);
       }
     }
     return col;

@@ -174,7 +174,10 @@ platforms:
     rights_after_timeout: 0           # > 0: read Meta's check on the published reels this
                                       # long, muted or blocked → taken down. 0: off, the owner
                                       # checks by hand for now (2026-11-05)
-  facebook:  { enabled: true,  mode: auto, max_hashtags: 8 }
+  # Facebook: its own short caption, hashtags included (render.facebook_caption): Facebook's
+  # quality checklist asks for 10 to 400 characters (6:17 flagged, 2026-11-09). No Arabic;
+  # too long: the translation goes first, then hashtags from the end. Unset: the full caption.
+  facebook:  { enabled: true,  mode: auto, max_hashtags: 8, max_caption_chars: 400 }
   instagram: { enabled: true,  mode: auto, max_hashtags: 5 }   # Instagram's cap since 12/2025
   tiktok:
     enabled: true                     # tiktok-auth saved TIKTOK_REFRESH_TOKEN (2026-11-04)

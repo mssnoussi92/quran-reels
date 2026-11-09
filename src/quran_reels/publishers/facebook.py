@@ -9,6 +9,10 @@ thumbnail, POST /{video}/thumbnails; never in the way of the publication). A dra
 draft, and finishing it again fails («The video was not uploaded», code 6000, subcode 1363130,
 publish-test run #18, 2026-11-05).
 A dry run stops after the check; publish_reel then deletes the draft.
+
+Description: the reel's short caption (≤ 400 characters, render.facebook_caption: Facebook's
+quality checklist flagged the full one, 2026-11-09); the full caption with max_hashtags when
+the reel has none.
 """
 
 from __future__ import annotations
@@ -63,7 +67,8 @@ class FacebookPublisher:
         url = start.get("upload_url") or f"{RUPLOAD}/video-upload/{self.graph.version}/{video_id}"
         self.graph.upload(url, reel.video, f"upload facebook reel {video_id}")
         self.graph.post(f"{self.page_id}/video_reels", upload_phase="finish", video_id=video_id,
-                        video_state=state, description=reel.text(self.max_hashtags))
+                        video_state=state,
+                        description=reel.text_for(self.name, self.max_hashtags))
         return video_id
 
     def prepare(self, reel: Reel) -> str:

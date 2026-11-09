@@ -295,6 +295,18 @@ def provisional(cfg: Config, seconds: int = 12) -> Path:
     return dest
 
 
+def push_in(cfg: Config, info: dict[str, Any], seconds: float) -> float:
+    """How much larger a generated scene is at the end of a reel of `seconds` than at its
+    start (0.08: 8 %): backgrounds.yaml scenes.push_in per minute, push_in_max at most. 0 for
+    clips: they move by themselves."""
+    if info.get("source") != "generated":
+        return 0.0
+    conf = cfg.backgrounds.get("scenes") or {}
+    rate, most = float(conf.get("push_in", 0)), float(conf.get("push_in_max", 0))
+    zoom = rate * seconds / 60
+    return round(min(zoom, most) if most > 0 else zoom, 4)
+
+
 CHOSEN = "chosen"           # theme recorded for a background imposed by the owner
 
 

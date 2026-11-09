@@ -19,6 +19,28 @@
   dont la surveillance réseau copie chaque image), 540×960, boucle de 30 s dont les 5 premières
   secondes fondent t + 30 dans t, ≈ 3–4 min la première fois (4 min 30 sur un runner
   GitHub, run #4 du 2026-11-05), puis en cache. Fichier temporaire propre à chaque processus.
+- **Scènes animées** (2026-11-09) : la liste de qualité de Facebook a dit de 6:17 (nuit)
+  « Votre reel est une image statique ». Mesure : médiane de l'écart moyen absolu entre deux
+  images à 0,5 s d'intervalle (gris, 270×480, ffmpeg `tblend` + `signalstats`, YAVG) :
+  6:17 0,42, 9:51 0,44 (nuit), 112:1-4 0,34 (aube), contre 2,90 pour 113:1-5 (forêt filmée,
+  non signalée). Les scènes bougent maintenant au rythme d'un ciel filmé : nuit, deux couches
+  de nuages (la proche plus rapide, roulée par un `fbm` de déformation) qui passent devant la
+  lune, brume dans la vallée, étoiles qui scintillent plus vite ; aube, deux couches de nuages
+  (jusque devant le soleil), rayons qui miroitent et tournent, halo qui respire, brume sur les
+  dunes, ombres des nuages sur le sable, sable soufflé des crêtes ; mer, houle un peu plus
+  rapide, nuages plus nombreux qui dérivent et changent de forme. Plus un **zoom lent** sur
+  toute la vidéo (`scenes.push_in` de backgrounds.yaml : 8 % par minute, 12 % au plus), filtre
+  `perspective` de ffmpeg (entre les pixels : un `crop`/`zoompan` avance par pixels entiers et
+  tremble), appliqué à la boucle 540×960 avant l'agrandissement ; les calques de texte ne
+  bougent pas. Les clips filmés n'ont pas de zoom. Mesuré sur des rendus locaux des mêmes
+  passages (2026-11-09) : 6:17 nuit 0,42 → 2,60, 112:1-4 aube 0,34 → 2,77, 108:1-3 mer
+  5,33 → 6,51 ; débit 2,0 → 3,1, 1,9 → 3,4 et 3,5 → 4,2 Mb/s (plafond 6). Mouvement d'ensemble
+  (`backgrounds.motion`) des boucles : 4 à 5, loin des 34,9 du clip refusé (accélérés filmés
+  gardés : jusqu'à 23,5). Coût : ≈ 6 à 9 min par boucle sur 4 vCPU (au lieu de 3 à 5), une
+  fois par version du shader.
+  Une scène modifiée change l'empreinte du shader, donc le nom du fichier en cache : la boucle
+  est redessinée au premier rendu (le cache des Actions ne la sert plus) et les anciennes
+  versions de cette scène sont effacées de `.cache/backgrounds/`.
   Sans aucun fond listé : boucle de 12 s générée (numpy) dans la palette de la
   maquette, ciel de nuit vers l'aube, étoiles qui scintillent, mise en cache.
 - Hashtags (`render.hashtags`, déterministes) : `captions.brand`/`broad` et
@@ -27,6 +49,13 @@
   Sourate : `name_simple`/`name_arabic` de Quran.com (`#SurahAliImran`, `#سورة_آل_عمران`).
   `caption.txt` = légende + tous les tags sur la dernière ligne ; `manifest.json` les liste ;
   `Reel.text(n)` garde les n premiers.
+- Légende Facebook (`render.facebook_caption`, 2026-11-09) : ≤ 400 caractères hashtags compris
+  (`platforms.facebook.max_caption_chars`), sans arabe : série, « Surah Al-An'am (6:17) »,
+  traduction anglaise (`17. …`) si tout tient, crédits sur une ligne (« Word meanings » seulement
+  si la vidéo montre une glose, avec `glosses.label_en`), signature, les 8 premiers hashtags.
+  Trop longue : la traduction part d'abord, puis des hashtags de la fin (en dernier recours, la
+  signature puis la série ; jamais les crédits). Dans `manifest.json` (`captions.facebook`) ;
+  `Reel.text_for("facebook")` la rend, les autres plateformes gardent `Reel.text(n)`.
 - Basmala (`content.basmala`) : `bismillah.mp3` d'EveryAyah (≈ 6 s), texte uthmani et
   traduction de 1:1 (Quran.com), premier segment du minutage ; écran sans référence ni numéro.
   Comptée dans le découpage (93 entière : 62 s). Pas pour la sourate 9 (`skip_surahs`) ni

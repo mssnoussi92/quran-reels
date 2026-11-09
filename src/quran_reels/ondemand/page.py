@@ -28,12 +28,13 @@ THEMES = {"mountains": "montagnes", "sea": "mer", "rivers": "rivières", "dawn":
 
 
 def captions(cfg: Config, reel: Reel, platforms: list[str]) -> list[dict[str, str]]:
-    """The caption of each platform at its hashtag limit; identical ones shown once."""
+    """The caption of each platform at its hashtag limit (Facebook: its short caption);
+    identical ones shown once."""
     out: dict[str, list[str]] = {}
     for p in platforms:
         if p == "youtube":
             continue
-        text = reel.text(publish_mod.max_hashtags(cfg, p))
+        text = reel.text_for(p, publish_mod.max_hashtags(cfg, p))
         out.setdefault(text, []).append(PLATFORM_LABELS[p].split(" (")[0])
     return [{"label": ", ".join(names), "text": text} for text, names in out.items()]
 

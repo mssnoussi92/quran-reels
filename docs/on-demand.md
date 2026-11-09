@@ -67,8 +67,8 @@ titre, description et hashtags prêts à copier, puis `/youtube <lien>` pour le 
    - découpe manquante pour ce récitateur : `quran-reels split` lancé dans le même run (le
      commentaire dit combien de temps cela prend), enregistrée sur la branche `state` ;
    - rendu par le pipeline (`render_passage`, fond imposé ou choisi comme d'habitude) ;
-   - commentaire : 3 images clés, MP4 d'aperçu (540p, léger), légendes Facebook, Instagram et
-     TikTok (leurs limites de hashtags), lien vers la page d'aperçu
+   - commentaire : 3 images clés, MP4 d'aperçu (540p, léger), légendes Facebook (la courte,
+     ≤ 400 caractères), Instagram et TikTok (5 hashtags), lien vers la page d'aperçu
      `…/quran-reels/reel.html?r=…` (lecteur, boutons Copier).
    - **mots expliqués** : la liste numérotée de tous les sens que غريب التفسير الميسر donne
      pour les ayahs du passage, ✅ pour ceux affichés (par défaut : les règles habituelles,

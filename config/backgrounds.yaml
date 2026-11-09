@@ -44,6 +44,13 @@ pixabay:                        # search terms per theme: `quran-reels backgroun
 # frame by frame still decides. `quran-reels backgrounds motion` scores the listed clips.
 max_motion: 30
 
+scenes:                         # generated scenes only (clips move by themselves)
+  # A slow push-in over the whole reel (the text layers never move), on top of the scene's
+  # own motion: Facebook's quality checklist called 6:17 (night) «a static image»
+  # (2026-11-09). Grows push_in per minute, push_in_max at most (a 3-min YouTube version).
+  push_in: 0.08
+  push_in_max: 0.12
+
 soften:                         # clips only (busy, sharp): keeps the text readable
   blur: 2.5                     # Gaussian sigma, in pixels at 1080 wide
   dim: 0.15                     # 15 % darker

@@ -114,3 +114,34 @@ def test_the_search_leaves_out_a_clip_that_moves_too_fast(monkeypatch, tmp_path)
         "max_motion": 30, "pixabay": {"sky": ["clouds"]}, "backgrounds": []})
     found = pixabay.candidates(cfg, per_theme=4, client=Client())
     assert [(c["id"], c["motion"]) for c in found] == [(2, 9.5), (3, 23.5)]
+
+
+def test_generated_scenes_push_in_clips_do_not(cfg):
+    conf = cfg.backgrounds["scenes"]
+    rate, most = conf["push_in"], conf["push_in_max"]
+    assert 0 < rate <= most <= .2                         # slow: the scene stays sharp enough
+    scene = {"id": "night", "source": "generated"}
+    assert backgrounds.push_in(cfg, scene, 60) == pytest.approx(rate)
+    assert backgrounds.push_in(cfg, scene, 30) == pytest.approx(rate / 2)
+    assert backgrounds.push_in(cfg, scene, 180) == pytest.approx(most)   # a YouTube version
+    assert backgrounds.push_in(cfg, {"id": "river", "source": "pexels"}, 60) == 0
+
+
+def test_the_push_in_zooms_into_the_centre_smoothly(tmp_path):
+    """A horizontal ramp, 0 to 252 over 64 px, zoomed 2× by the last of 5 frames: its edges
+    then show the middle half of the ramp; the first frame is untouched."""
+    import numpy as np
+
+    from quran_reels.render.video import push_in_filter
+
+    out = subprocess.run(
+        ["ffmpeg", "-nostdin", "-v", "error", "-f", "lavfi", "-i",
+         "color=c=black:s=64x64:d=5:r=1", "-vf",
+         f"format=gray,geq=lum='4*X',{push_in_filter(1.0, 5)},format=gray",
+         "-f", "rawvideo", "-"], capture_output=True, check=True).stdout
+    frames = np.frombuffer(out, np.uint8).reshape(5, 64, 64).astype(float)
+    first, middle, last = frames[0], frames[2], frames[4]
+    assert abs(first[:, 0].mean() - 0) < 3 and abs(first[:, -1].mean() - 252) < 3
+    assert abs(last[:, 0].mean() - 64) < 6 and abs(last[:, -1].mean() - 188) < 6
+    assert first[:, 0].mean() < middle[:, 0].mean() < last[:, 0].mean()    # steady, no jump
+    assert abs(last[:, 32].mean() - first[:, 32].mean()) < 4                 # the centre stays

@@ -101,7 +101,8 @@ def meta_check(cfg: Config, platforms: list[str]) -> tuple[Graph, MetaEnv, Token
 
 
 def load_reel(video: Path) -> Reel:
-    """A reel rendered by `quran-reels render`: the MP4 and its out/<passage>/ folder."""
+    """A reel rendered by `quran-reels render`: the MP4 and its out/<passage>/ folder (the
+    caption, its hashtags, Facebook's short caption from the manifest)."""
     work = video.with_suffix("")
     manifest = json.loads((work / "manifest.json").read_text(encoding="utf-8"))
     surah, start, end = parse_passage(manifest["passage"])
@@ -116,7 +117,8 @@ def load_reel(video: Path) -> Reel:
         text = text.rstrip()[: -len(tag_line)].rstrip() + "\n"
     return Reel(passage=passage, video=video, caption=text, hashtags=list(tags),
                 cover=work / "preview" / f"{surah:03d}{int(cover['ref'].split(':')[1]):03d}.png",
-                cover_ms=int((cover["start"] + cover["seconds"] / 2) * 1000))
+                cover_ms=int((cover["start"] + cover["seconds"] / 2) * 1000),
+                facebook=(manifest.get("captions") or {}).get("facebook") or "")
 
 
 YOUTUBE_TITLE_MAX = 100        # YouTube refuses a longer title
