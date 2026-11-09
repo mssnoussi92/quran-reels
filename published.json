@@ -317,11 +317,11 @@
      "at": "2026-11-09T19:06:53+00:00"
     },
     "tiktok": {
-     "status": "failed",
-     "id": null,
+     "status": "draft",
+     "id": "v_inbox_file~v2.7706252913848797206",
      "url": null,
-     "error": "upload chunk 1/1: HTTP 500",
-     "at": "2026-11-09T19:06:53+00:00"
+     "error": null,
+     "at": "2026-11-09T19:22:17+00:00"
     }
    },
    "reciter": "minshawi"
