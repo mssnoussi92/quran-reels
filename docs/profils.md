@@ -1,6 +1,7 @@
 # Profils des comptes : bio, images, playlists
 
-Proposition du 2026-11-09, à appliquer **à la main** depuis le téléphone (aucune API utilisée).
+Proposition du 2026-11-09, **validée par le propriétaire le même jour**, à appliquer **à la
+main** depuis le téléphone (aucune API utilisée).
 Chaque texte est dans un bloc : le bouton « copier » de GitHub le prend tel quel. Les longueurs
 sont comptées sous la limite de chaque plateforme.
 
@@ -35,7 +36,7 @@ le garderaient (à décider). Les épisodes de quran-themes-demo le faisaient d�
   photo générée par IA avec l'ancien nom « كلمات القرآن », des voyelles posées au hasard sur la
   calligraphie et un faux mushaf couvert de pseudo-arabe. Or **chaque vidéo porte la signature
   `@quran_words_daily`** : sur TikTok, elle envoie vers ce compte vide, pas vers celui des reels.
-  Voir « TikTok » plus bas.
+  Ce compte **n'est pas au propriétaire** (2026-11-09). Voir « TikTok » plus bas.
 - **Facebook, Instagram** : pages fermées sans compte, pas lues. Les textes ci-dessous
   remplacent ce qui y est.
 - **Site** (lien des bios) : annonçait encore Alafasy (écarté le 2026-11-05), Ibn Qutaybah
@@ -129,21 +130,30 @@ Quran & Sunnah for everyday life 🌙
 القرآن والسنة في حياتك اليومية
 ```
 
-**L'identifiant.** Les vidéos sont signées `@quran_words_daily`, et ce nom sur TikTok mène au
-compte vide à la photo noir et or. Deux cas :
+**L'identifiant.** Les vidéos sont signées `@quran_words_daily`, et ce nom sur TikTok mène à un
+compte vide, photo noir et or, **qui n'est pas au propriétaire** (confirmé le 2026-11-09) :
+quelqu'un a pris le nom et l'ancienne marque « كلمات القرآن ». Sur TikTok, la signature envoie
+donc les spectateurs chez lui ; s'il se met à publier, ce sera sous un nom que nos vidéos
+affichent. Un même identifiant sur les quatre plateformes n'est pas possible :
+`@quranwordsdaily` (celui de Facebook) est pris sur TikTok par un compte de 101 vidéos.
 
-- **Ce compte vide est à toi** (créé avant le changement de marque « كلمات » → « آيات » du
-  2026-11-04, ce que suggère sa photo) : changer d'abord **son** identifiant (par exemple
-  `quran_words_daily_old`) ou le supprimer, puis prendre `@quran_words_daily` pour le compte des
-  reels (Profil → Modifier le profil → Nom d'utilisateur ; TikTok le permet une fois tous les
-  30 jours, et peut garder un ancien nom quelque temps avant de le libérer). La connexion du
-  pipeline (`TIKTOK_REFRESH_TOKEN`) suit le compte, pas son nom : normalement rien à refaire ;
-  sinon, relancer le workflow `tiktok-auth`. Puis supprimer le compte vide, et corriger le
-  lien TikTok du site (`docs/index.html`, aujourd'hui `@quran_words_daily6`).
-- **Il n'est pas à toi** : quelqu'un a pris le nom et l'ancienne marque. Le signaler à TikTok
-  (usurpation de nom), et en attendant, la signature des vidéos envoie les spectateurs TikTok
-  chez lui : en reparler (une signature propre à TikTok est possible, mais c'est une version de
-  plus de chaque vidéo).
+Recommandé, dans l'ordre :
+
+1. **Signaler le compte vide** à TikTok (sur son profil : ⋯ → Signaler → Compte → « Se fait
+   passer pour quelqu'un d'autre »), en citant la Page Facebook, l'Instagram et la chaîne
+   YouTube `quran_words_daily`, plus anciens que lui. TikTok peut le fermer ; il ne rend pas
+   forcément le nom.
+2. **Renommer `@quran_words_daily6` en `@quran.words.daily`** : libre sur TikTok le 2026-11-09
+   (à confirmer dans l'app : Profil → Modifier le profil → Nom d'utilisateur, une fois tous les
+   30 jours). Le « 6 » fait compte copié ; le point se lit comme le tiret bas. La connexion du
+   pipeline (`TIKTOK_REFRESH_TOKEN`) suit le compte, pas son nom : normalement rien à refaire
+   (sinon, relancer le workflow `tiktok-auth`). Puis corriger le lien TikTok du site
+   (`docs/index.html`).
+3. **Une signature propre à TikTok**, à décider : la version envoyée à TikTok porterait
+   l'identifiant TikTok au lieu de `@quran_words_daily` (pipeline : un rendu de plus par
+   reel, comme la version YouTube ; quran-themes-demo : un rendu de plus par vidéo). Sans elle,
+   la signature continue d'envoyer vers le compte vide. TikTok ajoute de lui-même le vrai
+   identifiant quand une vidéo est téléchargée, mais pas à l'écran de lecture.
 
 Lien cliquable : TikTok le réserve aux comptes de 1 000 abonnés ou aux comptes Entreprise
 (selon les pays) ; regarder dans Profil → Modifier si le champ « Site web » est proposé. Ne pas
@@ -282,8 +292,9 @@ Instagram n'a pas de playlists ; TikTok en a, mais réservées pour l'instant au
 
 ## Autres améliorations, par ordre d'importance
 
-1. **TikTok : l'identifiant** `@quran_words_daily` (voir « TikTok ») : tant qu'il n'est pas
-   celui du compte des reels, la signature de chaque vidéo envoie ailleurs.
+1. **TikTok : l'identifiant** (voir « TikTok ») : signaler le compte vide qui a pris
+   `@quran_words_daily`, renommer le nôtre `@quran.words.daily`, décider d'une signature
+   propre à TikTok ; d'ici là, la signature de chaque vidéo envoie ailleurs sur TikTok.
 2. **YouTube : demander l'audit** (toujours à faire, voir CLAUDE.md). Sans lui, chaque Short,
    son titre et ses playlists se font à la main, et le classement grossit avec chaque sujet ;
    avec lui, le pipeline publie et range seul.

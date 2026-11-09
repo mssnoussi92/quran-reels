@@ -4,7 +4,8 @@ Pipeline open source qui produit chaque jour un reel vertical (1080×1920) d'un 
 et le publie sur Facebook, Instagram, TikTok et YouTube Shorts.
 
 Comptes : Facebook `quranwordsdaily` · Instagram / YouTube `quran_words_daily` · TikTok
-`quran_words_daily6` (`@quran_words_daily` y est un autre compte, vide : à éclaircir, docs/profils.md) ·
+`quran_words_daily6` (`@quran_words_daily` y est le compte vide de quelqu'un d'autre, pas du
+propriétaire : à signaler, renommer le nôtre `@quran.words.daily`, docs/profils.md) ·
 e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis son téléphone
 (pas de PC) : tout doit tourner dans le cloud (session Claude, GitHub Actions).
 
@@ -358,12 +359,13 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
       [x] premiers tickets appliqués (#19–#28) · [x] #18 AbdulSamad non retenu (basmala dans
       la 1re ayah, confirmée par reconnaissance ; nom inconnu) · [ ] #32 Husary : ajouté à la
       liste, reel 112 vérifié, essai sur Facebook seul à faire
-- [ ] Profils des 4 comptes (docs/profils.md, proposés le 2026-11-09) : bio, nom, photo unique
+- [ ] Profils des 4 comptes (docs/profils.md, proposés et **validés par le propriétaire** le
+      2026-11-09) : bio, nom, photo unique
       « آيات », couverture, bannière (« Quran & Sunnah for everyday life », bilingues), playlists
       YouTube par thème, sourate et format, Facebook (3), à appliquer à la main par le
       propriétaire ; YouTube vide ; TikTok : les reels sont sur `@quran_words_daily6`, la
-      signature `@quran_words_daily` y mène à un autre compte, vide (le propriétaire dit s'il est
-      à lui)
+      signature `@quran_words_daily` y mène au compte vide de quelqu'un d'autre (à signaler ;
+      signature propre à TikTok à décider)
 - [x] Liste de qualité de Facebook sur 6:17 (2026-11-09 : « image statique », « légende de
       qualité (10 à 400 caractères) ») : scènes générées animées + zoom lent, légende Facebook
       courte · [ ] relire la liste de qualité sur le prochain reel avec une scène générée
