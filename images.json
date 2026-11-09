@@ -4,7 +4,8 @@
   "done": [
    "42:17#0",
    "34:12#0",
-   "21:24#2"
+   "21:24#2",
+   "34:39#0"
   ],
   "posts": {
    "2026-11-06": {
@@ -63,6 +64,26 @@
       "status": "published",
       "id": "18134560951802009",
       "url": "https://www.instagram.com/p/DfeqtvBk2Jn/",
+      "error": null
+     }
+    }
+   },
+   "2026-11-09": {
+    "id": "34:39#0",
+    "surah": 34,
+    "ayah": "34:39",
+    "word": "يَبْسُطُ",
+    "results": {
+     "facebook": {
+      "status": "published",
+      "id": "1494879297031390_122098129527545959",
+      "url": "https://www.facebook.com/122095909263545959/posts/122098129527545959",
+      "error": null
+     },
+     "instagram": {
+      "status": "published",
+      "id": "17952298602346653",
+      "url": "https://www.instagram.com/p/DfhPZ7iHcBz/",
       "error": null
      }
     }
