@@ -1,6 +1,7 @@
 """Facebook's short caption (render.facebook_caption): at most 400 characters with its
-hashtags, no Arabic text, the credits always; too long, the translation goes first, then
-hashtags from the end. Placeholder translations: no Quran text is typed here. No network."""
+hashtags, neither the Arabic text nor the translation (owner's choice, 2026-11-09), the credits
+always; too long, hashtags go from the end. Placeholder translations: no Quran text is typed
+here. No network."""
 
 import json
 import re
@@ -47,36 +48,33 @@ def split(text):
     return text, []
 
 
-def test_a_short_passage_keeps_its_translation(cfg):
+def test_series_reference_credits_handle_and_hashtags(cfg):
     p = passage(chars=60)
     text = facebook_caption(cfg, p, hashtags(cfg, p))
     body, tags = split(text)
     assert len(text) <= LIMIT
     assert body.split("\n\n") == [
         "The seven munjiyat verses · 2/7\nSurah Al-An'am (6:17)",
-        "17. 0" + "x" * 59,
         f"{RECITATION} · {TRANSLATION}",
         "@quran_words_daily"]
     assert tags == hashtags(cfg, p)[:8]                  # platforms.facebook.max_hashtags
     assert not ARABIC.search(body)                       # the ayahs are in the video
 
 
-def test_a_long_passage_drops_its_translation_first(cfg):
-    p = passage(ayahs=10, chars=150)
-    text = facebook_caption(cfg, p, hashtags(cfg, p))
-    body, tags = split(text)
-    assert len(text) <= LIMIT
-    assert "x" * 20 not in text and "Surah Al-An'am (6:17-26)" in body
-    assert f"{RECITATION} · {TRANSLATION}" in body and "@quran_words_daily" in body
-    assert tags == hashtags(cfg, p)[:8]                  # still all of Facebook's
+def test_never_the_translation_even_a_short_one(cfg):
+    for ayahs, chars in ((1, 10), (10, 150)):
+        p = passage(ayahs=ayahs, chars=chars)
+        text = facebook_caption(cfg, p, hashtags(cfg, p))
+        assert "x" * 5 not in text and "17. " not in text   # its translation is in the video
+        assert split(text)[1] == hashtags(cfg, p)[:8]
 
 
-def test_hashtags_go_after_the_translation_from_the_end(cfg):
+def test_hashtags_go_from_the_end_when_too_long(cfg):
     p = passage(chars=60, label="L" * 230)
     all_tags = hashtags(cfg, p)
     text = facebook_caption(cfg, p, all_tags)
     body, tags = split(text)
-    assert len(text) <= LIMIT and "x" * 20 not in text
+    assert len(text) <= LIMIT
     assert 0 < len(tags) < 8 and tags == all_tags[:len(tags)]   # the first ones, in order
     assert len(f"{body}\n\n{' '.join(all_tags[:len(tags) + 1])}") > LIMIT   # as many as fit
 

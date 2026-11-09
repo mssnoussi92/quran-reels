@@ -102,11 +102,11 @@ def facebook_caption(cfg: Config, passage: Passage, tags: list[str]) -> str:
     flagged the full caption, 2026-11-09). "" when that limit is not set: Facebook then gets
     the full caption.
 
-    Series, reference, the English translation if everything fits, the credits on one line,
-    the handle, the first platforms.facebook.max_hashtags hashtags. No Arabic text: the ayahs,
-    their translation and the credits are in the video. Too long: the translation goes first,
-    then hashtags from the end (they are in priority order); the credits always stay. The
-    word meanings are credited when the reel shows some.
+    Series, reference, the credits on one line, the handle, the first
+    platforms.facebook.max_hashtags hashtags. Neither the Arabic text nor the translation (the
+    owner's choice, 2026-11-09): the ayahs, their translation and the credits are in the video.
+    Too long: hashtags go from the end (they are in priority order); the credits always stay.
+    The word meanings are credited when the reel shows some.
     """
     conf = (cfg.project.get("platforms") or {}).get("facebook") or {}
     limit = int(conf.get("max_caption_chars") or 0)
@@ -121,21 +121,18 @@ def facebook_caption(cfg: Config, passage: Passage, tags: list[str]) -> str:
     if any(a.glosses for a in passage.ayahs):
         g = c["glosses"]
         credits.append(f"Word meanings: {g.get('label_en') or g['label']}")
-    translation = "\n".join(f"{a.ref.ayah}. {a.translation}" for a in passage.ayahs)
 
-    def text(with_translation: bool, n_tags: int, handle: bool = True,
-             label: bool = True) -> str:
+    def text(n_tags: int, handle: bool = True, label: bool = True) -> str:
         head = (passage.label_en + "\n" if passage.label_en and label else "") + \
             f"Surah {passage.surah_name_en} ({ref})"
-        blocks = [head, translation if with_translation else "", " · ".join(credits),
-                  cfg.video["handle"] if handle else "", " ".join(tags[:n_tags])]
+        blocks = [head, " · ".join(credits), cfg.video["handle"] if handle else "",
+                  " ".join(tags[:n_tags])]
         return "\n\n".join(b for b in blocks if b)
 
-    tries = [(True, len(tags)), *((False, n) for n in range(len(tags), -1, -1))]
-    for with_translation, n in tries:
-        if len(out := text(with_translation, n)) <= limit:
+    for n in range(len(tags), -1, -1):
+        if len(out := text(n)) <= limit:
             return out
-    for out in (text(False, 0, handle=False), text(False, 0, handle=False, label=False)):
+    for out in (text(0, handle=False), text(0, handle=False, label=False)):
         if len(out) <= limit:      # never with the project's labels: a config mistake
             return out
     _warn(f"{passage.key}: no Facebook caption fits in {limit} characters, even the reference "

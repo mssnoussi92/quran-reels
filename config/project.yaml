@@ -175,8 +175,8 @@ platforms:
                                       # long, muted or blocked → taken down. 0: off, the owner
                                       # checks by hand for now (2026-11-05)
   # Facebook: its own short caption, hashtags included (render.facebook_caption): Facebook's
-  # quality checklist asks for 10 to 400 characters (6:17 flagged, 2026-11-09). No Arabic;
-  # too long: the translation goes first, then hashtags from the end. Unset: the full caption.
+  # quality checklist asks for 10 to 400 characters (6:17 flagged, 2026-11-09). Neither Arabic
+  # nor translation (owner's choice); too long: hashtags from the end. Unset: the full caption.
   facebook:  { enabled: true,  mode: auto, max_hashtags: 8, max_caption_chars: 400 }
   instagram: { enabled: true,  mode: auto, max_hashtags: 5 }   # Instagram's cap since 12/2025
   tiktok:

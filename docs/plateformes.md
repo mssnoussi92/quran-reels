@@ -95,10 +95,11 @@
 - **Facebook : légende courte** (2026-11-09) : sa liste de qualité a refusé celle de 6:17
   (« Utilisez une légende de qualité (entre 10 et 400 caractères) »). Facebook reçoit donc
   `render.facebook_caption`, ≤ 400 caractères hashtags compris
-  (`platforms.facebook.max_caption_chars`) : série, référence, traduction anglaise si tout
-  tient, crédits sur une ligne (récitateur, traduction, et la source des gloses quand la vidéo
-  en montre), signature, les 8 premiers hashtags ; pas d'arabe (ayahs, traduction et crédits
-  sont dans la vidéo). Trop longue : la traduction part d'abord, puis des hashtags de la fin.
+  (`platforms.facebook.max_caption_chars`) : série, référence, crédits sur une ligne
+  (récitateur, traduction, et la source des gloses quand la vidéo en montre), signature, les 8
+  premiers hashtags ; ni arabe ni traduction (ayahs, traduction et crédits sont dans la vidéo ;
+  pas de traduction dans la légende Facebook, choix du propriétaire). Trop longue : des
+  hashtags de la fin.
   Calculée au rendu, rangée dans `manifest.json` (`captions.facebook`), lue par `load_reel` :
   calendrier, publish-test et à la demande. Un reel rendu avant reçoit la légende entière.
   Instagram, TikTok, YouTube et `caption.txt` ne changent pas.
