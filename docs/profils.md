@@ -11,19 +11,31 @@ Prophète ﷺ, les vertus, des collections). Les textes et les images disent don
 change pas** (le Coran et la Sunna, pour la vie de tous les jours, toujours sourcés) plutôt que
 la liste du moment ; un nouveau sujet n'oblige à refaire ni la bannière ni les bios.
 
+**Titres : toujours en arabe et en anglais** (le propriétaire, 2026-11-09). Noms des comptes,
+accroches des images, bios, titres de playlists, et dans les publications : la série et la
+sourate en tête de chaque légende (« Supplications from the Quran · آيات الدعاء · 3/38 »,
+« Surah Al-Baqarah (2:201) · سورة البقرة »), le titre YouTube qui en est tiré, le Word of the
+day (« Word of the day · كلمة اليوم »). Un titre YouTube trop long perd le numéro, puis la
+série, jamais une des deux langues : « The first ten verses of Surah Al-Kahf » et « Repentance
+and forgiveness in the Quran » ne tiennent pas avec leur titre arabe et la sourate (plus de
+100 caractères), leur titre YouTube est donc la sourate seule ; des titres de série plus courts
+le garderaient (à décider). Les épisodes de quran-themes-demo le faisaient déjà.
+
 ## Ce que montrent les pages publiques (2026-11-09)
 
 - **YouTube** : description vide, aucun mot-clé, **pas de bannière**, **photo par défaut**
   (l'initiale générée par YouTube), aucune playlist. Pourtant 66 abonnés et 6 547 vues en
   5 jours avec 10 Shorts (en tête : Ad-Duha 1,3 k, Al-Falaq 1,1 k, Ayat al-Kursi 1 k) : une
   chaîne qui démarre bien, derrière une page vide.
-- **TikTok** : nom « Quran words Daily » (w minuscule), bio générique, **0 vidéo publique et
-  0 abonné** d'après la page publique (les reels arrivent en brouillon dans la boîte TikTok et
-  doivent être postés un par un). Photo : une image générée par IA, noir et or, avec l'ancien
-  nom **« كلمات القرآن »** (la marque est « آيات » depuis le 2026-11-04), des voyelles posées au
-  hasard sur la calligraphie et un **faux mushaf dont les pages portent un pseudo-texte arabe**.
-  Pour une page dont la première règle est « aucun texte coranique fait par une IA », c'est la
-  pire image possible : à remplacer en premier.
+- **TikTok** : le compte des reels est **`@quran_words_daily6`** : 10 vidéos, 5 abonnés,
+  1 165 j'aime, **photo par défaut** (un « q » sur fond brun), nom « quran_words_daily », bio
+  « Daily Quran recitation, translation & meaning of difficult words » (anglais seul), pas de
+  lien.
+- **`@quran_words_daily` sur TikTok est un autre compte** : 0 vidéo, nom « Quran words Daily »,
+  photo générée par IA avec l'ancien nom « كلمات القرآن », des voyelles posées au hasard sur la
+  calligraphie et un faux mushaf couvert de pseudo-arabe. Or **chaque vidéo porte la signature
+  `@quran_words_daily`** : sur TikTok, elle envoie vers ce compte vide, pas vers celui des reels.
+  Voir « TikTok » plus bas.
 - **Facebook, Instagram** : pages fermées sans compte, pas lues. Les textes ci-dessous
   remplacent ce qui y est.
 - **Site** (lien des bios) : annonçait encore Alafasy (écarté le 2026-11-05), Ibn Qutaybah
@@ -60,10 +72,18 @@ Pour les enregistrer sur le téléphone : ouvrir le fichier sur GitHub
 
 Photo de profil `avatar-1080.jpg`, couverture `facebook-cover-1640x624.jpg`.
 
+Nom de la Page (le même sur les quatre comptes ; Facebook fait relire un changement de nom et
+peut le refuser : alors garder « Quran Words Daily ») :
+
+```
+Quran Words Daily · القرآن
+```
+
 Intro (bio de la Page, 101 caractères au plus) :
 
 ```
-Quran & Sunnah for everyday life: daily recitations, stories and themes. Every source cited.
+Quran & Sunnah for everyday life · القرآن والسنة في حياتك اليومية
+Recitations, stories, themes.
 ```
 
 - Catégories : **Créateur de vidéos** et **Éducation** (pas « Organisation religieuse » : la
@@ -78,36 +98,52 @@ Photo `avatar-1080.jpg`.
 Nom (le champ « Nom » est cherché par Instagram ; « القرآن » fait trouver la page en arabe) :
 
 ```
-Quran Words Daily | القرآن
+Quran Words Daily · القرآن
 ```
 
 Bio (150 caractères au plus) :
 
 ```
 Quran & Sunnah for everyday life 🌙
+القرآن والسنة في حياتك اليومية
 Daily recitations · stories · themes
 Arabic & English · every source cited
-القرآن والسنة في حياتك اليومية
 ```
 
 Lien : `https://mssnoussi92.github.io/quran-reels/` (titre « Website »).
 
-## TikTok (`@quran_words_daily`)
+## TikTok (`@quran_words_daily6`)
 
-Photo `avatar-1080.jpg` (remplace l'image noir et or).
+Photo `avatar-1080.jpg` (remplace le « q » par défaut).
 
 Nom :
 
 ```
-Quran Words Daily | القرآن
+Quran Words Daily · القرآن
 ```
 
-Bio (80 caractères au plus) :
+Bio (80 caractères au plus ; la place ne permet que l'accroche, dans les deux langues) :
 
 ```
 Quran & Sunnah for everyday life 🌙
-Recitations · stories · themes
+القرآن والسنة في حياتك اليومية
 ```
+
+**L'identifiant.** Les vidéos sont signées `@quran_words_daily`, et ce nom sur TikTok mène au
+compte vide à la photo noir et or. Deux cas :
+
+- **Ce compte vide est à toi** (créé avant le changement de marque « كلمات » → « آيات » du
+  2026-11-04, ce que suggère sa photo) : changer d'abord **son** identifiant (par exemple
+  `quran_words_daily_old`) ou le supprimer, puis prendre `@quran_words_daily` pour le compte des
+  reels (Profil → Modifier le profil → Nom d'utilisateur ; TikTok le permet une fois tous les
+  30 jours, et peut garder un ancien nom quelque temps avant de le libérer). La connexion du
+  pipeline (`TIKTOK_REFRESH_TOKEN`) suit le compte, pas son nom : normalement rien à refaire ;
+  sinon, relancer le workflow `tiktok-auth`. Puis supprimer le compte vide, et corriger le
+  lien TikTok du site (`docs/index.html`, aujourd'hui `@quran_words_daily6`).
+- **Il n'est pas à toi** : quelqu'un a pris le nom et l'ancienne marque. Le signaler à TikTok
+  (usurpation de nom), et en attendant, la signature des vidéos envoie les spectateurs TikTok
+  chez lui : en reparler (une signature propre à TikTok est possible, mais c'est une version de
+  plus de chaque vidéo).
 
 Lien cliquable : TikTok le réserve aux comptes de 1 000 abonnés ou aux comptes Entreprise
 (selon les pays) ; regarder dans Profil → Modifier si le champ « Site web » est proposé. Ne pas
@@ -118,7 +154,7 @@ Lien cliquable : TikTok le réserve aux comptes de 1 000 abonnés ou aux comptes
 YouTube → Vous → Votre chaîne → Modifier (ou l'app YouTube Studio) :
 
 - Photo `avatar-1080.jpg`, bannière `youtube-banner-2560x1440.jpg`.
-- Nom : **Quran Words Daily** (inchangé).
+- Nom de la chaîne : `Quran Words Daily · القرآن` (l'identifiant `@quran_words_daily` ne change pas).
 - Liens (affichés sous le nom de la chaîne) : Website, Facebook, Instagram, TikTok.
 - E-mail de contact : `quranwordsdaily@gmail.com` (champ à part, pas dans la description).
 - Filigrane `youtube-watermark-150.png` (Personnalisation → Branding ; sur ordinateur ou en
@@ -246,9 +282,8 @@ Instagram n'a pas de playlists ; TikTok en a, mais réservées pour l'instant au
 
 ## Autres améliorations, par ordre d'importance
 
-1. **TikTok : poster les brouillons.** 0 vidéo publique : tout le reste est inutile tant
-   qu'aucun reel n'est posté depuis la boîte de réception TikTok (ou que l'audit TikTok ne
-   permet la publication directe).
+1. **TikTok : l'identifiant** `@quran_words_daily` (voir « TikTok ») : tant qu'il n'est pas
+   celui du compte des reels, la signature de chaque vidéo envoie ailleurs.
 2. **YouTube : demander l'audit** (toujours à faire, voir CLAUDE.md). Sans lui, chaque Short,
    son titre et ses playlists se font à la main, et le classement grossit avec chaque sujet ;
    avec lui, le pipeline publie et range seul.
@@ -257,11 +292,11 @@ Instagram n'a pas de playlists ; TikTok en a, mais réservées pour l'instant au
    vidéo, les playlists YouTube où la mettre, comme elles donnent déjà le titre. Pas fait :
    à décider (une correspondance série → playlist dans `config/series/*.yaml`, thème →
    playlist dans les épisodes).
-4. **Titres YouTube réguliers.** Les 10 Shorts ont au moins 5 formats différents (« سورة الضحى »
+4. **Titres YouTube réguliers, en arabe et en anglais.** Les 10 Shorts ont au moins 5 formats différents (« سورة الضحى »
    seul, « #surahalkahf » dans le titre, « Surah Al-Ikhlas  · » avec deux espaces, sans
    référence pour 9:51). Prendre toujours le titre de `reel.html` (lien dans le ticket
-   « 📋 Légendes à copier »). Corrigé avec ce changement : une ayah seule s'écrit « (6:17) »,
-   plus « (6:17-17) » ni « (2:255-255) », dans toutes les légendes.
+   « 📋 Légendes à copier »), qui donne désormais la série et la sourate dans les deux langues.
+   Corrigé aussi : une ayah seule s'écrit « (6:17) », plus « (6:17-17) » ni « (2:255-255) ».
 5. **Épingler 3 publications** sur Instagram, TikTok et Facebook, une par pilier : Ayat
    al-Kursi (récitation), le premier reel d'un épisode (thème), Al-Kahf 18:1-10 ou une histoire.
    Un nouveau visiteur voit d'un coup ce qu'est la page, pas seulement la dernière vidéo.
