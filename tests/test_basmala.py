@@ -70,6 +70,8 @@ def test_series_title_on_the_first_frame_and_first_caption_line():
     c = Config(root=Path("."), project={"content": content, "video": {"handle": "@h"}},
                backgrounds=[], gloss_headwords={})
     assert caption(c, passage).splitlines()[0] == "Supplications from the Quran · 4/38"
+    # one ayah: «(2:201)», never «(2:201-201)» (seen on 6:17 and 2:255, 2026-11-09)
+    assert caption(c, passage).splitlines()[1] == "Surah Al-Baqarah (2:201) · سورة البقرة"
 
 
 def test_hashtags_brand_first_then_series_surah_broad_reciter_glosses():

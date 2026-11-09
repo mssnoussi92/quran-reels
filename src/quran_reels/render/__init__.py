@@ -71,7 +71,8 @@ def caption(cfg: Config, passage: Passage, limit: int = CAPTION_LIMIT) -> str:
     Too long for Instagram: the Arabic goes first, then the translation. Credits always stay.
     """
     c = cfg.content
-    head = [f"Surah {passage.surah_name_en} ({passage.key}) · سورة {passage.surah_name_ar}", ""]
+    head = [f"Surah {passage.surah_name_en} ({passage.reference}) · سورة {passage.surah_name_ar}",
+            ""]
     if passage.label_en:
         head = [passage.label_en, *head]
     tail = [
@@ -115,8 +116,6 @@ def facebook_caption(cfg: Config, passage: Passage, tags: list[str]) -> str:
     if conf.get("max_hashtags") is not None:
         tags = tags[:int(conf["max_hashtags"])]
     c = cfg.content
-    ref = f"{passage.surah}:{passage.start}" + (
-        f"-{passage.end}" if passage.end != passage.start else "")
     credits = [_recitation(cfg), f"Translation: {c['translation']['label']}"]
     if any(a.glosses for a in passage.ayahs):
         g = c["glosses"]
@@ -124,7 +123,7 @@ def facebook_caption(cfg: Config, passage: Passage, tags: list[str]) -> str:
 
     def text(n_tags: int, handle: bool = True, label: bool = True) -> str:
         head = (passage.label_en + "\n" if passage.label_en and label else "") + \
-            f"Surah {passage.surah_name_en} ({ref})"
+            f"Surah {passage.surah_name_en} ({passage.reference})"
         blocks = [head, " · ".join(credits), cfg.video["handle"] if handle else "",
                   " ".join(tags[:n_tags])]
         return "\n\n".join(b for b in blocks if b)

@@ -97,6 +97,11 @@ class Passage:
         return f"{self.surah}:{self.start}-{self.end}"
 
     @property
+    def reference(self) -> str:
+        """The reference shown to people: 2:255 for one ayah, 93:1-11 for several."""
+        return f"{self.surah}:{self.start}" + (f"-{self.end}" if self.end != self.start else "")
+
+    @property
     def slug(self) -> str:
         """File-system friendly key, e.g. 093_001-003."""
         return f"{self.surah:03d}_{self.start:03d}-{self.end:03d}"
