@@ -31,6 +31,10 @@ concurrency:
   group: accounts          # never two runs posting at the same time (see publish-test)
   cancel-in-progress: false
 
+env:
+  # What changes the render or the recognition is installed at the versions of constraints.txt.
+  PIP_CONSTRAINT: ${{ github.workspace }}/constraints.txt
+
 jobs:
   reel:
     runs-on: ubuntu-24.04     # pinned: Chromium finds its libraries; ubuntu-latest is moving to 26.04

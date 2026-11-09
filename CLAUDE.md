@@ -130,7 +130,9 @@ tests/             pytest, sans réseau
                    publish-test.yml (manuel : dry-run, ou publication réelle avec PUBLIER),
                    tiktok-auth.yml (manuel : échange du code TikTok → TIKTOK_REFRESH_TOKEN)
                    prepare.yml (chaque nuit : découpes vérifiées de la semaine → `state`)
-                   tests.yml (pytest + ruff à chaque PR et sur main, ffmpeg statique)
+                   tests.yml (pytest + ruff à chaque PR et sur main, ffmpeg statique, et
+                   Chromium : tests/test_render_chromium.py dessine une image pour de bon,
+                   polices chargées, texte dans la zone sûre même réduit)
                    images.yml (toutes les heures ; `images run --check` décide selon
                    config/images.yaml ; état images.json sur la branche `state`)
                    catalog.yml (push main config/docs, après daily/images/prepare, chaque jour,
@@ -141,6 +143,10 @@ tests/             pytest, sans réseau
                    `.github/scripts/save-state.sh` : commit et push de la branche `state`
                    pour tous ces workflows ; branche déplacée ou réseau en panne → commit
                    rejoué sur la nouvelle tête et poussé de nouveau (tests/test_save_state.py)
+                   `constraints.txt` (`PIP_CONSTRAINT` de chaque workflow) : versions de ce
+                   qui change la sortie sans commit (playwright et son Chromium, numpy, torch,
+                   transformers, tokenizers), changées exprès ; `.github/dependabot.yml` :
+                   versions des actions GitHub, une PR par mois.
                    Runners épinglés sur `ubuntu-24.04` (`ubuntu-latest` passe à 26.04),
                    actions en versions Node.js 24. **Pas d'apt** : le miroir Ubuntu a mis
                    40 min à installer ffmpeg (run du soir du 2026-11-05, bloqué) ; ffmpeg =

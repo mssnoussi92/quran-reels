@@ -39,6 +39,10 @@ permissions:
   issues: write            # comments, label
   actions: read            # the preview's artifact, read by the publication
 
+env:
+  # What changes the render or the recognition is installed at the versions of constraints.txt.
+  PIP_CONSTRAINT: ${{ github.workspace }}/constraints.txt
+
 jobs:
   route:
     if: >-

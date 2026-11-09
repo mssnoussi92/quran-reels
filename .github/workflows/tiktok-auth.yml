@@ -21,6 +21,10 @@ concurrency:
   group: accounts            # one run at a time touching the platform tokens
   cancel-in-progress: false
 
+env:
+  # What changes the render or the recognition is installed at the versions of constraints.txt.
+  PIP_CONSTRAINT: ${{ github.workspace }}/constraints.txt
+
 jobs:
   exchange:
     runs-on: ubuntu-24.04     # pinned: same ffmpeg as tested; ubuntu-latest is moving to 26.04

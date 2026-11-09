@@ -22,6 +22,10 @@ concurrency:
   group: accounts          # shares the state branch with the daily run
   cancel-in-progress: false
 
+env:
+  # What changes the render or the recognition is installed at the versions of constraints.txt.
+  PIP_CONSTRAINT: ${{ github.workspace }}/constraints.txt
+
 jobs:
   prepare:
     runs-on: ubuntu-24.04
