@@ -5,7 +5,8 @@
    "done": [
     "juz-amma/114:1-6",
     "juz-amma/113:1-5",
-    "juz-amma/112:1-4"
+    "juz-amma/112:1-4",
+    "juz-amma/111:1-5"
    ]
   },
   "themes": {
@@ -265,6 +266,35 @@
     }
    },
    "reciter": "fares_abbad"
+  },
+  "2026-11-09/morning": {
+   "queue": "reading",
+   "item": "juz-amma/111:1-5",
+   "passage": "111:1-5",
+   "results": {
+    "facebook": {
+     "status": "published",
+     "id": "1644123617171400",
+     "url": "https://www.facebook.com/reel/1644123617171400/",
+     "error": null,
+     "at": "2026-11-09T06:22:40+00:00"
+    },
+    "instagram": {
+     "status": "published",
+     "id": "18121795487076912",
+     "url": "https://www.instagram.com/reel/DfgrE75j11T/",
+     "error": null,
+     "at": "2026-11-09T06:22:40+00:00"
+    },
+    "tiktok": {
+     "status": "draft",
+     "id": "v_inbox_file~v2.7706052310928984086",
+     "url": null,
+     "error": null,
+     "at": "2026-11-09T06:22:40+00:00"
+    }
+   },
+   "reciter": "sayegh"
   }
  },
  "removed": [
