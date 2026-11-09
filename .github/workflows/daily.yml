@@ -45,8 +45,8 @@ jobs:
       STATE: state-branch/published.json
       QURAN_REELS_SPLITS: state-branch/splits   # checked splits (prepare workflow)
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Install the package
@@ -93,7 +93,7 @@ jobs:
       # The cache fills up as passages are rendered: restore the latest here, save a new one
       # at the end, also when the run failed (run #29, 2026-11-09: 9 min 28 to fetch everything
       # again for a TikTok upload alone, the failed run #28 having saved nothing).
-      - uses: actions/cache/restore@v5
+      - uses: actions/cache/restore@v6
         if: inputs.passage != '' || steps.due.outputs.due == 'true'
         with:
           path: .cache
@@ -161,14 +161,14 @@ jobs:
       - name: Save the cache (downloads, clips)
         if: always() && (inputs.passage != '' || steps.due.outputs.due == 'true')
         continue-on-error: true
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@v6
         with:
           path: .cache
           key: data-${{ hashFiles('config/project.yaml') }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Keep the video
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: reel
           path: |

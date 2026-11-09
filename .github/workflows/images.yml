@@ -40,8 +40,8 @@ jobs:
     env:
       STATE: state-branch/images.json
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Install the package
@@ -75,7 +75,7 @@ jobs:
           python -m playwright install chromium
           python -c "from playwright.sync_api import sync_playwright as p; pw = p().start(); pw.chromium.launch().close(); pw.stop()" \
             || python -m playwright install --with-deps chromium
-      - uses: actions/cache@v5
+      - uses: actions/cache@v6
         if: steps.due.outputs.due == 'true'
         with:
           path: .cache
@@ -113,7 +113,7 @@ jobs:
 
       - name: Keep the images
         if: always() && steps.due.outputs.due == 'true'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: images
           path: out/images/
