@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<!-- Brand images of Quran Words Daily (docs/profils.md): one page, one format per ?f=...
+     Rendered by assets/brand/src/render.py. Text inside each platform's safe area. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: "Amiri"; font-weight: 700; src: url("../../fonts/Amiri-Bold.ttf"); }
+  @font-face { font-family: "Amiri"; font-weight: 400; src: url("../../fonts/Amiri-Regular.ttf"); }
+  @font-face { font-family: "Lora"; src: url("../../fonts/Lora.ttf"); }
+  :root { --gold: #f6c86c; --ink: #eceaf8; --muted: #d9b47a; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  body {
+    position: relative;
+    background:
+      radial-gradient(ellipse 60% 38% at 50% 104%, rgba(214, 133, 98, .55), rgba(214, 133, 98, 0) 70%),
+      radial-gradient(ellipse 40% 30% at 72% 18%, rgba(70, 92, 170, .25), rgba(70, 92, 170, 0) 70%),
+      linear-gradient(180deg, #0c1029 0%, #18204f 42%, #2c2d62 72%, #433a6e 100%);
+  }
+  body.transparent { background: none; }
+  canvas, svg.hills { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .mark {
+    font-family: "Amiri"; font-weight: 700; color: var(--gold); line-height: 1;
+    text-shadow: 0 .04em .12em rgba(5, 8, 25, .55);
+    direction: rtl; white-space: nowrap;
+  }
+  .name { font-family: "Lora"; color: var(--ink); letter-spacing: .12em; font-weight: 500; }
+  .name, .tag, .line { white-space: nowrap; }
+  .tag { font-family: "Lora"; font-style: italic; color: var(--ink); opacity: .92; }
+  .line { font-family: "Lora"; color: var(--muted); letter-spacing: .02em; }
+  .ar { font-family: "Amiri"; color: var(--gold); direction: rtl; white-space: nowrap; }
+  .center { position: absolute; display: flex; flex-direction: column; align-items: center;
+            text-align: center; }
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+<svg class="hills" id="hills" preserveAspectRatio="none"></svg>
+<div id="root"></div>
+<script>
+const f = new URLSearchParams(location.search).get("f") || "avatar";
+// What the page is about, said so that it stays true as new themes and subjects come
+// (owner, 2026-11-09: recitations, then themes, stories and other subjects).
+const TAG_EN = "Quran & Sunnah for everyday life";
+const TAG_AR = "القرآن والسنة في حياتك اليومية";
+const KINDS = "Recitations · Stories · Themes";
+const W = innerWidth, H = innerHeight;
+
+// Faint stars, always at the same places (seeded), never behind the text block.
+function stars(n, avoid) {
+  const c = document.getElementById("stars"); c.width = W; c.height = H;
+  const g = c.getContext("2d"); let s = 7;
+  const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < n; i++) {
+    const x = rnd() * W, y = rnd() * H * .62, r = .6 + rnd() * 1.4 * (W / 1600);
+    if (avoid && x > avoid[0] && x < avoid[2] && y > avoid[1] && y < avoid[3]) continue;
+    g.fillStyle = `rgba(235,235,255,${.25 + rnd() * .45})`;
+    g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
+  }
+}
+// Two dark slopes whose inner edges meet low in the middle, like the open pages of a book,
+// the dawn showing between them.
+function hills(top) {
+  const s = document.getElementById("hills");
+  s.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const rx = W * .34, ry = (H - top) * 1.08, cy = top + ry;
+  s.innerHTML = `
+    <ellipse cx="${W * .155}" cy="${cy}" rx="${rx}" ry="${ry}" fill="#161a3a"/>
+    <ellipse cx="${W * .845}" cy="${cy + ry * .03}" rx="${rx}" ry="${ry}" fill="#121530"/>`;
+}
+const root = document.getElementById("root");
+const el = (cls, text, style) => {
+  const d = document.createElement("div"); d.className = cls; d.textContent = text;
+  Object.assign(d.style, style || {}); return d;
+};
+
+if (f === "avatar") {
+  // Square, cropped to a circle everywhere and shown as small as 32 px: the mark alone,
+  // nothing else to read (the page's name is always printed next to it).
+  stars(26, [W * .12, H * .2, W * .88, H * .8]);
+  hills(H * .84);
+  const m = el("mark", "آيات", { fontSize: `${W * .38}px`, position: "absolute", left: "50%",
+    top: "47%", transform: "translate(-50%, -50%)" });
+  root.append(m);
+} else if (f === "watermark") {
+  // YouTube watermark (150x150, transparent): shown over the long videos.
+  document.body.classList.add("transparent");
+  root.append(el("mark", "آيات", { fontSize: `${W * .5}px`, position: "absolute", left: "46.5%",
+    top: "52%", transform: "translate(-50%, -50%)",
+    textShadow: "0 0 6px rgba(5,8,25,.85), 0 0 2px rgba(5,8,25,.9)" }));
+} else if (f === "facebook-cover") {
+  // 1640x624. Phones show the middle 1110 px only; the profile picture covers the bottom
+  // left corner: everything stays in the middle, above the bottom quarter.
+  stars(60, [W * .2, H * .05, W * .8, H * .82]);
+  hills(H * .82);
+  const b = document.createElement("div"); b.className = "center";
+  Object.assign(b.style, { left: "50%", top: "45%", transform: "translate(-50%, -50%)", gap: "0" });
+  b.append(
+    el("mark", "آيات", { fontSize: "168px", marginBottom: "-8px" }),
+    el("name", "QURAN WORDS DAILY", { fontSize: "54px", marginTop: "2px" }),
+    el("tag", TAG_EN, { fontSize: "35px", marginTop: "10px" }),
+    el("ar", TAG_AR, { fontSize: "36px", marginTop: "2px" }),
+    el("line", KINDS, { fontSize: "27px", marginTop: "8px" }),
+  );
+  root.append(b);
+} else if (f === "youtube-banner") {
+  // 2560x1440. Only the middle 1546x423 is shown on every device: the text lives there.
+  stars(110, [W * .18, H * .3, W * .82, H * .7]);
+  hills(H * .86);
+  const b = document.createElement("div");
+  Object.assign(b.style, { position: "absolute", left: "50%", top: "50%",
+    transform: "translate(-50%, -50%)", display: "flex", alignItems: "center", gap: "52px" });
+  const right = document.createElement("div");
+  Object.assign(right.style, { display: "flex", flexDirection: "column", gap: "18px" });
+  right.append(
+    el("name", "QURAN WORDS DAILY", { fontSize: "70px" }),
+    el("tag", TAG_EN, { fontSize: "46px" }),
+    el("ar", TAG_AR, { fontSize: "46px", marginTop: "-8px", textAlign: "left" }),
+    el("line", KINDS, { fontSize: "34px" }),
+  );
+  b.append(el("mark", "آيات", { fontSize: "235px" }),
+    el("", "", { width: "3px", alignSelf: "stretch", background: "rgba(246,200,108,.55)" }),
+    right);
+  root.append(b);
+}
+document.fonts.ready.then(() => { document.body.dataset.ready = "1"; });
+</script>
+</body>
+</html>

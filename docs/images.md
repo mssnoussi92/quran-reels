@@ -41,11 +41,11 @@ Pas d'IA dans la boucle quotidienne, pas de validation manuelle. Règles :
 ## Légende (modèle, pas d'IA)
 
 ```
-Word of the day: قَلَىٰ
-Surah Ad-Duha 93:3
+Word of the day · كلمة اليوم: قَلَىٰ
+Surah Ad-Duhaa (93:3) · سورة الضحى
 
 Translation: Sahih International
-Meaning: Ibn Qutaybah, Tafsir Gharib al-Qur'an
+Meaning: Tafsir al-Muyassar, King Fahd Complex
 
 #Quran #ArabicWords #QuranWordsDaily #SurahAdDuha #سورة_الضحى #القرآن_الكريم
 ```

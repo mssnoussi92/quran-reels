@@ -306,18 +306,26 @@ def test_a_reciter_youtube_claims_gets_a_youtube_version(world, two_reciters, mo
         Option("rifai", 50.0), Option("ghamdi", 120.0)])     # over 90 s: fine on YouTube
     outs = []
 
-    def render(cfg, key, label_ar="", label_en="", series_tags=()):
+    signed = []
+
+    def render(cfg, key, label_ar="", label_en="", series_tags=(), variants=True):
         outs.append(cfg.out)
+        signed.append(variants)
         calls["render"].append((key, label_en))
         return SimpleNamespace(video=cfg.out / "114_001-006.mp4")
 
+    def load_reel(video):
+        reel = SimpleNamespace(text=lambda n=None: f"caption {video.parent.name}\n")
+        reel.for_platform = lambda platform: reel
+        return reel
+
     import quran_reels.render as render_mod
     monkeypatch.setattr(render_mod, "render_passage", render)
-    monkeypatch.setattr(daily.publish_mod, "load_reel", lambda video: SimpleNamespace(
-        text=lambda n=None: f"caption {video.parent.name}\n"))
+    monkeypatch.setattr(daily.publish_mod, "load_reel", load_reel)
     report = tmp_path / "report.json"
     assert daily.run(cfg, path, now=paris(2026, 11, 5, 7, 20), report=report) == 0
     assert outs == [tmp_path / "out", tmp_path / "out" / "youtube"]
+    assert signed == [True, False]       # no TikTok version of the YouTube one
     assert calls["publish"] == [("114_001-006", ("facebook", "instagram"))]   # Meta: rifai
     item = json.loads(report.read_text(encoding="utf-8"))["items"][0]
     assert item["reciter"] == "rifai"

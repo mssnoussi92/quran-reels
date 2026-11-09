@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 import time
 from dataclasses import asdict
@@ -27,7 +28,14 @@ from pathlib import Path
 
 from quran_reels.config import Config
 from quran_reels.gh_secrets import save_secret
-from quran_reels.models import Passage, PublishResult, PublishStatus, Reel, parse_passage
+from quran_reels.models import (
+    Passage,
+    PublishResult,
+    PublishStatus,
+    Reel,
+    parse_passage,
+    with_signature,
+)
 from quran_reels.publishers.base import PublisherError
 from quran_reels.publishers.facebook import FacebookPublisher
 from quran_reels.publishers.instagram import InstagramPublisher
@@ -102,7 +110,8 @@ def meta_check(cfg: Config, platforms: list[str]) -> tuple[Graph, MetaEnv, Token
 
 def load_reel(video: Path) -> Reel:
     """A reel rendered by `quran-reels render`: the MP4 and its out/<passage>/ folder (the
-    caption, its hashtags, Facebook's short caption from the manifest)."""
+    caption, its hashtags, Facebook's short caption from the manifest, the MP4 and caption of
+    each platform signed with its own name: Reel.for_platform)."""
     work = video.with_suffix("")
     manifest = json.loads((work / "manifest.json").read_text(encoding="utf-8"))
     surah, start, end = parse_passage(manifest["passage"])
@@ -115,13 +124,36 @@ def load_reel(video: Path) -> Reel:
     tag_line = " ".join(tags)
     if tags and text.rstrip().endswith(tag_line):         # written by render: body + tags
         text = text.rstrip()[: -len(tag_line)].rstrip() + "\n"
+    variants = {}
+    for name, v in (manifest.get("variants") or {}).items():
+        mp4 = work / v["video"]
+        if mp4.is_file():           # missing (an older artifact): the platform gets the main one
+            variants[name] = (mp4, with_signature(text, v["instead_of"], v["signature"]))
     return Reel(passage=passage, video=video, caption=text, hashtags=list(tags),
                 cover=work / "preview" / f"{surah:03d}{int(cover['ref'].split(':')[1]):03d}.png",
                 cover_ms=int((cover["start"] + cover["seconds"] / 2) * 1000),
-                facebook=(manifest.get("captions") or {}).get("facebook") or "")
+                facebook=(manifest.get("captions") or {}).get("facebook") or "",
+                variants=variants)
 
 
 YOUTUBE_TITLE_MAX = 100        # YouTube refuses a longer title
+
+
+def _youtube_title(head: list[str]) -> str:
+    """The caption's head lines on one line. Too long: the series counter goes, then the series,
+    so that the title keeps both languages (owner, 2026-11-09): never the Arabic or the English
+    half alone. Cut with «…» only when the surah line itself is too long."""
+    series, surah = (head[:-1], head[-1]) if len(head) > 1 else ([], head[0] if head else "")
+    tries = [" · ".join([*series, surah])]
+    if series:
+        parts = " · ".join(series).split(" · ")
+        if re.fullmatch(r"\d+/\d+", parts[-1]):
+            tries.append(" · ".join([*parts[:-1], surah]))
+        tries.append(surah)
+    for title in tries:
+        if len(title) <= YOUTUBE_TITLE_MAX:
+            return title
+    return surah[:YOUTUBE_TITLE_MAX - 1].rsplit(" ", 1)[0] + "…"
 
 
 def youtube_texts(reel: Reel, max_tags: int | None = None) -> dict[str, str]:
@@ -131,11 +163,7 @@ def youtube_texts(reel: Reel, max_tags: int | None = None) -> dict[str, str]:
     hashtags = the rendered ones (all, as caption.txt, unless platforms.youtube.max_hashtags)."""
     head = [line.strip() for line in reel.caption.strip().split("\n\n", 1)[0].splitlines()
             if line.strip()]
-    title = " · ".join(head)
-    while len(title) > YOUTUBE_TITLE_MAX and " · " in title:
-        title = title.rsplit(" · ", 1)[0]
-    if len(title) > YOUTUBE_TITLE_MAX:
-        title = title[:YOUTUBE_TITLE_MAX - 1].rsplit(" ", 1)[0] + "…"
+    title = _youtube_title(head)
     tags = reel.hashtags if max_tags is None else reel.hashtags[:max_tags]
     return {"title": title.replace("<", "").replace(">", ""),
             "description": reel.caption.strip() + "\n", "hashtags": " ".join(tags)}
@@ -286,9 +314,10 @@ def publish_reel(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
             results[name] = PublishResult(name, PublishStatus.BLOCKED,
                                           error=f"non envoyé, droits : {reason}")
         else:
-            print(f"{name}: uploading {reel.video.name}{' (dry run)' if dry_run else ''}",
+            own = reel.for_platform(name)       # TikTok: signed with its own name
+            print(f"{name}: uploading {own.video.name}{' (dry run)' if dry_run else ''}",
                   file=sys.stderr)
-            results[name] = publishers[name].publish(reel, dry_run=dry_run)
+            results[name] = publishers[name].publish(own, dry_run=dry_run)
         r = results[name]
         print(f"{name}: {r.status.value} {r.remote_id or ''} {r.url or ''} {r.error or ''}"
               .rstrip(), file=sys.stderr)

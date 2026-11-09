@@ -83,7 +83,7 @@ class FrameRenderer:
         """Write dest (PNG, transparent outside the drawn parts). Returns the text scale."""
         dest.parent.mkdir(parents=True, exist_ok=True)
         html = dest.with_suffix(".html")
-        html.write_text(self.template.render(layer=layer, **base_context(self.cfg), **context),
+        html.write_text(self.template.render(layer=layer, **{**base_context(self.cfg), **context}),
                         encoding="utf-8")
         self._page.goto(html.resolve().as_uri())
         self._page.wait_for_function("window.__fit !== undefined")

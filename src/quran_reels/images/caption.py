@@ -19,12 +19,15 @@ def hashtags(settings: dict[str, Any], content: Content) -> list[str]:
 def caption(cfg: Config, kind: str, content: Content) -> str:
     """Body without hashtags (Reel.text adds them, capped per platform)."""
     translation = cfg.content["translation"]["label"]
+
+    def surah(ref: str) -> str:   # titles in Arabic and English, as the reels (2026-11-09)
+        return f"Surah {content.surah_name_en} ({ref}) · سورة {content.surah_name_ar}"
+
     if kind == "word":
         meaning = cfg.content["glosses"].get("label_en") or cfg.content["glosses"]["label"]
-        return "\n".join([f"Word of the day: {content.word}",
-                          f"Surah {content.surah_name_en} {content.ref}", "",
+        return "\n".join([f"Word of the day · كلمة اليوم: {content.word}", surah(content.ref), "",
                           f"Translation: {translation}", f"Meaning: {meaning}", ""])
-    return "\n".join(["Ayah of the day", f"Surah {content.surah_name_en} {content.context_ref}",
+    return "\n".join(["Ayah of the day · آية اليوم", surah(content.context_ref),
                       "", f"Translation: {translation}", ""])
 
 

@@ -159,6 +159,7 @@ jobs:
           path: |
             out/*.mp4
             out/*/caption.txt
+            out/*/tiktok.mp4
             out/youtube/*.mp4
             out/youtube/*/caption.txt
             out/*/manifest.json

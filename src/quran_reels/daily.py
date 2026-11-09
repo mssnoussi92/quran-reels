@@ -195,7 +195,7 @@ def copy_text(cfg: Config, video: Path) -> str:
         reel = publish_mod.load_reel(video)
     except (OSError, KeyError, ValueError):
         return ""
-    return reel.text(publish_mod.max_hashtags(cfg, "tiktok"))
+    return reel.for_platform("tiktok").text(publish_mod.max_hashtags(cfg, "tiktok"))
 
 
 def youtube_version(cfg: Config, p: Pending, reciter: str | None,
@@ -217,7 +217,7 @@ def youtube_version(cfg: Config, p: Pending, reciter: str | None,
             return {"reciter": None, "error": "aucun autre récitateur prêt pour ce passage"}
         ycfg = dataclasses.replace(rec.with_reciter(cfg, other), out_dir=cfg.out / YOUTUBE_DIR)
         video = render_passage(ycfg, p.item.key, p.item.label_ar, p.item.label_en,
-                               p.item.series.hashtags).video
+                               p.item.series.hashtags, variants=False).video
         caption = publish_mod.load_reel(video).text(publish_mod.max_hashtags(cfg, "youtube"))
         print(f"{p.item.key}: YouTube version by {other} ({reciter} is claimed there): "
               f"out/{YOUTUBE_DIR}/{video.name}")

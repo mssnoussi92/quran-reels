@@ -5,7 +5,7 @@ project:
   handles:
     facebook: quranwordsdaily
     instagram: quran_words_daily
-    tiktok: quran_words_daily
+    tiktok: quran.words.daily         # renamed 2026-11-09: quran_words_daily there is someone else's
     youtube: "@quran_words_daily"
 
 content:
@@ -183,6 +183,10 @@ platforms:
     enabled: true                     # tiktok-auth saved TIKTOK_REFRESH_TOKEN (2026-11-04)
     mode: draft                       # inbox upload, posted by hand from the TikTok app
     max_hashtags: 5                   # TikTok accepts 5 (seen by the owner, 2026-11-05)
+    # Its own signature (render.signatures): on TikTok, @quran_words_daily is someone else's
+    # empty account (2026-11-09), so TikTok gets the reel with this name on every frame and at
+    # the end of its caption; the other platforms keep video.handle.
+    signature: "@quran.words.daily"
     redirect_uri: https://mssnoussi92.github.io/quran-reels/tiktok-callback.html
   youtube:                           # locked private until the YouTube audit: by hand
     enabled: false

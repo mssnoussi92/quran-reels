@@ -187,6 +187,7 @@ jobs:
           name: on-demand-${{ needs.route.outputs.issue }}-${{ github.run_id }}
           path: |
             out/*.mp4
+            out/*/*.mp4
             out/*/manifest.json
             out/*/caption.txt
             out/*/preview/*.png

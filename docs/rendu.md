@@ -6,6 +6,13 @@
 - Zone sûre (boutons Reels/TikTok) : haut 250 px, bas 420 px, côtés 90 px.
 - Deux calques PNG transparents sur le fond : `static` (voile, signature, crédits, fixe) et un
   `content` par ayah (référence, ayah, traduction, gloses) en fondu de 0,25 s.
+- **Signature propre à une plateforme** (`platforms.<nom>.signature`, `render.signatures`) :
+  TikTok, où `@quran_words_daily` est le compte de quelqu'un d'autre, a la sienne
+  (`@quran.words.daily`, 2026-11-09). Le calque `static` est redessiné avec ce nom
+  (`frames/static.tiktok.png`) et une seconde vidéo encodée avec les mêmes images, le même son
+  et le même fond (`out/<passage>/tiktok.mp4`) ; le manifeste la note (`variants`) et
+  `publish.load_reel` la donne à TikTok avec la légende signée de même (`Reel.for_platform`).
+  Pas pour la version YouTube (`daily.youtube_version`, `variants=False`).
 - Fond (`sources/backgrounds.py`, `config/backgrounds.yaml`) : les `themes` comptent leurs mots
   dans la traduction (sans les [ajouts] du traducteur) × leur poids ; le meilleur thème qui a
   un fond gagne (égalité : le plus rare, listé d'abord), même passage → même fond ; aucun thème
@@ -50,11 +57,12 @@
   `caption.txt` = légende + tous les tags sur la dernière ligne ; `manifest.json` les liste ;
   `Reel.text(n)` garde les n premiers.
 - Légende Facebook (`render.facebook_caption`, 2026-11-09) : ≤ 400 caractères hashtags compris
-  (`platforms.facebook.max_caption_chars`), sans arabe : série, « Surah Al-An'am (6:17) »,
-  traduction anglaise (`17. …`) si tout tient, crédits sur une ligne (« Word meanings » seulement
-  si la vidéo montre une glose, avec `glosses.label_en`), signature, les 8 premiers hashtags.
-  Trop longue : la traduction part d'abord, puis des hashtags de la fin (en dernier recours, la
-  signature puis la série ; jamais les crédits). Dans `manifest.json` (`captions.facebook`) ;
+  (`platforms.facebook.max_caption_chars`), ni le texte arabe des ayahs ni la traduction (dans
+  la vidéo) : série et sourate en arabe et en anglais (« The seven munjiyat verses · السبع آيات
+  المنجيات · 2/7 », « Surah Al-An'am (6:17) · سورة الأنعام » ; titres toujours dans les deux
+  langues, 2026-11-09), crédits sur une ligne (« Word meanings » seulement si la vidéo montre une
+  glose, avec `glosses.label_en`), signature, les 8 premiers hashtags. Trop longue : des
+  hashtags de la fin (en dernier recours, la signature puis la série ; jamais les crédits). Dans `manifest.json` (`captions.facebook`) ;
   `Reel.text_for("facebook")` la rend, les autres plateformes gardent `Reel.text(n)`.
 - Basmala (`content.basmala`) : `bismillah.mp3` d'EveryAyah (≈ 6 s), texte uthmani et
   traduction de 1:1 (Quran.com), premier segment du minutage ; écran sans référence ni numéro.

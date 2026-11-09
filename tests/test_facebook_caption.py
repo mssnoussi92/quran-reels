@@ -1,7 +1,7 @@
 """Facebook's short caption (render.facebook_caption): at most 400 characters with its
-hashtags, neither the Arabic text nor the translation (owner's choice, 2026-11-09), the credits
-always; too long, hashtags go from the end. Placeholder translations: no Quran text is typed
-here. No network."""
+hashtags, neither the Arabic text of the ayahs nor the translation (owner's choice, 2026-11-09),
+titles in Arabic and English (owner, 2026-11-09), the credits always; too long, hashtags go from
+the end. Placeholder translations: no Quran text is typed here. No network."""
 
 import json
 import re
@@ -40,6 +40,12 @@ def passage(ayahs=1, chars=60, label="The seven munjiyat verses · 2/7", glossed
     return p
 
 
+def no_ayah_text(body):
+    """Arabic only in the title lines (series, surah), never an ayah or the basmala."""
+    rest = body.partition("\n\n")[2]
+    return "كَلِمَة" not in body and "بِسْمِ" not in body and not ARABIC.search(rest)
+
+
 def split(text):
     """(body, hashtags) of a caption whose last paragraph may be its hashtags."""
     body, _, last = text.rpartition("\n\n")
@@ -54,11 +60,12 @@ def test_series_reference_credits_handle_and_hashtags(cfg):
     body, tags = split(text)
     assert len(text) <= LIMIT
     assert body.split("\n\n") == [
-        "The seven munjiyat verses · 2/7\nSurah Al-An'am (6:17)",
+        ("The seven munjiyat verses · السبع آيات المنجيات · 2/7\n"
+         "Surah Al-An'am (6:17) · سورة الأنعام"),
         f"{RECITATION} · {TRANSLATION}",
         "@quran_words_daily"]
     assert tags == hashtags(cfg, p)[:8]                  # platforms.facebook.max_hashtags
-    assert not ARABIC.search(body)                       # the ayahs are in the video
+    assert no_ayah_text(body)                            # the ayahs are in the video
 
 
 def test_never_the_translation_even_a_short_one(cfg):
@@ -89,7 +96,7 @@ def test_never_over_400_and_always_credited(cfg, glossed):
             assert 10 <= len(text) <= LIMIT, (label, ayahs, chars)
             assert f"{RECITATION} · {TRANSLATION}" in body
             assert (MEANINGS in body) is glossed         # credited when the reel shows some
-            assert not ARABIC.search(body)
+            assert no_ayah_text(body)
 
 
 def test_the_reciter_s_producer_is_credited(cfg):

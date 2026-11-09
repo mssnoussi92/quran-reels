@@ -143,7 +143,8 @@ def test_caption_follows_the_template_and_instagram_keeps_five_tags():
     body = caption_mod.caption(cfg, "word", content())
     tags = caption_mod.hashtags(settings, content())
     assert caption_mod.text(body, tags, None) == (
-        "Word of the day: قَلَىٰ\nSurah Ad-Duhaa 93:3\n\nTranslation: Sahih International\n"
+        "Word of the day · كلمة اليوم: قَلَىٰ\nSurah Ad-Duhaa (93:3) · سورة الضحى\n\n"
+        "Translation: Sahih International\n"
         "Meaning: Tafsir al-Muyassar, King Fahd Complex\n\n"
         "#Quran #ArabicWords #QuranWordsDaily #SurahAdDuhaa #سورة_الضحى #القرآن_الكريم\n")
     assert caption_mod.text(body, tags, 5).rstrip().endswith("#سورة_الضحى")
