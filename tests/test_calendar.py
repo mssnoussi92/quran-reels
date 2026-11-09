@@ -258,6 +258,123 @@ def test_a_slot_blocked_by_the_rights_check_is_not_retried(world):
     assert State.load(path).queue("reading")["done"] == []                 # still first
 
 
+# ---- the record written at once, another try in the same run ------------------------------
+
+def test_what_is_out_is_recorded_before_anything_else_is_tried(world, monkeypatch):
+    """Daily run #8 was cancelled inside its publish step: a run stopped after Facebook has the
+    reel must have said so, or the next run posts it again."""
+    calls, _, path = world
+
+    def crash(*a, **k):
+        assert State.load(path).slot(date(2026, 11, 5), "morning")["results"]["facebook"][
+            "status"] == "published"                     # on disk before the YouTube version
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(daily, "youtube_version", crash)
+    with pytest.raises(KeyboardInterrupt):
+        daily.run(None, path, now=paris(2026, 11, 5, 7, 20))
+    assert State.load(path).queue("reading")["done"] == ["juz-amma/114:1-6"]
+    assert daily.run(None, path, now=paris(2026, 11, 5, 8, 20)) == 0     # nothing posted twice
+    assert len(calls["publish"]) == 1
+
+
+@pytest.fixture
+def uploads(world, monkeypatch):
+    """Platforms answering in turn, platforms.retry on: one more try after 180 s."""
+    calls, _, path = world
+    answers: dict[str, list[PublishResult]] = {}
+    waits: list[float] = []
+
+    def publish(cfg, video, platforms, dry_run, checked=None):
+        calls["publish"].append((video.stem, tuple(platforms)))
+        return [answers[p].pop(0) if answers.get(p)
+                else PublishResult(p, PublishStatus.PUBLISHED, remote_id="1") for p in platforms]
+
+    monkeypatch.setattr(daily.publish_mod, "publish_reel", publish)
+    monkeypatch.setattr(daily.publish_mod, "retry_settings", lambda cfg: (1, 180.0))
+    return calls, answers, path, waits
+
+
+def test_a_platform_that_did_not_get_the_reel_is_tried_again_in_the_same_run(uploads):
+    """Instagram refusing the upload (runs #10, #13), TikTok's HTTP 500 (#28): each was a failed
+    run, an alert and a second run for one platform."""
+    calls, answers, path, waits = uploads
+    answers["instagram"] = [PublishResult("instagram", PublishStatus.FAILED,
+                                          error="HTTP 400, type ProcessingFailedError")]
+    assert daily.run(None, path, now=paris(2026, 11, 5, 7, 20), sleep=waits.append) == 0
+    assert calls["publish"] == [("114:1-6", ("facebook", "instagram")),
+                                ("114:1-6", ("instagram",))]
+    assert waits == [180.0]
+    results = State.load(path).slot(date(2026, 11, 5), "morning")["results"]
+    assert {p: r["status"] for p, r in results.items()} == {"facebook": "published",
+                                                            "instagram": "published"}
+
+
+def test_the_other_try_comes_after_the_first_answers_are_recorded(uploads):
+    calls, answers, path, _ = uploads
+    answers["instagram"] = [PublishResult("instagram", PublishStatus.FAILED, error="x")]
+
+    def cancelled(seconds):                               # the run is stopped while it waits
+        raise KeyboardInterrupt
+
+    with pytest.raises(KeyboardInterrupt):
+        daily.run(None, path, now=paris(2026, 11, 5, 7, 20), sleep=cancelled)
+    results = State.load(path).slot(date(2026, 11, 5), "morning")["results"]
+    assert results["facebook"]["status"] == "published"
+    assert results["instagram"]["status"] == "failed"
+    assert daily.run(None, path, now=paris(2026, 11, 5, 8, 20), sleep=cancelled) == 0
+    assert calls["publish"][-1] == ("114:1-6", ("instagram",))     # the next run: Instagram only
+
+
+def test_one_more_try_only_then_the_run_fails_as_before(uploads):
+    calls, answers, path, waits = uploads
+    answers["instagram"] = [PublishResult("instagram", PublishStatus.FAILED, error="x")] * 2
+    assert daily.run(None, path, now=paris(2026, 11, 5, 7, 20), sleep=waits.append) == 1
+    assert len(calls["publish"]) == 2 and waits == [180.0]
+    assert State.load(path).queue("reading")["done"] == ["juz-amma/114:1-6"]   # Facebook has it
+
+
+def test_a_failure_while_publishing_is_not_tried_again(uploads):
+    """Facebook's «does not exist» right after a publication: the reel may be live."""
+    calls, answers, path, waits = uploads
+    answers["facebook"] = [PublishResult("facebook", PublishStatus.FAILED, remote_id="draft-1",
+                                         error="the published reel 9 may be live anyway")]
+    assert daily.run(None, path, now=paris(2026, 11, 5, 7, 20), sleep=waits.append) == 1
+    assert len(calls["publish"]) == 1 and waits == []
+
+
+def test_nothing_is_tried_again_after_a_refusal_by_the_rights_check(uploads):
+    calls, answers, path, waits = uploads
+    answers["facebook"] = [PublishResult("facebook", PublishStatus.BLOCKED, remote_id="d")]
+    answers["instagram"] = [PublishResult("instagram", PublishStatus.FAILED, error="x")]
+    assert daily.run(None, path, now=paris(2026, 11, 5, 7, 20), sleep=waits.append) == 1
+    assert len(calls["publish"]) == 1 and waits == []
+
+
+def test_a_dry_run_tries_nothing_again(uploads):
+    calls, answers, path, waits = uploads
+    answers["instagram"] = [PublishResult("instagram", PublishStatus.FAILED, error="x")]
+    daily.run(None, path, now=paris(2026, 11, 5, 7, 20), dry_run=True, sleep=waits.append)
+    assert len(calls["publish"]) == 1 and waits == [] and not path.exists()
+
+
+def test_what_is_worth_another_try():
+    from types import SimpleNamespace
+
+    from quran_reels.publish import retry_settings, to_retry
+
+    failed = PublishResult("tiktok", PublishStatus.FAILED, error="upload chunk 1/1: HTTP 500")
+    live = PublishResult("facebook", PublishStatus.PUBLISHED, remote_id="1")
+    assert to_retry([live, failed]) == ["tiktok"]
+    assert to_retry([live, PublishResult("tiktok", PublishStatus.FAILED, remote_id="v1")]) == []
+    assert to_retry([PublishResult("facebook", PublishStatus.REMOVED, remote_id="1"), failed]) == []
+    assert to_retry([live, PublishResult("tiktok", PublishStatus.DRAFT, remote_id="v1")]) == []
+    assert retry_settings(None) == (0, 0.0)
+    cfg = SimpleNamespace(project={"platforms": {"retry": {"times": 1, "wait": 90}}})
+    assert retry_settings(cfg) == (1, 90.0)
+    assert retry_settings(SimpleNamespace(project={"platforms": {}})) == (0, 0.0)
+
+
 # ---- claims after publication (Meta mutes or blocks a reel) -------------------------------
 
 @pytest.fixture

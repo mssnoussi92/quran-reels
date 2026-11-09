@@ -87,6 +87,8 @@ src/quran_reels/
   publish.py       `quran-reels publish|meta-check|tiktok-auth` : contrôle, publication, résumé
   gh_secrets.py    réécrit un secret Actions (refresh token TikTok) via gh + GH_SECRETS_TOKEN
   daily.py         `quran-reels daily` : créneaux dus maintenant → rendu → publication → état
+                   (écrit dès que le reel est sorti) → reprise dans le run d'une plateforme
+                   qui n'a rien reçu (`platforms.retry`, `publish.to_retry`)
   images/          publications image (docs/images.md) : candidates.py (règles 1-4, liste
                    figée), select.py (exclusions, ordre stable, état), cards.py + templates/
                    (1080×1350), caption.py, publish.py (carrousel Instagram, post Facebook
@@ -120,6 +122,9 @@ tests/             pytest, sans réseau
                    on-demand.yml (tickets « À la demande » et commentaires `/publier`,
                    `/essai`, `/apercu`, `/mots`, `/youtube` **du propriétaire seulement** ; aperçu hors
                    groupe `accounts`, publication dans `accounts`)
+                   `.github/scripts/save-state.sh` : commit et push de la branche `state`
+                   pour tous ces workflows ; branche déplacée ou réseau en panne → commit
+                   rejoué sur la nouvelle tête et poussé de nouveau (tests/test_save_state.py)
                    Runners épinglés sur `ubuntu-24.04` (`ubuntu-latest` passe à 26.04),
                    actions en versions Node.js 24. **Pas d'apt** : le miroir Ubuntu a mis
                    40 min à installer ffmpeg (run du soir du 2026-11-05, bloqué) ; ffmpeg =
@@ -244,11 +249,18 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
 - `config/schedule.yaml` : créneaux 07:30 (`reading`) et 19:30 (`themes`), vendredi une file par
   créneau (`kahf-first-ten`, `kahf`), `fallback`, `published_by_hand`. Séries dans
   `config/series/*.yaml`, vérifiées par `quran-reels series-check`.
+- **Reprise dans le run** (2026-11-09 : 4 créneaux sur 9 avaient demandé un second run) :
+  une plateforme qui n'a rien reçu (`failed` sans identifiant : Instagram refuse l'envoi,
+  TikTok en HTTP 500) est réessayée une fois, seule, 180 s plus tard (`platforms.retry`) ;
+  jamais après un refus des droits ni un échec pendant la publication (reel peut-être en
+  ligne). L'état est écrit dès que le reel est sorti, et son push rejoue le commit si la
+  branche `state` a bougé (`save-state.sh`) : une publication non enregistrée serait refaite.
 - État : `published.json` sur la branche `state` (créneaux, files, `claimed`, `removed`) ;
   un créneau supprimé se republie avec `quran-reels state reopen <jour>/<créneau>` (skill
   `republish`).
-- **Le cron de GitHub ne se déclenche jamais dans ce dépôt** (0 run `schedule` depuis la
-  création, problème de GitHub connu en 2026 au niveau du compte ; `workflow_dispatch` marche).
+- **Le cron de GitHub n'est pas fiable dans ce dépôt** : il lance des runs depuis le
+  2026-11-05 au soir, mais 6 à 8 h en retard et pas à chaque fois (`daily` : 8 passages sur
+  24 au 2026-11-09, tous hors fenêtre, sans effet ; `workflow_dispatch` marche).
   Les workflows sont donc lancés par des **tâches planifiées Claude** (choix du propriétaire,
   2026-11-05) qui réveillent la session « Quran Words Daily – planificateur » (Sonnet, dépôt
   attaché, outils GitHub) : `prepare.yml` 02:41 Paris, `daily.yml` 07:12 et 19:12 Paris

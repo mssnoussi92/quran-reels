@@ -255,10 +255,43 @@ def after_check(publishers: dict, results: dict[str, PublishResult], timeout: fl
     return reason
 
 
+def retry_settings(cfg: Config | None) -> tuple[int, float]:
+    """platforms.retry {times, wait}: how many more times a platform that did not get the reel
+    is tried in the same run, and the seconds before each try. (0, 0): off."""
+    if getattr(cfg, "project", None) is None:
+        return 0, 0.0
+    conf = (cfg.project.get("platforms") or {}).get("retry") or {}
+    times = int(conf.get("times", 0))
+    return (times, float(conf.get("wait", 180))) if times > 0 else (0, 0.0)
+
+
+def to_retry(results: list[PublishResult]) -> list[str]:
+    """The platforms worth another try in the same run: those that did not get the reel at all
+    (`failed` without an id: Instagram refusing the upload, TikTok's upload failing). The reel
+    is rendered and the other platforms have it; a later run would do the same, after a failed
+    run and an alert (daily runs #10, #13 and #28).
+
+    Never after the rights check refused or took down anything (same recitation, same answer),
+    and never a failure with an id: the platform has the video, the failure came while
+    publishing or processing it, and the reel may be live all the same (Facebook's «does not
+    exist» right after a publication): another try could post it twice."""
+    if any(r.status in (PublishStatus.BLOCKED, PublishStatus.REMOVED) for r in results):
+        return []
+    return [r.platform for r in results
+            if r.status == PublishStatus.FAILED and not r.remote_id]
+
+
+def _save_refresh(value: str) -> None:
+    """TikTok's new refresh token: in the secret for the next runs, and in this run's
+    environment for its next upload (another slot, another try), which reads it from there."""
+    save_secret(REFRESH_SECRET, value)
+    os.environ[REFRESH_SECRET] = value
+
+
 def tiktok_publisher() -> TikTokPublisher:
     env = TikTokEnv.from_environ()
     return TikTokPublisher(TikTok(env.client_key, env.client_secret), str(env.refresh_token),
-                           save_refresh=lambda value: save_secret(REFRESH_SECRET, value))
+                           save_refresh=_save_refresh)
 
 
 def publish_reel(cfg: Config, video: Path, platforms: list[str], dry_run: bool,

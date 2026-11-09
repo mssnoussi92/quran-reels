@@ -45,8 +45,19 @@
   souvent en retard ; le 2026-11-05, les trois premiers passages à :13 n'ont jamais été lancés
   par GitHub, minute changée pour réenregistrer le planning) ; `daily --check` décide sans installer ffmpeg ; un créneau commencé ne
   réessaie que les plateformes en échec, avec le même passage ; fenêtre de 3 h.
-- **Le cron de GitHub ne se déclenche jamais dans ce dépôt** (0 run `schedule` depuis la
-  création, problème de GitHub connu en 2026 au niveau du compte ; `workflow_dispatch` marche).
+- **Reprise dans le même run** (`platforms.retry` de `config/project.yaml` : 1 fois, après
+  180 s ; `publish.to_retry`, `daily.again`) : entre le 5 et le 9 novembre 2026, 4 créneaux sur
+  9 ont demandé un second run pour une seule plateforme (Instagram qui refuse l'envoi, runs
+  #10 et #13 ; TikTok en HTTP 500, #28), avec un ticket d'échec à chaque fois. Une plateforme
+  qui **n'a rien reçu** (`failed` sans identifiant) est donc réessayée seule dans le run, avec
+  sa propre vérification des droits. Jamais après un refus de la vérification des droits, ni
+  quand l'échec vient pendant la publication (`failed` avec l'identifiant de ce qui a été
+  envoyé : le reel est peut-être en ligne, un second essai le publierait deux fois). Encore en
+  échec : le run échoue comme avant et un run suivant réessaie.
+- **Le cron de GitHub n'est pas fiable dans ce dépôt** : aucun run `schedule` avant le
+  2026-11-05 21:32 UTC ; depuis, il en lance (32 au 2026-11-09) mais avec 6 à 8 h de retard et
+  pas à chaque fois (`daily` : 8 passages sur 24, tous hors fenêtre, donc sans effet ;
+  `images` : 16 sur 94 ; `prepare` chaque jour, vers 08:00 UTC). `workflow_dispatch` marche.
   Les workflows sont donc lancés par des **tâches planifiées Claude** (choix du propriétaire,
   2026-11-05) qui réveillent la session « Quran Words Daily – planificateur » (Sonnet, dépôt
   attaché, outils GitHub) : `prepare.yml` 02:41 Paris, `daily.yml` 07:12 et 19:12 Paris
@@ -57,6 +68,14 @@
   (un passage en double ne republie rien : le créneau est déjà dans l'état).
 - État : `published.json` sur la branche `state` (créée au premier passage du workflow),
   commit après chaque créneau. Un passage compte comme publié dès qu'une plateforme l'a.
+  **Ce qui est sorti est écrit aussitôt** (`daily.record_slot`, avant la reprise et avant la
+  version YouTube) : un run annulé ou arrêté en route (run #8) a déjà dit ce qui est publié.
+  **Le push ne perd rien** (`.github/scripts/save-state.sh`, appelé par tous les workflows qui
+  écrivent sur `state`) : si la branche a bougé entre-temps (l'aperçu à la demande y pousse
+  ses découpes hors du groupe `accounts`) ou si le réseau échoue, le commit du run est rejoué
+  sur la nouvelle tête et poussé de nouveau, 5 essais ; avant, un push refusé perdait le
+  créneau et le run suivant republiait le même passage partout. Seul un vrai conflit (deux
+  écritures des mêmes lignes) échoue, avec une erreur sur le run.
 - Prévenir le propriétaire (`notify.py`, étape « Tell the owner », `issues: write`) :
   `daily` écrit `out/daily-report.json` (même s'il s'arrête, avec l'erreur). Échec → ticket
   « ⚠️ Publication quotidienne en échec » assigné au propriétaire et @mention (notification

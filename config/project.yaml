@@ -168,6 +168,12 @@ video:
   handle: "@quran_words_daily"        # page signature shown on every frame
 
 platforms:
+  # A platform that did not get the reel at all (Instagram refusing the upload, TikTok's upload
+  # failing: 4 slots out of 9 between 2026-11-05 and 2026-11-09) is tried once more in the same
+  # run, alone, `wait` seconds later, with its own rights check. Never after a refusal by the
+  # rights check, never when the failure came while publishing (the reel may be live).
+  # times: 0 turns it off: a later run still retries, as before.
+  retry: { times: 1, wait: 180 }
   meta:
     graph_version: v24.0              # Graph API version, Facebook and Instagram
     min_days_left: 14                 # fail when the token's data access expires sooner
