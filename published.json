@@ -14,7 +14,8 @@
    "done": [
     "ayat-al-kursi/2:255-255",
     "munjiyat/9:51-51",
-    "munjiyat/6:17-17"
+    "munjiyat/6:17-17",
+    "munjiyat/11:6-6"
    ]
   },
   "kahf-first-ten": {
@@ -295,6 +296,35 @@
     }
    },
    "reciter": "sayegh"
+  },
+  "2026-11-09/evening": {
+   "queue": "themes",
+   "item": "munjiyat/11:6-6",
+   "passage": "11:6-6",
+   "results": {
+    "facebook": {
+     "status": "published",
+     "id": "2218208059132649",
+     "url": "https://www.facebook.com/reel/2218208059132649/",
+     "error": null,
+     "at": "2026-11-09T19:06:53+00:00"
+    },
+    "instagram": {
+     "status": "published",
+     "id": "18215697169362560",
+     "url": "https://www.instagram.com/reel/DfiCrE0CEak/",
+     "error": null,
+     "at": "2026-11-09T19:06:53+00:00"
+    },
+    "tiktok": {
+     "status": "failed",
+     "id": null,
+     "url": null,
+     "error": "upload chunk 1/1: HTTP 500",
+     "at": "2026-11-09T19:06:53+00:00"
+    }
+   },
+   "reciter": "minshawi"
   }
  },
  "removed": [
