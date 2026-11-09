@@ -5,9 +5,9 @@ name: prepare-splits
 # that the daily run finds them ready: it chooses only among reciters checked for the
 # passage. The splits (times only) go to the state branch, splits/<reciter>/SSS.json.
 # Red only when a passage has no reciter ready at all (it would not be published).
+# Started by the scheduler session (02:41 Paris), not by GitHub's cron, which came 6 to 7 hours
+# late, after the morning slot, and only repeated the night's run.
 on:
-  schedule:
-    - cron: "41 1 * * *"          # 02:41 Paris in winter: before the morning slot
   workflow_dispatch:
     inputs:
       days:
@@ -18,8 +18,12 @@ on:
 permissions:
   contents: write          # the state branch
 
+# Its own group: it posts nothing and uses no platform token, so it has no reason to hold the
+# `accounts` group for its 7 to 150 minutes, nor to take its one waiting place. It shares the
+# state branch with the publishing runs, which save-state.sh makes safe (a commit is replayed
+# when the branch moved); it writes splits/, they write published.json and images.json.
 concurrency:
-  group: accounts          # shares the state branch with the daily run
+  group: prepare
   cancel-in-progress: false
 
 env:

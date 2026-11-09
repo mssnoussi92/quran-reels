@@ -14,7 +14,7 @@ steps below close them.
      posted there a second time: reopen only when it is gone everywhere, or publish by hand on
      the platforms that lost it (step 3, by hand).
    - No run of the `accounts` group queued or running (`actions_list` → `list_workflow_runs`
-     on daily.yml, publish-test.yml, on-demand.yml, images.yml, prepare.yml): a run that read
+     on daily.yml, publish-test.yml, on-demand.yml, images.yml): a run that read
      the state before your push writes its own answer after it.
 1. **Fix the cause, on `main`, before reopening** (a PR the owner merges; never merge it
    yourself). The scheduler's next run is on `main`: a fix left on a branch is not used and the
@@ -55,7 +55,7 @@ steps below close them.
 4. **Read the state back**: `git fetch origin state && git show origin/state:published.json`
    → the slot's results, its item in `queues.<queue>.done`; `quran-reels calendar --days 3
    --state <checkout>/published.json` must not show the passage again.
-5. **One run at a time.** daily, images, prepare, publish-test, tiktok-auth and on-demand's
-   publication share the concurrency group `accounts`; a newer pending run cancels the older
+5. **One run at a time.** daily, images, publish-test, tiktok-auth and on-demand's
+   publication share the concurrency group `accounts` (prepare has its own); a newer pending run cancels the older
    pending one. A daily run in the window retries a failed platform with the same reciter:
    cancel it if the reciter has to change.

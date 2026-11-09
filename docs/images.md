@@ -98,4 +98,4 @@ Meaning: Tafsir al-Muyassar, King Fahd Complex
   photos supprimées.
 - État : `images.json` sur la branche `state` (un post par jour : id, ayah, mot, résultats par
   plateforme) ; une plateforme en échec est réessayée avec les mêmes images pendant
-  `window_hours` (6 h). Workflow `images.yml` toutes les heures.
+  `window_hours` (6 h). Workflow `images.yml` lancé par le planificateur à 11:36 UTC (son cron horaire, tardif et aléatoire, est retiré depuis le 2026-11-09 : docs/calendrier.md).

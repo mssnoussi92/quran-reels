@@ -40,8 +40,8 @@ ends in 20 s, which is not a missed slot. Read, don't guess.
    - status `blocked`: Meta's check refused the reel; not retried, change the reciter.
    - Meta token: follow docs/plateformes.md (renew `META_PAGE_TOKEN`).
    - conclusion `cancelled` with no job: a newer pending run of the `accounts` group replaced
-     it (daily, images, prepare, publish-test, tiktok-auth, on-demand's publication share
-     it). Dispatch it again once the group is free, inside the window.
+     it (daily, images, publish-test, tiktok-auth, on-demand's publication share
+     it; prepare has its own). Dispatch it again once the group is free, inside the window.
    - prepare prints « NO RECITER READY » for a passage: that slot would publish nothing. Say
      which passage and day; the fix is a split (test-reciter, step 2) or another reciter.
    - TikTok « could not be kept »: `GH_SECRETS_TOKEN` is missing or expired, the new refresh

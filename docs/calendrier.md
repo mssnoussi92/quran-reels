@@ -64,8 +64,15 @@
   (`CRON_TZ=Europe/Paris`), `images.yml` 11:36 UTC ; chacune lance le workflow sur `main`,
   attend la fin, relance une fois en cas d'échec (sauf prepare) et résume. Une tâche lancée
   dans une session neuve n'a pas accès au dépôt (essai du 2026-11-05) : elles visent toutes
-  cette session. Les crons des workflows restent en place si GitHub se remet à les lancer
-  (un passage en double ne republie rien : le créneau est déjà dans l'état).
+  cette session. Le cron de `daily.yml` reste en place (un passage en double ne republie rien :
+  le créneau est déjà dans l'état ; ses runs tardifs servent de témoin pour l'alerte « créneau
+  jamais tenté »). Ceux d'`images.yml` (toutes les heures) et de `prepare.yml` sont retirés
+  depuis le 2026-11-09 : GitHub ne garde qu'**un seul run en attente par groupe de
+  concurrence**, et un run plus récent annule celui qui attendait. Un run `images` du cron,
+  qui ne publiait rien, a ainsi annulé un `prepare` en attente (22:40 UTC) ; une publication
+  en attente derrière un autre run aurait été annulée de la même façon, sans job et donc sans
+  alerte. `prepare.yml` a désormais son propre groupe : il ne publie rien, n'utilise aucun
+  jeton, et n'occupe plus le groupe `accounts` pendant ses 7 à 150 minutes.
 - État : `published.json` sur la branche `state` (créée au premier passage du workflow),
   commit après chaque créneau. Un passage compte comme publié dès qu'une plateforme l'a.
   **Ce qui est sorti est écrit aussitôt** (`daily.record_slot`, avant la reprise et avant la

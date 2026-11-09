@@ -129,11 +129,12 @@ tests/             pytest, sans réseau
                    schedule.yaml dit enabled: false ; état sur la branche `state`),
                    publish-test.yml (manuel : dry-run, ou publication réelle avec PUBLIER),
                    tiktok-auth.yml (manuel : échange du code TikTok → TIKTOK_REFRESH_TOKEN)
-                   prepare.yml (chaque nuit : découpes vérifiées de la semaine → `state`)
+                   prepare.yml (chaque nuit : découpes vérifiées de la semaine → `state` ;
+                   son propre groupe de concurrence, hors de `accounts`)
                    tests.yml (pytest + ruff à chaque PR et sur main, ffmpeg statique, et
                    Chromium : tests/test_render_chromium.py dessine une image pour de bon,
                    polices chargées, texte dans la zone sûre même réduit)
-                   images.yml (toutes les heures ; `images run --check` décide selon
+                   images.yml (lancé par le planificateur ; `images run --check` décide selon
                    config/images.yaml ; état images.json sur la branche `state`)
                    catalog.yml (push main config/docs, après daily/images/prepare, chaque jour,
                    à la main : docs/ + catalog/ → GitHub Pages, source « GitHub Actions »)
@@ -296,6 +297,11 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
 - **Le cron de GitHub n'est pas fiable dans ce dépôt** : il lance des runs depuis le
   2026-11-05 au soir, mais 6 à 8 h en retard et pas à chaque fois (`daily` : 8 passages sur
   24 au 2026-11-09, tous hors fenêtre, sans effet ; `workflow_dispatch` marche).
+  Seul `daily.yml` garde son cron (témoin indépendant pour l'alerte « créneau jamais tenté ») :
+  ceux d'`images.yml` et de `prepare.yml` sont retirés (2026-11-09), leurs runs tardifs ne
+  faisaient rien et prenaient la seule place en attente du groupe `accounts` (un run `images`
+  du cron a annulé ainsi un `prepare` en attente le 2026-11-09 à 22:40 UTC ; une publication en
+  attente aurait été annulée de même, sans job donc sans alerte).
   Les workflows sont donc lancés par des **tâches planifiées Claude** (choix du propriétaire,
   2026-11-05) qui réveillent la session « Quran Words Daily – planificateur » (Sonnet, dépôt
   attaché, outils GitHub) : `prepare.yml` 02:41 Paris, `daily.yml` 07:12 et 19:12 Paris
