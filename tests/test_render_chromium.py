@@ -28,7 +28,7 @@ def renderer():
     try:
         with FrameRenderer(cfg) as r:
             yield cfg, r
-    except Exception as e:      # noqa: BLE001  (no browser on this machine)
+    except Exception as e:
         if os.environ.get("GITHUB_ACTIONS") == "true":
             raise                   # in CI the browser is installed: a failure is a failure
         pytest.skip(f"Chromium is not installed here ({type(e).__name__}): "
