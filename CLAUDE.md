@@ -28,12 +28,12 @@ jamais en silence, ne passe jamais outre en silence.
 | Mots difficiles | **غريب التفسير الميسر** (Tafsir al-Muyassar, Complexe du Roi Fahd ; `almuyassar-ghareeb` sur tafsir.app), choix du propriétaire le 2026-11-05 (avant : Ibn Qutaybah, *Tafsir Gharib al-Qur'an*), sens en arabe, **1 à 3 mots liés** surlignés |
 | Récitateurs | **Choisis par passage** (`content.rotation`, `reciters.py`) parmi ceux du propriétaire (2026-11-05) : **Omar Hisham Al-Arabi, Muhammad Siddiq Al-Minshawi, Tawfiq As-Sayegh, Salah Budair, Fares Abbad** (EveryAyah, ajouté depuis le catalogue, ticket #19, directement dans la rotation sans essai sur Facebook seul : choix du propriétaire) : prêt pour le passage (découpe vérifiée), ≤ 90 s, pas un des 2 derniers publiés, puis le plus proche de 60 s (passage long → récitateur rapide, sourate courte → plus lent). Écartés : Alafasy, **Nabil Ar-Rifai** (Rights Manager : 2:255 rendue muette par Facebook dans 24 territoires, 2026-11-05) et **Saad Al-Ghamdi** (2:255 revendiquée par UMG, muette en Russie, le même soir), Hudhaifi, Ayyub, Akhdar (après écoute) ; un récitateur revendiqué après publication est écarté automatiquement (`claimed`) ; **en essai** : Husary (ticket #32, EveryAyah, Facebook seul d'abord) ; **YouTube** : Budair écarté (Content ID, 2026-11-06), version YouTube par un autre récitateur |
 | Droits | **Vérification Meta avant chaque publication** : brouillon Facebook + conteneur Instagram, publiés seulement si Meta répond `complete` sans correspondance, sinon rien n'est publié (TikTok compris). Elle n'a vu ni Alafasy, ni Ar-Rifai, ni Al-Ghamdi (revendications arrivées quelques minutes après la publication). Contrôle après publication prêt (`rights_after_timeout` > 0 : relu 5 min puis à chaque run pendant 2 jours ; muet ou bloqué → retiré de Facebook et Instagram + alerte, récitateur écarté) mais **désactivé : le propriétaire vérifie lui-même pour l'instant** (2026-11-05) ; nouveaux récitateurs testés sur Facebook seul, Instagram ensuite |
-| Fond | **choisi selon ce que dit le passage** (montagnes, mer, rivières, jardins, nuit, aube, ciel…) : vidéos Pexels choisies par le propriétaire et scènes générées (aube, nuit, mer), **sans personnes ni animaux** |
+| Fond | **choisi selon ce que dit le passage** (montagnes, mer, rivières, jardins, nuit, aube, ciel…) : vidéos Pexels choisies par le propriétaire et scènes générées (aube, nuit, mer), **sans personnes ni animaux** ; scènes **animées** au rythme d'un ciel filmé (nuages, brume, vagues, lumière) avec un **zoom lent** sur toute la vidéo, le texte immobile (Facebook : « image statique » sur 6:17, 2026-11-09) |
 | Exécution | GitHub Actions (dépôt public → gratuit), migrable sur le homelab (Docker) |
 | À la demande | Reel choisi depuis le téléphone (récitateur, sourate entière ou ayahs X à Y, fond, plateformes, **mots expliqués** cochés dans le formulaire **avant le ticket**, sous les ayahs affichées, ou `/mots 1 4` après l'aperçu, parmi les sens numérotés du Muyassar, jamais écrits ; extraits du Muyassar publiés sur le site pour le formulaire, choix du 2026-11-06) : catalogue → ticket prérempli → **aperçu** en commentaire → publié seulement après **`/publier`** du propriétaire ; **en plus** des 2 créneaux ; le calendrier **ne saute pas** un passage publié à la demande ; YouTube refusé pour un récitateur revendiqué par Content ID (choix du 2026-11-06, docs/on-demand.md) |
 | Comptes pro | Page Facebook + Instagram en type **Créateur**, reliés |
 | Signature | **@quran_words_daily** sur chaque image, dans la zone sûre (repartages) |
-| Hashtags | Fin de légende, dans l'ordre : `#QuranWordsDaily`, `#Quran`, 1er tag de la série, sourate (`#SurahAdDuhaa` `#سورة_الضحى`), `#القرآن_الكريم`, autres tags de la série, récitateur, gloses (`#تفسير_القرآن`) ; **Instagram et TikTok : les 5 premiers** (leur limite), Facebook 8, `caption.txt` tous (YouTube à la main) |
+| Hashtags | Fin de légende, dans l'ordre : `#QuranWordsDaily`, `#Quran`, 1er tag de la série, sourate (`#SurahAdDuhaa` `#سورة_الضحى`), `#القرآن_الكريم`, autres tags de la série, récitateur, gloses (`#تفسير_القرآن`) ; **Instagram et TikTok : les 5 premiers** (leur limite), Facebook 8, `caption.txt` tous (YouTube à la main). **Facebook : légende courte, ≤ 400 caractères hashtags compris** (sa liste de qualité, 2026-11-09) : série, référence, crédits sur une ligne, signature, hashtags ; ni arabe ni traduction (dans la vidéo ; choix du propriétaire) ; trop longue → des hashtags de la fin |
 
 ## Règles de contenu (non négociables)
 
@@ -268,7 +268,13 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   son premier mot est récité (temps des mots de la découpe ; sinon au prorata des lettres).
 - Fond choisi par les mots de la traduction (`config/backgrounds.yaml`), même passage → même
   fond. MP4 H.264 sans B-frames, AAC 48 kHz, sans edit list (Instagram), ≤ 6 Mb/s.
+- Scènes générées animées (nuages en deux couches, brume, sable, vagues, lumière ; boucle de
+  30 s sans saut) et **zoom lent** sur toute la vidéo (`scenes.push_in` de backgrounds.yaml :
+  8 % par minute, 12 % au plus ; `perspective` de ffmpeg, sous le texte qui ne bouge pas).
+  Shader modifié → nouvelle boucle (nom = empreinte du shader), anciennes effacées du cache.
 - Hashtags déterministes (`render.hashtags`), Instagram et TikTok : les 5 premiers.
+  Facebook : sa légende courte (`render.facebook_caption`, ≤ 400 caractères,
+  `platforms.facebook.max_caption_chars`), rangée dans `manifest.json` (`captions.facebook`).
 
 ## Publications image (détails : docs/images.md)
 
@@ -347,3 +353,6 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
       [x] premiers tickets appliqués (#19–#28) · [x] #18 AbdulSamad non retenu (basmala dans
       la 1re ayah, confirmée par reconnaissance ; nom inconnu) · [ ] #32 Husary : ajouté à la
       liste, reel 112 vérifié, essai sur Facebook seul à faire
+- [x] Liste de qualité de Facebook sur 6:17 (2026-11-09 : « image statique », « légende de
+      qualité (10 à 400 caractères) ») : scènes générées animées + zoom lent, légende Facebook
+      courte · [ ] relire la liste de qualité sur le prochain reel avec une scène générée

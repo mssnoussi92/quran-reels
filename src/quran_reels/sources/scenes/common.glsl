@@ -49,7 +49,7 @@ vec3 stars(vec2 p, float t, float scale, float density, float seed) {
   vec2 at = .2 + .6 * vec2(hash12(id + seed + 7.1), hash12(id + seed + 3.3));
   float d = length((f - at) / scale) * u_res.y;            // distance in pixels
   float size = .6 + 1.4 * pow(hash12(id + seed + 1.9), 4.);
-  float twinkle = .55 + .45 * sin(t * (.6 + 1.8 * hash12(id + 5.)) + 40. * h);
+  float twinkle = .55 + .45 * sin(t * (1.2 + 2.8 * hash12(id + 5.)) + 40. * h);
   vec3 tint = mix(vec3(1., .93, .82), vec3(.85, .9, 1.), hash12(id + 2.2));
   return tint * twinkle * exp(-d * d / (size * size)) * (.4 + .6 * hash12(id + 8.4));
 }

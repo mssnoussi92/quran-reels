@@ -92,6 +92,17 @@
   d'Alafasy (fichiers EveryAyah, sans licence connue). D'où la vérification ci-dessous.
 - Légende : celle du rendu (`caption.txt`), raccourcie automatiquement sous 2 200 caractères
   (l'arabe d'abord, puis la traduction ; les crédits restent).
+- **Facebook : légende courte** (2026-11-09) : sa liste de qualité a refusé celle de 6:17
+  (« Utilisez une légende de qualité (entre 10 et 400 caractères) »). Facebook reçoit donc
+  `render.facebook_caption`, ≤ 400 caractères hashtags compris
+  (`platforms.facebook.max_caption_chars`) : série, référence, crédits sur une ligne
+  (récitateur, traduction, et la source des gloses quand la vidéo en montre), signature, les 8
+  premiers hashtags ; ni arabe ni traduction (ayahs, traduction et crédits sont dans la vidéo ;
+  pas de traduction dans la légende Facebook, choix du propriétaire). Trop longue : des
+  hashtags de la fin.
+  Calculée au rendu, rangée dans `manifest.json` (`captions.facebook`), lue par `load_reel` :
+  calendrier, publish-test et à la demande. Un reel rendu avant reçoit la légende entière.
+  Instagram, TikTok, YouTube et `caption.txt` ne changent pas.
 - Résultats : `out/<passage>/publish.json` et résumé sur la page de l'exécution GitHub.
 
 ### Vérification des droits avant publication (`publishers/rights.py`)

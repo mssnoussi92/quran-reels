@@ -5,7 +5,8 @@ out/
   093_001-003/
     frames/                   static.png + one PNG per ayah (and the HTML they come from)
     preview/                  each ayah composed on the mockup gradient, for a quick look
-    manifest.json             every text shown, with its edition and source URL; timings
+    manifest.json             every text shown, with its edition and source URL; timings;
+                              Facebook's short caption (captions.facebook)
     caption.txt               deterministic caption with the credits
 """
 
@@ -59,6 +60,11 @@ def hashtags(cfg: Config, passage: Passage) -> list[str]:
     return list(dict.fromkeys(t for t in tags if t))
 
 
+def _recitation(cfg: Config) -> str:
+    r = cfg.content["reciter"]
+    return f"Recitation: {r['label']}" + (f" ({r['producer']})" if r.get("producer") else "")
+
+
 def caption(cfg: Config, passage: Passage, limit: int = CAPTION_LIMIT) -> str:
     """Reference, Arabic and translation of each ayah, credits, handle.
 
@@ -69,8 +75,7 @@ def caption(cfg: Config, passage: Passage, limit: int = CAPTION_LIMIT) -> str:
     if passage.label_en:
         head = [passage.label_en, *head]
     tail = [
-        f"Recitation: {c['reciter']['label']}" + (f" ({c['reciter']['producer']})"
-                                                   if c["reciter"].get("producer") else ""),
+        _recitation(cfg),
         f"Translation: {c['translation']['label']}",
         f"Word meanings: {c['glosses']['label']}",
         "",
@@ -89,6 +94,50 @@ def caption(cfg: Config, passage: Passage, limit: int = CAPTION_LIMIT) -> str:
         if len(text) <= limit:
             break
     return text
+
+
+def facebook_caption(cfg: Config, passage: Passage, tags: list[str]) -> str:
+    """Facebook's short caption, hashtags included, at most platforms.facebook.
+    max_caption_chars (400: Facebook's quality checklist asks for 10 to 400 characters, and
+    flagged the full caption, 2026-11-09). "" when that limit is not set: Facebook then gets
+    the full caption.
+
+    Series, reference, the credits on one line, the handle, the first
+    platforms.facebook.max_hashtags hashtags. Neither the Arabic text nor the translation (the
+    owner's choice, 2026-11-09): the ayahs, their translation and the credits are in the video.
+    Too long: hashtags go from the end (they are in priority order); the credits always stay.
+    The word meanings are credited when the reel shows some.
+    """
+    conf = (cfg.project.get("platforms") or {}).get("facebook") or {}
+    limit = int(conf.get("max_caption_chars") or 0)
+    if not limit:
+        return ""
+    if conf.get("max_hashtags") is not None:
+        tags = tags[:int(conf["max_hashtags"])]
+    c = cfg.content
+    ref = f"{passage.surah}:{passage.start}" + (
+        f"-{passage.end}" if passage.end != passage.start else "")
+    credits = [_recitation(cfg), f"Translation: {c['translation']['label']}"]
+    if any(a.glosses for a in passage.ayahs):
+        g = c["glosses"]
+        credits.append(f"Word meanings: {g.get('label_en') or g['label']}")
+
+    def text(n_tags: int, handle: bool = True, label: bool = True) -> str:
+        head = (passage.label_en + "\n" if passage.label_en and label else "") + \
+            f"Surah {passage.surah_name_en} ({ref})"
+        blocks = [head, " · ".join(credits), cfg.video["handle"] if handle else "",
+                  " ".join(tags[:n_tags])]
+        return "\n\n".join(b for b in blocks if b)
+
+    for n in range(len(tags), -1, -1):
+        if len(out := text(n)) <= limit:
+            return out
+    for out in (text(0, handle=False), text(0, handle=False, label=False)):
+        if len(out) <= limit:      # never with the project's labels: a config mistake
+            return out
+    _warn(f"{passage.key}: no Facebook caption fits in {limit} characters, even the reference "
+          f"and credits alone; Facebook gets the full caption")
+    return ""
 
 
 def manifest(cfg: Config, src: Sources, passage: Passage, timeline: video.Timeline,
@@ -260,16 +309,20 @@ def render_passage(cfg: Config, key: str, label_ar: str = "", label_en: str = ""
                                         tail=float(v.get("tail_seconds", 1.2)), screens=screens)
 
     bg_path, bg_info = backgrounds.pick(cfg, passage, force=background)
+    if zoom := backgrounds.push_in(cfg, bg_info, timeline.seconds):
+        bg_info["push_in"] = zoom
     audio = video.write_audio(wavs, timeline, audio_dir / "passage.wav")
     out = cfg.out / f"{passage.slug}.mp4"
     video.compose(bg_path, static, frames, timeline, audio, out,
-                  width=v["width"], height=v["height"], fade=float(v.get("fade_seconds", 0.25)))
+                  width=v["width"], height=v["height"], fade=float(v.get("fade_seconds", 0.25)),
+                  zoom=zoom)
 
-    (work / "manifest.json").write_text(
-        json.dumps(manifest(cfg, src, passage, timeline, bg_info, shown), ensure_ascii=False,
-                   indent=2),
-        encoding="utf-8")
     tags = hashtags(cfg, passage)
+    record = manifest(cfg, src, passage, timeline, bg_info, shown)
+    if short := facebook_caption(cfg, passage, tags):    # what Facebook gets (publish.py)
+        record["captions"] = {"facebook": short}
+    (work / "manifest.json").write_text(json.dumps(record, ensure_ascii=False, indent=2),
+                                        encoding="utf-8")
     room = CAPTION_LIMIT - len(" ".join(tags)) - 2       # all of them, even on Instagram
     reel_text = Reel(passage, out, caption(cfg, passage, room), hashtags=tags).text()
     (work / "caption.txt").write_text(reel_text, encoding="utf-8")

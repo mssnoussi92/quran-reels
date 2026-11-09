@@ -100,10 +100,24 @@ def write_audio(wavs: list[Path], timeline: Timeline, dest: Path) -> Path:
     return dest
 
 
+def push_in_filter(zoom: float, frames: int) -> str:
+    """A slow, steady zoom into the centre of the background: `zoom` larger (0.08: 8 %) at
+    the last of `frames` frames than at the first. perspective samples between pixels (a crop
+    or zoompan moves by whole pixels: it shakes). Before the upscale: four times fewer pixels.
+    Its `in` counts the frames from 1."""
+    k = f"(1-1/(1+{zoom:g}*(in-1)/{max(frames - 1, 1)}))"      # share of each side cropped
+    left, top = f"W*{k}/2", f"H*{k}/2"
+    right, bottom = f"W-W*{k}/2", f"H-H*{k}/2"
+    return (f"perspective=x0='{left}':y0='{top}':x1='{right}':y1='{top}':"
+            f"x2='{left}':y2='{bottom}':x3='{right}':y3='{bottom}':"
+            "interpolation=cubic:sense=source:eval=frame")
+
+
 def compose(background: Path, static: Path, frames: list[Path], timeline: Timeline,
             audio: Path, dest: Path, width: int, height: int, fade: float = 0.25,
-            crf: int = 19) -> Path:
-    """Background (looped) + static layer + one faded layer per ayah + audio → MP4."""
+            crf: int = 19, zoom: float = 0.0) -> Path:
+    """Background (looped) + static layer + one faded layer per ayah + audio → MP4.
+    zoom > 0: the background grows by that much over the reel (push_in_filter)."""
     fps, total = timeline.fps, timeline.total_frames
     counts = timeline.frame_counts()
     cmd = ["ffmpeg", "-v", "error", "-y",
@@ -113,10 +127,11 @@ def compose(background: Path, static: Path, frames: list[Path], timeline: Timeli
         cmd += ["-loop", "1", "-framerate", str(fps), "-i", str(f)]
     cmd += ["-i", str(audio)]
 
+    push = f"{push_in_filter(zoom, total)}," if zoom > 0 else ""
     graph = [
-        (f"[0:v]scale={width}:{height}:force_original_aspect_ratio=increase,"
-         f"crop={width}:{height},fps={fps},setsar=1,"
-         f"trim=end_frame={total},setpts=PTS-STARTPTS[bg]"),
+        (f"[0:v]fps={fps},trim=end_frame={total},setpts=PTS-STARTPTS,{push}"
+         f"scale={width}:{height}:force_original_aspect_ratio=increase:flags=bicubic,"
+         f"crop={width}:{height},setsar=1[bg]"),
         f"[1:v]format=rgba,trim=end_frame={total},setpts=PTS-STARTPTS[st]",
         "[bg][st]overlay=0:0:format=auto[base]",
     ]

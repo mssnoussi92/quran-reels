@@ -1,6 +1,8 @@
 #version 300 es
-// Evening: dusk turning to night. Crescent moon, twinkling stars, slow clouds, hills.
-// Sky palette of the validated mockup (#0b1026 → #1a2350 → #3b3a6b → #8a5a5a).
+// Evening: dusk turning to night. Crescent moon, twinkling stars, two layers of clouds
+// drifting across the sky (the near one faster, passing over the moon), mist moving over
+// the hills. Sky palette of the validated mockup (#0b1026 → #1a2350 → #3b3a6b → #8a5a5a).
+// Motion at the pace of filmed clouds: Facebook called the first version «a static image».
 
 const float HORIZON = .14;
 
@@ -8,7 +10,7 @@ vec3 scene(vec2 uv, float t) {
   float aspect = u_res.x / u_res.y;
   vec2 p = vec2(uv.x * aspect, uv.y);
   float aa = 1.2 / u_res.y;
-  float dusk = .8 + .2 * cos(6.2832 * t / 30.);   // the afterglow breathes, over the loop
+  float dusk = .78 + .22 * cos(6.2832 * t / 30.);  // the afterglow breathes, over the loop
   float s = 1. - uv.y;                           // 0 at the top
 
   vec3 col = mix(hex(11., 16., 38.), hex(26., 35., 80.), smoothstep(0., .45, s));
@@ -33,29 +35,47 @@ vec3 scene(vec2 uv, float t) {
     col = mix(col, hex(255., 241., 214.) * (.93 + .07 * gnoise(vec3((p - mc) * 90., 1.))),
               disc * (1. - shade));
 
-  // Clouds, stretched and drifting right, slowly changing shape. Lit by the moon (upper
-  // right) and, low down, by the afterglow.
-  float band = smoothstep(.12, .22, uv.y) * (1. - smoothstep(.5, .7, uv.y))
-             + .6 * smoothstep(.72, .9, uv.y);
+  // Clouds in two layers, drifting right and changing shape as they go: high thin streaks,
+  // slower, then nearer, thicker banks, faster (parallax), passing over the moon. Lit by the
+  // moon (upper right) and, low down, by the afterglow.
+  float band = smoothstep(.1, .2, uv.y) * (1. - smoothstep(.62, .8, uv.y))
+             + .75 * smoothstep(.66, .86, uv.y);
   if (band > .01) {
-    vec3 q = vec3(p * vec2(1.5, 4.) + vec2(t * .011, 0.), t * .012) * 1.6;
-    float n = fbm(q, 6);
-    float thr = mix(.8, .5, band);
-    float cover = smoothstep(thr, thr + .2, n);
+    // Far layer.
+    vec3 q = vec3(p * vec2(1.5, 4.5) + vec2(t * .026, 0.), t * .026) * 1.6;
+    float n = fbm(q, 5);
+    float cover = smoothstep(.55, .8, n) * band;
     if (cover > 0.) {
-      float lit = clamp((n - fbm(q + vec3(.08, .11, 0.), 4)) * 9. + .3, 0., 1.);
-      vec3 cloud = mix(hex(24., 27., 55.), hex(72., 74., 112.), lit);
-      cloud += hex(255., 236., 200.) * .25 * lit * exp(-dm / .25);
-      cloud += hex(190., 110., 90.) * .55 * glow * dusk;
-      col = mix(col, cloud, cover * .9);
+      vec3 cloud = mix(hex(30., 33., 66.), hex(84., 86., 128.), smoothstep(.55, .85, n));
+      cloud += hex(255., 236., 200.) * .22 * exp(-dm / .22);
+      cloud += hex(190., 110., 90.) * .5 * glow * dusk;
+      col = mix(col, cloud, cover * .7);
+    }
+    // Near layer: the warp makes the banks roll and stretch instead of sliding as one piece.
+    vec2 w = p * vec2(1.1, 3.) + vec2(t * .047, .1 * sin(t * .21));
+    float warp = fbm(vec3(w * .8, t * .04 + 3.), 3);
+    vec3 k = vec3(w + vec2(warp * .9, warp * .25), t * .037 + 7.) * 1.7;
+    float m = fbm(k, 5);
+    float thr = mix(.66, .5, band);
+    float body = smoothstep(thr, thr + .2, m) * band;
+    if (body > 0.) {
+      float lit = clamp((m - fbm(k + vec3(.09, .12, 0.), 3)) * 9. + .35, 0., 1.);
+      vec3 cloud = mix(hex(22., 25., 52.), hex(92., 94., 136.), lit);
+      cloud += hex(255., 236., 200.) * .45 * lit * exp(-dm / .25);
+      cloud += hex(190., 110., 90.) * .6 * glow * dusk;
+      col = mix(col, cloud, body * .92);
     }
   }
 
-  // Hills: a far hazy ridge and a near dark one.
-  if (uv.y < .3) {
+  // Hills: a far hazy ridge and a near dark one, mist drifting in the valley between them.
+  if (uv.y < .32) {
     float far = HORIZON + .012 + .1 * (fbm(vec3(p.x * 3.2, 1.3, 0.), 5) - .5);
     float near = .075 + .14 * (fbm(vec3(p.x * 2.1 + 5.2, 3.1, 0.), 5) - .5);
     col = mix(col, mix(col, hex(34., 32., 64.), .78), smoothstep(far + aa, far - aa, uv.y));
+    float mist = fbm(vec3(p.x * 2.6 - t * .07, uv.y * 9., t * .06), 4);
+    mist = smoothstep(.42, .75, mist) * smoothstep(far + .04, far - .02, uv.y)
+         * smoothstep(near - .02, near + .05, uv.y);
+    col = mix(col, hex(96., 92., 138.) + hex(190., 110., 90.) * .3 * glow, mist * .55);
     col = mix(col, hex(14., 14., 31.), smoothstep(near + aa, near - aa, uv.y));
   }
   return col;

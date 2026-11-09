@@ -118,11 +118,19 @@ class Reel:
     cover: Path | None = None
     cover_ms: int | None = None      # frame used as cover, in ms from the start
     hashtags: list[str] = field(default_factory=list)   # most important first
+    facebook: str = ""               # Facebook's short caption, hashtags included (render)
 
     def text(self, max_hashtags: int | None = None) -> str:
         """The caption with the first max_hashtags hashtags (all if None) on a last line."""
         tags = self.hashtags if max_hashtags is None else self.hashtags[:max_hashtags]
         return self.caption.rstrip("\n") + ("\n\n" + " ".join(tags) if tags else "") + "\n"
+
+    def text_for(self, platform: str, max_hashtags: int | None = None) -> str:
+        """What a platform gets: Facebook its short caption (render.facebook_caption), when
+        the reel has one; the others, and Facebook without it, text(max_hashtags)."""
+        if platform == "facebook" and self.facebook:
+            return self.facebook
+        return self.text(max_hashtags)
 
 
 class PublishStatus(str, Enum):

@@ -453,6 +453,23 @@ def test_instagram_keeps_the_first_five_hashtags_facebook_its_own_cap(reel):
     assert "#t8" in finish[2]["description"] and "#t9" not in finish[2]["description"]
 
 
+def test_facebook_gets_the_short_caption_instagram_the_full_one(reel):
+    """Facebook's quality checklist: 10 to 400 characters (render.facebook_caption)."""
+    from quran_reels.publishers.facebook import FacebookPublisher
+
+    reel.hashtags = [f"#t{i}" for i in range(1, 10)]
+    reel.facebook = "Surah Ad-Duhaa (93:1-11)\n\nRecitation: R\n\n#t1 #t2"
+    for dry_run in (True, False):
+        g = graph(facebook_routes())
+        FacebookPublisher(g, PAGE, poll_interval=0, max_hashtags=8).publish(reel, dry_run)
+        finishes = [c[2] for c in g.session.find("POST", f"/{PAGE}/video_reels")
+                    if c[2].get("upload_phase") == "finish"]
+        assert finishes and all(f["description"] == reel.facebook for f in finishes)
+    g = graph(instagram_routes())
+    InstagramPublisher(g, IG, poll_interval=0).publish(reel, dry_run=True)
+    assert g.session.find("POST", f"/{IG}/media")[0][2]["caption"] == reel.text(5)
+
+
 def test_the_facebook_cover_is_the_frame_instagram_shows(reel, tmp_path):
     import subprocess
 

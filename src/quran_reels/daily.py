@@ -132,7 +132,8 @@ def run(cfg: Config, state_path: Path, now: datetime | None = None, dry_run: boo
 
     log: dict = {"dry_run": dry_run, "items": [], "errors": []}
     try:
-        return _publish(cfg, sched, series, state, state_path, todo, platforms, dry_run, log)
+        return _publish(cfg, sched, series, state, state_path, todo, platforms, dry_run, log,
+                        now)
     except BaseException as e:      # SystemExit from the Meta token check included
         log["errors"].append(f"{type(e).__name__}: {e}" if not isinstance(e, SystemExit)
                              else str(e))
@@ -232,7 +233,7 @@ def youtube_version(cfg: Config, p: Pending, reciter: str | None,
 
 def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: State,
              state_path: Path, todo: list[Pending], platforms: list[str], dry_run: bool,
-             log: dict) -> int:
+             log: dict, now: datetime) -> int:
     from quran_reels import reciters as rec
     from quran_reels.render import render_passage
 
@@ -244,8 +245,7 @@ def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
         graph, env, _ = checked
         try:
             failed |= recheck(cfg, sched, state,
-                              publish_mod.meta_publishers(cfg, graph, env, meta),
-                              datetime.now(UTC), log)
+                              publish_mod.meta_publishers(cfg, graph, env, meta), now, log)
         except Exception as e:      # noqa: BLE001  (never in the way of the slots due)
             print(f"warning: recheck of the last reels failed: {type(e).__name__}: {e}",
                   file=sys.stderr)

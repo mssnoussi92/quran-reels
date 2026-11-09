@@ -8,7 +8,9 @@ network monitoring would copy every frame and make the transfer 3–4 times slow
 
 The clip is a seamless loop: its first `fade` seconds blend the scene at t + loop into the
 scene at t, so the last frame runs into the first one. The compositor loops it under the
-video. Drawn once, cached in .cache/backgrounds/ under a hash of the shader.
+video, with a slow push-in (render/video.py). Drawn once, cached in .cache/backgrounds/ under
+a hash of the shader: a changed shader is drawn again, and the loops of its earlier versions
+are deleted (the Actions cache keeps .cache/ from run to run).
 
 No stock footage, no licence, no people or animals by construction.
 """
@@ -150,6 +152,7 @@ def render(cfg: Config, name: str, loop: float = 30.0, fade: float = 5.0, width:
     seconds = loop or fade
     digest = hashlib.sha1(
         f"{frag}|{width}x{height}|{fps}|{float(loop)}|{float(fade)}".encode()).hexdigest()
+    cached = dest is None
     if dest is None:
         dest = cfg.cache / "backgrounds" / f"scene-{name}-{digest[:10]}.mp4"
     if dest.is_file():
@@ -195,6 +198,10 @@ def render(cfg: Config, name: str, loop: float = 30.0, fade: float = 5.0, width:
         why = server.error or (f"ffmpeg exited with {code}" if code else "Chromium stopped")
         raise RuntimeError(f"scene {name}: {why} ({server.frames}/{total} frames)")
     tmp.replace(dest)
+    if cached:                  # earlier versions of the scene: never drawn from again
+        for old in dest.parent.glob(f"scene-{name}-{'?' * 10}.mp4"):
+            if old != dest:
+                old.unlink(missing_ok=True)
     return dest
 
 
