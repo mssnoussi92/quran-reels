@@ -126,7 +126,9 @@ docs/              site GitHub Pages (CGU, confidentialité, tiktok-login.html, 
                    reel.html : aperçu d'un reel et textes YouTube à copier),
                    déployé par catalog.yml avec le catalogue (/quran-reels/catalog/) ;
                    notes : sources.md, calendrier.md, rendu.md, images.md, plateformes.md,
-                   catalog.md, on-demand.md
+                   catalog.md, on-demand.md, profils.md (bio, images, playlists des 4 comptes)
+assets/brand/      photo de profil, couverture Facebook, bannière et filigrane YouTube, refaits
+                   par src/render.py (src/brand.html) ; icon-1024.jpg : icône de l'app Meta
 .claude/skills/    procédures pour les sessions Claude (voir « Skills »)
 ```
 
@@ -353,6 +355,10 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
       [x] premiers tickets appliqués (#19–#28) · [x] #18 AbdulSamad non retenu (basmala dans
       la 1re ayah, confirmée par reconnaissance ; nom inconnu) · [ ] #32 Husary : ajouté à la
       liste, reel 112 vérifié, essai sur Facebook seul à faire
+- [ ] Profils des 4 comptes (docs/profils.md, proposés le 2026-11-09) : bio, nom, photo unique
+      « آيات », couverture, bannière, playlists YouTube (7) et Facebook (2), à appliquer à la
+      main par le propriétaire ; YouTube vide, avatar TikTok généré par IA (ancien nom, faux
+      mushaf) à remplacer d'abord
 - [x] Liste de qualité de Facebook sur 6:17 (2026-11-09 : « image statique », « légende de
       qualité (10 à 400 caractères) ») : scènes générées animées + zoom lent, légende Facebook
       courte · [ ] relire la liste de qualité sur le prochain reel avec une scène générée
