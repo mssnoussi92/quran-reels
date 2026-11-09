@@ -3,7 +3,7 @@
  "id": "daily/2026-11-09-evening",
  "stage": "daily",
  "stage_label": "Publié par le calendrier",
- "created": "2026-11-09T19:06:57+00:00",
+ "created": "2026-11-09T19:22:24+00:00",
  "passage": "11:6-6",
  "surah": {
   "en": "Hud",
@@ -51,19 +51,9 @@
  },
  "results": [
   {
-   "name": "Facebook",
-   "url": "https://www.facebook.com/reel/2218208059132649/",
-   "label": "publié"
-  },
-  {
-   "name": "Instagram",
-   "url": "https://www.instagram.com/reel/DfiCrE0CEak/",
-   "label": "publié"
-  },
-  {
    "name": "TikTok (brouillon)",
    "url": null,
-   "label": "échec"
+   "label": "brouillon, non publié"
   }
  ],
  "notes": []
