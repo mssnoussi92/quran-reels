@@ -5,7 +5,7 @@ import subprocess
 
 import pytest
 
-from quran_reels import gh_secrets
+from quran_reels import gh_secrets, publish
 from quran_reels.gh_secrets import SecretSaveError, save_secret
 from quran_reels.models import Passage, PublishStatus, Reel
 from quran_reels.publishers import tiktok
@@ -132,6 +132,7 @@ def test_failed_processing(reel):
                      ok({"status": "FAILED", "fail_reason": "file_format_check_failed"})}
     r = publisher(rt, []).publish(reel)
     assert r.status is PublishStatus.FAILED and "file_format_check_failed" in r.error
+    assert r.remote_id == "v_inbox_file~v2.1"       # TikTok has the file: no other upload
 
 
 def test_api_error_is_reported_without_tokens(reel):
@@ -150,6 +151,66 @@ def test_large_video_goes_in_chunks(reel, monkeypatch):
     assert p.publish(reel).status is PublishStatus.DRAFT
     ranges = [c["headers"]["Content-Range"] for c in p.client.session.find("PUT", "/video/?upload_id=1")]
     assert ranges == ["bytes 0-399/1280", "bytes 400-799/1280", "bytes 800-1279/1280"]
+
+
+def uploads(p):
+    return [c["headers"]["Content-Range"] for c in p.client.session.find("PUT", "/video/?upload_id=1")]
+
+
+def test_a_chunk_refused_by_the_server_is_sent_again(reel, monkeypatch):
+    """Daily run #28 (2026-11-09): HTTP 500 one second into the upload, Facebook and Instagram
+    already published; the run failed and a whole new run was needed for TikTok alone."""
+    monkeypatch.setattr(tiktok, "UPLOAD_PAUSE", 0)
+    answers = iter([Resp({}, 500), Resp({}, 201)])
+    p = publisher(routes() | {("PUT", "/video/"): lambda c: next(answers)}, [])
+    assert p.publish(reel).status is PublishStatus.DRAFT
+    assert uploads(p) == ["bytes 0-1279/1280"] * 2          # the same bytes, at the same place
+    assert len(p.client.session.find("POST", "/v2/post/publish/inbox/video/init/")) == 1
+
+
+def test_a_network_error_during_the_upload_is_tried_again(reel, monkeypatch):
+    import requests
+
+    monkeypatch.setattr(tiktok, "UPLOAD_PAUSE", 0)
+    state = {"n": 0}
+
+    def put(call):
+        state["n"] += 1
+        if state["n"] == 1:
+            raise requests.ConnectionError("reset")
+        return Resp({}, 201)
+
+    p = publisher(routes() | {("PUT", "/video/"): put}, [])
+    assert p.publish(reel).status is PublishStatus.DRAFT and state["n"] == 2
+
+
+def test_a_server_that_keeps_failing_ends_the_upload(reel, monkeypatch):
+    monkeypatch.setattr(tiktok, "UPLOAD_PAUSE", 0)
+    p = publisher(routes() | {("PUT", "/video/"): Resp({}, 503)}, [])
+    r = p.publish(reel)
+    assert r.status is PublishStatus.FAILED and "upload chunk 1/1: HTTP 503" in r.error
+    assert len(uploads(p)) == tiktok.UPLOAD_TRIES
+    assert r.remote_id is None                      # TikTok has nothing: worth another try
+
+
+def test_a_new_refresh_token_is_kept_for_the_next_upload_of_the_run(monkeypatch):
+    """Another try, or another slot, builds its publisher from the environment: after TikTok
+    changed the refresh token, the old one would be refused."""
+    saved = []
+    monkeypatch.setenv("TIKTOK_REFRESH_TOKEN", "rt-1")
+    monkeypatch.setattr(publish, "save_secret", lambda name, value: saved.append((name, value)))
+    publish._save_refresh("rt-2")
+    assert saved == [("TIKTOK_REFRESH_TOKEN", "rt-2")]
+    monkeypatch.setenv("TIKTOK_CLIENT_KEY", KEY)
+    monkeypatch.setenv("TIKTOK_CLIENT_SECRET", SECRET)
+    assert publish.tiktok_publisher().refresh_token == "rt-2"
+
+
+def test_a_refused_chunk_is_not_sent_again(reel, monkeypatch):
+    monkeypatch.setattr(tiktok, "UPLOAD_PAUSE", 0)
+    p = publisher(routes() | {("PUT", "/video/"): Resp({}, 416)}, [])
+    r = p.publish(reel)
+    assert r.status is PublishStatus.FAILED and "HTTP 416" in r.error and len(uploads(p)) == 1
 
 
 def test_exchange_decodes_the_code_and_reports_oauth_errors():

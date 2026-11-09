@@ -136,18 +136,10 @@ jobs:
       - name: Save the splits (state branch)
         if: steps.check.outputs.status == 'split'
         working-directory: state-branch
+        env:
+          SAVE_STATE_LEVEL: warning       # splits not saved: the next run splits again
         run: |
-          [ -e .git ] && [ -d splits ] || exit 0
-          git add splits
-          git diff --cached --quiet && exit 0
-          git -c user.name="quran-reels" \
-              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
-              commit -q -m "Découpes (à la demande #$ISSUE) $(date -u +%Y-%m-%dT%H:%MZ)"
-          for i in 1 2 3 4; do
-            git push -q origin HEAD:state && exit 0
-            sleep $((2 ** i)); git fetch -q --depth=5 origin state && git rebase -q FETCH_HEAD || exit 0
-          done
-          echo "::warning::splits not saved (the state branch moved); the next run splits again"
+          bash "$GITHUB_WORKSPACE/.github/scripts/save-state.sh" "Découpes (à la demande #$ISSUE)" splits || true
       - name: Check again after the split
         id: recheck
         if: steps.check.outputs.status == 'split'
@@ -248,13 +240,7 @@ jobs:
         if: always() && needs.route.outputs.command == 'publish'
         working-directory: state-branch
         run: |
-          [ -f published.json ] || exit 0
-          git add published.json
-          git diff --cached --quiet && exit 0
-          git -c user.name="quran-reels" \
-              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
-              commit -q -m "État (à la demande #$ISSUE) $(date -u +%Y-%m-%dT%H:%MZ)"
-          git push -q origin HEAD:state
+          bash "$GITHUB_WORKSPACE/.github/scripts/save-state.sh" "État (à la demande #$ISSUE)" published.json
       - name: Say it failed
         if: failure()
         env:
@@ -291,12 +277,7 @@ jobs:
       - name: Save the publication state
         working-directory: state-branch
         run: |
-          git add published.json
-          git diff --cached --quiet && exit 0
-          git -c user.name="quran-reels" \
-              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
-              commit -q -m "YouTube à la main (#$ISSUE) $(date -u +%Y-%m-%dT%H:%MZ)"
-          git push -q origin HEAD:state
+          bash "$GITHUB_WORKSPACE/.github/scripts/save-state.sh" "YouTube à la main (#$ISSUE)" published.json
 
   # GitHub keeps one pending run per concurrency group: a waiting publication can be
   # cancelled by the daily run. Say so, so that the owner sends the command again.

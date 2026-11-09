@@ -5,8 +5,10 @@ description: Check a Quran Words Daily publication run (daily.yml, images.yml, p
 
 # Check a publication
 
-GitHub's cron never fires in this repo: runs come from `workflow_dispatch` (the scheduler
-session « Quran Words Daily – planificateur », or a person). Read, don't guess.
+GitHub's cron is not reliable in this repo: the runs that count come from `workflow_dispatch`
+(the scheduler session « Quran Words Daily – planificateur », or a person). Since 2026-11-05
+GitHub also starts some `schedule` runs, 6 to 8 hours late: a daily one finds nothing due and
+ends in 20 s, which is not a missed slot. Read, don't guess.
 
 1. **Find the run.** GitHub MCP `actions_list`, method `list_workflow_runs`, `resource_id` the
    workflow file, `perPage` 3. Note `head_branch`, `status`, `conclusion`, `created_at`.
@@ -27,7 +29,12 @@ session « Quran Words Daily – planificateur », or a person). Read, don't gue
      cleanup; the publish lines come before.
 4. **Known failures.**
    - Instagram `ProcessingFailedError` / container still `IN_PROGRESS`: Instagram flakiness;
-     a daily run inside the slot window retries only that platform, same passage and reciter.
+     the run tries that platform once more itself, 180 s later (log line « did not get the
+     reel, tried again »); still failed, a daily run inside the slot window retries only that
+     platform, same passage and reciter.
+   - « save-state: … not saved » on the step that saves the state: the slot is not on the
+     state branch. Do not dispatch `daily.yml` again (it would post the passage twice): tell
+     the owner, with the run link.
    - status `blocked`: Meta's check refused the reel; not retried, change the reciter.
    - Meta token: follow docs/plateformes.md (renew `META_PAGE_TOKEN`).
    - "does not exist" (code 100, subcode 33) right after a Facebook publish: the reel may be

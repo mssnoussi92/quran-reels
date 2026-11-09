@@ -16,6 +16,8 @@ refresh token TikTok sends back, when it changed, replaces the secret at once.
 from __future__ import annotations
 
 import os
+import sys
+import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -37,6 +39,8 @@ USER_AGENT = f"quran-reels/{__version__} (+https://github.com/mssnoussi92/quran-
 
 MAX_SINGLE_CHUNK = 64 * 2**20      # up to 64 MB in one piece
 CHUNK = 10 * 2**20                 # otherwise 10 MB chunks, the last one takes the rest
+UPLOAD_TRIES = 3                   # a chunk refused with HTTP 5xx or a network error is sent again
+UPLOAD_PAUSE = 5.0                 # seconds before the second try, twice that before the third
 
 
 class TikTokError(PublisherError):
@@ -131,13 +135,31 @@ class TikTok:
                 start = i * chunk_size
                 end = size - 1 if i == count - 1 else start + chunk_size - 1
                 f.seek(start)
-                data = f.read(end - start + 1)
-                r = self._request("PUT", upload_url, f"upload chunk {i + 1}/{count}", data=data,
+                self._put_chunk(upload_url, f.read(end - start + 1),
+                                f"bytes {start}-{end}/{size}", f"upload chunk {i + 1}/{count}")
+
+    def _put_chunk(self, upload_url: str, data: bytes, content_range: str, what: str) -> None:
+        """One chunk, sent again after a server or network error (HTTP 500 one second into the
+        upload, daily run #28, 2026-11-09: the next run's upload went through). The same bytes
+        at the same place: nothing is uploaded twice. Any other answer is final."""
+        for attempt in range(1, UPLOAD_TRIES + 1):
+            try:
+                r = self._request("PUT", upload_url, what, data=data,
                                   headers={"Content-Type": "video/mp4",
                                            "Content-Length": str(len(data)),
-                                           "Content-Range": f"bytes {start}-{end}/{size}"})
-                if r.status_code not in (200, 201, 206):
-                    raise TikTokError(f"upload chunk {i + 1}/{count}: HTTP {r.status_code}")
+                                           "Content-Range": content_range})
+                if r.status_code in (200, 201, 206):
+                    return
+                error = TikTokError(f"{what}: HTTP {r.status_code}",
+                                    transient=r.status_code >= 500)
+            except TikTokError as e:                # network error
+                error = e
+            if not error.transient or attempt == UPLOAD_TRIES:
+                raise error
+            pause = UPLOAD_PAUSE * attempt
+            print(f"tiktok: {error}; sent again in {pause:.0f} s "
+                  f"({attempt + 1}/{UPLOAD_TRIES})", file=sys.stderr)
+            time.sleep(pause)
 
 
 @dataclass
@@ -198,7 +220,11 @@ class TikTokPublisher:
         return status in ("SEND_TO_USER_INBOX", "PUBLISH_COMPLETE"), status
 
     def publish(self, reel: Reel, dry_run: bool = False) -> PublishResult:
-        """Draft mode only: a dry run does the same inbox upload, which is never public."""
+        """Draft mode only: a dry run does the same inbox upload, which is never public.
+        A failure carries the publish id once TikTok has the whole file (refused while
+        processing, or still processing: the draft may come); without an id, TikTok has
+        nothing and another upload is safe (publish.to_retry)."""
+        uploaded = None
         try:
             access = self.access_token()
             size = reel.video.stat().st_size
@@ -208,8 +234,10 @@ class TikTokPublisher:
                                 "chunk_size": chunk, "total_chunk_count": count}})
             publish_id = data["publish_id"]
             self.client.upload(data["upload_url"], reel.video, chunk, count)
+            uploaded = publish_id
             wait(lambda: self._status(access, publish_id), f"tiktok {publish_id}",
                  self.timeout, self.poll_interval)
         except (PublisherError, KeyError) as e:      # TikTokError, or still processing
-            return PublishResult(self.name, PublishStatus.FAILED, error=str(e))
+            return PublishResult(self.name, PublishStatus.FAILED, remote_id=uploaded,
+                                 error=str(e))
         return PublishResult(self.name, PublishStatus.DRAFT, remote_id=publish_id)

@@ -34,7 +34,9 @@ concurrency:
 jobs:
   reel:
     runs-on: ubuntu-24.04     # pinned: Chromium finds its libraries; ubuntu-latest is moving to 26.04
-    timeout-minutes: 60       # 2026-11-05: the Ubuntu mirror took 39 min to install ffmpeg (no apt since)
+    # 2026-11-05: the Ubuntu mirror took 39 min to install ffmpeg (no apt since). Room for the
+    # other try of a platform in the same run (config/project.yaml, platforms.retry).
+    timeout-minutes: 75
     env:
       STATE: state-branch/published.json
       QURAN_REELS_SPLITS: state-branch/splits   # checked splits (prepare workflow)
@@ -84,12 +86,14 @@ jobs:
           python -m playwright install chromium
           python -c "from playwright.sync_api import sync_playwright as p; pw = p().start(); pw.chromium.launch().close(); pw.stop()" \
             || python -m playwright install --with-deps chromium
-      # The cache fills up as passages are rendered: restore the latest, save a new one.
-      - uses: actions/cache@v5
+      # The cache fills up as passages are rendered: restore the latest here, save a new one
+      # at the end, also when the run failed (run #29, 2026-11-09: 9 min 28 to fetch everything
+      # again for a TikTok upload alone, the failed run #28 having saved nothing).
+      - uses: actions/cache/restore@v5
         if: inputs.passage != '' || steps.due.outputs.due == 'true'
         with:
           path: .cache
-          key: data-${{ hashFiles('config/project.yaml') }}-${{ github.run_id }}
+          key: data-${{ hashFiles('config/project.yaml') }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: data-${{ hashFiles('config/project.yaml') }}-
 
       - name: Render a given passage
@@ -117,17 +121,13 @@ jobs:
             quran-reels daily --state "$STATE"
           fi
 
+      # Pushed even when another run pushed to the state branch meanwhile (the on-demand preview
+      # saves its splits outside the `accounts` group): a slot not recorded is published again.
       - name: Save the publication state
         if: always() && inputs.passage == '' && steps.due.outputs.due == 'true'
         working-directory: state-branch
         run: |
-          [ -f published.json ] || exit 0
-          git add published.json
-          git diff --cached --quiet && exit 0
-          git -c user.name="quran-reels" \
-              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
-              commit -q -m "État $(date -u +%Y-%m-%dT%H:%MZ)"
-          git push -q origin state
+          bash "$GITHUB_WORKSPACE/.github/scripts/save-state.sh" "État" published.json
 
       # Direct downloads for the phone (docs/on-demand.md): each reel that went out is put in
       # the release `reels` (not zipped, no sign-in), with a page giving the YouTube title,
@@ -150,6 +150,14 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           OWNER: ${{ github.repository_owner }}
         run: quran-reels notify --outcome "$OUTCOME" --run-url "$RUN_URL" --owner "$OWNER"
+
+      - name: Save the cache (downloads, clips)
+        if: always() && (inputs.passage != '' || steps.due.outputs.due == 'true')
+        continue-on-error: true
+        uses: actions/cache/save@v5
+        with:
+          path: .cache
+          key: data-${{ hashFiles('config/project.yaml') }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Keep the video
         if: always()

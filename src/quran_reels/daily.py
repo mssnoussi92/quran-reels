@@ -5,7 +5,11 @@ in UTC (summer time moves the slots by an hour) and often runs late. Each run:
   - takes the slots whose window contains now (config/schedule.yaml);
   - a slot not started today gets the next passage of its queue (Al-Kahf on Fridays);
   - a slot started today retries only the platforms that failed, with the same passage;
-  - saves the state after each slot (published.json, kept on the `state` branch).
+  - writes the state as soon as a slot's reel has been sent (published.json, kept on the
+    `state` branch): before another try, before the YouTube version, so that a run stopped
+    half way has still said what is out and nothing is published twice;
+  - tries once more, in the same run, a platform that did not get the reel at all
+    (platforms.retry, publish.to_retry): Instagram refusing the upload, TikTok's failing.
 
 A passage counts as published, and its queue moves on, once one platform has it: a failed
 platform is retried while the slot's window lasts, never with another passage. A slot blocked
@@ -28,13 +32,15 @@ import dataclasses
 import json
 import os
 import sys
+import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 from quran_reels import publish as publish_mod
 from quran_reels.config import Config
-from quran_reels.models import PublishStatus
+from quran_reels.models import PublishResult, PublishStatus
 from quran_reels.selector.calendar import (
     OK_STATUSES,
     Item,
@@ -103,11 +109,12 @@ def _output(name: str, value: str) -> None:
 
 
 def run(cfg: Config, state_path: Path, now: datetime | None = None, dry_run: bool = False,
-        check: bool = False, force: bool = False, report: Path | None = None) -> int:
+        check: bool = False, force: bool = False, report: Path | None = None,
+        sleep: Callable[[float], None] = time.sleep) -> int:
     """check: only say whether something is due (output `due`), for the workflow to skip
     installing ffmpeg and Chromium. force: run even if schedule.enabled is false.
     report: JSON of what this run published, for `quran-reels notify` (written even when the
-    run fails half way, with the error)."""
+    run fails half way, with the error). sleep: the wait before another try (tests)."""
     now = now or datetime.now(UTC)
     series = load_series(cfg)
     sched = load_schedule(cfg, series)
@@ -133,7 +140,7 @@ def run(cfg: Config, state_path: Path, now: datetime | None = None, dry_run: boo
     log: dict = {"dry_run": dry_run, "items": [], "errors": []}
     try:
         return _publish(cfg, sched, series, state, state_path, todo, platforms, dry_run, log,
-                        now)
+                        now, sleep)
     except BaseException as e:      # SystemExit from the Meta token check included
         log["errors"].append(f"{type(e).__name__}: {e}" if not isinstance(e, SystemExit)
                              else str(e))
@@ -198,6 +205,52 @@ def copy_text(cfg: Config, video: Path) -> str:
     return reel.for_platform("tiktok").text(publish_mod.max_hashtags(cfg, "tiktok"))
 
 
+def record_slot(state: State, p: Pending, results: list[PublishResult],
+                reciter: str | None) -> dict:
+    """Write what the platforms answered for a slot in the state, and what follows from it: a
+    reel taken down is claimed (passage back at the head of its queue), a reel that one
+    platform has moves its queue on. Called again with the answers of another try."""
+    slot = state.slot(p.day, p.slot.name) or {
+        "queue": p.queue, "item": p.item.id, "passage": p.item.key, "results": {}}
+    if reciter:
+        slot["reciter"] = reciter
+    for r in results:
+        slot["results"][r.platform] = {
+            "status": r.status.value, "id": r.remote_id, "url": r.url, "error": r.error,
+            "at": datetime.now(UTC).isoformat(timespec="seconds")}
+    state.set_slot(p.day, p.slot.name, slot)
+    claimed = [r.rights_after["summary"] for r in results
+               if r.rights_after and r.status == PublishStatus.REMOVED]
+    if claimed or any(r.status == PublishStatus.REMOVED for r in results):
+        claim(state, f"{p.day.isoformat()}/{p.slot.name}", slot,
+              "; ".join(claimed) or "retiré après publication")
+    elif any(r["status"] in OK_STATUSES for r in slot["results"].values()):
+        mark_done(state, p.queue, p.item)
+    return slot
+
+
+def again(cfg: Config, state: State, state_path: Path, p: Pending, video: Path,
+          results: list[PublishResult], reciter: str | None, checked: tuple | None,
+          sleep: Callable[[float], None]) -> list[PublishResult]:
+    """The platforms that did not get the reel, tried once more in this run, alone, as a later
+    run would (their own upload and rights check), after platforms.retry.wait seconds. The
+    first answers are in the state already; each new one is written at once."""
+    times, pause = publish_mod.retry_settings(cfg)
+    for attempt in range(1, times + 1):
+        todo = publish_mod.to_retry(results)
+        if not todo:
+            break
+        print(f"{p.item.key}: {'+'.join(todo)} did not get the reel, tried again in "
+              f"{pause:.0f} s ({attempt}/{times})", file=sys.stderr)
+        sleep(pause)
+        new = {r.platform: r
+               for r in publish_mod.publish_reel(cfg, video, todo, False, checked)}
+        results = [new.get(r.platform, r) for r in results]
+        record_slot(state, p, list(new.values()), reciter)
+        state.save(state_path)
+    return results
+
+
 def youtube_version(cfg: Config, p: Pending, reciter: str | None,
                     claimed: set[str]) -> dict | None:
     """The reel again for YouTube when it claims `reciter` (Content ID: a Short over 1 min
@@ -233,7 +286,7 @@ def youtube_version(cfg: Config, p: Pending, reciter: str | None,
 
 def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: State,
              state_path: Path, todo: list[Pending], platforms: list[str], dry_run: bool,
-             log: dict, now: datetime) -> int:
+             log: dict, now: datetime, sleep: Callable[[float], None] = time.sleep) -> int:
     from quran_reels import reciters as rec
     from quran_reels.render import render_passage
 
@@ -273,6 +326,12 @@ def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
         video = render_passage(pcfg, p.item.key, p.item.label_ar, p.item.label_en,
                                p.item.series.hashtags).video
         results = publish_mod.publish_reel(pcfg, video, p.platforms, dry_run, checked)
+        if not dry_run:
+            # Written at once: a run stopped after this (cancelled, timed out, a crash in the
+            # YouTube version) has still told the state what is out.
+            record_slot(state, p, results, reciter)
+            state.save(state_path)
+            results = again(pcfg, state, state_path, p, video, results, reciter, checked, sleep)
         failed |= any(r.status in (PublishStatus.FAILED, PublishStatus.BLOCKED,
                                    PublishStatus.REMOVED) for r in results)
         caption = copy_text(cfg, video)
@@ -288,25 +347,8 @@ def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
         if caption:
             publish_mod._summary("**Légende à coller sur le brouillon TikTok**\n\n"
                                  f"```text\n{caption.strip()}\n```")
-        if dry_run:
-            continue
-        record = state.slot(p.day, p.slot.name) or {
-            "queue": p.queue, "item": p.item.id, "passage": p.item.key, "results": {}}
-        if reciter:
-            record["reciter"] = reciter
-        if youtube and youtube.get("reciter"):
-            record["youtube"] = {"reciter": youtube["reciter"], "video": youtube["video"]}
-        for r in results:
-            record["results"][r.platform] = {
-                "status": r.status.value, "id": r.remote_id, "url": r.url, "error": r.error,
-                "at": datetime.now(UTC).isoformat(timespec="seconds")}
-        state.set_slot(p.day, p.slot.name, record)
-        claimed = [r.rights_after["summary"] for r in results
-                   if r.rights_after and r.status == PublishStatus.REMOVED]
-        if claimed or any(r.status == PublishStatus.REMOVED for r in results):
-            claim(state, f"{p.day.isoformat()}/{p.slot.name}", record,
-                  "; ".join(claimed) or "retiré après publication")
-        elif any(r["status"] in OK_STATUSES for r in record["results"].values()):
-            mark_done(state, p.queue, p.item)
-        state.save(state_path)
+        if not dry_run and youtube and youtube.get("reciter"):
+            state.slot(p.day, p.slot.name)["youtube"] = {"reciter": youtube["reciter"],
+                                                         "video": youtube["video"]}
+            state.save(state_path)
     return 1 if failed else 0

@@ -223,6 +223,13 @@ Le bouton « Run workflow » n'apparaît que pour un workflow présent sur `main
   `POST /v2/post/publish/status/fetch/` jusqu'à `SEND_TO_USER_INBOX`. Le propriétaire reçoit
   une notification et termine la publication dans l'app (légende : `caption.txt` de l'artefact).
   TikTok garde au plus 5 brouillons en attente par 24 h.
+- Un morceau refusé par une erreur du serveur (HTTP 5xx) ou du réseau est renvoyé, les mêmes
+  octets au même endroit, 3 essais (5 s, puis 10 s) : le run #28 du 2026-11-09 a échoué sur un
+  HTTP 500 une seconde après le début de l'envoi, Facebook et Instagram déjà publiés. Un échec
+  avant que TikTok ait tout le fichier ne porte pas d'identifiant et peut être réessayé dans
+  le même run (docs/calendrier.md) ; après, il porte le `publish_id` (le brouillon peut
+  encore arriver) et n'est pas renvoyé. Un nouveau refresh token est aussi gardé dans
+  l'environnement du run, pour son envoi suivant.
 - Dry-run = même envoi dans la boîte : rien n'est jamais public en mode brouillon.
 - **Vérifié le 2026-11-04 :** connexion `tiktok-auth` OK (compte `quran_words_daily`, scopes
   `user.info.basic,video.upload`, refresh token enregistré par `GH_SECRETS_TOKEN`), et l'envoi
