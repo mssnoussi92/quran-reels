@@ -69,9 +69,30 @@ def test_series_title_on_the_first_frame_and_first_caption_line():
                "glosses": {"label": "G"}}
     c = Config(root=Path("."), project={"content": content, "video": {"handle": "@h"}},
                backgrounds=[], gloss_headwords={})
-    assert caption(c, passage).splitlines()[0] == "Supplications from the Quran · 4/38"
+    # titles in Arabic and English (owner, 2026-11-09), one counter
+    assert caption(c, passage).splitlines()[0] == \
+        "Supplications from the Quran · آيات الدعاء · 4/38"
     # one ayah: «(2:201)», never «(2:201-201)» (seen on 6:17 and 2:255, 2026-11-09)
     assert caption(c, passage).splitlines()[1] == "Surah Al-Baqarah (2:201) · سورة البقرة"
+
+
+def test_series_titles_never_contain_the_separator():
+    """render.series_line splits the labels at « · »: a title must not contain one."""
+    import yaml
+
+    for f in sorted(Path("config/series").glob("*.yaml")):
+        s = yaml.safe_load(f.read_text(encoding="utf-8"))
+        for key in ("title_ar", "title_en"):
+            assert " · " not in (s.get(key) or ""), f"{f.name}: {key}"
+
+
+def test_series_line_without_a_counter():
+    from quran_reels.render import series_line
+
+    p = Passage(2, 255, 255, "البقرة", "Al-Baqarah", label_ar="آية الكرسي",
+                label_en="Ayat al-Kursi")
+    assert series_line(p) == "Ayat al-Kursi · آية الكرسي"
+    assert series_line(Passage(93, 1, 11, "الضحى", "Ad-Duhaa")) == ""
 
 
 def test_hashtags_brand_first_then_series_surah_broad_reciter_glosses():

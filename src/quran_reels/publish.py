@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 import time
 from dataclasses import asdict
@@ -124,6 +125,23 @@ def load_reel(video: Path) -> Reel:
 YOUTUBE_TITLE_MAX = 100        # YouTube refuses a longer title
 
 
+def _youtube_title(head: list[str]) -> str:
+    """The caption's head lines on one line. Too long: the series counter goes, then the series,
+    so that the title keeps both languages (owner, 2026-11-09): never the Arabic or the English
+    half alone. Cut with «…» only when the surah line itself is too long."""
+    series, surah = (head[:-1], head[-1]) if len(head) > 1 else ([], head[0] if head else "")
+    tries = [" · ".join([*series, surah])]
+    if series:
+        parts = " · ".join(series).split(" · ")
+        if re.fullmatch(r"\d+/\d+", parts[-1]):
+            tries.append(" · ".join([*parts[:-1], surah]))
+        tries.append(surah)
+    for title in tries:
+        if len(title) <= YOUTUBE_TITLE_MAX:
+            return title
+    return surah[:YOUTUBE_TITLE_MAX - 1].rsplit(" ", 1)[0] + "…"
+
+
 def youtube_texts(reel: Reel, max_tags: int | None = None) -> dict[str, str]:
     """What to paste on YouTube for a reel, from its rendered caption (no new wording):
     title = the caption's first paragraph (series, surah and reference) on one line, cut at a
@@ -131,11 +149,7 @@ def youtube_texts(reel: Reel, max_tags: int | None = None) -> dict[str, str]:
     hashtags = the rendered ones (all, as caption.txt, unless platforms.youtube.max_hashtags)."""
     head = [line.strip() for line in reel.caption.strip().split("\n\n", 1)[0].splitlines()
             if line.strip()]
-    title = " · ".join(head)
-    while len(title) > YOUTUBE_TITLE_MAX and " · " in title:
-        title = title.rsplit(" · ", 1)[0]
-    if len(title) > YOUTUBE_TITLE_MAX:
-        title = title[:YOUTUBE_TITLE_MAX - 1].rsplit(" ", 1)[0] + "…"
+    title = _youtube_title(head)
     tags = reel.hashtags if max_tags is None else reel.hashtags[:max_tags]
     return {"title": title.replace("<", "").replace(">", ""),
             "description": reel.caption.strip() + "\n", "hashtags": " ".join(tags)}

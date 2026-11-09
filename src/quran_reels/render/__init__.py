@@ -65,6 +65,18 @@ def _recitation(cfg: Config) -> str:
     return f"Recitation: {r['label']}" + (f" ({r['producer']})" if r.get("producer") else "")
 
 
+def series_line(passage: Passage) -> str:
+    """The series in both languages, one counter: «Supplications from the Quran · آيات الدعاء ·
+    3/38». Titles are always given in Arabic and English (owner, 2026-11-09). The Arabic title is
+    label_ar without its Arabic counter, the English one label_en without its counter (series
+    titles never contain « · », tests/test_basmala.py)."""
+    if not passage.label_en:
+        return ""
+    en, _, count = passage.label_en.partition(" · ")
+    ar = passage.label_ar.partition(" · ")[0]
+    return " · ".join(x for x in (en, ar, count) if x)
+
+
 def caption(cfg: Config, passage: Passage, limit: int = CAPTION_LIMIT) -> str:
     """Reference, Arabic and translation of each ayah, credits, handle.
 
@@ -74,7 +86,7 @@ def caption(cfg: Config, passage: Passage, limit: int = CAPTION_LIMIT) -> str:
     head = [f"Surah {passage.surah_name_en} ({passage.reference}) · سورة {passage.surah_name_ar}",
             ""]
     if passage.label_en:
-        head = [passage.label_en, *head]
+        head = [series_line(passage), *head]
     tail = [
         _recitation(cfg),
         f"Translation: {c['translation']['label']}",
@@ -122,8 +134,8 @@ def facebook_caption(cfg: Config, passage: Passage, tags: list[str]) -> str:
         credits.append(f"Word meanings: {g.get('label_en') or g['label']}")
 
     def text(n_tags: int, handle: bool = True, label: bool = True) -> str:
-        head = (passage.label_en + "\n" if passage.label_en and label else "") + \
-            f"Surah {passage.surah_name_en} ({passage.reference})"
+        head = (series_line(passage) + "\n" if passage.label_en and label else "") + \
+            f"Surah {passage.surah_name_en} ({passage.reference}) · سورة {passage.surah_name_ar}"
         blocks = [head, " · ".join(credits), cfg.video["handle"] if handle else "",
                   " ".join(tags[:n_tags])]
         return "\n\n".join(b for b in blocks if b)
