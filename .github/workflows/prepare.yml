@@ -64,10 +64,4 @@ jobs:
         if: always()
         working-directory: state-branch
         run: |
-          [ -d splits ] || exit 0
-          git add splits
-          git diff --cached --quiet && exit 0
-          git -c user.name="quran-reels" \
-              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
-              commit -q -m "Découpes $(date -u +%Y-%m-%dT%H:%MZ)"
-          git push -q origin state
+          bash "$GITHUB_WORKSPACE/.github/scripts/save-state.sh" "Découpes" splits
