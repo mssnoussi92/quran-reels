@@ -6,6 +6,13 @@
 - Zone sûre (boutons Reels/TikTok) : haut 250 px, bas 420 px, côtés 90 px.
 - Deux calques PNG transparents sur le fond : `static` (voile, signature, crédits, fixe) et un
   `content` par ayah (référence, ayah, traduction, gloses) en fondu de 0,25 s.
+- **Signature propre à une plateforme** (`platforms.<nom>.signature`, `render.signatures`) :
+  TikTok, où `@quran_words_daily` est le compte de quelqu'un d'autre, a la sienne
+  (`@quran.words.daily`, 2026-11-09). Le calque `static` est redessiné avec ce nom
+  (`frames/static.tiktok.png`) et une seconde vidéo encodée avec les mêmes images, le même son
+  et le même fond (`out/<passage>/tiktok.mp4`) ; le manifeste la note (`variants`) et
+  `publish.load_reel` la donne à TikTok avec la légende signée de même (`Reel.for_platform`).
+  Pas pour la version YouTube (`daily.youtube_version`, `variants=False`).
 - Fond (`sources/backgrounds.py`, `config/backgrounds.yaml`) : les `themes` comptent leurs mots
   dans la traduction (sans les [ajouts] du traducteur) × leur poids ; le meilleur thème qui a
   un fond gagne (égalité : le plus rare, listé d'abord), même passage → même fond ; aucun thème

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from enum import Enum
 from pathlib import Path
 
@@ -115,6 +115,11 @@ class Passage:
         return sum(a.seconds or 0 for a in self.segments)
 
 
+def with_signature(text: str, old: str, new: str) -> str:
+    """A caption with its signature line (exactly `old`) replaced by `new`."""
+    return "\n".join(new if line == old else line for line in text.split("\n"))
+
+
 @dataclass
 class Reel:
     passage: Passage
@@ -124,6 +129,15 @@ class Reel:
     cover_ms: int | None = None      # frame used as cover, in ms from the start
     hashtags: list[str] = field(default_factory=list)   # most important first
     facebook: str = ""               # Facebook's short caption, hashtags included (render)
+    # platforms signed with their own name (render.signatures): {"tiktok": (mp4, caption)}
+    variants: dict[str, tuple[Path, str]] = field(default_factory=dict)
+
+    def for_platform(self, platform: str) -> Reel:
+        """The reel a platform gets: its own MP4 and caption when it has a variant."""
+        if platform not in self.variants:
+            return self
+        video, caption = self.variants[platform]
+        return replace(self, video=video, caption=caption, variants={})
 
     def text(self, max_hashtags: int | None = None) -> str:
         """The caption with the first max_hashtags hashtags (all if None) on a last line."""
@@ -135,7 +149,7 @@ class Reel:
         the reel has one; the others, and Facebook without it, text(max_hashtags)."""
         if platform == "facebook" and self.facebook:
             return self.facebook
-        return self.text(max_hashtags)
+        return self.for_platform(platform).text(max_hashtags)
 
 
 class PublishStatus(str, Enum):

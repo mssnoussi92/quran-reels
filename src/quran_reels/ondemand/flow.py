@@ -352,7 +352,8 @@ def run_publish(cfg: Config, gh: GitHub, hosting: Hosting, number: int, mode: st
                     f"{'Essai' if dry_run else 'Publication'} #{number} {meta['key']}")
     tiktok = next((r for r in results if r.platform == "tiktok"
                    and r.status == PublishStatus.DRAFT), None)
-    caption = reel.text(publish_mod.max_hashtags(cfg, "tiktok")) if tiktok else ""
+    caption = reel.for_platform("tiktok").text(publish_mod.max_hashtags(cfg, "tiktok")) \
+        if tiktok else ""
     gh.comment(number, comments.result(d, rows, hosting.page_url(rid, "2"), rights_only,
                                        caption))
     if not dry_run and stage == "published" and "youtube" not in meta["platforms"]:

@@ -28,7 +28,14 @@ from pathlib import Path
 
 from quran_reels.config import Config
 from quran_reels.gh_secrets import save_secret
-from quran_reels.models import Passage, PublishResult, PublishStatus, Reel, parse_passage
+from quran_reels.models import (
+    Passage,
+    PublishResult,
+    PublishStatus,
+    Reel,
+    parse_passage,
+    with_signature,
+)
 from quran_reels.publishers.base import PublisherError
 from quran_reels.publishers.facebook import FacebookPublisher
 from quran_reels.publishers.instagram import InstagramPublisher
@@ -103,7 +110,8 @@ def meta_check(cfg: Config, platforms: list[str]) -> tuple[Graph, MetaEnv, Token
 
 def load_reel(video: Path) -> Reel:
     """A reel rendered by `quran-reels render`: the MP4 and its out/<passage>/ folder (the
-    caption, its hashtags, Facebook's short caption from the manifest)."""
+    caption, its hashtags, Facebook's short caption from the manifest, the MP4 and caption of
+    each platform signed with its own name: Reel.for_platform)."""
     work = video.with_suffix("")
     manifest = json.loads((work / "manifest.json").read_text(encoding="utf-8"))
     surah, start, end = parse_passage(manifest["passage"])
@@ -116,10 +124,16 @@ def load_reel(video: Path) -> Reel:
     tag_line = " ".join(tags)
     if tags and text.rstrip().endswith(tag_line):         # written by render: body + tags
         text = text.rstrip()[: -len(tag_line)].rstrip() + "\n"
+    variants = {}
+    for name, v in (manifest.get("variants") or {}).items():
+        mp4 = work / v["video"]
+        if mp4.is_file():           # missing (an older artifact): the platform gets the main one
+            variants[name] = (mp4, with_signature(text, v["instead_of"], v["signature"]))
     return Reel(passage=passage, video=video, caption=text, hashtags=list(tags),
                 cover=work / "preview" / f"{surah:03d}{int(cover['ref'].split(':')[1]):03d}.png",
                 cover_ms=int((cover["start"] + cover["seconds"] / 2) * 1000),
-                facebook=(manifest.get("captions") or {}).get("facebook") or "")
+                facebook=(manifest.get("captions") or {}).get("facebook") or "",
+                variants=variants)
 
 
 YOUTUBE_TITLE_MAX = 100        # YouTube refuses a longer title
@@ -300,9 +314,10 @@ def publish_reel(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
             results[name] = PublishResult(name, PublishStatus.BLOCKED,
                                           error=f"non envoyé, droits : {reason}")
         else:
-            print(f"{name}: uploading {reel.video.name}{' (dry run)' if dry_run else ''}",
+            own = reel.for_platform(name)       # TikTok: signed with its own name
+            print(f"{name}: uploading {own.video.name}{' (dry run)' if dry_run else ''}",
                   file=sys.stderr)
-            results[name] = publishers[name].publish(reel, dry_run=dry_run)
+            results[name] = publishers[name].publish(own, dry_run=dry_run)
         r = results[name]
         print(f"{name}: {r.status.value} {r.remote_id or ''} {r.url or ''} {r.error or ''}"
               .rstrip(), file=sys.stderr)

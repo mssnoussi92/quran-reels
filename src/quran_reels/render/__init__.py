@@ -65,6 +65,19 @@ def _recitation(cfg: Config) -> str:
     return f"Recitation: {r['label']}" + (f" ({r['producer']})" if r.get("producer") else "")
 
 
+def signatures(cfg: Config) -> dict[str, str]:
+    """Platforms signed with another name than video.handle (platforms.<name>.signature):
+    {"tiktok": "@quran.words.daily"}. Each gets its own MP4 (out/<passage>/<name>.mp4, the
+    static layer drawn again with that name) and its caption ends with it."""
+    main = cfg.video["handle"]
+    out = {}
+    for name, conf in (cfg.project.get("platforms") or {}).items():
+        sig = conf.get("signature") if isinstance(conf, dict) else None
+        if sig and sig != main:
+            out[name] = str(sig)
+    return out
+
+
 def series_line(passage: Passage) -> str:
     """The series in both languages, one counter: «Supplications from the Quran · آيات الدعاء ·
     3/38». Titles are always given in Arabic and English (owner, 2026-11-09). The Arabic title is
@@ -249,11 +262,12 @@ def _long_ayah(fr: FrameRenderer, src: Sources, passage: Passage, a: Ayah, sampl
 
 def render_passage(cfg: Config, key: str, label_ar: str = "", label_en: str = "",
                    series_tags: tuple[str, ...] = (), background: str | None = None,
-                   glosses: dict | None = None) -> RenderResult:
+                   glosses: dict | None = None, variants: bool = True) -> RenderResult:
     """label_ar / label_en: the series the passage belongs to, on the first frame and caption;
     series_tags: its hashtags; background: an id of config/backgrounds.yaml imposed by the
     owner (on-demand reels), otherwise chosen from what the passage says; glosses: the word
-    meanings chosen by the owner (passage.build), otherwise the usual rules."""
+    meanings chosen by the owner (passage.build), otherwise the usual rules; variants: also the
+    MP4 of each platform signed with its own name (signatures), the same frames and sound."""
     src = Sources.from_config(cfg)
     passage = build(cfg, key, src, glosses)
     passage.label_ar, passage.label_en = label_ar, label_en
@@ -287,9 +301,14 @@ def render_passage(cfg: Config, key: str, label_ar: str = "", label_en: str = ""
               f"{p['min_seconds']}–{p['max_seconds']} s (rendered anyway)")
 
     frames, screens, shown = [], [], {}
+    signed = signatures(cfg) if variants else {}
     with FrameRenderer(cfg) as fr:
         static = frames_dir / "static.png"
         fr.render("static", static)
+        statics = {}
+        for platform, sig in signed.items():
+            statics[platform] = frames_dir / f"static.{platform}.png"
+            fr.render("static", statics[platform], handle=sig)
         for a, n in zip(passage.segments, samples, strict=True):
             first = a is passage.segments[0]
             ctx = ayah_context(passage, a, basmala=a is passage.basmala, first=first)
@@ -324,14 +343,18 @@ def render_passage(cfg: Config, key: str, label_ar: str = "", label_en: str = ""
         bg_info["push_in"] = zoom
     audio = video.write_audio(wavs, timeline, audio_dir / "passage.wav")
     out = cfg.out / f"{passage.slug}.mp4"
-    video.compose(bg_path, static, frames, timeline, audio, out,
-                  width=v["width"], height=v["height"], fade=float(v.get("fade_seconds", 0.25)),
-                  zoom=zoom)
+    for platform in [None, *signed]:
+        video.compose(bg_path, statics[platform] if platform else static, frames, timeline,
+                      audio, work / f"{platform}.mp4" if platform else out, width=v["width"],
+                      height=v["height"], fade=float(v.get("fade_seconds", 0.25)), zoom=zoom)
 
     tags = hashtags(cfg, passage)
     record = manifest(cfg, src, passage, timeline, bg_info, shown)
     if short := facebook_caption(cfg, passage, tags):    # what Facebook gets (publish.py)
         record["captions"] = {"facebook": short}
+    if signed:                  # publish.load_reel: their MP4 and caption
+        record["variants"] = {p: {"video": f"{p}.mp4", "signature": sig,
+                                  "instead_of": v["handle"]} for p, sig in signed.items()}
     (work / "manifest.json").write_text(json.dumps(record, ensure_ascii=False, indent=2),
                                         encoding="utf-8")
     room = CAPTION_LIMIT - len(" ".join(tags)) - 2       # all of them, even on Instagram
