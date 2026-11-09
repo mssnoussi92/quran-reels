@@ -28,7 +28,8 @@ le garderaient (à décider). Les épisodes de quran-themes-demo le faisaient d�
   (l'initiale générée par YouTube), aucune playlist. Pourtant 66 abonnés et 6 547 vues en
   5 jours avec 10 Shorts (en tête : Ad-Duha 1,3 k, Al-Falaq 1,1 k, Ayat al-Kursi 1 k) : une
   chaîne qui démarre bien, derrière une page vide.
-- **TikTok** : le compte des reels est **`@quran_words_daily6`** : 10 vidéos, 5 abonnés,
+- **TikTok** : le compte des reels était **`@quran_words_daily6`** (renommé
+  **`@quran.words.daily`** par le propriétaire le 2026-11-09) : 10 vidéos, 5 abonnés,
   1 165 j'aime, **photo par défaut** (un « q » sur fond brun), nom « quran_words_daily », bio
   « Daily Quran recitation, translation & meaning of difficult words » (anglais seul), pas de
   lien.
@@ -113,7 +114,7 @@ Arabic & English · every source cited
 
 Lien : `https://mssnoussi92.github.io/quran-reels/` (titre « Website »).
 
-## TikTok (`@quran_words_daily6`)
+## TikTok (`@quran.words.daily`, avant `@quran_words_daily6`)
 
 Photo `avatar-1080.jpg` (remplace le « q » par défaut).
 
@@ -143,17 +144,17 @@ Recommandé, dans l'ordre :
    passer pour quelqu'un d'autre »), en citant la Page Facebook, l'Instagram et la chaîne
    YouTube `quran_words_daily`, plus anciens que lui. TikTok peut le fermer ; il ne rend pas
    forcément le nom.
-2. **Renommer `@quran_words_daily6` en `@quran.words.daily`** : libre sur TikTok le 2026-11-09
-   (à confirmer dans l'app : Profil → Modifier le profil → Nom d'utilisateur, une fois tous les
-   30 jours). Le « 6 » fait compte copié ; le point se lit comme le tiret bas. La connexion du
-   pipeline (`TIKTOK_REFRESH_TOKEN`) suit le compte, pas son nom : normalement rien à refaire
-   (sinon, relancer le workflow `tiktok-auth`). Puis corriger le lien TikTok du site
-   (`docs/index.html`).
-3. **Une signature propre à TikTok**, à décider : la version envoyée à TikTok porterait
-   l'identifiant TikTok au lieu de `@quran_words_daily` (pipeline : un rendu de plus par
-   reel, comme la version YouTube ; quran-themes-demo : un rendu de plus par vidéo). Sans elle,
-   la signature continue d'envoyer vers le compte vide. TikTok ajoute de lui-même le vrai
-   identifiant quand une vidéo est téléchargée, mais pas à l'écran de lecture.
+2. ✅ **Renommé `@quran.words.daily`** par le propriétaire le 2026-11-09 (le « 6 » faisait
+   compte copié). La connexion du pipeline (`TIKTOK_REFRESH_TOKEN`) suit le compte, pas son
+   nom : normalement rien à refaire (si le brouillon du prochain reel échoue, relancer le
+   workflow `tiktok-auth`). Lien du site corrigé (`docs/index.html`).
+3. ✅ **Signature propre à TikTok** (décision du propriétaire, 2026-11-09) : chaque reel du
+   calendrier et de la publication à la demande a sa version TikTok, signée
+   `@quran.words.daily` à l'écran et à la fin de la légende (`platforms.tiktok.signature`,
+   `render.signatures` : le calque fixe redessiné, une seconde vidéo encodée,
+   `out/<passage>/tiktok.mp4`). Les 10 vidéos déjà postées gardent `@quran_words_daily` à
+   l'image (le propriétaire corrige ce qu'il peut à la main). quran-themes-demo : pas encore
+   (ses vidéos validées seraient à rendre de nouveau).
 
 Lien cliquable : TikTok le réserve aux comptes de 1 000 abonnés ou aux comptes Entreprise
 (selon les pays) ; regarder dans Profil → Modifier si le champ « Site web » est proposé. Ne pas
@@ -292,9 +293,9 @@ Instagram n'a pas de playlists ; TikTok en a, mais réservées pour l'instant au
 
 ## Autres améliorations, par ordre d'importance
 
-1. **TikTok : l'identifiant** (voir « TikTok ») : signaler le compte vide qui a pris
-   `@quran_words_daily`, renommer le nôtre `@quran.words.daily`, décider d'une signature
-   propre à TikTok ; d'ici là, la signature de chaque vidéo envoie ailleurs sur TikTok.
+1. **TikTok : signaler le compte vide** qui a pris `@quran_words_daily` (voir « TikTok »).
+   Fait le 2026-11-09 : notre compte renommé `@quran.words.daily`, et les prochains reels
+   signés de ce nom sur TikTok.
 2. **YouTube : demander l'audit** (toujours à faire, voir CLAUDE.md). Sans lui, chaque Short,
    son titre et ses playlists se font à la main, et le classement grossit avec chaque sujet ;
    avec lui, le pipeline publie et range seul.

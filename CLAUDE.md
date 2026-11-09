@@ -4,8 +4,8 @@ Pipeline open source qui produit chaque jour un reel vertical (1080×1920) d'un 
 et le publie sur Facebook, Instagram, TikTok et YouTube Shorts.
 
 Comptes : Facebook `quranwordsdaily` · Instagram / YouTube `quran_words_daily` · TikTok
-`quran_words_daily6` (`@quran_words_daily` y est le compte vide de quelqu'un d'autre, pas du
-propriétaire : à signaler, renommer le nôtre `@quran.words.daily`, docs/profils.md) ·
+`quran.words.daily` (renommé le 2026-11-09, avant `quran_words_daily6` ; `@quran_words_daily` y
+est le compte vide de quelqu'un d'autre, à signaler, docs/profils.md) ·
 e-mail du projet `quranwordsdaily@gmail.com`. Le propriétaire travaille depuis son téléphone
 (pas de PC) : tout doit tourner dans le cloud (session Claude, GitHub Actions).
 
@@ -36,7 +36,7 @@ jamais en silence, ne passe jamais outre en silence.
 | Périmètre | **Pas seulement des versets récités** : la page publiera aussi des thèmes et des sujets variés (épisodes de quran-themes-demo : thèmes, histoires…), choix du propriétaire le 2026-11-09 ; bios, images et site disent ce qui ne change pas (le Coran et la Sunna au quotidien, toujours sourcés), pas la liste du moment (docs/profils.md) |
 | Titres | **Toujours en arabe et en anglais** (choix du propriétaire, 2026-11-09) : noms des comptes, série et sourate en tête des légendes (`render.series_line` : « Supplications from the Quran · آيات الدعاء · 3/38 »), titres YouTube (raccourcis par parties entières, jamais une seule langue), Word of the day, playlists, images ; le texte des ayahs reste hors de la légende Facebook |
 | Comptes pro | Page Facebook + Instagram en type **Créateur**, reliés |
-| Signature | **@quran_words_daily** sur chaque image, dans la zone sûre (repartages) |
+| Signature | **@quran_words_daily** sur chaque image, dans la zone sûre (repartages) ; **TikTok : `@quran.words.daily`** (choix du propriétaire, 2026-11-09 : `@quran_words_daily` y est à quelqu'un d'autre) : sa propre version de chaque reel (`platforms.tiktok.signature`, `render.signatures` : calque fixe redessiné, `out/<passage>/tiktok.mp4`) et la même signature à la fin de sa légende (`Reel.for_platform`) |
 | Hashtags | Fin de légende, dans l'ordre : `#QuranWordsDaily`, `#Quran`, 1er tag de la série, sourate (`#SurahAdDuhaa` `#سورة_الضحى`), `#القرآن_الكريم`, autres tags de la série, récitateur, gloses (`#تفسير_القرآن`) ; **Instagram et TikTok : les 5 premiers** (leur limite), Facebook 8, `caption.txt` tous (YouTube à la main). **Facebook : légende courte, ≤ 400 caractères hashtags compris** (sa liste de qualité, 2026-11-09) : série et référence (titres en arabe et en anglais), crédits sur une ligne, signature, hashtags ; ni le texte arabe des ayahs ni la traduction (dans la vidéo ; choix du propriétaire) ; trop longue → des hashtags de la fin |
 
 ## Règles de contenu (non négociables)
@@ -363,9 +363,9 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
       2026-11-09) : bio, nom, photo unique
       « آيات », couverture, bannière (« Quran & Sunnah for everyday life », bilingues), playlists
       YouTube par thème, sourate et format, Facebook (3), à appliquer à la main par le
-      propriétaire ; YouTube vide ; TikTok : les reels sont sur `@quran_words_daily6`, la
-      signature `@quran_words_daily` y mène au compte vide de quelqu'un d'autre (à signaler ;
-      signature propre à TikTok à décider)
+      propriétaire ; YouTube vide ; TikTok renommé `@quran.words.daily` et reels signés de
+      ce nom sur TikTok (2026-11-09) ; le compte vide `@quran_words_daily`, à quelqu'un
+      d'autre, à signaler
 - [x] Liste de qualité de Facebook sur 6:17 (2026-11-09 : « image statique », « légende de
       qualité (10 à 400 caractères) ») : scènes générées animées + zoom lent, légende Facebook
       courte · [ ] relire la liste de qualité sur le prochain reel avec une scène générée
