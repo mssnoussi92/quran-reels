@@ -278,3 +278,42 @@ def test_mask_only_on_github_actions(monkeypatch, capsys):
     monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
     gh_secrets.mask("value")
     assert capsys.readouterr().out == ""
+
+
+def test_the_expiry_of_the_secrets_token_is_read_from_github(monkeypatch):
+    from datetime import date
+
+    answer = ("HTTP/2.0 200 OK\nContent-Type: application/json\n"
+              "Github-Authentication-Token-Expiration: 2027-01-31 23:00:00 UTC\n\n{}")
+    seen = {}
+
+    def run(argv, **kw):
+        seen["argv"], seen["token"] = argv, kw["env"].get("GH_TOKEN")
+        return subprocess.CompletedProcess(argv, 0, stdout=answer, stderr="")
+
+    monkeypatch.setattr(subprocess, "run", run)
+    monkeypatch.delenv("GH_SECRETS_TOKEN", raising=False)
+    assert gh_secrets.token_expiry() is None and not seen          # no token: not asked
+    monkeypatch.setenv("GH_SECRETS_TOKEN", "github_pat_x")
+    assert gh_secrets.token_expiry() == date(2027, 1, 31)
+    assert seen["argv"] == ["gh", "api", "--include", "rate_limit"]
+    assert seen["token"] == "github_pat_x"
+    answer = "HTTP/2.0 200 OK\n\n{}"                               # a token without expiry
+    assert gh_secrets.token_expiry() is None
+
+
+def test_the_owner_is_told_once_two_weeks_before_the_secrets_token_expires():
+    from datetime import date
+
+    from quran_reels import daily
+    from quran_reels.selector.calendar import State
+
+    state = State()
+    assert daily.secrets_note(state, date(2027, 1, 1), None) is None
+    assert daily.secrets_note(state, date(2027, 1, 1), date(2027, 1, 31)) is None     # 30 days
+    note = daily.secrets_note(state, date(2027, 1, 17), date(2027, 1, 31))
+    assert "expire le 2027-01-31 (dans 14 jours)" in note and "tiktok-auth" in note
+    assert daily.secrets_note(state, date(2027, 1, 18), date(2027, 1, 31)) is None    # told
+    assert "a expiré" in daily.secrets_note(State(), date(2027, 2, 2), date(2027, 1, 31))
+    # a new token, a new date: told again when its turn comes
+    assert daily.secrets_note(state, date(2028, 1, 20), date(2028, 1, 31)) is not None

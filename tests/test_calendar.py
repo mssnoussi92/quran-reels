@@ -506,3 +506,133 @@ def test_a_reopened_slot_publishes_its_passage_again(world):
     assert state.data["removed"][0]["why"] == "bad cut at the basmala"
     with pytest.raises(SystemExit, match="no such slot"):
         reopen(state, "2026-11-06/morning", "x")
+
+
+# ---- a slot published by hand (publish-test, mode publish) --------------------------------
+
+FACEBOOK = [{"platform": "facebook", "status": "published", "remote_id": "9", "url": "u",
+             "error": None}]
+
+
+def test_a_reopened_slot_published_by_hand_is_not_published_again(world):
+    """The republish skill said to «write the new posts into the slot»: the passage stayed
+    first in its queue and the next slot published it a second time."""
+    from quran_reels.selector.calendar import record_by_hand, reopen
+
+    calls, _, path = world
+    daily.run(None, path, now=paris(2026, 11, 5, 7, 20))                 # 114 published
+    state = State.load(path)
+    reopen(state, "2026-11-05/morning", "bad cut")
+    assert next_item(schedule(), SERIES, state, "reading")[1].key == "114:1-6"
+    record = record_by_hand(schedule(), SERIES, state, "2026-11-05/morning", "114:1-6",
+                            FACEBOOK, reciter="sayegh")
+    state.save(path)
+    assert record["by_hand"] and record["reciter"] == "sayegh"
+    assert record["results"]["facebook"]["id"] == "9"
+    assert state.queue("reading")["done"] == ["juz-amma/114:1-6"]
+    assert daily.run(None, path, now=paris(2026, 11, 5, 8, 20)) == 0     # same window
+    daily.run(None, path, now=paris(2026, 11, 7, 7, 20))                  # Saturday: the next
+    assert [c[0] for c in calls["publish"]] == ["114:1-6", "113:1-5"]
+
+
+def test_the_daily_run_does_not_complete_a_slot_published_by_hand(world):
+    """A reciter's first reel goes to Facebook alone: Instagram waits for the owner to see no
+    claim, the next run in the window must not post it."""
+    from quran_reels.selector.calendar import record_by_hand
+
+    calls, _, path = world
+    state = State()
+    record_by_hand(schedule(), SERIES, state, "2026-11-05/morning", "114:1-6", FACEBOOK)
+    state.save(path)
+    assert daily.run(None, path, now=paris(2026, 11, 5, 7, 40)) == 0
+    assert calls["publish"] == []
+    more = [{"platform": "instagram", "status": "published", "remote_id": "7"}]
+    record = record_by_hand(schedule(), SERIES, state, "2026-11-05/morning", "114:1-6", more)
+    assert set(record["results"]) == {"facebook", "instagram"}            # added, not replaced
+
+
+def test_a_by_hand_record_is_checked_before_it_is_written():
+    from quran_reels.selector.calendar import record_by_hand
+
+    state = State()
+    with pytest.raises(SystemExit, match="not a passage of the queue"):
+        record_by_hand(schedule(), SERIES, state, "2026-11-05/morning", "2:1-5", FACEBOOK)
+    with pytest.raises(SystemExit, match="no slot «noon»"):
+        record_by_hand(schedule(), SERIES, state, "2026-11-05/noon", "114:1-6", FACEBOOK)
+    with pytest.raises(SystemExit, match="not a slot"):
+        record_by_hand(schedule(), SERIES, state, "yesterday", "114:1-6", FACEBOOK)
+    assert state.data["slots"] == {}
+    failed = [{"platform": "facebook", "status": "failed", "error": "x"}]
+    record_by_hand(schedule(), SERIES, state, "2026-11-05/morning", "114:1-6", failed)
+    assert state.queue("reading")["done"] == []           # nobody has it: still first
+    with pytest.raises(SystemExit, match="already holds 114:1-6"):
+        record_by_hand(schedule(), SERIES, state, "2026-11-05/morning", "113:1-5", FACEBOOK)
+    # the evening queue hands over to the reading queue when its series are done
+    done = State({"queues": {"themes": {"round": 1, "done": [
+        "kursi/2:255-255", "dua/2:186-186", "dua/2:201-201", "dua/3:8-9"]}}})
+    record = record_by_hand(schedule(), SERIES, done, "2026-11-05/evening", "114:1-6", FACEBOOK)
+    assert record["queue"] == "reading" and done.queue("reading")["done"] == ["juz-amma/114:1-6"]
+
+
+def test_state_record_reads_publish_json(tmp_path, monkeypatch, capsys):
+    from quran_reels import cli
+    from quran_reels.selector import calendar
+
+    monkeypatch.setattr(calendar, "load_series", lambda cfg: SERIES)
+    monkeypatch.setattr(calendar, "load_schedule", lambda cfg, series: schedule())
+    posted = tmp_path / "publish.json"
+    state = tmp_path / "published.json"
+    posted.write_text(json.dumps({"passage": "114:1-6", "dry_run": True, "results": FACEBOOK}),
+                      encoding="utf-8")
+    argv = ["state", "record", "2026-11-05/morning", "--publish", str(posted), "--reciter",
+            "sayegh", "--state", str(state)]
+    with pytest.raises(SystemExit, match="dry run"):
+        cli.main(argv)
+    posted.write_text(json.dumps({"passage": "114:1-6", "dry_run": False, "results": FACEBOOK}),
+                      encoding="utf-8")
+    assert cli.main(argv) == 0
+    assert "queue reading moves on" in capsys.readouterr().out
+    assert State.load(state).slot(date(2026, 11, 5), "morning")["reciter"] == "sayegh"
+
+
+# ---- a slot no run ever took --------------------------------------------------------------
+
+def test_a_slot_nobody_tried_is_seen_by_a_later_run(world):
+    """2026-11-09 evening: GitHub started no job for two dispatches. Had the third not come,
+    nothing would have told the owner: the alert is written by the run."""
+    from quran_reels.selector.calendar import missed_slots
+
+    _, _, path = world
+    daily.run(None, path, now=paris(2026, 11, 5, 7, 20))                 # Thursday morning
+    state = State.load(path)
+    assert missed_slots(schedule(), state, paris(2026, 11, 5, 22, 0)) == []   # window open
+    assert missed_slots(schedule(), state, paris(2026, 11, 5, 22, 31)) == []  # the first day
+    daily.run(None, path, now=paris(2026, 11, 6, 7, 20))                 # Friday morning
+    state = State.load(path)
+    assert missed_slots(schedule(), state, paris(2026, 11, 6, 22, 29)) == []
+    late = paris(2026, 11, 7, 12, 0)             # a run on Saturday noon, GitHub's late cron
+    assert missed_slots(schedule(), state, late) == ["2026-11-06/evening", "2026-11-07/morning"]
+    assert missed_slots(schedule(), State(), late) == []                 # nothing published yet
+
+
+def test_a_missed_slot_is_told_once_and_not_a_reopened_one(world, monkeypatch, tmp_path):
+    from quran_reels.selector.calendar import missed_slots, reopen
+
+    _, _, path = world
+    daily.run(None, path, now=paris(2026, 11, 5, 7, 20))
+    daily.run(None, path, now=paris(2026, 11, 6, 7, 20))
+    out = tmp_path / "out.txt"
+    monkeypatch.setenv("GITHUB_OUTPUT", str(out))
+    noon = paris(2026, 11, 7, 12, 0)
+    assert daily.run(None, path, now=noon, check=True, watch=True) == 0
+    assert "missed=2026-11-06/evening,2026-11-07/morning" in out.read_text()
+    assert set(State.load(path).data["missed"]) == {"2026-11-06/evening", "2026-11-07/morning"}
+    out.write_text("")
+    daily.run(None, path, now=noon, check=True, watch=True)              # the next run
+    assert "missed=\n" in out.read_text()
+    state = State.load(path)
+    reopen(state, "2026-11-06/morning", "bad cut")
+    assert missed_slots(schedule(), state, noon) == []
+    assert daily.run(None, path, now=paris(2026, 11, 8, 12, 0), check=True) == 0   # simulated
+    assert "2026-11-08/morning" not in State.load(path).data["missed"]            # time: no
+

@@ -199,3 +199,18 @@ def test_the_first_commit_of_a_new_state_branch(tmp_path):
     assert done.returncode == 0, done.stdout + done.stderr
     assert on_remote(origin, "images.json") == "{}"
     assert on_remote(origin, "published.json") == state({}).strip()
+
+
+def test_a_session_reopening_a_slot_uses_it_from_a_detached_worktree(tmp_path, remote):
+    """The republish skill: a detached worktree of origin/state, saved with the same script."""
+    repo = tmp_path / "session"
+    git(tmp_path, "clone", "-q", "-b", "main", f"file://{remote}", str(repo))
+    git(repo, "fetch", "-q", "origin", "state")
+    git(repo, "worktree", "add", "-q", "--detach", "state-wt", "origin/state")
+    wt = repo / "state-wt"
+    publish(wt, "2026-11-09/evening", "11:6-6")
+    other_writer(tmp_path, remote, lambda clone: (clone / "images.json").write_text("{}\n"))
+    done = save(wt, "published.json")
+    assert done.returncode == 0, done.stdout + done.stderr
+    assert "11:6-6" in on_remote(remote, "published.json")
+    assert on_remote(remote, "images.json") == "{}"

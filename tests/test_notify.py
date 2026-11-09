@@ -160,3 +160,44 @@ def test_the_captions_issue_says_which_video_goes_to_youtube():
     assert "Al-Kahf by Tawfiq As-Sayegh" in body
     item["youtube"] = {"reciter": None, "error": "aucun autre récitateur prêt pour ce passage"}
     assert "**YouTube : ne pas mettre cette vidéo**" in merge_captions("", {"items": [item]})
+
+
+def test_a_slot_nobody_tried_opens_the_alert_even_when_this_run_published(tmp_path):
+    """The alert is written by a run: for a slot no run took, a later run has to say it, and
+    its own success must not close what it has just opened."""
+    gh = FakeGh()
+    issues = notify.Issues("o/r", runner=gh)
+    notify.run(write(tmp_path, [item("evening")]), "success", "https://run/9", "owner", issues,
+               missed=["2026-11-05/morning"])
+    [alert] = [i for i in gh.issues if i["title"] == notify.FAILURE_TITLE]
+    assert alert["state"] == "open" and alert["assignee"] == "owner"
+    assert "Créneau jamais tenté : jeu. 5 nov. · morning" in alert["body"]
+    assert "https://run/9" in alert["body"]
+    notify.run(write(tmp_path, [item("evening")]), "success", "https://run/10", "owner", issues)
+    assert alert["state"] == "closed"                    # the next publication closes it
+
+
+def test_a_missed_slot_with_nothing_due_and_with_a_failure(tmp_path):
+    gh = FakeGh()
+    issues = notify.Issues("o/r", runner=gh)
+    # GitHub's late cron: nothing due, no report at all
+    notify.run(tmp_path / "missing.json", "success", "https://run/1", "owner", issues,
+               missed=["2026-11-05/evening", "2026-11-06/morning"])
+    [alert] = [i for i in gh.issues if i["title"] == notify.FAILURE_TITLE]
+    assert "ces créneaux" in alert["body"] and "ven. 6 nov. · morning" in alert["body"]
+    notify.run(tmp_path / "missing.json", "failure", "https://run/2", "owner", issues,
+               missed=["2026-11-06/evening"])
+    assert "ven. 6 nov. · evening" in alert["comments"][0]
+    assert "Le run a échoué avant de publier" in alert["comments"][0]
+
+
+def test_a_note_of_the_run_reaches_the_owner_without_closing_anything(tmp_path):
+    gh = FakeGh()
+    issues = notify.Issues("o/r", runner=gh)
+    path = tmp_path / "daily-report.json"
+    path.write_text(json.dumps({"dry_run": False, "items": [item()], "errors": [],
+                                "notes": ["🔑 **Le jeton GitHub `GH_SECRETS_TOKEN` expire"]}),
+                    encoding="utf-8")
+    notify.run(path, "success", "https://run/1", "owner", issues)
+    [alert] = [i for i in gh.issues if i["title"] == notify.FAILURE_TITLE]
+    assert alert["state"] == "open" and "GH_SECRETS_TOKEN" in alert["body"]

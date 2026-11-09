@@ -86,6 +86,25 @@ def failure_text(report: dict | None, run_url: str) -> str:
     return "\n".join(lines)
 
 
+def missed_text(missed: list[str], run_url: str) -> str:
+    """Slots no run ever took (daily: calendar.missed_slots), seen by a later run."""
+    def when(key: str) -> str:
+        day, slot = key.split("/")
+        d = date.fromisoformat(day)
+        return f"{_DAYS[d.weekday()]} {d.day} {_MONTHS[d.month - 1]} · {slot}"
+
+    which = "ce créneau" if len(missed) == 1 else "ces créneaux"
+    head = (f"⏰ **Créneau jamais tenté : {', '.join(when(k) for k in missed)}.** Aucune "
+            f"publication n'est enregistrée pour {which} : aucun run n'a tourné dans sa fenêtre "
+            "de 3 h (tâche planifiée Claude non lancée, ou GitHub n'a démarré aucun job), ou sa "
+            "file était vide.")
+    lines = [head, "",
+             ("Rien n'est perdu : le passage sort au prochain créneau de sa file. À regarder : "
+              "la session « Quran Words Daily – planificateur » et ses tâches planifiées, puis "
+              "les runs du workflow daily ce jour-là."), "", f"Vu par : {run_url}"]
+    return "\n".join(lines)
+
+
 def _youtube(item: dict) -> list[str]:
     """What to put on YouTube when it is not this video (daily.youtube_version)."""
     y = item.get("youtube")
@@ -195,7 +214,7 @@ class Issues:
 
 
 def run(report_path: Path, outcome: str, run_url: str, owner: str | None,
-        issues: Issues | None = None) -> int:
+        issues: Issues | None = None, missed: list[str] | None = None) -> int:
     issues = issues or Issues(os.environ["GITHUB_REPOSITORY"])
     report = json.loads(report_path.read_text(encoding="utf-8")) if report_path.is_file() else None
     dry_run = bool(report and report.get("dry_run"))
@@ -211,8 +230,22 @@ def run(report_path: Path, outcome: str, run_url: str, owner: str | None,
     if dry_run:
         return 0                    # a test run never opens nor closes the failure issue
     failure = issues.find(FAILURE_TITLE)
+    # What the owner has to know whatever this run did: a slot no run took, a token about to
+    # expire (report `notes`). Told even when this run published, and its success does not
+    # close the alert it has just opened.
+    notes = ([missed_text(missed, run_url)] if missed else []) + list(
+        (report or {}).get("notes") or [])
+    if notes and outcome != "failure":
+        text = "\n\n".join(notes)
+        if failure:
+            issues.comment(failure["number"], text)
+        else:
+            mention = f"@{owner} : " if owner else ""
+            issues.create(FAILURE_TITLE, mention + "à regarder.\n\n" + text, assignee=owner)
+        print("failure issue updated (note for the owner)")
+        return 0
     if outcome == "failure":
-        text = failure_text(report, run_url)
+        text = "\n\n".join([*notes, failure_text(report, run_url)])
         if failure:
             issues.comment(failure["number"], "Encore en échec.\n\n" + text)
         else:
