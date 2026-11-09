@@ -1,13 +1,16 @@
 name: images
 
 # Daily image posts on Instagram and Facebook (docs/images.md): Word of the day carousel.
-# The time of each format is in config/images.yaml (UTC); this workflow runs every hour and
-# `quran-reels images run --check` decides whether one is due, so the time can change without
-# touching this file. A day's post is chosen once (state branch: images.json); a platform that
-# failed is retried with the same images while the window lasts.
+# The time of each format is in config/images.yaml (UTC); `quran-reels images run --check`
+# decides whether one is due. A day's post is chosen once (state branch: images.json); a
+# platform that failed is retried with the same images while the window lasts.
+#
+# Started by the scheduler session (11:36 UTC), not by GitHub's cron: the hourly cron this file
+# had fired late and at random (16 runs for 94 ticks in four days, never at :41), posted nothing,
+# and each of its runs took the one waiting place of the `accounts` group: on 2026-11-09 at
+# 22:40 UTC it cancelled a run that was waiting there (prepare-splits #10). A queued publication
+# would have been cancelled the same way, without a job and so without an alert.
 on:
-  schedule:
-    - cron: "41 * * * *"
   workflow_dispatch:
     inputs:
       dry_run:
@@ -25,6 +28,10 @@ permissions:
 concurrency:
   group: accounts          # never two runs posting at the same time (reels, images, tests)
   cancel-in-progress: false
+
+env:
+  # What changes the render or the recognition is installed at the versions of constraints.txt.
+  PIP_CONSTRAINT: ${{ github.workspace }}/constraints.txt
 
 jobs:
   post:

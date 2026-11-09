@@ -18,6 +18,10 @@ on:
 permissions:
   contents: read
 
+env:
+  # What changes the render or the recognition is installed at the versions of constraints.txt.
+  PIP_CONSTRAINT: ${{ github.workspace }}/constraints.txt
+
 jobs:
   search:
     runs-on: ubuntu-24.04

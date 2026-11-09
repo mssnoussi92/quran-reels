@@ -64,8 +64,15 @@
   (`CRON_TZ=Europe/Paris`), `images.yml` 11:36 UTC ; chacune lance le workflow sur `main`,
   attend la fin, relance une fois en cas d'échec (sauf prepare) et résume. Une tâche lancée
   dans une session neuve n'a pas accès au dépôt (essai du 2026-11-05) : elles visent toutes
-  cette session. Les crons des workflows restent en place si GitHub se remet à les lancer
-  (un passage en double ne republie rien : le créneau est déjà dans l'état).
+  cette session. Le cron de `daily.yml` reste en place (un passage en double ne republie rien :
+  le créneau est déjà dans l'état ; ses runs tardifs servent de témoin pour l'alerte « créneau
+  jamais tenté »). Ceux d'`images.yml` (toutes les heures) et de `prepare.yml` sont retirés
+  depuis le 2026-11-09 : GitHub ne garde qu'**un seul run en attente par groupe de
+  concurrence**, et un run plus récent annule celui qui attendait. Un run `images` du cron,
+  qui ne publiait rien, a ainsi annulé un `prepare` en attente (22:40 UTC) ; une publication
+  en attente derrière un autre run aurait été annulée de la même façon, sans job et donc sans
+  alerte. `prepare.yml` a désormais son propre groupe : il ne publie rien, n'utilise aucun
+  jeton, et n'occupe plus le groupe `accounts` pendant ses 7 à 150 minutes.
 - État : `published.json` sur la branche `state` (créée au premier passage du workflow),
   commit après chaque créneau. Un passage compte comme publié dès qu'une plateforme l'a.
   **Ce qui est sorti est écrit aussitôt** (`daily.record_slot`, avant la reprise et avant la
@@ -76,6 +83,19 @@
   sur la nouvelle tête et poussé de nouveau, 5 essais ; avant, un push refusé perdait le
   créneau et le run suivant republiait le même passage partout. Seul un vrai conflit (deux
   écritures des mêmes lignes) échoue, avec une erreur sur le run.
+- **Publication à la main** (`publish-test` en `mode: publish` : un créneau rouvert, le premier
+  reel d'un récitateur) : `quran-reels state record <jour>/<créneau> --publish publish.json
+  --reciter <id>` écrit le créneau **et** remet son passage parmi les publiés de sa file
+  (`calendar.record_by_hand`). Écrire le créneau à la main ne suffit pas : après un `state
+  reopen`, le passage est en tête de sa file et le créneau suivant le publierait une seconde
+  fois. Le créneau porte `by_hand` : le run quotidien ne le complète pas (Instagram attend que
+  le propriétaire ait vu les droits sur Facebook).
+- **Créneau jamais tenté** : un créneau des 2 derniers jours dont la fenêtre est finie et qui
+  n'a aucune entrée dans l'état (ni rouvert, ni déjà signalé) est noté sous `missed` par le
+  premier run qui passe (`daily --check`, sortie `missed`) et signalé une fois dans le ticket
+  d'échec, même si ce run publie normalement son propre créneau ; pas en dry run ni avec une
+  heure simulée. Les runs du cron tardif de GitHub servent ainsi de témoin indépendant du
+  planificateur.
 - Prévenir le propriétaire (`notify.py`, étape « Tell the owner », `issues: write`) :
   `daily` écrit `out/daily-report.json` (même s'il s'arrête, avec l'erreur). Échec → ticket
   « ⚠️ Publication quotidienne en échec » assigné au propriétaire et @mention (notification

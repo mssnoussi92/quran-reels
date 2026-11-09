@@ -1,7 +1,8 @@
 name: tests
 
 # The test suite (no network) and ruff on every pull request and on main, with the same static
-# ffmpeg as the publishing workflows (imageio-ffmpeg, no apt: the Ubuntu mirror can take 40 min).
+# ffmpeg as the publishing workflows (imageio-ffmpeg, no apt: the Ubuntu mirror can take 40 min),
+# the same pinned versions (constraints.txt) and the same Chromium, which draws a frame.
 on:
   pull_request:
   push:
@@ -14,6 +15,10 @@ permissions:
 concurrency:
   group: tests-${{ github.ref }}
   cancel-in-progress: true
+
+env:
+  # What changes the render or the recognition is installed at the versions of constraints.txt.
+  PIP_CONSTRAINT: ${{ github.workspace }}/constraints.txt
 
 jobs:
   test:
@@ -30,6 +35,13 @@ jobs:
           mkdir -p ~/bin
           ln -sf "$(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')" ~/bin/ffmpeg
           echo "$HOME/bin" >> "$GITHUB_PATH"
+      # The frames are drawn for real by tests/test_render_chromium.py. The runner image has
+      # Chromium's libraries (it ships Chrome); apt only if it does not start.
+      - name: Chromium
+        run: |
+          python -m playwright install chromium
+          python -c "from playwright.sync_api import sync_playwright as p; pw = p().start(); pw.chromium.launch().close(); pw.stop()" \
+            || python -m playwright install --with-deps chromium
       - name: Ruff
         run: ruff check src tests
       - name: Tests

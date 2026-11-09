@@ -20,7 +20,7 @@ from __future__ import annotations
 import copy
 import json
 from dataclasses import dataclass, field
-from datetime import date, datetime, time, timedelta
+from datetime import UTC, date, datetime, time, timedelta
 from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -352,6 +352,88 @@ def reopen(state: State, key: str, why: str, claimed: bool = False) -> dict:
     if claimed and record.get("reciter"):
         state.data.setdefault("claimed", {}).setdefault(record["reciter"], {
             "slot": key, "passage": record["passage"], "reason": why})
+    return record
+
+
+MISSED_DAYS = 2            # how far back a slot nobody tried is looked for
+
+
+def missed_slots(sched: Schedule, state: State, now: datetime,
+                 days: int = MISSED_DAYS) -> list[str]:
+    """Slots of the last days whose window is over and that no run ever started: a slot a run
+    took has a record, even failed or blocked; these have none. Nothing else notices them: the
+    failure alert is written by a run, and here no run came (the scheduler did not fire, or
+    GitHub started no job: 2026-11-09 evening, runs #26 and #27 without a job).
+
+    Not the slots before the first one ever published, not a reopened slot (its passage is
+    republished by the next slot of its queue), not one already reported (state `missed`)."""
+    if not state.data["slots"]:
+        return []
+    first = min(state.data["slots"]).split("/")[0]
+    reopened = {r.get("slot") for r in state.data.get("removed", [])}
+    told = state.data.get("missed", {})
+    local = now.astimezone(sched.tz)
+    out = []
+    for back in range(days - 1, -1, -1):
+        day = local.date() - timedelta(days=back)
+        for slot in sorted(sched.slots, key=lambda s: s.at):
+            end = datetime.combine(day, slot.at, sched.tz) + timedelta(hours=sched.window_hours)
+            key = f"{day.isoformat()}/{slot.name}"
+            if local >= end and day.isoformat() > first and key not in state.data["slots"] \
+                    and key not in reopened and key not in told:
+                out.append(key)
+    return out
+
+
+def record_by_hand(sched: Schedule, series: dict[str, Series], state: State, key: str,
+                   passage: str, results: list[dict], reciter: str | None = None) -> dict:
+    """A slot published outside the daily run (publish-test in mode publish: a reopened slot, a
+    reciter's first reel), written as the daily run would have: the slot's record and, once a
+    platform has the reel, its passage done in its queue. Writing the record alone is not
+    enough: the passage stays first in its queue and the next slot publishes it again.
+
+    results: publish.json's (platform, status, remote_id, url, error); a later call for the
+    same slot adds its platforms (Facebook first, Instagram once the owner has seen no claim).
+    The record is marked `by_hand`: the daily run never completes it, a platform left out is
+    left out on purpose (the owner checks the rights before Instagram)."""
+    try:
+        day_s, slot_name = key.split("/")
+        day = date.fromisoformat(day_s)
+    except ValueError:
+        raise SystemExit(f"{key}: not a slot (day/slot, e.g. 2026-11-05/evening)") from None
+    slot = next((sl for sl in sched.slots if sl.name == slot_name), None)
+    if slot is None:
+        raise SystemExit(f"{key}: no slot «{slot_name}» in config/schedule.yaml")
+    wanted = _passage_key(passage, "state record")
+    record = state.slot(day, slot.name)
+    if record and record["passage"] != wanted:
+        raise SystemExit(f"{key} already holds {record['passage']}, not {wanted}: reopen it "
+                         "first (quran-reels state reopen) if its posts were deleted")
+    if not record:
+        queue, seen, item = sched.queue_for(slot, day), set(), None
+        while queue not in seen and item is None:        # the queue, then its fallbacks
+            seen.add(queue)
+            item = next((i for i in queue_items(sched, series, queue) if i.key == wanted), None)
+            if item is None:
+                if queue not in sched.fallback:
+                    break
+                queue = sched.fallback[queue]
+        if item is None:
+            raise SystemExit(f"{wanted} is not a passage of the queue of {key} "
+                             f"({sched.queue_for(slot, day)}): nothing recorded")
+        record = {"queue": queue, "item": item.id, "passage": wanted, "results": {}}
+    for r in results:
+        record["results"][r["platform"]] = {
+            "status": r["status"], "id": r.get("remote_id") or r.get("id"), "url": r.get("url"),
+            "error": r.get("error"), "at": datetime.now(UTC).isoformat(timespec="seconds")}
+    record["by_hand"] = True
+    if reciter:
+        record["reciter"] = reciter
+    state.set_slot(day, slot.name, record)
+    if any(r["status"] in OK_STATUSES for r in record["results"].values()):
+        done = state.queue(record["queue"])["done"]
+        if record["item"] not in done:
+            done.append(record["item"])
     return record
 
 

@@ -57,6 +57,22 @@ jamais en silence, ne passe jamais outre en silence.
    vérifie chaque nouveau récitateur sur Facebook avant Instagram ; un contrôle automatique après
    publication existe (`rights_after_timeout`, désactivé pour l'instant).
 
+## Seul le propriétaire
+
+Les outils GitHub d'une session agissent **sous le compte du propriétaire** : un commentaire, un
+lancement ou une fusion faits par une session passent les contrôles « propriétaire seulement »
+des workflows. Une session ne fait donc jamais de son propre chef, seulement sur sa demande
+explicite pour cette action :
+
+- poster `/publier`, `/essai`, `/mots`, `/youtube` ou toute autre commande sur un ticket ;
+- lancer `publish-test.yml` en `mode: publish` (taper `PUBLIER`), ni rouvrir un créneau
+  (`state reopen`), ni enregistrer une publication (`state record`) ;
+- fusionner une PR ou pousser sur `main` : une PR se propose, il la fusionne ;
+- supprimer un reel, un ticket, une release.
+
+Lancer `daily.yml`, `images.yml` ou `prepare.yml` sur `main` sans entrées reste permis (ils
+décident seuls de ce qui est dû et ne publient rien deux fois) ; c'est le rôle du planificateur.
+
 ## Architecture
 
 ```
@@ -113,9 +129,12 @@ tests/             pytest, sans réseau
                    schedule.yaml dit enabled: false ; état sur la branche `state`),
                    publish-test.yml (manuel : dry-run, ou publication réelle avec PUBLIER),
                    tiktok-auth.yml (manuel : échange du code TikTok → TIKTOK_REFRESH_TOKEN)
-                   prepare.yml (chaque nuit : découpes vérifiées de la semaine → `state`)
-                   tests.yml (pytest + ruff à chaque PR et sur main, ffmpeg statique)
-                   images.yml (toutes les heures ; `images run --check` décide selon
+                   prepare.yml (chaque nuit : découpes vérifiées de la semaine → `state` ;
+                   son propre groupe de concurrence, hors de `accounts`)
+                   tests.yml (pytest + ruff à chaque PR et sur main, ffmpeg statique, et
+                   Chromium : tests/test_render_chromium.py dessine une image pour de bon,
+                   polices chargées, texte dans la zone sûre même réduit)
+                   images.yml (lancé par le planificateur ; `images run --check` décide selon
                    config/images.yaml ; état images.json sur la branche `state`)
                    catalog.yml (push main config/docs, après daily/images/prepare, chaque jour,
                    à la main : docs/ + catalog/ → GitHub Pages, source « GitHub Actions »)
@@ -125,6 +144,10 @@ tests/             pytest, sans réseau
                    `.github/scripts/save-state.sh` : commit et push de la branche `state`
                    pour tous ces workflows ; branche déplacée ou réseau en panne → commit
                    rejoué sur la nouvelle tête et poussé de nouveau (tests/test_save_state.py)
+                   `constraints.txt` (`PIP_CONSTRAINT` de chaque workflow) : versions de ce
+                   qui change la sortie sans commit (playwright et son Chromium, numpy, torch,
+                   transformers, tokenizers), changées exprès ; `.github/dependabot.yml` :
+                   versions des actions GitHub, une PR par mois.
                    Runners épinglés sur `ubuntu-24.04` (`ubuntu-latest` passe à 26.04),
                    actions en versions Node.js 24. **Pas d'apt** : le miroir Ubuntu a mis
                    40 min à installer ffmpeg (run du soir du 2026-11-05, bloqué) ; ffmpeg =
@@ -163,6 +186,9 @@ quran-reels calendar --days 14      # ce que les 14 prochains jours publieraient
 quran-reels daily --check           # un créneau est-il dû maintenant ? (rien n'est publié)
 quran-reels daily                   # publie les créneaux dus, écrit state/published.json
 quran-reels notify --outcome failure --run-url …   # tickets GitHub (workflow daily)
+quran-reels state reopen 2026-11-05/evening --why "coupe ratée"   # créneau supprimé, à republier
+quran-reels state record 2026-11-05/evening --publish publish.json --reciter sayegh
+                                    # publication faite à la main (publish-test) : créneau + file
 ```
 
 ```bash
@@ -255,12 +281,27 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   jamais après un refus des droits ni un échec pendant la publication (reel peut-être en
   ligne). L'état est écrit dès que le reel est sorti, et son push rejoue le commit si la
   branche `state` a bougé (`save-state.sh`) : une publication non enregistrée serait refaite.
-- État : `published.json` sur la branche `state` (créneaux, files, `claimed`, `removed`) ;
-  un créneau supprimé se republie avec `quran-reels state reopen <jour>/<créneau>` (skill
-  `republish`).
+- État : `published.json` sur la branche `state` (créneaux, files, `claimed`, `removed`,
+  `missed`, `told`) ; un créneau supprimé se republie avec `quran-reels state reopen
+  <jour>/<créneau>` et une publication faite à la main s'enregistre avec `quran-reels state
+  record` (skill `republish`), jamais en modifiant le fichier : le créneau seul ne suffit pas,
+  le passage resterait en tête de sa file et sortirait une seconde fois. Un créneau `by_hand`
+  n'est pas complété par le run quotidien.
+- **Créneau jamais tenté** (`calendar.missed_slots`, sortie `missed` de `daily`) : l'alerte
+  d'échec est écrite par un run ; quand aucun run n'a tourné dans la fenêtre d'un créneau
+  (planificateur muet, panne de GitHub : le 2026-11-09 au soir, deux lancements sans job),
+  rien ne prévenait. Tout run suivant, y compris ceux du cron tardif de GitHub, voit un créneau
+  des 2 derniers jours sans entrée dans l'état, le note (`missed`) et ouvre le ticket
+  « ⚠️ Publication quotidienne en échec » une fois. Le même ticket prévient 14 jours avant
+  l'expiration de `GH_SECRETS_TOKEN` (`gh_secrets.token_expiry`, état `told`).
 - **Le cron de GitHub n'est pas fiable dans ce dépôt** : il lance des runs depuis le
   2026-11-05 au soir, mais 6 à 8 h en retard et pas à chaque fois (`daily` : 8 passages sur
   24 au 2026-11-09, tous hors fenêtre, sans effet ; `workflow_dispatch` marche).
+  Seul `daily.yml` garde son cron (témoin indépendant pour l'alerte « créneau jamais tenté ») :
+  ceux d'`images.yml` et de `prepare.yml` sont retirés (2026-11-09), leurs runs tardifs ne
+  faisaient rien et prenaient la seule place en attente du groupe `accounts` (un run `images`
+  du cron a annulé ainsi un `prepare` en attente le 2026-11-09 à 22:40 UTC ; une publication en
+  attente aurait été annulée de même, sans job donc sans alerte).
   Les workflows sont donc lancés par des **tâches planifiées Claude** (choix du propriétaire,
   2026-11-05) qui réveillent la session « Quran Words Daily – planificateur » (Sonnet, dépôt
   attaché, outils GitHub) : `prepare.yml` 02:41 Paris, `daily.yml` 07:12 et 19:12 Paris
@@ -312,7 +353,8 @@ proposer un fond), `propose-series` (proposer une série, validée en PR).
 GitHub Actions secrets : `META_PAGE_ID`, `META_PAGE_TOKEN`, `IG_USER_ID`, `TIKTOK_CLIENT_KEY`,
 `TIKTOK_CLIENT_SECRET`, `TIKTOK_REFRESH_TOKEN` (écrit par le workflow `tiktok-auth` puis à
 chaque rotation), `GH_SECRETS_TOKEN` (jeton fin GitHub, Secrets : lecture/écriture sur ce dépôt
-seulement, voir docs/plateformes.md ; noter sa date d'expiration), `YOUTUBE_*`.
+seulement, voir docs/plateformes.md ; son échéance est lue à chaque publication et imprimée
+dans le journal, ticket d'alerte 14 jours avant), `YOUTUBE_*`.
 Jamais un jeton dans un log : en-têtes `Authorization`, erreurs reconstruites, `::add-mask::`.
 Les logs Actions d'un dépôt public sont publics : rien d'identifiant n'y est imprimé.
 

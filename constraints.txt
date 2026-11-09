@@ -1,0 +1,14 @@
+# The versions the workflows install (PIP_CONSTRAINT in every workflow), for what changes the
+# output without a commit:
+#   playwright   its Chromium draws every frame: a new one can move the Arabic text
+#   numpy        the picture and audio arithmetic
+#   torch, transformers, tokenizers   the recognition that checks every cut of a recording
+# These are the versions in use on 2026-11-09. A new one is tried on purpose: change it here,
+# let the tests run (tests/test_render_chromium.py draws a frame with the new Chromium), then
+# look at a rendered reel before the pull request is merged. The other dependencies follow
+# pyproject.toml's lower bounds.
+playwright==1.65.0
+numpy==2.5.4
+torch==2.15.0
+transformers==5.22.2
+tokenizers==0.23.3

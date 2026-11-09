@@ -31,6 +31,10 @@ concurrency:
   group: accounts          # never two runs posting at the same time (see publish-test)
   cancel-in-progress: false
 
+env:
+  # What changes the render or the recognition is installed at the versions of constraints.txt.
+  PIP_CONSTRAINT: ${{ github.workspace }}/constraints.txt
+
 jobs:
   reel:
     runs-on: ubuntu-24.04     # pinned: Chromium finds its libraries; ubuntu-latest is moving to 26.04
@@ -124,7 +128,7 @@ jobs:
       # Pushed even when another run pushed to the state branch meanwhile (the on-demand preview
       # saves its splits outside the `accounts` group): a slot not recorded is published again.
       - name: Save the publication state
-        if: always() && inputs.passage == '' && steps.due.outputs.due == 'true'
+        if: always() && inputs.passage == '' && (steps.due.outputs.due == 'true' || steps.due.outputs.missed != '')
         working-directory: state-branch
         run: |
           bash "$GITHUB_WORKSPACE/.github/scripts/save-state.sh" "État" published.json
@@ -141,15 +145,18 @@ jobs:
         run: quran-reels on-demand daily-files --report out/daily-report.json
 
       # A failure opens an issue assigned to the owner (push notification in the GitHub app),
-      # closed by the next run that publishes; captions to copy go to a pinned issue.
+      # closed by the next run that publishes; captions to copy go to a pinned issue. So does a
+      # slot no run ever took (`missed`, seen by any later run, GitHub's late cron included:
+      # until then nothing told the owner, the alert being written by the run that never came).
       - name: Tell the owner
-        if: always() && inputs.passage == '' && (steps.due.outputs.due == 'true' || failure())
+        if: always() && inputs.passage == '' && (steps.due.outputs.due == 'true' || steps.due.outputs.missed != '' || failure())
         env:
           GH_TOKEN: ${{ github.token }}
           OUTCOME: ${{ job.status }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           OWNER: ${{ github.repository_owner }}
-        run: quran-reels notify --outcome "$OUTCOME" --run-url "$RUN_URL" --owner "$OWNER"
+          MISSED: ${{ steps.due.outputs.missed }}
+        run: quran-reels notify --outcome "$OUTCOME" --run-url "$RUN_URL" --owner "$OWNER" --missed "$MISSED"
 
       - name: Save the cache (downloads, clips)
         if: always() && (inputs.passage != '' || steps.due.outputs.due == 'true')

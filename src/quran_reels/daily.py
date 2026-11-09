@@ -52,10 +52,12 @@ from quran_reels.selector.calendar import (
     load_schedule,
     load_series,
     mark_done,
+    missed_slots,
     next_item,
 )
 
 RECHECK_DAYS = 2          # reels read again at each run for this long after publication
+SECRETS_DAYS = 14         # GH_SECRETS_TOKEN: the owner is told this long before it expires
 YOUTUBE_DIR = "youtube"    # out/youtube/: the version for YouTube, when it differs
 
 
@@ -82,6 +84,8 @@ def pending(sched: Schedule, series: dict[str, Series], state: State, now: datet
             print(f"{day} {slot.name}: blocked or claimed by the rights check, not retried "
                   f"({record['passage']})", file=sys.stderr)
             continue
+        if record and record.get("by_hand"):
+            continue        # published by hand (state record): a platform left out is left out
         if record:
             done = {p for p, r in record["results"].items() if r.get("status") in OK_STATUSES}
             todo = [p for p in platforms if p not in done]
@@ -110,11 +114,15 @@ def _output(name: str, value: str) -> None:
 
 def run(cfg: Config, state_path: Path, now: datetime | None = None, dry_run: bool = False,
         check: bool = False, force: bool = False, report: Path | None = None,
-        sleep: Callable[[float], None] = time.sleep) -> int:
+        sleep: Callable[[float], None] = time.sleep, watch: bool | None = None) -> int:
     """check: only say whether something is due (output `due`), for the workflow to skip
     installing ffmpeg and Chromium. force: run even if schedule.enabled is false.
     report: JSON of what this run published, for `quran-reels notify` (written even when the
-    run fails half way, with the error). sleep: the wait before another try (tests)."""
+    run fails half way, with the error). sleep: the wait before another try (tests).
+    watch: look for slots nobody tried (output `missed`, state `missed`); by default on a real
+    run only, at the real time (not a dry run, not a forced or simulated one)."""
+    if watch is None:
+        watch = now is None and not dry_run and not force
     now = now or datetime.now(UTC)
     series = load_series(cfg)
     sched = load_schedule(cfg, series)
@@ -123,6 +131,15 @@ def run(cfg: Config, state_path: Path, now: datetime | None = None, dry_run: boo
         _output("due", "false")
         return 0
     state = State.load(state_path)
+    missed = missed_slots(sched, state, now) if watch else []
+    if missed:      # told once: written in the state, which the workflow saves
+        print("no run took " + ", ".join(missed) + ": nothing was published for "
+              + ("it" if len(missed) == 1 else "them"), file=sys.stderr)
+        for key in missed:
+            state.data.setdefault("missed", {})[key] = {
+                "noticed": datetime.now(UTC).isoformat(timespec="seconds")}
+        state.save(state_path)
+    _output("missed", ",".join(missed))
     platforms = publish_mod.platforms_for(cfg, None)
     if dry_run:     # TikTok's only test mode is a real draft in the owner's inbox
         platforms = [x for x in platforms if x != "tiktok"]
@@ -149,6 +166,26 @@ def run(cfg: Config, state_path: Path, now: datetime | None = None, dry_run: boo
         if report:
             report.parent.mkdir(parents=True, exist_ok=True)
             report.write_text(json.dumps(log, ensure_ascii=False, indent=1), encoding="utf-8")
+
+
+def secrets_note(state: State, today: date, expiry: date | None) -> str | None:
+    """What to tell the owner when GH_SECRETS_TOKEN is about to expire, once per expiry date
+    (state `told`). Without that token, TikTok's next refresh token cannot be saved."""
+    if expiry is None:
+        return None
+    left = (expiry - today).days
+    print(f"GH_SECRETS_TOKEN: valid until {expiry.isoformat()} ({left} days)", file=sys.stderr)
+    told = state.data.setdefault("told", {})
+    if left > SECRETS_DAYS or told.get("GH_SECRETS_TOKEN") == expiry.isoformat():
+        return None
+    told["GH_SECRETS_TOKEN"] = expiry.isoformat()
+    when = f"expire le {expiry.isoformat()} (dans {left} jours)" if left >= 0 else \
+        f"a expiré le {expiry.isoformat()}"
+    return (f"🔑 **Le jeton GitHub `GH_SECRETS_TOKEN` {when}.** Sans lui, le prochain refresh "
+            "token de TikTok ne peut plus être enregistré : les brouillons TikTok s'arrêtent "
+            "et il faut se reconnecter (workflow tiktok-auth). En créer un nouveau et "
+            "remplacer le secret : docs/plateformes.md, « GH_SECRETS_TOKEN » (2 minutes). "
+            "Facebook et Instagram ne sont pas concernés.")
 
 
 def claim(state: State, key: str, record: dict, reason: str) -> None:
@@ -288,12 +325,18 @@ def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
              state_path: Path, todo: list[Pending], platforms: list[str], dry_run: bool,
              log: dict, now: datetime, sleep: Callable[[float], None] = time.sleep) -> int:
     from quran_reels import reciters as rec
+    from quran_reels.gh_secrets import token_expiry
     from quran_reels.render import render_passage
 
     order = {s.name: i for i, s in enumerate(sorted(sched.slots, key=lambda s: s.at))}
     meta = [x for x in platforms if x in publish_mod.META]
     checked = publish_mod.meta_check(cfg, meta) if meta else None     # before rendering
     failed = False
+    if not dry_run and "tiktok" in platforms:
+        note = secrets_note(state, now.date(), token_expiry())
+        if note:
+            log.setdefault("notes", []).append(note)
+            state.save(state_path)
     if checked and not dry_run and publish_mod.after_timeout(cfg) > 0:
         graph, env, _ = checked
         try:

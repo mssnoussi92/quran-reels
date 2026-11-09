@@ -18,7 +18,9 @@ ends in 20 s, which is not a missed slot. Read, don't guess.
 3. **Read the outcome.**
    - daily: `git fetch origin state && git show origin/state:published.json`, then
      `slots["<day>/<slot>"]` (queue, item, passage, reciter, results per platform: status, id,
-     url, error). A slot taken down or reopened is under `removed`.
+     url, error). A slot taken down after a claim stays there with `claimed`; a reopened
+     one is under `removed`; one published by hand has `by_hand` (`state record`); a slot no
+     run took is under `missed`.
    - images: `images.json` on the state branch.
    - on-demand: the request issue's comments (preview, result) and `on_demand["<issue>"]` in
      `published.json` (results per platform, `youtube`: `manual` then `published`). Never post
@@ -37,6 +39,16 @@ ends in 20 s, which is not a missed slot. Read, don't guess.
      the owner, with the run link.
    - status `blocked`: Meta's check refused the reel; not retried, change the reciter.
    - Meta token: follow docs/plateformes.md (renew `META_PAGE_TOKEN`).
+   - conclusion `cancelled` with no job: a newer pending run of the `accounts` group replaced
+     it (daily, images, publish-test, tiktok-auth, on-demand's publication share
+     it; prepare has its own). Dispatch it again once the group is free, inside the window.
+   - prepare prints « NO RECITER READY » for a passage: that slot would publish nothing. Say
+     which passage and day; the fix is a split (test-reciter, step 2) or another reciter.
+   - TikTok « could not be kept »: `GH_SECRETS_TOKEN` is missing or expired, the new refresh
+     token was not saved. The owner makes a new token (docs/plateformes.md), then signs in
+     again (tiktok-auth workflow) if the next run fails on the refresh.
+   - issue « ⏰ Créneau jamais tenté »: no run took that slot. Look at the scheduler session's
+     tasks and at GitHub's status that day; its passage goes out at the queue's next slot.
    - "does not exist" (code 100, subcode 33) right after a Facebook publish: the reel may be
      live; check `facebook.com/plugins/video.php?href=…/reel/<id>/` logged out (hd_src present).
 5. **Nothing ran for a due slot** (scheduler down): dispatch `daily.yml` on `main`, no inputs,

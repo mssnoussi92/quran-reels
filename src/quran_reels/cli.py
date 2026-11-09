@@ -89,6 +89,15 @@ def main(argv: list[str] | None = None) -> int:
     ro.add_argument("--claimed", action="store_true",
                     help="its recording was claimed: never choose its reciter again")
     ro.add_argument("--state", default="state/published.json")
+    rc = st_sub.add_parser("record", help="a slot published by hand (publish-test, mode "
+                                          "publish): write it as the daily run would, so "
+                                          "that its passage is not published again")
+    rc.add_argument("slot", help="day/slot, e.g. 2026-11-05/evening")
+    rc.add_argument("--publish", required=True,
+                    help="publish.json of the run that posted it (publish-test artifact: "
+                         "<reciter>/<passage>/publish.json)")
+    rc.add_argument("--reciter", help="its reciter (id of content.reciters), for the rotation")
+    rc.add_argument("--state", default="state/published.json")
 
     cal = sub.add_parser("calendar", help="what the next days publish (nothing is published)")
     cal.add_argument("--days", type=int, default=14)
@@ -157,6 +166,8 @@ def main(argv: list[str] | None = None) -> int:
     note.add_argument("--run-url", required=True)
     note.add_argument("--owner", help="assigned to the failure issue (push notification)")
     note.add_argument("--report", help="default: out/daily-report.json")
+    note.add_argument("--missed", default="",
+                      help="slots no run took (output `missed` of `quran-reels daily --check`)")
 
     args = parser.parse_args(argv)
     cfg = config.load()
@@ -329,6 +340,36 @@ def main(argv: list[str] | None = None) -> int:
         print(f"{n} passages (add --write to save config/plan.yaml)")
         return 0
 
+    if args.command == "state" and args.state_command == "record":
+        import json
+        from pathlib import Path
+
+        from quran_reels.selector.calendar import (
+            State,
+            load_schedule,
+            load_series,
+            record_by_hand,
+        )
+
+        try:
+            posted = json.loads(Path(args.publish).read_text(encoding="utf-8"))
+        except (OSError, ValueError) as e:
+            raise SystemExit(f"{args.publish}: not a publish.json ({e})") from None
+        if posted.get("dry_run"):
+            raise SystemExit(f"{args.publish} is a dry run: nothing was published")
+        series = load_series(cfg)
+        path = Path(args.state)
+        state = State.load(path)
+        record = record_by_hand(load_schedule(cfg, series), series, state, args.slot,
+                                posted["passage"], posted["results"], args.reciter)
+        state.save(path)
+        done = record["item"] in state.queue(record["queue"])["done"]
+        print(f"{args.slot}: {record['passage']} recorded ("
+              + ", ".join(f"{p} {r['status']}" for p, r in record["results"].items())
+              + f"); queue {record['queue']} "
+              + ("moves on" if done else "keeps it first: no platform has it"))
+        return 0
+
     if args.command == "state" and args.state_command == "reopen":
         from pathlib import Path
 
@@ -471,7 +512,8 @@ def main(argv: list[str] | None = None) -> int:
         from quran_reels import notify
 
         report = Path(args.report) if args.report else cfg.out / "daily-report.json"
-        return notify.run(report, args.outcome, args.run_url, args.owner)
+        return notify.run(report, args.outcome, args.run_url, args.owner,
+                          missed=[k for k in args.missed.split(",") if k])
 
     print(f"'{args.command}' is not implemented yet", file=sys.stderr)
     return 2

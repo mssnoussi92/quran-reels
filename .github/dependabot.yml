@@ -1,0 +1,12 @@
+# The versions of the GitHub Actions used by the workflows, proposed once a month in one pull
+# request, checked by the tests workflow. The Python versions that change the render or the
+# recognition are pinned in constraints.txt and changed on purpose, not by a robot.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
