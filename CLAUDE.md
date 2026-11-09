@@ -31,6 +31,7 @@ jamais en silence, ne passe jamais outre en silence.
 | Fond | **choisi selon ce que dit le passage** (montagnes, mer, rivières, jardins, nuit, aube, ciel…) : vidéos Pexels choisies par le propriétaire et scènes générées (aube, nuit, mer), **sans personnes ni animaux** ; scènes **animées** au rythme d'un ciel filmé (nuages, brume, vagues, lumière) avec un **zoom lent** sur toute la vidéo, le texte immobile (Facebook : « image statique » sur 6:17, 2026-11-09) |
 | Exécution | GitHub Actions (dépôt public → gratuit), migrable sur le homelab (Docker) |
 | À la demande | Reel choisi depuis le téléphone (récitateur, sourate entière ou ayahs X à Y, fond, plateformes, **mots expliqués** cochés dans le formulaire **avant le ticket**, sous les ayahs affichées, ou `/mots 1 4` après l'aperçu, parmi les sens numérotés du Muyassar, jamais écrits ; extraits du Muyassar publiés sur le site pour le formulaire, choix du 2026-11-06) : catalogue → ticket prérempli → **aperçu** en commentaire → publié seulement après **`/publier`** du propriétaire ; **en plus** des 2 créneaux ; le calendrier **ne saute pas** un passage publié à la demande ; YouTube refusé pour un récitateur revendiqué par Content ID (choix du 2026-11-06, docs/on-demand.md) |
+| Périmètre | **Pas seulement des versets récités** : la page publiera aussi des thèmes et des sujets variés (épisodes de quran-themes-demo : thèmes, histoires…), choix du propriétaire le 2026-11-09 ; bios, images et site disent ce qui ne change pas (le Coran et la Sunna au quotidien, toujours sourcés), pas la liste du moment (docs/profils.md) |
 | Comptes pro | Page Facebook + Instagram en type **Créateur**, reliés |
 | Signature | **@quran_words_daily** sur chaque image, dans la zone sûre (repartages) |
 | Hashtags | Fin de légende, dans l'ordre : `#QuranWordsDaily`, `#Quran`, 1er tag de la série, sourate (`#SurahAdDuhaa` `#سورة_الضحى`), `#القرآن_الكريم`, autres tags de la série, récitateur, gloses (`#تفسير_القرآن`) ; **Instagram et TikTok : les 5 premiers** (leur limite), Facebook 8, `caption.txt` tous (YouTube à la main). **Facebook : légende courte, ≤ 400 caractères hashtags compris** (sa liste de qualité, 2026-11-09) : série, référence, crédits sur une ligne, signature, hashtags ; ni arabe ni traduction (dans la vidéo ; choix du propriétaire) ; trop longue → des hashtags de la fin |
@@ -356,9 +357,10 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
       la 1re ayah, confirmée par reconnaissance ; nom inconnu) · [ ] #32 Husary : ajouté à la
       liste, reel 112 vérifié, essai sur Facebook seul à faire
 - [ ] Profils des 4 comptes (docs/profils.md, proposés le 2026-11-09) : bio, nom, photo unique
-      « آيات », couverture, bannière, playlists YouTube (7) et Facebook (2), à appliquer à la
-      main par le propriétaire ; YouTube vide, avatar TikTok généré par IA (ancien nom, faux
-      mushaf) à remplacer d'abord
+      « آيات », couverture, bannière (« Quran & Sunnah for everyday life », bilingues), playlists
+      YouTube par thème, sourate et format, Facebook (3), à appliquer à la main par le
+      propriétaire ; YouTube vide, avatar TikTok généré par IA (ancien nom, faux mushaf) à
+      remplacer d'abord
 - [x] Liste de qualité de Facebook sur 6:17 (2026-11-09 : « image statique », « légende de
       qualité (10 à 400 caractères) ») : scènes générées animées + zoom lent, légende Facebook
       courte · [ ] relire la liste de qualité sur le prochain reel avec une scène générée

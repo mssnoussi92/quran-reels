@@ -29,7 +29,7 @@
   .name, .tag, .line { white-space: nowrap; }
   .tag { font-family: "Lora"; font-style: italic; color: var(--ink); opacity: .92; }
   .line { font-family: "Lora"; color: var(--muted); letter-spacing: .02em; }
-  .ar { font-family: "Amiri"; color: var(--muted); direction: rtl; }
+  .ar { font-family: "Amiri"; color: var(--gold); direction: rtl; white-space: nowrap; }
   .center { position: absolute; display: flex; flex-direction: column; align-items: center;
             text-align: center; }
 </style>
@@ -40,6 +40,11 @@
 <div id="root"></div>
 <script>
 const f = new URLSearchParams(location.search).get("f") || "avatar";
+// What the page is about, said so that it stays true as new themes and subjects come
+// (owner, 2026-11-09: recitations, then themes, stories and other subjects).
+const TAG_EN = "Quran & Sunnah for everyday life";
+const TAG_AR = "القرآن والسنة في حياتك اليومية";
+const KINDS = "Recitations · Stories · Themes";
 const W = innerWidth, H = innerHeight;
 
 // Faint stars, always at the same places (seeded), never behind the text block.
@@ -92,10 +97,11 @@ if (f === "avatar") {
   const b = document.createElement("div"); b.className = "center";
   Object.assign(b.style, { left: "50%", top: "45%", transform: "translate(-50%, -50%)", gap: "0" });
   b.append(
-    el("mark", "آيات", { fontSize: "190px", marginBottom: "-6px" }),
-    el("name", "QURAN WORDS DAILY", { fontSize: "60px", marginTop: "4px" }),
-    el("tag", "Two Quran recitations every day", { fontSize: "37px", marginTop: "14px" }),
-    el("line", "Recitation · English translation · Word meanings", { fontSize: "29px", marginTop: "14px" }),
+    el("mark", "آيات", { fontSize: "168px", marginBottom: "-8px" }),
+    el("name", "QURAN WORDS DAILY", { fontSize: "54px", marginTop: "2px" }),
+    el("tag", TAG_EN, { fontSize: "35px", marginTop: "10px" }),
+    el("ar", TAG_AR, { fontSize: "36px", marginTop: "2px" }),
+    el("line", KINDS, { fontSize: "27px", marginTop: "8px" }),
   );
   root.append(b);
 } else if (f === "youtube-banner") {
@@ -109,8 +115,9 @@ if (f === "avatar") {
   Object.assign(right.style, { display: "flex", flexDirection: "column", gap: "18px" });
   right.append(
     el("name", "QURAN WORDS DAILY", { fontSize: "70px" }),
-    el("tag", "Two Quran recitations every day", { fontSize: "44px" }),
-    el("line", "Recitation · English translation · Word meanings", { fontSize: "34px" }),
+    el("tag", TAG_EN, { fontSize: "46px" }),
+    el("ar", TAG_AR, { fontSize: "46px", marginTop: "-8px", textAlign: "left" }),
+    el("line", KINDS, { fontSize: "34px" }),
   );
   b.append(el("mark", "آيات", { fontSize: "235px" }),
     el("", "", { width: "3px", alignSelf: "stretch", background: "rgba(246,200,108,.55)" }),
