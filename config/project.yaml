@@ -166,6 +166,14 @@ video:
   tail_seconds: 1.2                   # last ayah stays after it ends
   fade_seconds: 0.25                  # ayah text fades in and out
   handle: "@quran_words_daily"        # page signature shown on every frame
+  # Every reel at the same loudness (owner's choice, 2026-11-10, as the thematic videos): 8
+  # published reels went from −19.4 to −10.7 LUFS, 3 with peaks at 0 dB. One gain for the
+  # whole reel, from its integrated loudness (EBU R128), so the recitation's own dynamics
+  # stay; then a limiter (render/video.py: level). In the manifest (loudness).
+  # Absent or null: the sound as recorded.
+  loudness:
+    lufs: -16                         # integrated loudness of the whole reel
+    limit: 0.8                        # limiter ceiling, share of full scale: −1.9 dBFS
 
 platforms:
   # A platform that did not get the reel at all (Instagram refusing the upload, TikTok's upload

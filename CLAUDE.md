@@ -18,7 +18,7 @@ jamais en silence, ne passe jamais outre en silence.
 
 | Sujet | Choix |
 |---|---|
-| Format | **≈ 1 minute** (cible 60 s, 40–90 s), jamais coupé au milieu d'une phrase ; **sourate courte entière** (≤ 90 s, même très courte) |
+| Format | **≈ 1 minute** (cible 60 s, 40–90 s), jamais coupé au milieu d'une phrase ; **sourate courte entière** (≤ 90 s, même très courte) ; **le soir, le passage de la série tel quel, même une seule ayah** (15 à 30 s : 76 des 111 passages des séries du soir sont une seule ayah ; constaté sur les reels publiés le 2026-11-09, gardé ainsi le 2026-11-10 : la série dit quelle ayah, on ne la noie pas dans son contexte pour atteindre la minute) |
 | Basmala | **Au début de chaque vidéo**, même pour quelques versets ; sauf sourate 9 et avant 1:1 (qui est la basmala) |
 | Rythme | **2 vidéos par jour**, heure de Paris : **07:30** lecture dans l'ordre, **19:30** séries thématiques |
 | Images | **Word of the day**, carrousel de 3 images 1080×1350 (le mot, son ayah, son sens dans le Tafsir al-Muyassar), **1 par jour** à 11:30 UTC sur Instagram et Facebook ; **Ayah of the day** préparé, désactivé (docs/images.md) |
@@ -327,6 +327,11 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   son premier mot est récité (temps des mots de la découpe ; sinon au prorata des lettres).
 - Fond choisi par les mots de la traduction (`config/backgrounds.yaml`), même passage → même
   fond. MP4 H.264 sans B-frames, AAC 48 kHz, sans edit list (Instagram), ≤ 6 Mb/s.
+- **Volume** (décision du propriétaire, 2026-11-10) : chaque reel à **−16 LUFS** intégrés, comme
+  les vidéos thématiques (`video.loudness` de project.yaml, `render/video.py` : `level`) : un
+  seul gain pour tout le reel d'après sa mesure EBU R128, puis un limiteur (plafond −1,9 dBFS,
+  délai compensé : aucun échantillon ne bouge) ; mesure et gain dans `manifest.json`
+  (`loudness`). Avant : de −19,4 à −10,7 LUFS sur 8 reels publiés, 3 avec des crêtes à 0 dB.
 - Scènes générées animées (nuages en deux couches, brume, sable, vagues, lumière ; boucle de
   30 s sans saut) et **zoom lent** sur toute la vidéo (`scenes.push_in` de backgrounds.yaml :
   8 % par minute, 12 % au plus ; `perspective` de ffmpeg, sous le texte qui ne bouge pas).
