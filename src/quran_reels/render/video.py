@@ -2,11 +2,14 @@
 
 Each ayah's MP3 is decoded to PCM so its length is known to the sample. The ayah's frame is
 on screen exactly while its recitation plays, rounded to whole video frames; the audio track
-is padded so that both streams end on the same frame.
+is padded so that both streams end on the same frame. The assembled track is then brought to one
+loudness (level): a single gain for the whole reel and a limiter, no sample moved.
 """
 
 from __future__ import annotations
 
+import re
+import shutil
 import subprocess
 import wave
 from dataclasses import dataclass
@@ -15,6 +18,10 @@ from pathlib import Path
 
 SAMPLE_RATE = 48_000
 CHANNELS = 2
+LIMIT = 0.8             # limiter ceiling when the config gives none: 0.8 of full scale, −1.9 dBFS
+LEVEL_SLACK = 8         # samples ffmpeg may add or drop while levelling (made good); more: error
+MAX_GAIN = 12.0         # dB. Recitations measured: 3 to 5 dB from the target. Further than this, the
+                        # file is broken rather than soft: its noise is not raised by 30 dB
 
 
 def _run(cmd: list[str]) -> None:
@@ -98,6 +105,65 @@ def write_audio(wavs: list[Path], timeline: Timeline, dest: Path) -> Path:
         total = timeline.total_frames * timeline.samples_per_frame
         out.writeframes(b"\0" * (total - written) * frame_bytes)
     return dest
+
+
+def loudness(audio: Path) -> float | None:
+    """EBU R128 integrated loudness of a file's sound, in LUFS (ffmpeg's ebur128, to 0.1 LU: the
+    silence before and after the recitation is gated out). None when the meter gives no measure:
+    nothing above its gate (silence, less than 0.4 s of sound) or a summary that cannot be read."""
+    proc = subprocess.run(["ffmpeg", "-nostdin", "-hide_banner", "-nostats", "-i", str(audio),
+                           "-vn", "-af", "ebur128=framelog=verbose", "-f", "null", "-"],
+                          capture_output=True, text=True, check=False)
+    if proc.returncode != 0:
+        raise RuntimeError(f"ffmpeg failed:\n{proc.stderr[-3000:]}")
+    found = re.findall(r"\bI:\s+(-?\d+(?:\.\d+)?) LUFS", proc.stderr)
+    value = float(found[-1]) if found else None     # the summary comes last
+    return value if value is not None and value > -70 else None
+
+
+def _fit(wav: Path, samples: int) -> None:
+    """Exactly `samples` in a WAV: its end trimmed, or padded with silence."""
+    with wave.open(str(wav)) as w:
+        params = w.getparams()
+        data = w.readframes(params.nframes)
+    size = samples * params.nchannels * params.sampwidth
+    with wave.open(str(wav), "wb") as out:
+        out.setparams(params)                       # the frame count is rewritten on close
+        out.writeframes(data[:size].ljust(size, b"\0"))
+
+
+def level(src: Path, dest: Path, lufs: float, limit: float = LIMIT) -> dict:
+    """`src` (the WAV of a whole reel) at `lufs` integrated (EBU R128), in `dest`.
+
+    One gain for the whole track, from its measured loudness: the basmala and the ayahs are one
+    reciter and one recording, what is soft and what is loud between them stays so (no loudnorm,
+    which rides the gain over time). Then a look-ahead limiter holds every sample under `limit`
+    of full scale (0.8: −1.9 dBFS, room for the AAC encoder), its delay compensated: nothing
+    moves in time and `dest` has exactly the samples of `src`, to which the frames are timed.
+    The same input gives the same output. A track without a measure (silence) is copied as it is.
+
+    Returns measured_lufs (None: not levelled), gain_db and result_lufs, the loudness of `dest`:
+    under the target by what the limiter took from the peaks, or away from it when the gain
+    needed was more than MAX_GAIN (the caller says so)."""
+    measured = loudness(src)
+    if measured is None:
+        shutil.copyfile(src, dest)
+        return {"measured_lufs": None, "gain_db": 0.0, "result_lufs": None}
+    gain = max(-MAX_GAIN, min(MAX_GAIN, round(lufs - measured, 2)))
+    _run(["ffmpeg", "-nostdin", "-v", "error", "-y", "-i", str(src), "-af",
+          f"volume={gain:.2f}dB,alimiter=limit={limit:g}:attack=5:release=50:level=0:latency=1",
+          "-c:a", "pcm_s16le", str(dest)])
+    with wave.open(str(src)) as a, wave.open(str(dest)) as b:
+        before, after = a.getparams(), b.getparams()
+    if (after.nchannels, after.framerate) != (before.nchannels, before.framerate) \
+            or abs(after.nframes - before.nframes) > LEVEL_SLACK:
+        raise RuntimeError(
+            f"levelling {src.name}: {before.nframes} samples in ({before.nchannels} ch, "
+            f"{before.framerate} Hz), {after.nframes} out ({after.nchannels} ch, "
+            f"{after.framerate} Hz): the sound would no longer follow the frames")
+    if after.nframes != before.nframes:
+        _fit(dest, before.nframes)
+    return {"measured_lufs": round(measured, 1), "gain_db": gain, "result_lufs": loudness(dest)}
 
 
 def push_in_filter(zoom: float, frames: int) -> str:

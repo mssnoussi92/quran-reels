@@ -6,7 +6,8 @@ out/
     frames/                   static.png + one PNG per ayah (and the HTML they come from)
     preview/                  each ayah composed on the mockup gradient, for a quick look
     manifest.json             every text shown, with its edition and source URL; timings;
-                              Facebook's short caption (captions.facebook)
+                              Facebook's short caption (captions.facebook); the loudness
+                              measured and the gain applied (loudness)
     caption.txt               deterministic caption with the credits
 """
 
@@ -39,6 +40,7 @@ class RenderResult:
 
 
 CAPTION_LIMIT = 2200   # Instagram
+LEVEL_TOLERANCE = 1.0  # LU: further from the target after the limiter, the render says so
 
 
 def _tag(text: str, joiner: str = "") -> str:
@@ -164,9 +166,34 @@ def facebook_caption(cfg: Config, passage: Passage, tags: list[str]) -> str:
     return ""
 
 
+def level_audio(cfg: Config, audio: Path, key: str = "") -> tuple[Path, dict | None]:
+    """The reel's sound at video.loudness.lufs, under the ceiling video.loudness.limit
+    (video.level: one gain for the whole reel, then a limiter): −16 LUFS, the owner's choice
+    (2026-11-10), as in the thematic videos; 8 published reels went from −19.4 to −10.7 LUFS.
+    Returns the levelled WAV, beside `audio`, and what the manifest keeps (loudness): target,
+    ceiling, loudness measured, gain applied, loudness after. (audio, None) when the block is
+    absent or null: the sound as recorded."""
+    conf = cfg.video.get("loudness") or {}
+    if conf.get("lufs") is None:
+        return audio, None
+    target = float(conf["lufs"])
+    limit = float(conf["limit"]) if conf.get("limit") is not None else video.LIMIT
+    dest = audio.with_name(f"{audio.stem}.level.wav")
+    done = video.level(audio, dest, target, limit)
+    name, result = key or audio.name, done["result_lufs"]
+    if done["measured_lufs"] is None:
+        _warn(f"{name}: no loudness measured (silent?), the sound is left as it is")
+    elif result is None or abs(result - target) > LEVEL_TOLERANCE:
+        _warn(f"{name}: {result} LUFS after the limiter, target {target:g} "
+              f"({done['measured_lufs']} LUFS before, {done['gain_db']:+.1f} dB)")
+    return dest, {"target_lufs": target, "limit": limit, **done}
+
+
 def manifest(cfg: Config, src: Sources, passage: Passage, timeline: video.Timeline,
-             background: dict, screens: dict[str, list[dict]] | None = None) -> dict:
-    """screens: {ref: [{start, words, translation}]} for the ayahs shown on several screens."""
+             background: dict, screens: dict[str, list[dict]] | None = None,
+             loudness: dict | None = None) -> dict:
+    """screens: {ref: [{start, words, translation}]} for the ayahs shown on several screens;
+    loudness: what level_audio measured and applied (None: the sound was not levelled)."""
     c = cfg.content
     starts = timeline.starts()
     basmala = None
@@ -195,6 +222,7 @@ def manifest(cfg: Config, src: Sources, passage: Passage, timeline: video.Timeli
         "reciter": {k: c["reciter"][k] for k in ("name", "label", "producer", "rights")
                     if c["reciter"].get(k)},
         "background": background,
+        "loudness": loudness,
         "series": {"ar": passage.label_ar, "en": passage.label_en} if passage.label_en
         or passage.label_ar else None,
         "hashtags": hashtags(cfg, passage),
@@ -342,6 +370,7 @@ def render_passage(cfg: Config, key: str, label_ar: str = "", label_en: str = ""
     if zoom := backgrounds.push_in(cfg, bg_info, timeline.seconds):
         bg_info["push_in"] = zoom
     audio = video.write_audio(wavs, timeline, audio_dir / "passage.wav")
+    audio, levelled = level_audio(cfg, audio, passage.key)    # every version below plays it
     out = cfg.out / f"{passage.slug}.mp4"
     for platform in [None, *signed]:
         video.compose(bg_path, statics[platform] if platform else static, frames, timeline,
@@ -349,7 +378,7 @@ def render_passage(cfg: Config, key: str, label_ar: str = "", label_en: str = ""
                       height=v["height"], fade=float(v.get("fade_seconds", 0.25)), zoom=zoom)
 
     tags = hashtags(cfg, passage)
-    record = manifest(cfg, src, passage, timeline, bg_info, shown)
+    record = manifest(cfg, src, passage, timeline, bg_info, shown, levelled)
     if short := facebook_caption(cfg, passage, tags):    # what Facebook gets (publish.py)
         record["captions"] = {"facebook": short}
     if signed:                  # publish.load_reel: their MP4 and caption

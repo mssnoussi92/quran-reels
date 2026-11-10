@@ -70,6 +70,35 @@
   quand la vidéo commence à 1:1. Ligne arabe en tête de la légende.
 - MP4 : H.264 High sans B-frames, AAC 48 kHz, `faststart`, **sans edit list** (`-use_editlist 0`) :
   Instagram Reels refuse les edit lists que ffmpeg écrit par défaut.
+- **Volume** (décision du propriétaire, 2026-11-10) : le son de chaque reel est mis à
+  **−16 LUFS** intégrés (EBU R128), comme les vidéos thématiques de quran-themes-demo, publiées
+  sur la même page. Avant, rien n'était réglé : 8 reels publiés allaient de −19,4 à −10,7 LUFS,
+  3 avec une crête vraie à 0 dB. `video.level` (`render/video.py`) mesure la piste assemblée
+  (filtre `ebur128` de ffmpeg ; les silences de début et de fin ne comptent pas), lui applique
+  **un seul gain**, puis un limiteur à anticipation (`alimiter`, plafond 0,8 soit −1,9 dBFS).
+  Un seul gain : la basmala et les ayahs sont le même récitateur et le même enregistrement, ce
+  qui est doux ou fort entre elles le reste ; pas de `loudnorm`, qui fait varier le gain au fil
+  du temps. Le limiteur est un garde-fou : monter un reel faible peut pousser ses crêtes
+  au-dessus de 0 dB, et −1,9 dBFS laisse de la marge à l'encodage AAC. Son délai est compensé
+  (`latency=1`) : aucun échantillon ne bouge, la piste garde exactement son nombre
+  d'échantillons (vérifié à chaque rendu : jusqu'à 8 d'écart sont rattrapés, au-delà le rendu
+  s'arrête) et les images restent calées sur la récitation. Même entrée, même sortie.
+  Toutes les versions jouent cette piste : le reel, sa version TikTok, la version YouTube
+  (autre récitateur : mesurée pour elle-même), l'aperçu 540p à la demande (tiré du MP4).
+  Réglage : `video.loudness` de project.yaml (`lufs`, `limit`) ; absent ou nul : son tel quel.
+  `manifest.json` garde la mesure et le gain (`loudness` : `target_lufs`, `limit`,
+  `measured_lufs`, `gain_db`, `result_lufs`). Piste sans mesure (silence) : laissée telle
+  quelle, avec un avertissement ; avertissement aussi quand le résultat est à plus de 1 LU de
+  la cible (le limiteur a beaucoup pris aux crêtes, ou le gain nécessaire dépassait 12 dB :
+  un fichier aussi loin de la cible est cassé plutôt que doux, son bruit n'est pas remonté).
+  Mesuré le 2026-11-10 (ffmpeg 9.0.2). Pistes assemblées de 12 passages réels, 7 récitateurs :
+  de −19,3 LUFS (Husary 112) à −11,4 (As-Sayegh 18:1-10) avant, −16,0 partout après ; à −16 le
+  limiteur ne travaille que sur 2 pistes (0,5 dB au-dessus du plafond, 0,5 % des échantillons
+  au plus), à −14 il travaillerait sur 9 des 12 (jusqu'à 2,5 dB, 9 % des échantillons) : −16
+  et pas −14. Rendus locaux de 112, mesure du MP4 avant → après : Fares Abbad −13,0 LUFS et
+  crête vraie −1,5 dBFS → −16,0 et −4,5 ; Husary −19,4 et −5,4 → −16,1 et −2,3 ; écart entre
+  passages doux et forts (LRA) inchangé à 0,1 LU près, flux vidéo identique au bit près,
+  version TikTok au même niveau.
 - Texte réduit automatiquement (`--k`) s'il dépasse la zone sûre ; avertissement sous 70 %.
   Les ayahs trop longues pour un écran seront découpées en segments synchronisés (timings par
   mot de QUL) ou évitées par le sélecteur.
