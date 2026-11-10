@@ -5,7 +5,8 @@
    "42:17#0",
    "34:12#0",
    "21:24#2",
-   "34:39#0"
+   "34:39#0",
+   "29:40#0"
   ],
   "posts": {
    "2026-11-06": {
@@ -84,6 +85,26 @@
       "status": "published",
       "id": "17952298602346653",
       "url": "https://www.instagram.com/p/DfhPZ7iHcBz/",
+      "error": null
+     }
+    }
+   },
+   "2026-11-10": {
+    "id": "29:40#0",
+    "surah": 29,
+    "ayah": "29:40",
+    "word": "حَاصِبًا",
+    "results": {
+     "facebook": {
+      "status": "published",
+      "id": "1494879297031390_122099004717545959",
+      "url": "https://www.facebook.com/122095909263545959/posts/122099004717545959",
+      "error": null
+     },
+     "instagram": {
+      "status": "published",
+      "id": "18149264359570195",
+      "url": "https://www.instagram.com/p/Dfj0PG1F9Di/",
       "error": null
      }
     }
