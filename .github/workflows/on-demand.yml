@@ -63,8 +63,8 @@ jobs:
       issue: ${{ steps.route.outputs.issue }}
       kind: ${{ steps.route.outputs.kind }}
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - run: pip install -q -e .
@@ -87,8 +87,8 @@ jobs:
       QURAN_REELS_SPLITS: state-branch/splits
       GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Install the package
@@ -114,7 +114,7 @@ jobs:
 
       # A recording not split yet for this passage: split and checked here, as the prepare
       # workflow does each night (torch on CPU, Whisper model from the prepare cache).
-      - uses: actions/cache/restore@v5
+      - uses: actions/cache/restore@v6
         if: steps.check.outputs.status == 'split'
         with:
           path: |
@@ -162,7 +162,7 @@ jobs:
           python -m playwright install chromium
           python -c "from playwright.sync_api import sync_playwright as p; pw = p().start(); pw.chromium.launch().close(); pw.stop()" \
             || python -m playwright install --with-deps chromium
-      - uses: actions/cache@v5
+      - uses: actions/cache@v6
         if: steps.check.outputs.status == 'ok' || steps.recheck.outputs.status == 'ok'
         with:
           path: .cache
@@ -177,7 +177,7 @@ jobs:
           quran-reels on-demand preview --issue "$ISSUE" --state "$STATE" \
             ${SPLIT_SECONDS:+--split-seconds "$SPLIT_SECONDS"}
       # For the publication: the very file that was previewed (its SHA-256 is in the comment).
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         if: steps.check.outputs.status == 'ok' || steps.recheck.outputs.status == 'ok'
         with:
           name: on-demand-${{ needs.route.outputs.issue }}-${{ github.run_id }}
@@ -212,8 +212,8 @@ jobs:
       STATE: state-branch/published.json
       GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Install the package and ffmpeg (Facebook cover frame)
@@ -267,8 +267,8 @@ jobs:
       STATE: state-branch/published.json
       GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - run: pip install -q -e .

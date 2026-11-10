@@ -27,8 +27,8 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20      # previews: one every 5 s, to measure their motion
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Install (and the static ffmpeg, to measure the previews' motion)
@@ -43,7 +43,7 @@ jobs:
           THEME: ${{ inputs.theme }}
           PER_THEME: ${{ inputs.per_theme || '4' }}
         run: quran-reels backgrounds search --per-theme "$PER_THEME" ${THEME:+--theme "$THEME"}
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: pixabay-candidates
           path: out/pixabay/

@@ -38,8 +38,8 @@ jobs:
       QURAN_REELS_SPLITS: state-branch/splits
       DAYS: ${{ inputs.days || '8' }}
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       # Speech recognition on CPU (torch ~200 MB from PyTorch's index); ffmpeg is the static
@@ -59,7 +59,7 @@ jobs:
           else
             git worktree add --orphan -b state state-branch
           fi
-      - uses: actions/cache@v5       # recordings and the model, from one night to the next
+      - uses: actions/cache@v6       # recordings and the model, from one night to the next
         with:
           path: |
             .cache
