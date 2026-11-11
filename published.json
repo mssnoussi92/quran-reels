@@ -18,7 +18,8 @@
     "munjiyat/9:51-51",
     "munjiyat/6:17-17",
     "munjiyat/11:6-6",
-    "munjiyat/11:56-56"
+    "munjiyat/11:56-56",
+    "munjiyat/29:60-60"
    ]
   },
   "kahf-first-ten": {
@@ -415,6 +416,39 @@
     }
    },
    "reciter": "minshawi"
+  },
+  "2026-11-11/evening": {
+   "queue": "themes",
+   "item": "munjiyat/29:60-60",
+   "passage": "29:60-60",
+   "results": {
+    "facebook": {
+     "status": "published",
+     "id": "3582445988582117",
+     "url": "https://www.facebook.com/reel/3582445988582117/",
+     "error": null,
+     "at": "2026-11-11T18:23:14+00:00"
+    },
+    "instagram": {
+     "status": "published",
+     "id": "17877039672594960",
+     "url": "https://www.instagram.com/reel/DfnHN6_jCX8/",
+     "error": null,
+     "at": "2026-11-11T18:23:14+00:00"
+    },
+    "tiktok": {
+     "status": "draft",
+     "id": "v_inbox_file~v2.7706980891906508822",
+     "url": null,
+     "error": null,
+     "at": "2026-11-11T18:23:14+00:00"
+    }
+   },
+   "reciter": "fares_abbad",
+   "youtube": {
+    "reciter": "sayegh",
+    "video": "youtube/029_060-060.mp4"
+   }
   }
  },
  "removed": [
