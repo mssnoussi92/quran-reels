@@ -10,7 +10,11 @@ breath, ayah 6 twice). So the split is found by speech recognition (sources/reco
    envelope (reverb keeps the gaps above any silence threshold); a cut whose start was not
    recognised is placed in proportion to the reference lengths (Alafasy);
 3. every segment is recognised again and compared with its ayah: one that does not match
-   stops everything. Wrong text on screen is worse than no video.
+   stops everything. Wrong text on screen is worse than no video;
+4. the basmala is also checked on the recording itself, without recognition (basmala_break):
+   one utterance, ending at the reciter's stop. Recognition drops the first letters of the
+   next ayah left at its end («Alif» of «الم», Tawfiq As-Sayegh 29, 2026-11-11) and lets an
+   isti'adha before it pass (his 78). The render asks again before it cuts (CutError).
 
 The verified split (times only) is in config/splits/<reciter>/SSS.json (committed) or on the
 state branch (splits/, written each night by the prepare workflow for the coming week), so
@@ -50,12 +54,25 @@ CUT_WINDOW = 3.0         # seconds on each side of a cut, recognised together (c
 CUT_TOLERANCE = 0.2      # a word may start this much on the wrong side (timestamp precision)
 CUT_CONTEXT = 4          # words of each ayah next to a cut
 LONG_WORDS = 15          # ayahs at least this long keep their word times (several screens)
+FINE = 0.08             # shortest piece of silence looked for before the pieces are joined
+BLIP = 0.12             # a silence broken by a click or a breath this short is one silence
+EDGE = 0.15             # recitation this long after a stop is recitation, not the stop's tail
+STOP_DROP = 20.0        # dB under the recitation's own level: a stop, where the recording's
+                        # pauses never reach silence
+STOP_FRAME = 0.01       # loudness read every 10 ms for these stops
+BASMALA_MATCH = 0.9     # the basmala: four known words, never recited twice, so heard as
+                        # itself (1.00 in 110 splits of 115), not after an isti'adha (0.77 when
+                        # a repetition was allowed) nor without its last word (0.81)
 RATE = 16000
 MP3QURAN = "https://www.mp3quran.net/api/v3"
 
 
 class SplitError(RuntimeError):
     pass
+
+
+class CutError(SystemExit):
+    """A checked cut that the recording itself contradicts: nothing is rendered with it."""
 
 
 @dataclass(frozen=True)
@@ -137,9 +154,11 @@ def dips(env: np.ndarray, min_depth: float, window: float = 0.4,
     return found
 
 
-def pauses(path: Path, noise: str = NOISE, min_pause: float = MIN_PAUSE) -> tuple[list[Pause], float]:
-    """Silences of an audio file, and its length in seconds."""
-    out = subprocess.run(["ffmpeg", "-nostdin", "-v", "info", "-i", str(path), "-af",
+def pauses(path: Path, noise: str = NOISE, min_pause: float = MIN_PAUSE,
+           until: float | None = None) -> tuple[list[Pause], float]:
+    """Silences of an audio file (of its first `until` seconds), and the length read."""
+    head = ["-t", f"{until:.3f}"] if until else []
+    out = subprocess.run(["ffmpeg", "-nostdin", "-v", "info", *head, "-i", str(path), "-af",
                           f"silencedetect=noise={noise}:d={min_pause}", "-f", "null", "-"],
                          capture_output=True, text=True, check=True).stderr
     starts = [float(x) for x in re.findall(r"silence_start: (-?[\d.]+)", out)]
@@ -150,6 +169,58 @@ def pauses(path: Path, noise: str = NOISE, min_pause: float = MIN_PAUSE) -> tupl
     if len(ends) < len(starts):              # silence until the end of the file
         ends.append(total)
     return [Pause(max(a, 0.0), b) for a, b in zip(starts, ends)], total
+
+
+def quiet_runs(path: Path, until: float) -> list[Pause]:
+    """The stretches of the first `until` seconds at least STOP_DROP dB under the recitation's
+    own level (the 90th percentile of its loudness, read every STOP_FRAME): the stops of a
+    recording whose pauses never reach silence. The 0.4 s between the isti'adha and the
+    basmala of Tawfiq As-Sayegh's surahs 6 and 40 stays above -35 dB at its peaks."""
+    raw = subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-t", f"{until:.3f}", "-i",
+                          str(path), "-ac", "1", "-ar", str(RATE), "-f", "f32le", "-"],
+                         capture_output=True, check=True).stdout
+    samples = np.frombuffer(raw, np.float32)
+    size = int(RATE * STOP_FRAME)
+    n = len(samples) // size
+    if not n:
+        return []
+    level = 20 * np.log10(np.sqrt((samples[:n * size].reshape(n, size).astype(np.float64) ** 2)
+                                  .mean(axis=1)) + 1e-9)
+    heard = level[level > -50]
+    if not len(heard):
+        return []
+    quiet = level <= np.percentile(heard, 90) - STOP_DROP
+    runs, start = [], None
+    for i, q in enumerate([*quiet, False]):
+        if q and start is None:
+            start = i
+        elif not q and start is not None:
+            runs.append(Pause(round(start * STOP_FRAME, 3), round(i * STOP_FRAME, 3)))
+            start = None
+    return runs
+
+
+def stops(path: Path, until: float) -> list[Pause]:
+    """The reciter's real stops in the first `until` seconds of a recording: MIN_PAUSE or more
+    of silence (silencedetect) or of quiet under his own level (quiet_runs), where a click or
+    a breath shorter than BLIP does not end a stop. silencedetect alone wants MIN_PAUSE
+    without a break: the 0.65 s after the basmala of Tawfiq As-Sayegh's surah 29 came out as
+    0.15 + 0.17 + 0.23 s, none long enough, so the cut fell on the published start of 29:1,
+    0.7 s into «الم», and the reel 29:60 said «Alif» after its basmala (2026-11-11)."""
+    pieces, _ = pauses(path, min_pause=FINE, until=until)
+    joined: list[Pause] = []
+    for p in sorted([*pieces, *quiet_runs(path, until)], key=lambda p: p.start):
+        if joined and p.start - joined[-1].end <= BLIP:
+            joined[-1] = Pause(joined[-1].start, max(joined[-1].end, p.end))
+        else:
+            joined.append(p)
+    return [p for p in joined if p.length >= MIN_PAUSE]
+
+
+def enough(label: str, match: float) -> bool:
+    """Is a segment recognised well enough to count as checked? MIN_MATCH for an ayah,
+    BASMALA_MATCH for the basmala."""
+    return match >= (BASMALA_MATCH if label == "basmala" else MIN_MATCH)
 
 
 def estimates(starts: list[float | None], speech: tuple[float, float],
@@ -267,17 +338,43 @@ def word_times(recognizer, samples: np.ndarray, a: float, b: float, text: str
             for w in align_words(text.split(), _heard(recognizer, samples, a, b))]
 
 
-BASMALA_MIN = 2.0         # seconds: no basmala is shorter (Budair 3.7, the quickest ≈ 3)
+BASMALA_MIN = 1.5         # seconds: no basmala is shorter (Tawfiq As-Sayegh 2.0, Budair 3.7)
 
 
 def basmala_stop(silences: list[Pause], speech_start: float, before: float) -> Pause | None:
-    """The stop after the basmala: the last real silence (silencedetect) before ayah 1's
-    estimated start. Reciters always stop there, while the published start of ayah 1 can be
-    late: Budair's 2:1 on mp3quran starts after «Alif», and the cut near it left «A» at the
-    end of the basmala, heard before every passage of Al-Baqarah (2:255, 2026-11-05)."""
-    stops = [p for p in silences
+    """The stop after the basmala: the last real stop (`stops`) before ayah 1's estimated
+    start. Reciters always stop there, while the published start of ayah 1 can be late:
+    Budair's 2:1 on mp3quran starts after «Alif», and the cut near it left «A» at the end of
+    the basmala, heard before every passage of Al-Baqarah (2:255, 2026-11-05); Tawfiq
+    As-Sayegh's 29:1 starts 0.7 s into «الم» (29:60, 2026-11-11)."""
+    found = [p for p in silences
              if speech_start + BASMALA_MIN <= p.middle <= before and p.length >= MIN_PAUSE]
-    return stops[-1] if stops else None
+    return found[-1] if found else None
+
+
+def basmala_lead(silences: list[Pause], speech_start: float, stop: Pause) -> Pause | None:
+    """The stop before the basmala, when the recording says something else first: the
+    isti'adha, which starts Tawfiq As-Sayegh's surah 78 (the first of its juz'): «أعوذ بالله
+    من الشيطان الرجيم», 0.5 s, the basmala, and both were the basmala's segment (recognised
+    0.77, 2026-11-11). The last real stop with at least BASMALA_MIN of recitation on each
+    side, before `stop` (the basmala's own). None: the recording starts with the basmala."""
+    leads = [p for p in silences if p.length >= MIN_PAUSE
+             and speech_start + BASMALA_MIN <= p.start and p.end + BASMALA_MIN <= stop.start]
+    return leads[-1] if leads else None
+
+
+def basmala_break(silences: list[Pause], a: float, b: float) -> str:
+    """'' when the basmala's segment (a, b) is one utterance; else what is wrong: a real stop
+    (`stops`) inside it with recitation on both sides. A basmala is recited in one breath:
+    what follows a stop is the start of ayah 1, and recognition does not hear it («Alif» and
+    the start of «Lām» at the end of the basmala of 29 changed nothing to what it heard);
+    what comes before one is not the basmala (the isti'adha). Read on the recording itself,
+    so it needs no model: the split, its audit, the nightly run and the render all ask."""
+    for p in silences:
+        if p.length >= MIN_PAUSE and p.start - a >= 0.5 and b - p.end >= EDGE:
+            return (f"{b - p.end:.2f} s recited after a stop of {p.length:.2f} s "
+                    f"({p.start:.2f}-{p.end:.2f}) inside the basmala")
+    return ""
 
 
 def find_split(audio: Path, labels: list[str], texts: list[str], expected: list[float],
@@ -312,47 +409,69 @@ def find_split(audio: Path, labels: list[str], texts: list[str], expected: list[
         if key not in heard:
             text = recognizer.text(samples[int(a * RATE):int(b * RATE)])
             heard[key] = round(heard_matches(text, texts[i], texts[i - 1] if i else "",
-                                             texts[i + 1] if i + 1 < len(texts) else ""), 2)
+                                             texts[i + 1] if i + 1 < len(texts) else "",
+                                             repeat=labels[i] != "basmala"), 2)
         return heard[key]
 
     def wanted(i: int) -> bool:
         return check is None or labels[i] in check
 
+    expected_cuts = estimates(starts, speech, expected)
+    basmala = labels[0] == "basmala" and bool(expected_cuts)
+    # The reciter's real stops around the basmala (`stops`), for where it ends and starts.
+    head = stops(audio, expected_cuts[0] + window[1] + 2.0) if basmala else []
+
+    def begins(k: int, p: Pause, default: float) -> float:
+        """Where segment k starts when its cut is p: the basmala after what the recording
+        says before it (basmala_lead), any other where the cut before it left off."""
+        if k == 0 and basmala:
+            lead = basmala_lead(head, speech[0], p)
+            if lead is not None:
+                return max(lead.end - PAD, lead.middle)
+        return default
+
     cuts: dict[tuple[int, float, float], str] = {}
 
-    def cut_problem(k: int, p: Pause) -> str:
-        """check_cut between labels k and k+1 for the quiet moment p."""
+    def cut_problem(k: int, p: Pause, begin: float) -> str:
+        """For the quiet moment p between labels k and k+1: the basmala in one utterance
+        (basmala_break, on the recording), then check_cut (what is heard on each side)."""
         end, start = min(p.start + PAD, p.middle), max(p.end - PAD, p.middle)
         key = (k, round(end, 3), round(start, 3))
         if key not in cuts:
-            cuts[key] = check_cut(recognizer, samples, end, start, texts[k], texts[k + 1])
+            broken = basmala_break(head, begin, end) if k == 0 and basmala else ""
+            cuts[key] = broken or check_cut(recognizer, samples, end, start, texts[k],
+                                            texts[k + 1])
         return cuts[key]
 
     # Left to right: each cut at the best quiet moment near its estimate whose segment before
     # it is recognised as its ayah (no word of the next one, none of its own missing).
     chosen, after = [], speech[0]
-    seg_start = max(speech[0] - PAD, 0.0)
-    for k, e in enumerate(estimates(starts, speech, expected)):
+    seg_start = first = max(speech[0] - PAD, 0.0)
+    for k, e in enumerate(expected_cuts):
         options = ranked(e, candidates, after, window, scale)
-        if k == 0 and labels[0] == "basmala":
-            stop = basmala_stop(silences, speech[0], e + window[1])
+        if k == 0 and basmala:
+            stop = basmala_stop(head, speech[0], e + window[1])
             if stop is not None:
                 options = [stop, *[o for o in options if o is not stop]]
         p = options[0]
         if wanted(k) or wanted(k + 1):
             for option in options[:TRIES]:
-                if score(k, seg_start, min(option.start + PAD, option.middle)) >= MIN_MATCH \
-                        and not cut_problem(k, option):
+                begin = begins(k, option, seg_start)
+                if enough(labels[k], score(k, begin, min(option.start + PAD, option.middle))) \
+                        and not cut_problem(k, option, begin):
                     p = option
                     break
+        if k == 0:
+            first = begins(0, p, seg_start)
         chosen.append(p)
         after = p.middle
         seg_start = max(p.end - PAD, p.middle)
     cut = bounds(chosen, speech, total)
+    cut[0] = (round(first, 3), cut[0][1])
     edges: dict[int, str] = {}           # a cut that moves words of one ayah to the other
     for k, p in enumerate(chosen):
         if wanted(k) or wanted(k + 1):
-            problem = cut_problem(k, p)
+            problem = cut_problem(k, p, cut[k][0])
             if problem:
                 edges[k] = edges[k + 1] = f"cut {labels[k]}|{labels[k + 1]}: {problem}"
     scores, wrong = {}, []
@@ -360,14 +479,14 @@ def find_split(audio: Path, labels: list[str], texts: list[str], expected: list[
         if not wanted(i):
             continue
         scores[labels[i]] = 0.0 if i in edges else score(i, a, b)
-        if scores[labels[i]] < MIN_MATCH:
+        if not enough(labels[i], scores[labels[i]]):
             wrong.append(f"{labels[i]} ({edges.get(i) or f'{scores[labels[i]]:.2f}'})")
     if wrong and len(wrong) == len(scores):
         raise SplitError(f"segments not recognised as their ayah: {', '.join(wrong)}")
     if wrong:       # the others stay usable: a passage needs all of its own ayahs checked
         print(f"not recognised as their ayah: {', '.join(wrong)} (left unchecked)",
               file=sys.stderr)
-    return dict(zip(labels, cut)), {k: v for k, v in scores.items() if v >= MIN_MATCH}
+    return dict(zip(labels, cut)), {k: v for k, v in scores.items() if enough(k, v)}
 
 
 def kept_scores(before: dict, segments: dict, scores: dict[str, float],
@@ -460,11 +579,17 @@ class SurahFiles:
         return path
 
     def split_path(self, surah: int) -> Path:
-        """The split file to read: the one with the most checked ayahs, or where to write."""
+        """The split file to read: one whose basmala counts as checked (`enough`) before one
+        where it does not, then the one with the most checked ayahs (the first folder when
+        they are as many); or where to write."""
         found = [d / f"{surah:03d}.json" for d in self.splits if (d / f"{surah:03d}.json").is_file()]
         if not found:
             return self.splits[-1] / f"{surah:03d}.json"
-        return max(found, key=lambda f: len(read_json(f).get("match", {})))
+
+        def rank(f: Path) -> tuple[bool, int]:
+            match = read_json(f).get("match", {})
+            return "basmala" not in match or enough("basmala", match["basmala"]), len(match)
+        return max(found, key=rank)
 
     def segments(self, surah: int) -> dict[str, tuple[float, float]]:
         """{"basmala" | "<ayah>": (start, end)} for a surah, from its committed split."""
@@ -474,9 +599,13 @@ class SurahFiles:
         return {k: tuple(v) for k, v in read_json(path)["segments"].items()}
 
     def matches(self, surah: int) -> dict[str, float]:
-        """How well each checked segment was recognised as its ayah (unchecked: absent)."""
+        """How well each checked segment was recognised as its ayah (unchecked: absent). A
+        basmala recognised under BASMALA_MATCH is not checked, whatever the split says: the
+        splits made before 2026-11-11 passed it at MIN_MATCH with a repetition allowed, and
+        an isti'adha before it was 0.77 (Tawfiq As-Sayegh 6, 40, 78)."""
         path = self.split_path(surah)
-        return read_json(path).get("match", {}) if path.is_file() else {}
+        found = read_json(path).get("match", {}) if path.is_file() else {}
+        return {k: v for k, v in found.items() if k != "basmala" or enough(k, v)}
 
     def word_starts(self, surah: int, ayah: int) -> list[float | None] | None:
         """When each word (arabic.words) of a long ayah starts in its segment, if known."""
@@ -560,10 +689,23 @@ class SurahFiles:
             out[k] = word_times(self._recognizer, samples, a, b, texts[k])
         return out
 
+    def basmala_problem(self, surah: int) -> str:
+        """'' when the split's basmala is one utterance (basmala_break, read on the recording:
+        no model needed), else what is wrong with it. '' too when the surah has none (1, 9)
+        or is not split."""
+        path = self.split_path(surah)
+        if surah in (1, 9) or not path.is_file():
+            return ""
+        segment = read_json(path)["segments"].get("basmala")
+        if not segment:
+            return ""
+        a, b = segment
+        return basmala_break(stops(self.audio(surah), b + 1.0), a, b)
+
     def audit(self, surah: int) -> dict[str, str]:
-        """Check the cuts of the committed split next to a checked segment (check_cut), and
-        add the word times of its long ayahs. {label: problem} for the segments to split
-        again (quran-reels split --audit --fix)."""
+        """Check the cuts of the committed split next to a checked segment (check_cut), its
+        basmala on the recording (basmala_problem), and add the word times of its long ayahs.
+        {label: problem} for the segments to split again (quran-reels split --audit --fix)."""
         from quran_reels.sources.recognition import Recognizer
 
         path = self.split_path(surah)
@@ -575,13 +717,21 @@ class SurahFiles:
             self._recognizer = Recognizer()
         samples = decode(self.audio(surah))
         problems: dict[str, str] = {}
+        if "basmala" in match and "basmala" in seg:
+            broken = self.basmala_problem(surah) or (
+                "" if enough("basmala", match["basmala"]) else
+                f"recognised {match['basmala']:.2f}, under {BASMALA_MATCH} (an isti'adha "
+                f"before it, or a word missing)")
+            if broken:
+                problems["basmala"] = f"basmala: {broken}"
         for left, right in pairwise(labels):
             if match.get(left, 0) < MIN_MATCH and match.get(right, 0) < MIN_MATCH:
                 continue
             problem = check_cut(self._recognizer, samples, seg[left][1], seg[right][0],
                                 texts[left], texts[right])
             if problem:
-                problems[left] = problems[right] = f"cut {left}|{right}: {problem}"
+                problems.setdefault(left, f"cut {left}|{right}: {problem}")
+                problems[right] = f"cut {left}|{right}: {problem}"
         words = self._long_words(surah, texts, seg, {k: v for k, v in match.items()
                                                      if k not in problems}, data)
         if words != data.get("words", {}):
@@ -591,8 +741,16 @@ class SurahFiles:
 
     def _cut(self, surah: int, label: str) -> Path:
         """The segment as a FLAC, named after its cut times: a split made again (the basmala
-        of Budair's surah 2, 2026-11-05) never reuses an old cut from the Actions cache."""
+        of Budair's surah 2, 2026-11-05) never reuses an old cut from the Actions cache.
+        CutError for a basmala that the recording contradicts (basmala_problem): a split
+        checked before that rule existed, or one whose recording changed."""
         self.checked(surah, label)
+        if label == "basmala":      # the last look before a render: the recording itself
+            problem = self.basmala_problem(surah)
+            if problem:
+                raise CutError(f"{self.reciter}: the basmala of surah {surah} is cut wrong "
+                               f"({problem}); nothing rendered with it (quran-reels split "
+                               f"--audit --fix {surah})")
         a, b = self.segments(surah)[label]
         name = label.zfill(3) if label != "basmala" else "bsm"
         dest = self.dir / f"{surah:03d}{name}-{round(a * 1000)}-{round(b * 1000)}.flac"

@@ -21,6 +21,10 @@ A reel claimed after publication (Meta mutes or blocks it: publish.after_check r
 slot is marked `claimed` and not retried, its passage goes back to the head of its queue, and
 its reciter joins the state's `claimed` list: the rotation never picks it again.
 
+A reciter whose basmala the recording itself contradicts (sources/surah_audio.py: CutError,
+raised by the render) is passed over for that passage: the next one of the rotation takes the
+slot, and nothing with that cut is published.
+
 YouTube (uploaded by hand) has its own reciter, always the same (platforms.youtube.reciter:
 Tawfiq As-Sayegh): when the rotation picks another one, the run renders the passage again by
 him into out/youtube/ for the owner to upload, and the captions issue says so. A passage he is
@@ -331,7 +335,9 @@ def youtube_version(cfg: Config, p: Pending, reciter: str | None,
     except (Exception, SystemExit) as e:     # noqa: BLE001  (the reel is out already)
         print(f"warning: YouTube version of {p.item.key}: {type(e).__name__}: {e}",
               file=sys.stderr)
-        return {"reciter": None, "error": f"{type(e).__name__}: {e}", **rule}
+        error = f"découpe refusée : {e}" if type(e).__name__ == "CutError" else \
+            f"{type(e).__name__}: {e}"
+        return {"reciter": None, "error": error, **rule}
 
 
 def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: State,
@@ -340,6 +346,7 @@ def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
     from quran_reels import reciters as rec
     from quran_reels.gh_secrets import token_expiry
     from quran_reels.render import render_passage
+    from quran_reels.sources.surah_audio import CutError
 
     order = {s.name: i for i, s in enumerate(sorted(sched.slots, key=lambda s: s.at))}
     meta = [x for x in platforms if x in publish_mod.META]
@@ -368,19 +375,34 @@ def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
                 continue
             p.queue, p.item = got
         pcfg, reciter = cfg, None
-        if rec.rotation(cfg):       # the reciter is chosen per passage (reciters.py)
-            before = state.slot(p.day, p.slot.name) or {}
-            if p.retry and before.get("reciter"):
-                reciter = before["reciter"]          # a retry posts the same recitation
-            else:
-                reciter, opts = rec.choose(cfg, p.item.key, rec.recent_reciters(state, order),
-                                           rec.claimed_reciters(state))
-                print(f"{p.item.key}: {reciter} (" + ", ".join(
-                    f"{o.name} {o.seconds} s" if o.seconds is not None else f"{o.name}: {o.why}"
-                    for o in opts) + ")")
-            pcfg = rec.with_reciter(cfg, reciter)
-        video = render_passage(pcfg, p.item.key, p.item.label_ar, p.item.label_en,
-                               p.item.series.hashtags).video
+        refused: set[str] = set()   # reciters whose cut of this passage the recording denies
+        while True:
+            same = False
+            if rec.rotation(cfg):   # the reciter is chosen per passage (reciters.py)
+                before = state.slot(p.day, p.slot.name) or {}
+                same = bool(p.retry and before.get("reciter"))
+                if same:
+                    reciter = before["reciter"]      # a retry posts the same recitation
+                else:
+                    reciter, opts = rec.choose(
+                        cfg, p.item.key, rec.recent_reciters(state, order),
+                        rec.claimed_reciters(state) | refused)
+                    print(f"{p.item.key}: {reciter} (" + ", ".join(
+                        f"{o.name}: cut refused" if o.name in refused else
+                        f"{o.name} {o.seconds} s" if o.seconds is not None else
+                        f"{o.name}: {o.why}" for o in opts) + ")")
+                pcfg = rec.with_reciter(cfg, reciter)
+            try:
+                video = render_passage(pcfg, p.item.key, p.item.label_ar, p.item.label_en,
+                                       p.item.series.hashtags).video
+                break
+            except CutError as e:
+                # A basmala checked by recognition that the recording itself contradicts
+                # (sources/surah_audio.py): never published; the next reciter takes the slot.
+                if same or not reciter or reciter in refused:
+                    raise
+                print(f"warning: {e}; another reciter is chosen", file=sys.stderr)
+                refused.add(reciter)
         results = publish_mod.publish_reel(pcfg, video, p.platforms, dry_run, checked)
         if not dry_run:
             # Written at once: a run stopped after this (cancelled, timed out, a crash in the

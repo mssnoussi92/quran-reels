@@ -30,8 +30,15 @@ theirs to ask for, not yours to decide.
 3. **Render and listen by recognition** before anyone hears it:
    `QURAN_REELS_RECITER=<name> quran-reels render <passage>`, then recognise the MP4's audio
    (`quran_reels.sources.recognition.Recognizer().text`) on the basmala, 2 s after it (the
-   ayah's first words) and the last 4 s (its last words, nothing of the next ayah). Send the
-   MP4 to the owner with SendUserFile and wait for their answer.
+   ayah's first words) and the last 4 s (its last words, nothing of the next ayah).
+   **Recognition does not hear everything**: it heard the basmala alone in a segment that
+   ended with the first 0.7 s of «الم» (Tawfiq As-Sayegh, 29:60 on YouTube, 2026-11-11), and
+   it let an isti'adha before a basmala pass (his 78). So also read the recording itself:
+   `Sources.from_config(cfg).audio.basmala_problem(<surah>)` must be empty (the render
+   refuses the cut otherwise), and look at the loudness of the first seconds of the MP4:
+   after the basmala, a stop, then the ayah, nothing between. A duration and a frame are not
+   a check of the sound. Send the MP4 to the owner with SendUserFile and wait for their
+   answer.
 4. **Facebook only**, on the owner's go: `publish-test.yml` on the branch that has the split,
    inputs `{passage, mode: publish, platforms: facebook, confirm: PUBLIER, reciters: <name>}`.
 5. **The owner checks** Facebook's copyright page a few minutes later.

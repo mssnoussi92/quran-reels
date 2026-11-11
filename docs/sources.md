@@ -98,7 +98,42 @@
   `quran-reels split <sourates>` (extra `asr` : `pip install torch --index-url
   https://download.pytorch.org/whl/cpu && pip install -e .[asr]`) : le pipeline quotidien n'a
   besoin ni du modèle ni de la vérification. Basmala : début du fichier de la sourate (même
-  séance, sans isti'adha) ; elle finit au **dernier vrai silence avant l'ayah 1** (le récitateur s'arrête toujours après la basmala ; le début publié par mp3quran peut être en retard : chez Budair, sourate 2, la basmala gardait « Alif », entendu « ah » avant Ayat al-Kursi, 2026-11-05). Les FLAC coupés portent leurs temps de coupe dans leur nom (jamais une ancienne coupe du cache). Le texte reconnu n'est que comparé, jamais affiché ni publié. La légende crédite le producteur (« Recitation: Ali Al-Hudhaifi
+  séance, sans isti'adha) ; elle finit au **dernier vrai arrêt avant l'ayah 1** (le récitateur s'arrête toujours après la basmala ; le début publié par mp3quran peut être en retard : chez Budair, sourate 2, la basmala gardait « Alif », entendu « ah » avant Ayat al-Kursi, 2026-11-05).
+  **La basmala est aussi vérifiée sur l'enregistrement lui-même, sans reconnaissance**
+  (2026-11-11, `surah_audio.stops`, `basmala_break`) : la version YouTube du reel 29:60 par
+  Tawfiq As-Sayegh disait « Alif » après sa basmala. Dans son fichier, la basmala finit à
+  2,3 s, « الم » commence à 2,99 s ; le silence entre les deux est coupé par deux clics en
+  morceaux de 0,15 à 0,23 s, aucun des 0,3 s que demande silencedetect : l'arrêt n'a pas été
+  vu, la coupe est tombée sur le début publié par mp3quran (3,68 s, 0,7 s dans « الم »), et la
+  reconnaissance n'a rien entendu de ces lettres (segment reconnu 1,00). Depuis :
+  - **les vrais arrêts du récitateur** : 0,3 s ou plus de silence (silencedetect, −35 dB) ou de
+    calme 20 dB sous son propre niveau (enveloppe lue toutes les 10 ms : un enregistrement dont
+    les pauses ne descendent jamais au silence), un clic ou un souffle de 0,12 s au plus ne
+    terminant pas l'arrêt ;
+  - une basmala est **une seule émission de voix** : un arrêt à l'intérieur de son segment,
+    avec de la récitation des deux côtés, la fait refuser. Ce qui suit l'arrêt est le début de
+    l'ayah 1 ; ce qui le précède n'est pas la basmala : les sourates 6, 40 et 78 de Tawfiq
+    commencent par l'**isti'adha**, qui était dans le segment de la basmala. La basmala
+    commence alors après cet arrêt (`basmala_lead`) ;
+  - une basmala doit être **reconnue comme elle-même** : ≥ 0,9, sans répétition admise
+    (`BASMALA_MATCH`). « أعوذ بالله من الشيطان الرجيم بسم الله الرحمن الرحيم » valait 0,77
+    comme une basmala dite deux fois, et passait à 0,75 ; comparée à la basmala seule, 0,61.
+    Une découpe déjà faite dont la basmala est sous 0,9 se lit comme non vérifiée
+    (`SurahFiles.matches`) : le récitateur n'est pas prêt tant qu'elle n'est pas refaite ;
+  - le contrôle sur l'enregistrement est fait à la découpe, à l'audit (`split --audit`),
+    chaque nuit par `prepare` sur les basmalas déjà vérifiées des passages à venir (une
+    basmala contredite est recoupée), et une dernière fois **au rendu** (`CutError`) : le run
+    quotidien passe alors au récitateur suivant de la rotation, la version YouTube n'est pas
+    faite, rien n'est publié avec cette coupe.
+  Audit des 115 basmalas existantes (dépôt et branche `state`, 2026-11-11), les défauts
+  confirmés à l'écoute par la reconnaissance : chez Tawfiq, 29 (« Alif » de « الم ») et 6, 40,
+  78 (isti'adha), refaites et commitées ; aucune n'avait servi à un reel publié, sauf la 29
+  ce soir-là sur YouTube. Refusées aussi : Omar Hisham 101 (reconnue 0,82 : basmala chantée
+  mal entendue, pas de coupe fausse ; il n'est plus prêt pour cette sourate) et trois de
+  récitateurs sortis de la rotation (Ar-Rifai 78, Al-Ghamdi 18 et 113, non écoutées).
+  Limite : un récitateur qui enchaîne la basmala et l'ayah 1 sans arrêt de 0,3 s, ou dans une
+  réverbération qui remplit les pauses (Omar Hisham), n'est vu que par la reconnaissance.
+  Les FLAC coupés portent leurs temps de coupe dans leur nom (jamais une ancienne coupe du cache). Le texte reconnu n'est que comparé, jamais affiché ni publié. La légende crédite le producteur (« Recitation: Ali Al-Hudhaifi
   (King Fahd Complex) ») ; `manifest.json` et `publish.json` gardent le récitateur et sa licence.
 - Durées pour le découpage : Quran.com (`timings_id`, Alafasy seulement) ou, sinon, taille des
   fichiers EveryAyah (débit constant, `kbps` : octets × 8 / débit, une requête HEAD par ayah, en

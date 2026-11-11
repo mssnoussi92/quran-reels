@@ -3,11 +3,11 @@
  "method": "ayah starts from mp3quran.net (read 17), cut at the quietest moment nearby; each segment recognised by tarteel-ai/whisper-base-ar-quran",
  "segments": {
   "basmala": [
-   0.228,
-   6.89
+   3.542,
+   6.189
   ],
   "1": [
-   6.89,
+   6.755,
    10.9
   ],
   "2": [
@@ -168,7 +168,7 @@
   ]
  },
  "match": {
-  "basmala": 0.77,
+  "basmala": 1.0,
   "1": 1.0,
   "2": 1.0,
   "3": 1.0,

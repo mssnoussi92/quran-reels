@@ -259,6 +259,8 @@ def main(argv: list[str] | None = None) -> int:
                     print(f"{src.audio.reciter} {surah}:{label}: {problem}")
                 if problems and args.fix:
                     checked = {k for k, v in src.audio.matches(surah).items() if v >= MIN_MATCH}
+                    if "basmala" in problems:       # refused: checked again all the same
+                        checked.add("basmala")
                     try:
                         src.audio.make_split(surah, checked)
                         problems = src.audio.audit(surah)
@@ -278,6 +280,20 @@ def main(argv: list[str] | None = None) -> int:
             if surah not in (1, 9):
                 check.add("basmala")
             done = {k for k, v in src.audio.matches(surah).items() if v >= MIN_MATCH}
+            if "basmala" in check & done:
+                # Checked, but by recognition alone, which does not hear a letter of ayah 1
+                # left at its end: asked again on the recording, and cut again if it is wrong
+                # (Tawfiq As-Sayegh 29, 2026-11-11). The prepare workflow runs this nightly.
+                try:
+                    problem = src.audio.basmala_problem(surah)
+                except Exception as e:      # noqa: BLE001  (no recording: checked as before)
+                    problem = ""
+                    print(f"warning: {key}: basmala not read again: {type(e).__name__}: {e}",
+                          file=sys.stderr)
+                if problem:
+                    print(f"{key}: {src.audio.reciter}: basmala cut again ({problem})",
+                          file=sys.stderr)
+                    done.discard("basmala")
             if check <= done and not args.force:
                 print(f"{key}: already checked ({src.audio.split_path(surah)})")
                 continue

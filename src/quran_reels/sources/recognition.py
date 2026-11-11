@@ -35,15 +35,18 @@ def similarity(a: str, b: str) -> float:
     return difflib.SequenceMatcher(None, normalize(a), normalize(b), autojunk=False).ratio()
 
 
-def heard_matches(heard: str, want: str, before: str = "", after: str = "") -> float:
+def heard_matches(heard: str, want: str, before: str = "", after: str = "",
+                  repeat: bool = True) -> float:
     """How well a segment's recognised text matches its ayah, a repeated ayah included
     (reciters often recite the last ayah twice). 0 when it matches better with words of a
     neighbouring ayah added, even one: the cut is then a word off (بسم الله… قل هو), and ayahs
-    that share words (مَلِكِ ٱلنَّاسِ, إِلَـٰهِ ٱلنَّاسِ) would otherwise pass."""
+    that share words (مَلِكِ ٱلنَّاسِ, إِلَـٰهِ ٱلنَّاسِ) would otherwise pass.
+    repeat False for a text never recited twice, the basmala: «أعوذ بالله من الشيطان الرجيم
+    بسم الله الرحمن الرحيم» is 0.77 like the basmala twice, 0.61 like the basmala."""
     h, w = normalize(heard), normalize(want)
     if not h or not w:
         return 0.0
-    repeats = max(1, round(len(h) / len(w)))
+    repeats = max(1, round(len(h) / len(w))) if repeat else 1
     score = max(similarity(h, w), similarity(h, w * repeats))
     nxt = [normalize(x) for x in after.split() if normalize(x)]
     prv = [normalize(x) for x in before.split() if normalize(x)]

@@ -528,6 +528,63 @@ def test_youtube_gets_nothing_when_its_own_reciter_is_not_ready(world, youtube, 
                                  "rifai", set())["error"] == "200 s, plus que 180 s"
 
 
+def test_a_reciter_whose_basmala_the_recording_contradicts_is_passed_over(
+        world, two_reciters, monkeypatch, capsys):
+    """The render's last look at a basmala (surah_audio.CutError: «Alif» after the basmala of
+    Tawfiq As-Sayegh's 29:60, 2026-11-11): nothing is published with that cut, the next
+    reciter of the rotation takes the slot."""
+    import quran_reels.render as render_mod
+    from quran_reels import reciters
+    from quran_reels.sources.surah_audio import CutError
+
+    calls, _, path = world
+    wrong = {"rifai"}
+    monkeypatch.setattr(reciters, "with_reciter", lambda cfg, name: name)
+
+    def render(cfg, key, label_ar="", label_en="", series_tags=()):
+        calls["render"].append((key, cfg))
+        if cfg in wrong:
+            raise CutError(f"{cfg}: the basmala of surah 114 is cut wrong (0.69 s recited "
+                           f"after a stop of 0.65 s (2.34-2.99) inside the basmala)")
+        return SimpleNamespace(video=path.parent / f"{key}.mp4")
+
+    monkeypatch.setattr(render_mod, "render_passage", render)
+    assert daily.run(None, path, now=paris(2026, 11, 5, 7, 20)) == 0
+    assert calls["render"] == [("114:1-6", "rifai"), ("114:1-6", "ghamdi")]
+    assert calls["publish"] == [("114:1-6", ("facebook", "instagram"))]      # once, by ghamdi
+    assert State.load(path).slot(date(2026, 11, 5), "morning")["reciter"] == "ghamdi"
+    assert "is cut wrong" in capsys.readouterr().err
+    # No reciter left: nothing is published, the run fails and says why.
+    wrong.add("ghamdi")
+    with pytest.raises(CutError, match="ghamdi: the basmala of surah 114"):
+        daily.run(None, path, now=paris(2026, 11, 5, 19, 20))
+    assert len(calls["publish"]) == 1
+
+
+def test_a_refused_cut_leaves_youtube_without_a_version(world, youtube, monkeypatch):
+    import quran_reels.render as render_mod
+    from quran_reels import reciters
+    from quran_reels.reciters import Option
+    from quran_reels.sources.surah_audio import CutError
+
+    _, _, path = world
+    cfg, _, _, report = youtube({"reciter": "ghamdi"})
+    monkeypatch.setattr(reciters, "passage_seconds", lambda cfg, key: Option("ghamdi", 21.1))
+    made = render_mod.render_passage
+
+    def render(cfg, key, *args, **kw):
+        if cfg.out.name == "youtube":
+            raise CutError("ghamdi: the basmala of surah 114 is cut wrong (…)")
+        return made(cfg, key, *args, **kw)
+
+    monkeypatch.setattr(render_mod, "render_passage", render)
+    assert daily.run(cfg, path, now=paris(2026, 11, 5, 7, 20), report=report) == 0
+    item = json.loads(report.read_text(encoding="utf-8"))["items"][0]
+    assert item["results"]["facebook"]["status"] == "published"      # the reel itself is out
+    assert item["youtube"]["reciter"] is None and item["youtube"]["always"]
+    assert item["youtube"]["error"].startswith("découpe refusée : ghamdi: the basmala")
+
+
 def test_later_runs_take_down_a_reel_claimed_after_its_check(world, two_reciters, monkeypatch):
     from types import SimpleNamespace
 
