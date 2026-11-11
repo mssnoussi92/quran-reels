@@ -7,7 +7,8 @@
     "juz-amma/113:1-5",
     "juz-amma/112:1-4",
     "juz-amma/111:1-5",
-    "juz-amma/110:1-3"
+    "juz-amma/110:1-3",
+    "juz-amma/109:1-6"
    ]
   },
   "themes": {
@@ -385,6 +386,35 @@
     }
    },
    "reciter": "sayegh"
+  },
+  "2026-11-11/morning": {
+   "queue": "reading",
+   "item": "juz-amma/109:1-6",
+   "passage": "109:1-6",
+   "results": {
+    "facebook": {
+     "status": "published",
+     "id": "2286260088889811",
+     "url": "https://www.facebook.com/reel/2286260088889811/",
+     "error": null,
+     "at": "2026-11-11T06:26:19+00:00"
+    },
+    "instagram": {
+     "status": "published",
+     "id": "17885011050652228",
+     "url": "https://www.instagram.com/reel/Dfl04ZXHBA-/",
+     "error": null,
+     "at": "2026-11-11T06:26:19+00:00"
+    },
+    "tiktok": {
+     "status": "draft",
+     "id": "v_inbox_file~v2.7706794911835768854",
+     "url": null,
+     "error": null,
+     "at": "2026-11-11T06:26:19+00:00"
+    }
+   },
+   "reciter": "minshawi"
   }
  },
  "removed": [
