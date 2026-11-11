@@ -282,13 +282,31 @@ github.com → photo de profil → Settings → Developer settings → Personal 
   minute, la politique du titulaire s'applique (suivi, monétisation ou blocage). Une
   revendication n'est pas un avertissement pour la chaîne ; ne pas la contester (enregistrement
   du récitateur).
-- **Version YouTube à part** (choix du propriétaire, 2026-11-06) : quand la rotation choisit un
-  récitateur de `platforms.youtube.exclude_reciters`, le run `daily` publie la vidéo sur Meta
-  et TikTok comme d'habitude et rend aussi le passage par un autre récitateur prêt, au plus
-  `max_seconds` (180 s, la limite des Shorts), le plus proche de 60 s : `out/youtube/<passage>.mp4`
-  dans l'artefact « reel » du run ; le ticket « 📋 Légendes à copier » dit quel fichier mettre
-  et donne sa légende (`daily.youtube_version`, état : `youtube` du créneau). 18:1-10 sur
-  YouTube : Tawfiq As-Sayegh (109 s).
+- **Sur YouTube, toujours Tawfiq As-Sayegh** (choix du propriétaire, 2026-11-11 :
+  `platforms.youtube.reciter: sayegh`) : aucune revendication constatée sur ses récitations, et
+  c'est la voix des épisodes thématiques de la même chaîne. La rotation ne change pas pour
+  Facebook, Instagram et TikTok. Quand elle choisit un autre récitateur (environ 4 créneaux sur
+  5), le run `daily` publie comme d'habitude, puis rend le passage une seconde fois par Tawfiq :
+  `out/youtube/<passage>.mp4`, envoyé dans la release `reels` ; le ticket « 📋 Légendes à
+  copier » dit « pas cette vidéo mais ce MP4 » et donne sa légende (`daily.youtube_version`,
+  `reciters.other_for`, état : `youtube` du créneau). Quand elle le choisit, la même vidéo sert.
+  - **Tawfiq pas prêt pour le passage** (découpe pas vérifiée, ou plus de `max_seconds`, 180 s,
+    la limite des Shorts) : **rien pour YouTube ce créneau**, aucun autre récitateur à sa place
+    (choix du propriétaire) ; le ticket le dit avec la raison, sans lien ni commande `/youtube`,
+    et l'état garde `youtube: {reciter: null, error}`. Le workflow `prepare` découpe sa
+    récitation chaque nuit pour les 8 jours suivants, même s'il sort un jour de la rotation, et
+    signale d'un avertissement (`::warning`) les passages où il n'est pas prêt : la découpe se
+    corrige avant (`quran-reels split --audit --fix <sourate>`).
+  - Une revendication sur Meta (`claimed`) l'écarte de la rotation, pas de YouTube : Content
+    ID et Rights Manager sont deux systèmes.
+  - **Une seule voix, un seul point de panne** : si Content ID le revendique un jour, tout
+    YouTube s'arrête (18:1-10, 109 s avec lui, serait bloqué partout). Retirer alors
+    `reciter` de `platforms.youtube` : on revient à la règle d'avant, ci-dessous.
+  - Les Shorts déjà en ligne ne sont pas refaits.
+- **Sans `reciter`** (la règle du 2026-11-06 au 2026-11-11, toujours dans le code) : YouTube
+  reçoit la vidéo du jour, sauf quand la rotation choisit un récitateur de
+  `platforms.youtube.exclude_reciters` (Budair) ; le run rend alors le passage par un autre
+  récitateur prêt, au plus `max_seconds`, le plus proche de 60 s.
 - **Téléchargement direct depuis le téléphone** (2026-11-06, docs/on-demand.md) : les artefacts
   Actions sont zippés et demandent une connexion. Chaque MP4 publié va donc aussi dans la
   release GitHub `reels` (pré-version, URL publique `…/releases/download/reels/<fichier>.mp4`,
@@ -297,8 +315,9 @@ github.com → photo de profil → Settings → Developer settings → Personal 
   `reel.html?r=daily/<jour>-<créneau>` (titre ≤ 100 caractères tiré de la légende, description =
   `caption.txt`, tous les hashtags, boutons Copier) et la commande à commenter une fois en ligne :
   `/youtube <jour>/<créneau> <lien>` (état : `results.youtube` du créneau, `by_hand`).
-- Nouveau récitateur sur YouTube : mettre en ligne en **privé**, attendre quelques minutes,
-  regarder les revendications (YouTube Studio → Contenu → Restrictions), puis rendre public.
+- Nouveau récitateur sur YouTube (si `platforms.youtube.reciter` change un jour) : mettre en
+  ligne en **privé**, attendre quelques minutes, regarder les revendications (YouTube Studio →
+  Contenu → Restrictions), puis rendre public.
 - OAuth Google : un projet en statut **« Test »** reçoit des refresh tokens qui expirent au bout
   de 7 jours. Il faut passer l'écran de consentement en **« En production »** (écran « app non
   validée » accepté pour un usage personnel) pour garder un refresh token durable.

@@ -212,6 +212,14 @@ platforms:
     # (out/youtube/, daily.py); Shorts take up to 3 min.
     exclude_reciters: [budair]
     max_seconds: 180
+    # YouTube: always Tawfiq As-Sayegh (owner's choice, 2026-11-11: no claim seen on his
+    # recitations, and the voice of the thematic episodes on the same channel). A reel by
+    # another reciter gets its YouTube version by him (out/youtube/); a passage he is not
+    # ready for (split not checked) gets nothing for YouTube that day, and the captions issue
+    # says why. Meta's claims do not count here (Content ID is not Rights Manager). On demand
+    # with YouTube ticked: he recites the whole request (ondemand/check.py).
+    # Unset: any reciter but exclude_reciters, as before.
+    reciter: sayegh
 
 # Hashtags at the end of every caption, in this order (the first ones are kept when a platform
 # allows fewer): brand, broad[0], the series' first tag, the surah (#SurahAdDuhaa,

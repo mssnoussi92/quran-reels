@@ -2,6 +2,7 @@
 
 import json
 from datetime import UTC, date, datetime, time
+from types import SimpleNamespace
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -402,28 +403,16 @@ def test_a_reel_taken_down_after_publication_comes_back_with_another_reciter(wor
     assert State.load(path).slot(date(2026, 11, 7), "morning")["reciter"] == "ghamdi"
 
 
-def test_a_reciter_youtube_claims_gets_a_youtube_version(world, two_reciters, monkeypatch,
-                                                        tmp_path):
-    """Meta publishes the rotation's choice; YouTube (by hand) gets the same passage by a
-    reciter it does not claim, rendered into out/youtube/ and named in the report."""
+@pytest.fixture
+def youtube(world, two_reciters, monkeypatch, tmp_path):
+    """daily.run for a reel by Ar-Rifai (the rotation's choice), with a real Config whose
+    platforms.youtube is given: youtube(conf) → (cfg, outs, signed, report path)."""
     from types import SimpleNamespace
 
-    from quran_reels import reciters
     from quran_reels.config import Config
-    from quran_reels.reciters import Option
 
-    calls, _, path = world
-    cfg = Config(root=tmp_path, backgrounds=[], gloss_headwords={}, project={
-        "content": {"passage": {"max_seconds": 90, "target_seconds": 60},
-                    "reciters": {"rifai": {"label": "Nabil Ar-Rifai"},
-                                 "ghamdi": {"label": "Saad Al-Ghamdi"}}},
-        "platforms": {"youtube": {"mode": "manual", "exclude_reciters": ["rifai"],
-                                  "max_seconds": 180}}})
-    monkeypatch.setattr(reciters, "options", lambda cfg, key, claimed=(): [
-        Option("rifai", 50.0), Option("ghamdi", 120.0)])     # over 90 s: fine on YouTube
-    outs = []
-
-    signed = []
+    calls, _, _ = world
+    outs, signed = [], []
 
     def render(cfg, key, label_ar="", label_en="", series_tags=(), variants=True):
         outs.append(cfg.out)
@@ -439,7 +428,27 @@ def test_a_reciter_youtube_claims_gets_a_youtube_version(world, two_reciters, mo
     import quran_reels.render as render_mod
     monkeypatch.setattr(render_mod, "render_passage", render)
     monkeypatch.setattr(daily.publish_mod, "load_reel", load_reel)
-    report = tmp_path / "report.json"
+
+    def make(conf):
+        cfg = Config(root=tmp_path, backgrounds=[], gloss_headwords={}, project={
+            "content": {"passage": {"max_seconds": 90, "target_seconds": 60},
+                        "reciters": {"rifai": {"label": "Nabil Ar-Rifai"},
+                                     "ghamdi": {"label": "Saad Al-Ghamdi"}}},
+            "platforms": {"youtube": {"mode": "manual", "max_seconds": 180, **conf}}})
+        return cfg, outs, signed, tmp_path / "report.json"
+    return make
+
+
+def test_a_reciter_youtube_claims_gets_a_youtube_version(world, youtube, monkeypatch, tmp_path):
+    """Meta publishes the rotation's choice; YouTube (by hand) gets the same passage by a
+    reciter it does not claim, rendered into out/youtube/ and named in the report."""
+    from quran_reels import reciters
+    from quran_reels.reciters import Option
+
+    calls, _, path = world
+    cfg, outs, signed, report = youtube({"exclude_reciters": ["rifai"]})
+    monkeypatch.setattr(reciters, "options", lambda cfg, key, claimed=(): [
+        Option("rifai", 50.0), Option("ghamdi", 120.0)])     # over 90 s: fine on YouTube
     assert daily.run(cfg, path, now=paris(2026, 11, 5, 7, 20), report=report) == 0
     assert outs == [tmp_path / "out", tmp_path / "out" / "youtube"]
     assert signed == [True, False]       # no TikTok version of the YouTube one
@@ -451,6 +460,72 @@ def test_a_reciter_youtube_claims_gets_a_youtube_version(world, two_reciters, mo
                                "instead_of": "Nabil Ar-Rifai"}
     assert State.load(path).slot(date(2026, 11, 5), "morning")["youtube"] == {
         "reciter": "ghamdi", "video": "youtube/114_001-006.mp4"}
+
+
+def test_youtube_always_gets_its_own_reciter(world, youtube, monkeypatch, tmp_path):
+    """platforms.youtube.reciter (owner's choice, 2026-11-11: always Tawfiq As-Sayegh): the
+    reel of the day is by the rotation's reciter, YouTube's version by its own, whatever
+    Meta claimed of him."""
+    from quran_reels import reciters
+    from quran_reels.reciters import Option
+
+    calls, _, path = world
+    cfg, outs, signed, report = youtube({"reciter": "ghamdi"})
+    asked = []
+    monkeypatch.setattr(reciters, "passage_seconds",
+                        lambda cfg, key: asked.append(key) or Option("ghamdi", 120.0))
+    State({"claimed": {"ghamdi": {"reason": "muted on Meta"}}}).save(path)
+    assert daily.run(cfg, path, now=paris(2026, 11, 5, 7, 20), report=report) == 0
+    assert asked == ["114:1-6"]
+    assert outs == [tmp_path / "out", tmp_path / "out" / "youtube"] and signed == [True, False]
+    assert calls["publish"] == [("114_001-006", ("facebook", "instagram"))]   # Meta: rifai
+    item = json.loads(report.read_text(encoding="utf-8"))["items"][0]
+    assert item["reciter"] == "rifai"
+    assert item["youtube"] == {"reciter": "ghamdi", "video": "youtube/114_001-006.mp4",
+                               "caption": "caption youtube\n", "label": "Saad Al-Ghamdi",
+                               "instead_of": "Nabil Ar-Rifai", "always": True}
+    assert State.load(path).slot(date(2026, 11, 5), "morning")["youtube"] == {
+        "reciter": "ghamdi", "video": "youtube/114_001-006.mp4"}
+
+
+def test_a_reel_by_youtubes_own_reciter_goes_there_as_it_is(world, youtube, monkeypatch):
+    from quran_reels import reciters
+
+    _, _, path = world
+    cfg, outs, _, report = youtube({"reciter": "rifai"})
+    monkeypatch.setattr(reciters, "passage_seconds", lambda cfg, key: 1 / 0)    # not asked
+    assert daily.run(cfg, path, now=paris(2026, 11, 5, 7, 20), report=report) == 0
+    assert len(outs) == 1                                 # one render, the same video
+    item = json.loads(report.read_text(encoding="utf-8"))["items"][0]
+    assert item["reciter"] == "rifai" and "youtube" not in item
+    assert "youtube" not in State.load(path).slot(date(2026, 11, 5), "morning")
+
+
+def test_youtube_gets_nothing_when_its_own_reciter_is_not_ready(world, youtube, monkeypatch,
+                                                                capsys):
+    """No other reciter in his place (owner's choice): the report and the state say that
+    nothing goes to YouTube for this slot, and why; the reel is out all the same."""
+    from quran_reels import reciters
+    from quran_reels.reciters import Option
+
+    calls, _, path = world
+    cfg, outs, _, report = youtube({"reciter": "ghamdi"})
+    monkeypatch.setattr(reciters, "passage_seconds",
+                        lambda cfg, key: Option("ghamdi", None, "surah 114 not split"))
+    assert daily.run(cfg, path, now=paris(2026, 11, 5, 7, 20), report=report) == 0
+    assert len(outs) == 1 and calls["publish"] == [("114_001-006", ("facebook", "instagram"))]
+    item = json.loads(report.read_text(encoding="utf-8"))["items"][0]
+    assert item["youtube"] == {"reciter": None, "error": "sourate 114 pas encore découpée",
+                               "always": True, "wanted": "Saad Al-Ghamdi"}
+    slot = State.load(path).slot(date(2026, 11, 5), "morning")
+    assert slot["youtube"] == {"reciter": None, "error": "sourate 114 pas encore découpée"}
+    assert slot["results"]["facebook"]["status"] == "published"
+    assert "no YouTube version (ghamdi: surah 114 not split)" in capsys.readouterr().err
+
+    # Too long for a Short: nothing either, rather than another reciter.
+    monkeypatch.setattr(reciters, "passage_seconds", lambda cfg, key: Option("ghamdi", 200.0))
+    assert daily.youtube_version(cfg, SimpleNamespace(item=SimpleNamespace(key="2:282-282")),
+                                 "rifai", set())["error"] == "200 s, plus que 180 s"
 
 
 def test_later_runs_take_down_a_reel_claimed_after_its_check(world, two_reciters, monkeypatch):

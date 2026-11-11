@@ -381,11 +381,14 @@ def run_youtube(cfg: Config, gh: GitHub, number: int, args: str, state_path: Pat
             key = next((w for w in args.split() if "/" in w and not w.startswith("http")), "")
             slots = state.data.get("slots") or {}
             if not key:             # the latest reel that went out and is not marked yet
+                # (not a slot that had nothing for YouTube: its own reciter was not ready)
                 key = next((k for k, r in sorted(slots.items(), reverse=True)
                             if any(x.get("status") in od_state.OK for p, x in
                                    r.get("results", {}).items() if p != "youtube")
                             and (r.get("results", {}).get("youtube") or {}).get("status")
-                            != "published"), "")
+                            != "published"
+                            and (r.get("youtube") or {"reciter": ""}).get("reciter")
+                            is not None), "")
             if key not in slots:
                 raise Refused(f"créneau « {key or '?'} » introuvable : écris "
                               "`/youtube <jour>/<créneau> <lien>`, ex. "
@@ -430,7 +433,8 @@ def _mark_caption_entry(gh: GitHub, number: int, key: str, url: str | None) -> N
 def daily_files(cfg: Config, hosting: Hosting, report_path: Path) -> int:
     """After `quran-reels daily`: each reel that went out goes to the release (and its YouTube
     version, when it has one), with a page for YouTube; the report gets the links, for the
-    captions issue (notify.py). Never fails the daily run."""
+    captions issue (notify.py). A slot with nothing for YouTube (its reciter there was not
+    ready) gets the download alone. Never fails the daily run."""
     from quran_reels.notify import _has_caption
 
     if not report_path.is_file():
@@ -454,19 +458,23 @@ def daily_files(cfg: Config, hosting: Hosting, report_path: Path) -> int:
             day, slot = item["key"].split("/")
             name = f"{day}-{slot}-{s}{tag}"
             main = hosting.upload(video, f"{name}.mp4")
-            yt_video = cfg.out / item["youtube"]["video"] if (item.get("youtube") or {}).get(
-                "video") else None
-            yt = hosting.upload(yt_video, f"{name}-youtube.mp4") if yt_video and \
-                yt_video.is_file() else main
-            reel = publish_mod.load_reel(yt_video if yt != main else video)
+            # YouTube: the same video, or its own version (daily.youtube_version); when that
+            # version is wanted and is not there, nothing: never the reel of the day instead.
+            y = item.get("youtube") or {}
+            yt_video = cfg.out / y["video"] if y.get("video") else None
+            own = bool(yt_video and yt_video.is_file())
+            yt = hosting.upload(yt_video, f"{name}-youtube.mp4") if own else \
+                None if y else main
+            reel = publish_mod.load_reel(yt_video if own else video)
             rid = f"daily/{day}-{slot}"
-            reciter = (item.get("youtube") or {}).get("label") if yt != main else None
+            reciter = y.get("label") if own else None
             names = cfg.content.get("reciters") or {}
             reciter = reciter or (names.get(item.get("reciter") or "") or {}).get(
                 "label", item.get("reciter") or "")
             d = page.data(cfg, reel, kind="daily", rid=rid, stage="daily",
                           created=od_state.now(), reciter=reciter, seconds=None,
-                          platforms=["facebook", "instagram", "tiktok", "youtube"],
+                          platforms=["facebook", "instagram", "tiktok",
+                                     *(["youtube"] if yt else [])],
                           video={"full": main, "youtube": yt}, youtube_file=yt,
                           results=[{"name": page.PLATFORM_LABELS.get(p, p), "url": r.get("url"),
                                     "label": _RESULT_LABELS.get(r.get("status"),

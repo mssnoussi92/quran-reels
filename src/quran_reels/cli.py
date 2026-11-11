@@ -204,7 +204,9 @@ def main(argv: list[str] | None = None) -> int:
         keys = list(dict.fromkeys(item.key for _, _, _, item in preview(
             sched, series, State.load(Path(args.state)), today, args.upcoming) if item))
         print(f"next {args.upcoming} days: {' '.join(keys)}")
-        for name in rec.rotation(cfg):      # one process per reciter: its own sources
+        # The rotation's reciters, and the one a platform always takes even when he is out
+        # of the rotation (platforms.youtube.reciter). One process per reciter: its own sources.
+        for name in dict.fromkeys([*rec.rotation(cfg), *rec.fixed_reciters(cfg)]):
             if not cfg.content["reciters"][name].get("surah_url"):
                 continue                    # one file per ayah (EveryAyah): nothing to split
             env = {**os.environ, RECITER_ENV: name}
@@ -215,6 +217,18 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{key:<12} {', '.join(ready) or 'NO RECITER READY'}")
             if not ready:
                 missing.append(key)
+        # A platform's own reciter not ready: that passage gets nothing there (YouTube). Not
+        # red, the other platforms publish; said days ahead, so that the split can be fixed.
+        for platform in cfg.project.get("platforms") or {}:
+            gaps = rec.fixed_gaps(cfg, platform, keys)
+            if gaps:
+                own = rec.fixed_on(cfg, platform)
+                text = "; ".join(f"{key} ({reason})" for key, reason in gaps.items())
+                print(f"::warning title={platform} reciter not ready::"
+                      f"{platform} takes {own} only, and he is not ready for {text}: nothing "
+                      f"for {platform} on these passages until his split of them is checked "
+                      f"({RECITER_ENV}={own} quran-reels split <passage>; a bad cut: "
+                      f"split --audit --fix <surah>)")
         if missing:
             print(f"no reciter ready for {', '.join(missing)}: nothing would be published",
                   file=sys.stderr)

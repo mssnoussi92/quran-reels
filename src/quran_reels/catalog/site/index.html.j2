@@ -40,10 +40,11 @@
       <a href="{{ O.doc }}" rel="noopener">Comment ça marche</a></p>
     <form id="od-form" class="card od" data-new-issue="{{ O.new_issue }}" data-prefix="{{ O.title_prefix }}"
           data-footer="{{ O.footer }}" data-headings='{{ O.headings|tojson }}'
-          data-api="{{ O.quran_api }}" data-tid="{{ O.translation_id or '' }}" data-max-per-ayah="{{ O.max_per_ayah }}">
+          data-api="{{ O.quran_api }}" data-tid="{{ O.translation_id or '' }}" data-max-per-ayah="{{ O.max_per_ayah }}"
+          data-youtube-fixed="{{ 1 if O.youtube_fixed else 0 }}" data-youtube-reciter="{{ O.youtube_reciter }}">
       <label>Récitateur
         <select name="reciter">
-          <option value="auto" data-youtube="1">Auto (choisi comme le calendrier)</option>
+          <option value="auto" data-youtube="{{ 0 if O.youtube_fixed and not O.youtube_reciter else 1 }}">Auto (choisi comme le calendrier)</option>
           {% for r in O.reciters %}<option value="{{ r.name }}" data-youtube="{{ 1 if r.youtube else 0 }}">{{ r.label }}</option>{% endfor %}
         </select>
       </label>

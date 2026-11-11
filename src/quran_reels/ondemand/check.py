@@ -7,15 +7,17 @@
 - duration: at most content.passage.max_seconds (90 s) with that reciter, as its checked
   split says; a recording not split yet for this passage is split first (`split`);
 - background: `auto` or an id of config/backgrounds.yaml;
-- YouTube with a reciter its Content ID claims (platforms.youtube.exclude_reciters): YouTube
-  is dropped, the others go ahead (owner's choice, 2026-11-06).
+- YouTube has its own reciter, always the same (platforms.youtube.reciter: Tawfiq As-Sayegh,
+  owner's choice 2026-11-11), and a request makes one video: with `auto` and YouTube ticked
+  he recites it for every platform; with another reciter named, YouTube is dropped and the
+  others go ahead. Without that setting: dropped for a reciter its Content ID claims
+  (platforms.youtube.exclude_reciters; owner's choice, 2026-11-06).
 
 A refused request gets reasons and valid ranges to try (whole sentences, within the limit).
 """
 
 from __future__ import annotations
 
-import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
@@ -47,6 +49,7 @@ class Checked:
     surah_en: str = ""
     surah_ar: str = ""
     reciter: str = ""                          # the reciter chosen (auto resolved)
+    asked: str = ""                            # the request's, or YouTube's own for « auto »
     seconds: float | None = None
     background: str | None = None              # None: chosen from the passage
     platforms: tuple[str, ...] = ()
@@ -89,9 +92,7 @@ def label(cfg: Config, name: str) -> str:
 
 def why(option: Option) -> str:
     """reciters.passage_seconds' reason, for the owner."""
-    text = option.why or (f"{option.seconds:.0f} s" if option.seconds is not None else "")
-    text = re.sub(r"^surah (\d+) not split$", r"sourate \1 pas encore découpée", text)
-    return re.sub(r"^(\S+) not checked$", r"\1 pas encore vérifiées", text)
+    return rec.why(option)
 
 
 def _excerpt(text: str, n: int = 70) -> str:
@@ -187,15 +188,26 @@ def check(cfg: Config, req: Request, state: dict, src: Any = None,
     catalogue = cfg.content.get("reciters") or {}
     allowed = allowed_reciters(cfg, state)
     high = float(cfg.content["passage"]["max_seconds"])
+    # YouTube's own reciter: one video per request, so with « auto » and YouTube ticked he
+    # recites it all. Another reciter named: YouTube is dropped further down.
+    own = rec.fixed_on(cfg, "youtube")
+    asked, forced = req.reciter, ""
+    if asked == AUTO and own in allowed and "youtube" in req.platforms:
+        asked = own
+        out.notes.append(f"YouTube coché : récité par {label(cfg, own)} (toujours lui sur "
+                         f"YouTube)")
+        forced = (" (YouTube est coché : toujours lui sur YouTube ; sans YouTube, « auto » "
+                  "choisit parmi tous)")
+    out.asked = asked
 
-    if req.reciter != AUTO:
-        if req.reciter not in catalogue:
-            out.problems.append(f"récitateur « {req.reciter} » inconnu (au choix : auto, "
+    if asked != AUTO:
+        if asked not in catalogue:
+            out.problems.append(f"récitateur « {asked} » inconnu (au choix : auto, "
                                 f"{', '.join(allowed)})")
-        elif req.reciter not in allowed:
-            reason = ("écarté après une revendication sur Meta" if req.reciter in
+        elif asked not in allowed:
+            reason = ("écarté après une revendication sur Meta" if asked in
                       (state.get("claimed") or {}) else "hors de la rotation")
-            out.problems.append(f"{label(cfg, req.reciter)} n'est pas autorisé pour la "
+            out.problems.append(f"{label(cfg, asked)} n'est pas autorisé pour la "
                                 f"publication ({reason}) ; au choix : auto, {', '.join(allowed)}")
     if req.background != AUTO:
         ids = [str(b.get("id")) for b in cfg.backgrounds.get("backgrounds") or []]
@@ -227,8 +239,8 @@ def check(cfg: Config, req: Request, state: dict, src: Any = None,
                             f"finit pas (« {_excerpt(texts[end])} »)")
 
     # Who recites, and how long it lasts.
-    names = allowed if req.reciter == AUTO else [req.reciter]
-    if req.reciter == AUTO:
+    names = allowed if asked == AUTO else [asked]
+    if asked == AUTO:
         out.options = [secs(n, out.key) for n in allowed]
         from quran_reels.selector.calendar import State
 
@@ -241,30 +253,30 @@ def check(cfg: Config, req: Request, state: dict, src: Any = None,
             reasons = "; ".join(f"{label(cfg, o.name)} : {why(o)}" for o in out.options)
             out.problems.append(f"aucun récitateur prêt pour {out.key} en {high:.0f} s au "
                                 f"plus ({reasons})")
-    elif req.reciter in allowed:
-        out.reciter = req.reciter
-        opt = secs(req.reciter, out.key)
+    elif asked in allowed:
+        out.reciter = asked
+        opt = secs(asked, out.key)
         out.seconds = opt.seconds
         if opt.seconds is None:
             out.not_ready = why(opt)
             out.alternatives = [Suggestion(label(cfg, n), o.seconds) for n in allowed
-                                if n != req.reciter for o in [secs(n, out.key)]
+                                if n != asked for o in [secs(n, out.key)]
                                 if o.seconds is not None and o.seconds <= high]
-            if catalogue[req.reciter].get("surah_url") and not out.problems:
-                out.split = req.reciter
+            if catalogue[asked].get("surah_url") and not out.problems:
+                out.split = asked
             elif not out.problems:
-                out.problems.append(f"{label(cfg, req.reciter)} pas prêt pour {out.key} : "
-                                    f"{why(opt)}")
+                out.problems.append(f"{label(cfg, asked)} pas prêt pour {out.key} : "
+                                    f"{why(opt)}{forced}")
         elif opt.seconds > high:
             out.problems.append(f"{out.key} dure {opt.seconds:.0f} s avec "
-                                f"{label(cfg, req.reciter)}, plus que {high:.0f} s")
+                                f"{label(cfg, asked)}, plus que {high:.0f} s{forced}")
             out.alternatives = [Suggestion(label(cfg, n), o.seconds) for n in allowed
-                                if n != req.reciter
+                                if n != asked
                                 for o in [secs(n, out.key)]
                                 if o.seconds is not None and o.seconds <= high]
 
     too_long = out.seconds is not None and out.seconds > high
-    if req.reciter == AUTO and not out.reciter:
+    if asked == AUTO and not out.reciter:
         too_long = any(o.seconds is not None and o.seconds > high for o in out.options)
     if cut or too_long:
         def dur(key: str) -> float | None:
@@ -300,12 +312,17 @@ def check(cfg: Config, req: Request, state: dict, src: Any = None,
             out.glosses, problems = words_mod.selection(cfg, found, req.words)
             out.problems += problems
     if out.reciter and "youtube" in out.platforms and \
-            out.reciter in rec.excluded_on(cfg, "youtube"):
+            not rec.allowed_on(cfg, "youtube", out.reciter):
         out.platforms = tuple(p for p in out.platforms if p != "youtube")
-        others = [label(cfg, n) for n in allowed if n not in rec.excluded_on(cfg, "youtube")]
-        msg = (f"YouTube retiré : {label(cfg, out.reciter)} y est revendiqué par Content ID "
-               f"(un Short de plus d'une minute revendiqué est bloqué partout) ; pour YouTube, "
-               f"une autre demande avec : {', '.join(others)}")
+        if own:
+            msg = (f"YouTube retiré : sur YouTube, toujours {label(cfg, own)}"
+                   + (" ; pour YouTube, une autre demande avec lui (ou « auto »)"
+                      if own in allowed else ", et il n'est pas autorisé pour la publication"))
+        else:
+            others = [label(cfg, n) for n in allowed if rec.allowed_on(cfg, "youtube", n)]
+            msg = (f"YouTube retiré : {label(cfg, out.reciter)} y est revendiqué par Content ID "
+                   f"(un Short de plus d'une minute revendiqué est bloqué partout) ; pour "
+                   f"YouTube, une autre demande avec : {', '.join(others)}")
         (out.notes if out.platforms else out.problems).append(msg)
     if out.key:
         for where in published_before(state, out.key):

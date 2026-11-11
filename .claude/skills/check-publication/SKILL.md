@@ -44,6 +44,14 @@ ends in 20 s, which is not a missed slot. Read, don't guess.
      it; prepare has its own). Dispatch it again once the group is free, inside the window.
    - prepare prints « NO RECITER READY » for a passage: that slot would publish nothing. Say
      which passage and day; the fix is a split (test-reciter, step 2) or another reciter.
+   - prepare ends green with the warning « youtube reciter not ready » (run annotations, or
+     the log of « Split and check the coming week »): YouTube always takes Tawfiq As-Sayegh
+     (`platforms.youtube.reciter`), so these passages would get nothing for YouTube. Tell the
+     owner which passages and days; the fix is his split
+     (`QURAN_REELS_RECITER=sayegh quran-reels split --audit --fix <surah>`, test-reciter step 2).
+   - daily: the captions issue says « YouTube : rien pour ce créneau » and the slot has
+     `youtube: {reciter: null, error}`: Tawfiq was not ready for that passage. The reel of the
+     day must not go to YouTube in his place; report the reason given.
    - TikTok « could not be kept »: `GH_SECRETS_TOKEN` is missing or expired, the new refresh
      token was not saved. The owner makes a new token (docs/plateformes.md), then signs in
      again (tiktok-auth workflow) if the next run fails on the refresh.
@@ -54,8 +62,9 @@ ends in 20 s, which is not a missed slot. Read, don't guess.
 5. **Nothing ran for a due slot** (scheduler down): dispatch `daily.yml` on `main`, no inputs,
    while the window is open (3 h after 07:30 / 19:30 Paris). Publish nothing else on your own.
 6. **Report in French, short:** passage, reciter, link per platform, the TikTok draft waiting
-   in the inbox (caption in the pinned issue « 📋 Légendes à copier »), the YouTube file (the
-   same MP4, or `youtube/<passage>.mp4` by another reciter when the slot has `youtube`; its
-   direct link and YouTube page are in the captions issue entry), what
+   in the inbox (caption in the pinned issue « 📋 Légendes à copier »), the YouTube file
+   (always recited by Tawfiq As-Sayegh: the same MP4 when the reel is his, else
+   `youtube/<passage>.mp4`, the slot's `youtube`; its direct link and YouTube page are in the
+   captions issue entry; or none for this slot, see step 4), what
    the owner should do. For a reciter's first publication, remind them to look at Facebook's copyright page
    (« Mises en application des droits d'auteur ») a few minutes after.

@@ -162,6 +162,36 @@ def test_the_captions_issue_says_which_video_goes_to_youtube():
     assert "**YouTube : ne pas mettre cette vidéo**" in merge_captions("", {"items": [item]})
 
 
+def test_the_captions_issue_says_youtube_always_has_its_own_reciter():
+    """platforms.youtube.reciter: his version of the reel, or nothing at all for this slot."""
+    from quran_reels.notify import merge_captions
+    item = {"key": "2026-11-12/morning", "day": "2026-11-12", "time": "07:30",
+            "passage": "108:1-3", "label": "", "reciter": "fares_abbad", "retry": False,
+            "caption": "Al-Kawthar by Fares Abbad\n",
+            "results": {"facebook": {"status": "published", "url": "https://f", "error": None}},
+            "files": {"mp4": "https://dl/a.mp4", "youtube_mp4": "https://dl/a-youtube.mp4",
+                      "page": "https://page", "command": "/youtube 2026-11-12/morning"},
+            "youtube": {"reciter": "sayegh", "video": "youtube/108_001-003.mp4",
+                        "caption": "Al-Kawthar by Tawfiq As-Sayegh\n",
+                        "label": "Tawfiq As-Sayegh", "instead_of": "Fares Abbad",
+                        "always": True}}
+    body = merge_captions("", {"items": [item]})
+    assert ("**YouTube : pas cette vidéo** (sur YouTube, toujours Tawfiq As-Sayegh) mais "
+            "[ce MP4](https://dl/a-youtube.mp4), récitée par Tawfiq As-Sayegh") in body
+    assert "Content ID" not in body and "Al-Kawthar by Tawfiq As-Sayegh" in body
+    assert "`/youtube 2026-11-12/morning <lien>`" in body
+
+    item["youtube"] = {"reciter": None, "error": "sourate 108 pas encore découpée",
+                       "always": True, "wanted": "Tawfiq As-Sayegh"}
+    item["files"]["youtube_mp4"] = None
+    body = merge_captions("", {"items": [item]})
+    assert "**YouTube : rien pour ce créneau, ne pas y mettre cette vidéo**" in body
+    assert "toujours Tawfiq As-Sayegh, et il n'est pas prêt" in body
+    assert "(sourate 108 pas encore découpée)" in body
+    assert "⬇️ [MP4](https://dl/a.mp4)" in body          # the reel itself stays downloadable
+    assert "`/youtube 2026-11-12/morning" not in body and "https://page" not in body
+
+
 def test_a_slot_nobody_tried_opens_the_alert_even_when_this_run_published(tmp_path):
     """The alert is written by a run: for a slot no run took, a later run has to say it, and
     its own success must not close what it has just opened."""

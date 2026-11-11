@@ -93,7 +93,8 @@ def surah_files(cfg: Config, src: Any, out: Path, budget: float = MEANINGS_BUDGE
 
 def launcher(cfg: Config, state: dict, src: Any = None) -> dict[str, Any]:
     names = cfg.content.get("reciters") or {}
-    no_youtube = rec.excluded_on(cfg, "youtube")
+    allowed = allowed_reciters(cfg, state)
+    own = rec.fixed_on(cfg, "youtube")      # YouTube: always this reciter (ondemand/check.py)
     surahs = []
     if src is not None:
         for n, c in sorted(src.quran.chapters.items()):
@@ -101,7 +102,9 @@ def launcher(cfg: Config, state: dict, src: Any = None) -> dict[str, Any]:
                            "ayahs": int(c["verses_count"])})
     return {
         "reciters": [{"name": n, "label": (names.get(n) or {}).get("label", n),
-                      "youtube": n not in no_youtube} for n in allowed_reciters(cfg, state)],
+                      "youtube": rec.allowed_on(cfg, "youtube", n)} for n in allowed],
+        "youtube_reciter": (names.get(own) or {}).get("label", own) if own in allowed else "",
+        "youtube_fixed": bool(own),
         "surahs": surahs,
         "backgrounds": [{"id": str(b["id"]), "tags": ", ".join(b.get("tags") or []),
                          "note": str(b.get("note") or "")}

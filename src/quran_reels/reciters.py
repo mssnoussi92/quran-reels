@@ -11,12 +11,16 @@ recording split and every needed ayah checked, config/splits/) and fit in max_se
 
 Deterministic: the same state gives the same choice. When no reciter of the rotation is ready,
 nothing is published for that slot (an error names the command that prepares it).
+
+A platform may have its own reciter, whatever the rotation chose (platforms.<name>.reciter:
+YouTube, always Tawfiq As-Sayegh, owner's choice 2026-11-11): other_for.
 """
 
 from __future__ import annotations
 
 import copy
 import dataclasses
+import re
 from collections.abc import Iterable
 from dataclasses import dataclass
 
@@ -124,20 +128,95 @@ def excluded_on(cfg: Config, platform: str) -> set[str]:
                .get("exclude_reciters") or [])
 
 
+def fixed_on(cfg: Config, platform: str) -> str | None:
+    """The one reciter a platform takes (platforms.<name>.reciter): YouTube, always Tawfiq
+    As-Sayegh (owner's choice, 2026-11-11). None: any reciter it does not exclude."""
+    name = ((cfg.project.get("platforms") or {}).get(platform) or {}).get("reciter")
+    return str(name) if name else None
+
+
+def fixed_reciters(cfg: Config) -> list[str]:
+    """The reciters some platform always takes, to prepare like the rotation's (prepare)."""
+    return list(dict.fromkeys(name for platform in (cfg.project.get("platforms") or {})
+                              if (name := fixed_on(cfg, platform))))
+
+
+def allowed_on(cfg: Config, platform: str, reciter: str) -> bool:
+    """May a reel by `reciter` go to `platform` as it is? Its own reciter only, when it has
+    one; else any reciter it does not exclude."""
+    fixed = fixed_on(cfg, platform)
+    return reciter == fixed if fixed else reciter not in excluded_on(cfg, platform)
+
+
 def choose_for(cfg: Config, platform: str, reciter: str, opts: list[Option]) -> str | None:
-    """Who recites the passage on `platform`: the rotation's choice, unless the platform
-    excludes it; then the ready reciter closest to target_seconds within the platform's
-    max_seconds (YouTube Shorts: 3 min) that it does not exclude. None: no one fits."""
+    """Who recites the passage on a platform without its own reciter: the rotation's choice,
+    unless the platform excludes it; then the ready reciter closest to target_seconds within
+    the platform's max_seconds (YouTube Shorts: 3 min) that it does not exclude. None: no one
+    fits."""
     excluded = excluded_on(cfg, platform)
     if reciter not in excluded:
         return reciter
-    conf = (cfg.project.get("platforms") or {}).get(platform) or {}
-    p = cfg.content["passage"]
-    high = float(conf.get("max_seconds") or p["max_seconds"])
-    target = float(p.get("target_seconds", 60))
+    high, target = _limits(cfg, platform)
     fits = [o for o in opts if o.seconds is not None and o.seconds <= high
             and o.name not in excluded]
     return min(fits, key=lambda o: abs(o.seconds - target)).name if fits else None
+
+
+def other_for(cfg: Config, platform: str, key: str, reciter: str,
+              claimed: Iterable[str] = ()) -> Option | None:
+    """Who recites `key` on `platform` when the reel is by `reciter` and may not go there as
+    it is (allowed_on); None: the same video goes there.
+
+    A platform with its own reciter (fixed_on) gets him and no one else: ready when his split
+    of the passage is checked and it fits the platform's max_seconds. A claim on Meta (state
+    `claimed`) does not count: YouTube's Content ID is not Meta's Rights Manager.
+    Otherwise choose_for, among the rotation's reciters.
+    Option.seconds None: no one can, Option.why says why (nothing goes to the platform)."""
+    if allowed_on(cfg, platform, reciter):
+        return None
+    own = own_option(cfg, platform, key)
+    if own is not None:
+        return own
+    opts = options(cfg, key, claimed)
+    name = choose_for(cfg, platform, reciter, opts)
+    if name is None:
+        return Option("", None, "aucun autre récitateur prêt pour ce passage")
+    return next(o for o in opts if o.name == name)
+
+
+def own_option(cfg: Config, platform: str, key: str) -> Option | None:
+    """A platform's own reciter for a passage (fixed_on; None without one): ready when his
+    split of the passage is checked and it fits the platform's max_seconds."""
+    fixed = fixed_on(cfg, platform)
+    if not fixed:
+        return None
+    high, _ = _limits(cfg, platform)
+    opt = passage_seconds(with_reciter(cfg, fixed), key)
+    if opt.seconds is not None and opt.seconds > high:
+        return Option(fixed, None, f"{opt.seconds:.0f} s, over {high:.0f} s")
+    return opt
+
+
+def fixed_gaps(cfg: Config, platform: str, keys: Iterable[str]) -> dict[str, str]:
+    """The passages a platform's own reciter is not ready for, with the reason (prepare):
+    each would get nothing on that platform. Empty without an own reciter."""
+    return {key: opt.why for key in keys
+            if (opt := own_option(cfg, platform, key)) is not None and opt.seconds is None}
+
+
+def _limits(cfg: Config, platform: str) -> tuple[float, float]:
+    """(longest video the platform takes, target_seconds)."""
+    conf = (cfg.project.get("platforms") or {}).get(platform) or {}
+    p = cfg.content["passage"]
+    return float(conf.get("max_seconds") or p["max_seconds"]), float(p.get("target_seconds", 60))
+
+
+def why(option: Option) -> str:
+    """passage_seconds' reason, for the owner (captions issue, on-demand answers)."""
+    text = option.why or (f"{option.seconds:.0f} s" if option.seconds is not None else "")
+    text = re.sub(r"^surah (\d+) not split$", r"sourate \1 pas encore découpée", text)
+    text = re.sub(r"^(\d+) s, over (\d+) s$", r"\1 s, plus que \2 s", text)
+    return re.sub(r"^(\S+) not checked$", r"\1 pas encore vérifiées", text)
 
 
 def claimed_reciters(state) -> set[str]:

@@ -12,6 +12,7 @@ titre, description et hashtags prêts à copier, puis `/youtube <lien>` pour le 
 | Un reel à la demande remplace-t-il un créneau ? | **Non : en plus** des deux créneaux ; calendrier et files inchangés |
 | Le calendrier arrive à un passage déjà publié à la demande | **Il ne le saute pas** : il le publie à son tour. L'état garde chaque publication à la demande, par plateforme (`on_demand` de `published.json`) |
 | YouTube demandé avec un récitateur revendiqué par Content ID (`platforms.youtube.exclude_reciters` : Budair) | **YouTube refusé** pour cette demande, l'aperçu le dit et propose d'autres récitateurs ; Facebook, Instagram et TikTok continuent |
+| YouTube coché (2026-11-11 : sur YouTube, toujours Tawfiq As-Sayegh, `platforms.youtube.reciter`) | Une demande fait **une seule vidéo**. Récitateur « Auto » : **Tawfiq récite tout le reel**, pour toutes les plateformes cochées (le formulaire et l'aperçu le disent). Un autre récitateur choisi : **YouTube retiré** de la demande avec une note, les autres plateformes continuent ; YouTube seul : demande refusée. Tawfiq trop long pour le passage (plus de 90 s) : refus qui dit pourquoi lui, et les autres récitateurs possibles sans YouTube. Le formulaire coche YouTube par défaut : une demande « Auto » envoyée telle quelle est donc récitée par Tawfiq ; décocher YouTube rend « Auto » à la rotation. Pas de second rendu dans une demande (deux fichiers à approuver) |
 
 ## Options comparées
 
@@ -94,9 +95,11 @@ titre, description et hashtags prêts à copier, puis `/youtube <lien>` pour le 
    prévu », `youtube: cancelled` (+ `note`) écrit à la main dans l'état ; le catalogue ne liste
    que les demandes arrivées sur une plateforme.
 6. **Reels du calendrier** — même téléchargement direct : après chaque run `daily`, le MP4
-   publié (ou la version YouTube par un autre récitateur) va dans la release ; le ticket
-   épinglé « 📋 Légendes à copier » donne, pour chaque vidéo, le lien MP4, la page YouTube
-   (titre, description, hashtags) et la commande `/youtube <créneau> <lien>` à y commenter.
+   publié et sa version YouTube (par Tawfiq As-Sayegh, quand la rotation a choisi quelqu'un
+   d'autre) vont dans la release ; le ticket épinglé « 📋 Légendes à copier » donne, pour
+   chaque vidéo, le lien MP4, la page YouTube (titre, description, hashtags) et la commande
+   `/youtube <créneau> <lien>` à y commenter. Tawfiq pas prêt pour le passage : le MP4 seul,
+   et « rien pour YouTube ce créneau ».
 
 Commandes (commentaires du propriétaire seulement) : `/publier`, `/essai`, `/apercu` (refaire
 l'aperçu ; modifier le ticket le refait aussi), `/mots …` (mots expliqués), `/youtube [lien]` ;

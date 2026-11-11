@@ -49,7 +49,8 @@ def refused(checked: Checked | None, problems: list[str], passage: str = "") -> 
     lines = [f"## ⛔ Demande refusée · {key}", ""]
     lines += [f"- {p}" for p in problems]
     if checked and checked.suggestions:
-        who = (f"durées avec {checked.reciter_label}" if checked.request.reciter != "auto"
+        who = (f"durées avec {checked.reciter_label}"
+               if (checked.asked or checked.request.reciter) != "auto"
                and checked.reciter_label else "durées du récitateur prêt le plus court")
         lines += ["", f"**Plages valides** (phrases entières, {who}) : "
                   + " · ".join(f"`{s}`" for s in checked.suggestions)]
