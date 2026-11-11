@@ -49,6 +49,12 @@ ends in 20 s, which is not a missed slot. Read, don't guess.
      (`platforms.youtube.reciter`), so these passages would get nothing for YouTube. Tell the
      owner which passages and days; the fix is his split
      (`QURAN_REELS_RECITER=sayegh quran-reels split --audit --fix <surah>`, test-reciter step 2).
+   - daily log « the basmala of surah N is cut wrong (… recited after a stop …); another
+     reciter is chosen », or the captions issue says « découpe refusée » for YouTube: the
+     render read on the recording that this reciter's basmala holds a stop (the start of
+     ayah 1 after it, or an isti'adha before it), which recognition had let pass. Nothing was
+     published with it. The nightly prepare cuts it again; if the same line comes back the
+     next day, say so: `QURAN_REELS_RECITER=<name> quran-reels split --audit --fix <surah>`.
    - daily: the captions issue says « YouTube : rien pour ce créneau » and the slot has
      `youtube: {reciter: null, error}`: Tawfiq was not ready for that passage. The reel of the
      day must not go to YouTube in his place; report the reason given.

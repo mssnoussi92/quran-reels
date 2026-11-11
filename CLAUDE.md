@@ -236,7 +236,17 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   reconnaissance** (`sources/recognition.py`, Whisper affiné sur la récitation) : chaque segment
   doit être reconnu comme son ayah (≥ 0,75) et **chaque coupe est réécoutée des deux côtés**
   (`check_cut` : aucun mot d'une ayah dans la voisine, « Alif » et « لا » ratés le 2026-11-05) ;
-  la basmala finit au dernier vrai silence avant l'ayah 1. Découpe commitée
+  la basmala finit au dernier vrai arrêt avant l'ayah 1 et se vérifie **aussi sur
+  l'enregistrement, sans reconnaissance** (`stops`, `basmala_break`, 2026-11-11) : une seule
+  émission de voix, sans arrêt de 0,3 s à l'intérieur (silence, ou calme 20 dB sous le niveau
+  du récitateur). Ce qui suit un arrêt est le début de l'ayah 1 (« Alif » de « الم » après la
+  basmala de la version YouTube de 29:60 par Tawfiq, que la reconnaissance n'entendait pas) ;
+  ce qui le précède est l'isti'adha (ses sourates 6, 40 et 78 : la basmala commence après).
+  Elle doit aussi être **reconnue comme elle-même** (≥ 0,9, sans répétition : l'isti'adha
+  devant valait 0,77 et passait) ; une découpe plus ancienne sous 0,9 se lit comme non
+  vérifiée. Contrôle demandé à la découpe, à l'audit, chaque nuit par `prepare` (une basmala
+  contredite est recoupée) et une dernière fois au rendu (`CutError` : le run quotidien passe
+  au récitateur suivant, pas de version YouTube, rien de publié avec cette coupe). Découpe commitée
   `config/splits/<id>/SSS.json` (temps seulement, et temps des mots des ayahs de 15 mots ou
   plus) : `quran-reels split <passage>`, `quran-reels split --audit --fix <sourates>`. Le texte
   reconnu n'est que comparé, jamais affiché ni publié.
@@ -420,6 +430,10 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
       suivants ; version YouTube de 108:1-3 rendue dans une session par `daily.youtube_version` :
       16,8 s, crédit et légende à son nom) · [ ] premier run `daily` avec la règle · [ ] premier
       Short mis en ligne par le propriétaire, revendications regardées dans YouTube Studio
+- [x] Basmala vérifiée sur l'enregistrement (2026-11-11, après « الم » entendu après la basmala
+      de la version YouTube de 29:60) : 115 basmalas auditées, 4 de Tawfiq refaites (29 ; 6, 40,
+      78 : isti'adha), version YouTube de 29:60 refaite et écoutée en entier par la
+      reconnaissance · [ ] premier run `prepare` et premier run `daily` avec ces contrôles
 - [x] Publication à la demande (docs/on-demand.md, `on-demand.yml`) : [x] dry run sur la branche (#34, 2026-11-06 : aperçu, `/essai`, droits Meta propres, MP4 1080p et textes YouTube ; refus #35 et découpe non nette #34)
       · [x] première demande approuvée par le propriétaire depuis son téléphone (#39,
       2026-11-06 : 101:1-11, Omar Hisham, YouTube seul ; aperçu refait après la correction des

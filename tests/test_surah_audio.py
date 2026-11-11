@@ -89,8 +89,10 @@ def test_the_committed_splits_are_complete():
         data = read_json(path)      # what rendering uses: the checked segments, in order
         times = [t for k, seg in data["segments"].items() if k in data["match"] for t in seg]
         assert times == sorted(times), path
-        from quran_reels.sources.surah_audio import MIN_MATCH
+        from quran_reels.sources.surah_audio import BASMALA_MATCH, MIN_MATCH
         assert min(data["match"].values()) >= MIN_MATCH, path
+        # heard as itself: 0.77 was an isti'adha before it (Tawfiq As-Sayegh 78, 2026-11-11)
+        assert data["match"].get("basmala", 1.0) >= BASMALA_MATCH, path
 
 
 def test_the_basmala_ends_at_the_reciters_stop_not_at_a_late_published_start():
@@ -167,3 +169,211 @@ def test_a_cut_that_starts_on_a_tiny_frame(tmp_path):
                     "-c:a", "libmp3lame", "-b:a", "320k", str(mp3)], check=True)
     out = cut(mp3, 7.080, 8.490, tmp_path / "c.flac")
     assert abs(duration(out) - 1.41) < 0.03
+
+
+# ---- the basmala on the recording itself (Tawfiq As-Sayegh, 2026-11-11) -----------------------
+
+BASMALA = "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ"
+ISTIADHA = "أَعُوذُ بِاللَّهِ مِنَ الشَّيْطَانِ الرَّجِيمِ"
+
+
+def recording(path: Path, *parts: tuple[float, bool]) -> Path:
+    """A 16 kHz mono WAV: (seconds, sound?) one after the other, a tone for recitation."""
+    rate = 16000
+    chunks = []
+    for seconds, sound in parts:
+        t = np.arange(round(seconds * rate)) / rate
+        chunks.append(0.3 * np.sin(2 * np.pi * 220 * t) if sound else np.zeros(len(t)))
+    data = (np.concatenate(chunks) * 32767).astype("<i2")
+    import wave
+    with wave.open(str(path), "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(rate)
+        w.writeframes(data.tobytes())
+    return path
+
+
+class Says:
+    """A recogniser that hears each utterance whose middle is in the clip, and nothing of one
+    cut short: as the real one, which heard the basmala alone in a clip that ended with the
+    first 0.7 s of «الم». Each sample holds its own time (see `clock`)."""
+
+    def __init__(self, *spans: tuple[float, float, str]):
+        self.spans = spans
+
+    def text(self, samples):
+        a, b = float(samples[0]), float(samples[-1])
+        return " ".join(t for s, e, t in self.spans if a <= (s + e) / 2 <= b)
+
+    def words(self, samples):
+        return []
+
+
+def clock(monkeypatch, seconds: float) -> None:
+    """find_split's samples say what time it is, for `Says`; the silences come from the file."""
+    from quran_reels.sources import surah_audio
+
+    monkeypatch.setattr(surah_audio, "decode",
+                        lambda path: np.arange(int(seconds * 16000), dtype=np.float32) / 16000)
+
+
+# Tawfiq As-Sayegh, surah 29, as measured: the basmala until 2.34, a stop of 0.65 s that two
+# clicks break into 0.16 + 0.17 + 0.21 s, «الم» from 2.99 to 9.3, 29:2 from 9.7.
+SAYEGH_29 = [(0.23, False), (2.11, True), (0.16, False), (0.09, True), (0.17, False),
+             (0.02, True), (0.21, False), (6.31, True), (0.40, False), (5.30, True)]
+
+
+@pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="needs ffmpeg")
+def test_a_stop_broken_by_clicks_is_one_stop(tmp_path):
+    from quran_reels.sources.surah_audio import stops
+
+    wav = recording(tmp_path / "029.wav", *SAYEGH_29)
+    plain, _ = pauses(wav)                       # silencedetect wants 0.3 s without a break
+    assert [round(p.start, 1) for p in plain] == [9.3]
+    [stop] = stops(wav, 6.0)
+    assert stop.start == pytest.approx(2.34, abs=0.03) and stop.end == pytest.approx(2.99, abs=0.03)
+    assert [round(p.start, 1) for p in stops(wav, 12.0)] == [2.3, 9.3]
+
+
+def test_a_basmala_is_one_utterance():
+    from quran_reels.sources.surah_audio import basmala_break, basmala_lead, basmala_stop
+
+    stop = Pause(2.34, 2.99)
+    # 29: cut on mp3quran's start of 29:1 (3.68), 0.69 s into «الم»; then at the stop
+    assert "0.69 s recited after a stop of 0.65 s" in basmala_break([stop], 0.0, 3.68)
+    assert basmala_break([stop], 0.0, 2.59) == ""
+    assert basmala_stop([stop], 0.0, 3.68 + 0.4) == stop     # a basmala of 2.1 s is one
+    assert basmala_lead([stop], 0.0, stop) is None           # nothing before it
+    # 78: the isti'adha, a stop, the basmala, a stop, 78:1
+    first, second = Pause(3.29, 3.79), Pause(6.60, 6.95)
+    assert "inside the basmala" in basmala_break([first, second], 0.228, 6.89)
+    assert basmala_stop([first, second], 0.0, 6.9 + 0.4) == second
+    assert basmala_lead([first, second], 0.0, second) == first
+    assert basmala_break([first, second], 3.54, 6.775) == ""
+    # a silence at the very start of the file, or the stop the segment ends in, is no break
+    assert basmala_break([Pause(0.0, 0.5), Pause(4.0, 4.6)], 0.25, 4.25) == ""
+
+
+@pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="needs ffmpeg")
+def test_the_basmala_ends_at_a_stop_that_clicks_break(tmp_path, monkeypatch):
+    """The reel 29:60 said «Alif» after its basmala (YouTube, 2026-11-11): the cut was on the
+    published start of 29:1, the stop before it was not seen, and recognition heard the
+    basmala alone in that segment."""
+    from quran_reels.sources.surah_audio import find_split
+
+    wav = recording(tmp_path / "029.wav", *SAYEGH_29)
+    clock(monkeypatch, 15.0)
+    says = Says((0.23, 2.34, BASMALA), (2.99, 9.3, "الم"), (9.7, 15.0, "أَحَسِبَ النَّاسُ"))
+    segments, scores = find_split(wav, ["basmala", "1", "2"],
+                                  [BASMALA, "الٓمٓ", "أَحَسِبَ ٱلنَّاسُ"], [3.68, 5.82, 5.3], says,
+                                  starts=[None, 3.68, 9.5], check={"basmala", "2"})
+    assert segments["basmala"] == pytest.approx((0.0, 2.59), abs=0.04)     # not 3.68
+    assert segments["1"][0] == pytest.approx(2.74, abs=0.04)
+    assert scores == {"basmala": 1.0, "2": 1.0}
+
+
+@pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="needs ffmpeg")
+def test_the_basmala_starts_after_an_istiadha(tmp_path, monkeypatch):
+    """Tawfiq As-Sayegh's surah 78 starts with the isti'adha: both were the basmala's segment,
+    recognised 0.77."""
+    from quran_reels.sources.surah_audio import find_split
+
+    wav = recording(tmp_path / "078.wav", (0.23, False), (3.06, True), (0.50, False),
+                    (2.81, True), (0.35, False), (3.65, True), (0.40, False), (3.0, True))
+    clock(monkeypatch, 14.0)
+    says = Says((0.23, 3.29, ISTIADHA), (3.79, 6.6, BASMALA), (6.95, 10.6, "عَمَّ يَتَسَاءَلُونَ"),
+                (11.0, 14.0, "عَنِ النَّبَإِ الْعَظِيمِ"))
+    segments, scores = find_split(wav, ["basmala", "1", "2"],
+                                  [BASMALA, "عَمَّ يَتَسَآءَلُونَ", "عَنِ ٱلنَّبَإِ ٱلْعَظِيمِ"],
+                                  [6.9, 4.0, 3.1], says, starts=[None, 6.9, 10.9])
+    assert segments["basmala"] == pytest.approx((3.54, 6.775), abs=0.04)
+    assert scores == {"basmala": 1.0, "1": 1.0, "2": 1.0}
+
+
+@pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="needs ffmpeg")
+def test_a_basmala_that_the_recording_contradicts_is_never_cut(tmp_path):
+    """The render's last look: a split checked before this rule (the state branch's 29 of
+    Tawfiq As-Sayegh) is refused when the reel is made, and the nightly run cuts it again."""
+    from quran_reels.sources.http import write_json
+    from quran_reels.sources.surah_audio import CutError, SurahFiles
+
+    files = SurahFiles(tmp_path / "cache", None, "tawfeeq-sayegh", "https://x/{surah:03d}.mp3",
+                       [tmp_path / "splits"], lambda surah: {}, lambda surah: {})
+    files.dir.mkdir(parents=True)
+    recording(files.dir / "029.mp3", *SAYEGH_29)
+    split = {"source": "https://x/029.mp3", "match": {"basmala": 1.0, "1": 1.0},
+             "segments": {"basmala": [0.0, 3.68], "1": [3.68, 9.64]}}
+    write_json(tmp_path / "splits" / "029.json", split)
+    assert "0.69 s recited after a stop" in files.basmala_problem(29)
+    with pytest.raises(CutError, match="the basmala of surah 29 is cut wrong"):
+        files.basmala(29, "001001")
+    assert not list(files.dir.glob("*.flac"))
+    split["segments"] = {"basmala": [0.0, 2.59], "1": [2.74, 9.64]}
+    write_json(tmp_path / "splits" / "029.json", split)
+    assert files.basmala_problem(29) == ""
+    assert files.basmala(29, "001001").name == "029bsm-0-2590.flac"
+    assert files.fetch_file("029001").is_file()                  # an ayah is not asked
+    assert files.basmala_problem(9) == "" and files.basmala_problem(30) == ""    # none, no split
+
+
+def test_a_basmala_is_heard_as_itself_not_after_an_istiadha():
+    """Recognised 0.77 with a repetition allowed (as if recited twice), and passed at 0.75:
+    Tawfiq As-Sayegh's surahs 6, 40 and 78 started their videos with the isti'adha."""
+    from quran_reels.sources.surah_audio import enough
+
+    both = f"{ISTIADHA} {BASMALA}"
+    assert heard_matches(both, BASMALA, "", "الٓمٓ") == pytest.approx(0.77, abs=0.01)
+    strict = heard_matches(both, BASMALA, "", "الٓمٓ", repeat=False)
+    assert strict < 0.75 and not enough("basmala", strict)
+    assert enough("basmala", heard_matches(BASMALA, BASMALA, "", "الٓمٓ", repeat=False))
+    short = heard_matches("بِسْمِ اللَّهِ الرَّحْمَنِ", BASMALA, "", "الٓمٓ", repeat=False)
+    assert enough("1", short) and not enough("basmala", short)      # its last word missing
+
+
+def test_a_basmala_checked_under_the_old_rule_reads_as_not_checked(tmp_path):
+    from quran_reels.sources.http import write_json
+    from quran_reels.sources.surah_audio import SurahFiles
+
+    files = SurahFiles(tmp_path / "cache", None, "tawfeeq-sayegh", "https://x/{surah:03d}.mp3",
+                       [tmp_path / "splits"], lambda surah: {}, lambda surah: {})
+    write_json(tmp_path / "splits" / "040.json", {
+        "segments": {"basmala": [0.0, 5.914], "60": [900.0, 915.0]},
+        "match": {"basmala": 0.77, "60": 0.8}})
+    assert files.matches(40) == {"60": 0.8}
+    with pytest.raises(SystemExit, match="the basmala is not checked"):
+        files.checked(40, "basmala")
+    # A split with its basmala heard as itself is read before that one, even with fewer ayahs.
+    files.splits = [tmp_path / "repo", tmp_path / "splits"]
+    write_json(tmp_path / "splits" / "040.json", {
+        "segments": {"basmala": [0.0, 5.914], "59": [880.0, 894.6], "60": [894.6, 911.5]},
+        "match": {"basmala": 0.77, "59": 1.0, "60": 1.0}})
+    write_json(tmp_path / "repo" / "040.json", {
+        "segments": {"basmala": [2.885, 5.48], "60": [894.63, 911.55]},
+        "match": {"basmala": 1.0, "60": 1.0}})
+    assert files.split_path(40) == tmp_path / "repo" / "040.json"
+    assert files.matches(40) == {"basmala": 1.0, "60": 1.0}
+
+
+@pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="needs ffmpeg")
+def test_a_stop_that_never_reaches_silence_is_a_stop(tmp_path):
+    """Tawfiq As-Sayegh, surahs 6 and 40: 0.4 s between the isti'adha and the basmala, 20 dB
+    under his voice but never under -35 dB for long: silencedetect sees no stop there."""
+    from quran_reels.sources.surah_audio import stops
+
+    rate = 16000
+    t = np.arange(8 * rate) / rate
+    voice = 0.3 * np.sin(2 * np.pi * 220 * t)
+    voice[int(2.7 * rate):int(3.1 * rate)] *= 0.07          # 23 dB down: about -36 dB, peaks -33
+    voice[int(5.4 * rate):int(6.2 * rate)] = 0.0
+    import wave
+    wav = tmp_path / "040.wav"
+    with wave.open(str(wav), "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(rate)
+        w.writeframes((voice * 32767).astype("<i2").tobytes())
+    plain, _ = pauses(wav, until=8.0)
+    assert [round(p.start, 1) for p in plain] == [5.4]
+    assert [(round(p.start, 1), round(p.end, 1)) for p in stops(wav, 8.0)] == [(2.7, 3.1),
+                                                                               (5.4, 6.2)]
