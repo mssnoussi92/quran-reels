@@ -21,9 +21,11 @@ A reel claimed after publication (Meta mutes or blocks it: publish.after_check r
 slot is marked `claimed` and not retried, its passage goes back to the head of its queue, and
 its reciter joins the state's `claimed` list: the rotation never picks it again.
 
-YouTube (uploaded by hand) has its own claims: when the rotation picks a reciter that YouTube
-claims (platforms.youtube.exclude_reciters), the run renders the passage again by another one
-into out/youtube/ for the owner to upload, and the captions issue says so.
+YouTube (uploaded by hand) has its own reciter, always the same (platforms.youtube.reciter:
+Tawfiq As-Sayegh): when the rotation picks another one, the run renders the passage again by
+him into out/youtube/ for the owner to upload, and the captions issue says so. A passage he is
+not ready for gets nothing for YouTube that day. Without that setting, YouTube takes the reel
+as it is unless its Content ID claims the reciter (platforms.youtube.exclude_reciters).
 """
 
 from __future__ import annotations
@@ -290,35 +292,46 @@ def again(cfg: Config, state: State, state_path: Path, p: Pending, video: Path,
 
 def youtube_version(cfg: Config, p: Pending, reciter: str | None,
                     claimed: set[str]) -> dict | None:
-    """The reel again for YouTube when it claims `reciter` (Content ID: a Short over 1 min
-    with a claim is blocked worldwide), by a ready reciter it does not claim, in
-    out/youtube/. None when the same video goes to YouTube. Never fails the run."""
+    """The reel again for YouTube when it does not take `reciter` (reciters.other_for): by
+    its own reciter (platforms.youtube.reciter, `always` in the answer), or else, when its
+    Content ID claims `reciter` (a Short over 1 min with a claim is blocked worldwide), by a
+    ready reciter it does not claim; in out/youtube/. None when the same video goes to
+    YouTube. `reciter` None in the answer: nothing for YouTube (`error`: why), the reel of
+    the day must not go there. Never fails the run."""
     from quran_reels import reciters as rec
     from quran_reels.render import render_passage
 
     if cfg is None or not reciter:
         return None
     yt = (cfg.project.get("platforms") or {}).get("youtube") or {}
-    if yt.get("mode") != "manual" or reciter not in rec.excluded_on(cfg, "youtube"):
+    if yt.get("mode") != "manual" or rec.allowed_on(cfg, "youtube", reciter):
         return None
+    names = cfg.content.get("reciters") or {}
+    fixed = rec.fixed_on(cfg, "youtube")
+    rule = {"always": True, "wanted": (names.get(fixed) or {}).get("label", fixed)} \
+        if fixed else {}
     try:
-        other = rec.choose_for(cfg, "youtube", reciter, rec.options(cfg, p.item.key, claimed))
-        if other is None:
-            return {"reciter": None, "error": "aucun autre récitateur prêt pour ce passage"}
+        opt = rec.other_for(cfg, "youtube", p.item.key, reciter, claimed)
+        if opt.seconds is None:
+            print(f"warning: {p.item.key}: no YouTube version ({opt.name or 'no reciter'}: "
+                  f"{opt.why})", file=sys.stderr)
+            return {"reciter": None, "error": rec.why(opt), **rule}
+        other = opt.name
         ycfg = dataclasses.replace(rec.with_reciter(cfg, other), out_dir=cfg.out / YOUTUBE_DIR)
         video = render_passage(ycfg, p.item.key, p.item.label_ar, p.item.label_en,
                                p.item.series.hashtags, variants=False).video
         caption = publish_mod.load_reel(video).text(publish_mod.max_hashtags(cfg, "youtube"))
-        print(f"{p.item.key}: YouTube version by {other} ({reciter} is claimed there): "
-              f"out/{YOUTUBE_DIR}/{video.name}")
-        names = cfg.content.get("reciters") or {}
+        print(f"{p.item.key}: YouTube version by {other} ("
+              + ("always there" if fixed else f"{reciter} is claimed there")
+              + f"): out/{YOUTUBE_DIR}/{video.name}")
         return {"reciter": other, "video": f"{YOUTUBE_DIR}/{video.name}", "caption": caption,
                 "label": (names.get(other) or {}).get("label", other),
-                "instead_of": (names.get(reciter) or {}).get("label", reciter)}
+                "instead_of": (names.get(reciter) or {}).get("label", reciter),
+                **({"always": True} if fixed else {})}
     except (Exception, SystemExit) as e:     # noqa: BLE001  (the reel is out already)
         print(f"warning: YouTube version of {p.item.key}: {type(e).__name__}: {e}",
               file=sys.stderr)
-        return {"reciter": None, "error": f"{type(e).__name__}: {e}"}
+        return {"reciter": None, "error": f"{type(e).__name__}: {e}", **rule}
 
 
 def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: State,
@@ -390,8 +403,13 @@ def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
         if caption:
             publish_mod._summary("**Légende à coller sur le brouillon TikTok**\n\n"
                                  f"```text\n{caption.strip()}\n```")
-        if not dry_run and youtube and youtube.get("reciter"):
-            state.slot(p.day, p.slot.name)["youtube"] = {"reciter": youtube["reciter"],
-                                                         "video": youtube["video"]}
+        if not dry_run and youtube:
+            # With a reciter: the video for YouTube. Without: none (`error`), not this reel;
+            # never written over the version an earlier run of the slot made.
+            record = state.slot(p.day, p.slot.name)
+            if youtube.get("reciter"):
+                record["youtube"] = {"reciter": youtube["reciter"], "video": youtube["video"]}
+            elif not (record.get("youtube") or {}).get("reciter"):
+                record["youtube"] = {"reciter": None, "error": youtube.get("error", "")}
             state.save(state_path)
     return 1 if failed else 0

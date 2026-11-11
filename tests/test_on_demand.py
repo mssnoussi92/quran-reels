@@ -167,11 +167,63 @@ def test_a_recording_not_split_yet_is_split_first(cfg):
     assert "Tawfiq As-Sayegh (57 s)" in [str(a) for a in c.alternatives]
 
 
+NO_YOUTUBE = ("facebook", "instagram", "tiktok")
+
+
 def test_auto_follows_the_rotation_rule(cfg):
-    c = verdict(cfg, "auto", 1, 5)                 # closest to 60 s among the ready ones
-    assert c.reciter == "minshawi" and c.seconds == 47.0
+    c = verdict(cfg, "auto", 1, 5, platforms=NO_YOUTUBE)    # closest to 60 s among the ready
+    assert c.reciter == "minshawi" and c.seconds == 47.0 and not c.notes
     recent = {"slots": {"2026-11-05/morning": {"reciter": "minshawi", "results": {}}}}
-    assert verdict(cfg, "auto", 1, 5, state=recent).reciter != "minshawi"     # avoid_last
+    assert verdict(cfg, "auto", 1, 5, state=recent,
+                   platforms=NO_YOUTUBE).reciter != "minshawi"                # avoid_last
+
+
+def test_auto_with_youtube_is_recited_by_youtubes_own_reciter(cfg):
+    """YouTube: always Tawfiq As-Sayegh, and a request makes one video (owner's choice,
+    2026-11-11): with « auto » and YouTube ticked he recites it for every platform."""
+    c = verdict(cfg, "auto", 1, 5)
+    assert c.ok and c.reciter == "sayegh" and c.seconds == 27.0 and c.asked == "sayegh"
+    assert c.platforms == ("facebook", "instagram", "tiktok", "youtube")
+    assert c.notes == ["YouTube coché : récité par Tawfiq As-Sayegh (toujours lui sur YouTube)"]
+    alone = verdict(cfg, "auto", platforms=("youtube",))
+    assert alone.ok and alone.reciter == "sayegh"
+
+    slow = dict(PACE, sayegh=9.0)                  # 101 s with him: said as his, and why him
+    c = verdict(cfg, "auto", seconds=lambda n, k: Option(n, round(slow[n] * 11 + 2, 1))
+                if n != "omar_hisham" else Option(n, None, "surah 93 not split"))
+    assert not c.ok and c.problems[0].startswith(
+        "93:1-11 dure 101 s avec Tawfiq As-Sayegh, plus que 90 s (YouTube est coché")
+
+    # Out of the rotation after a claim on Meta: « auto » as usual, and no YouTube.
+    claimed = {"claimed": {"sayegh": {"reason": "muted"}}}
+    c = verdict(cfg, "auto", 1, 5, state=claimed)
+    assert c.ok and c.reciter == "minshawi" and "youtube" not in c.platforms
+    assert "il n'est pas autorisé pour la publication" in c.notes[0]
+
+
+def test_youtube_is_dropped_for_another_reciter_than_its_own(cfg):
+    c = verdict(cfg, "minshawi", 1, 5)             # never claimed anywhere: dropped all the same
+    assert c.ok and c.reciter == "minshawi" and c.platforms == NO_YOUTUBE
+    assert c.notes == [("YouTube retiré : sur YouTube, toujours Tawfiq As-Sayegh ; pour "
+                        "YouTube, une autre demande avec lui (ou « auto »)")]
+    alone = verdict(cfg, "minshawi", 1, 5, platforms=("youtube",))
+    assert not alone.ok and "YouTube retiré" in alone.problems[0]
+    kept = verdict(cfg, "sayegh", 1, 5)
+    assert kept.ok and "youtube" in kept.platforms and not kept.notes
+
+
+def test_without_its_own_reciter_youtube_drops_only_what_content_id_claims(cfg):
+    import copy
+    import dataclasses
+
+    project = copy.deepcopy(cfg.project)
+    del project["platforms"]["youtube"]["reciter"]
+    free = dataclasses.replace(cfg, project=project)
+    c = verdict(free, "auto", 1, 5)
+    assert c.reciter == "minshawi" and "youtube" in c.platforms and not c.notes
+    c = verdict(free, "budair")
+    assert c.ok and c.platforms == NO_YOUTUBE
+    assert "revendiqué par Content ID" in c.notes[0] and "Tawfiq As-Sayegh" in c.notes[0]
 
 
 def test_only_reciters_allowed_for_publishing(cfg):
@@ -572,6 +624,23 @@ def test_youtube_on_the_captions_issue_marks_a_calendar_slot(world):
     assert "introuvable" in world.gh.posted[-1]
 
 
+def test_youtube_without_a_slot_skips_one_that_had_nothing_for_youtube(world):
+    """YouTube's own reciter was not ready that evening (slot `youtube`: no reciter): a bare
+    `/youtube <link>` is about the reel before, which has its YouTube version."""
+    world.state.parent.mkdir(parents=True)
+    world.state.write_text(json.dumps({"slots": {
+        "2026-11-19/evening": {"passage": "2:250-250", "results": {
+            "facebook": {"status": "published"}},
+            "youtube": {"reciter": None, "error": "2:250 pas encore vérifiées"}},
+        "2026-11-19/morning": {"passage": "102:1-8", "results": {
+            "facebook": {"status": "published"}},
+            "youtube": {"reciter": "sayegh", "video": "youtube/102_001-008.mp4"}}}}), "utf-8")
+    flow.run_youtube(world.cfg, world.gh, 5, "https://youtu.be/k", world.state, kind="captions")
+    slots = saved(world)["slots"]
+    assert slots["2026-11-19/morning"]["results"]["youtube"]["url"] == "https://youtu.be/k"
+    assert "youtube" not in slots["2026-11-19/evening"]["results"]
+
+
 # ---- daily reels: direct downloads ----------------------------------------------------------
 
 def test_daily_reels_get_a_direct_download_and_a_youtube_page(world, tmp_path):
@@ -600,6 +669,32 @@ def test_daily_reels_get_a_direct_download_and_a_youtube_page(world, tmp_path):
     assert "⬇️ [MP4](https://dl/2026-11-06-morning-018_001-010.mp4)" in entry
     assert "`/youtube 2026-11-06/morning <lien>`" in entry
     assert "mais [ce MP4](https://dl/2026-11-06-morning-018_001-010-youtube.mp4)" in entry
+
+
+def test_a_slot_with_nothing_for_youtube_offers_no_youtube_file(world, tmp_path):
+    """YouTube's own reciter was not ready (daily.youtube_version): the reel of the day is a
+    download like any other, never the file for YouTube."""
+    from quran_reels import notify
+
+    make_reel(world.cfg.out, "18:1-10")
+    report = {"items": [{"key": "2026-11-13/morning", "day": "2026-11-13", "time": "07:30",
+                         "passage": "18:1-10", "label": "", "reciter": "budair",
+                         "caption": "Al-Kahf\n", "results": {
+                             "facebook": {"status": "published", "url": "https://f"}},
+                         "youtube": {"reciter": None, "always": True,
+                                     "wanted": "Tawfiq As-Sayegh",
+                                     "error": "18:3 pas encore vérifiées"}}]}
+    path = tmp_path / "report.json"
+    path.write_text(json.dumps(report), "utf-8")
+    assert flow.daily_files(world.cfg, world.hosting, path) == 0
+    assert set(world.hosting.uploaded) == {"2026-11-13-morning-018_001-010.mp4"}
+    item = json.loads(path.read_text("utf-8"))["items"][0]
+    assert item["files"]["mp4"].endswith("018_001-010.mp4") and not item["files"]["youtube_mp4"]
+    page = json.loads(world.hosting.pages["daily/2026-11-13-morning/reel.json"])
+    assert page["youtube"] is None and "YouTube (à la main)" not in page["platforms"]
+    entry = notify.merge_captions("", {"items": [item]})
+    assert "**YouTube : rien pour ce créneau" in entry
+    assert "`/youtube 2026-11-13/morning" not in entry          # nothing to record there
 
 
 # ---- files ------------------------------------------------------------------------------------

@@ -295,6 +295,21 @@ def test_the_page_renders_and_escapes(cfg, tmp_path):
     assert set(json.loads(shaders)) == {"dawn", "night", "sea"}
 
 
+def test_the_request_form_knows_youtubes_own_reciter(cfg):
+    """YouTube: always Tawfiq As-Sayegh (platforms.youtube.reciter). The form says who
+    recites when YouTube is ticked with « Auto », and that YouTube is dropped with another."""
+    from quran_reels.catalog import ondemand as od_mod
+
+    form = od_mod.launcher(cfg, {})
+    assert form["youtube_fixed"] and form["youtube_reciter"] == "Tawfiq As-Sayegh"
+    assert {r["name"] for r in form["reciters"] if r["youtube"]} == {"sayegh"}
+    assert len(form["reciters"]) > 1
+    # Claimed on Meta: not allowed on demand, so no request can go to YouTube.
+    out = od_mod.launcher(cfg, {"claimed": {"sayegh": {"reason": "muted"}}})
+    assert out["youtube_fixed"] and out["youtube_reciter"] == ""
+    assert not any(r["youtube"] for r in out["reciters"])
+
+
 def test_history_is_dated_facts(cfg):
     history = load_history()
     listed = set(cfg.content["reciters"])

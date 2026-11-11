@@ -269,8 +269,15 @@
       const rec = form.elements.reciter.selectedOptions[0];
       const yt = form.querySelector('input[value="youtube"]');
       const msg = [];
-      if (yt.checked && rec.dataset.youtube === "0") {
-        msg.push(`YouTube sera retiré : ${rec.textContent} y est revendiqué par Content ID (les autres plateformes continuent).`);
+      // YouTube has its own reciter (platforms.youtube.reciter), and a request makes one video.
+      const fixed = form.dataset.youtubeFixed === "1";
+      const own = form.dataset.youtubeReciter;
+      if (yt.checked && fixed && own && rec.value === "auto") {
+        msg.push(`YouTube coché : tout le reel sera récité par ${own} (toujours lui sur YouTube). Sans YouTube, « Auto » choisit comme le calendrier.`);
+      } else if (yt.checked && rec.dataset.youtube === "0") {
+        msg.push(fixed
+          ? `YouTube sera retiré : sur YouTube, toujours ${own || "son propre récitateur, pas autorisé ici pour l'instant"} (les autres plateformes continuent).` + (own ? ` Pour YouTube : choisis-le, ou « Auto ».` : "")
+          : `YouTube sera retiré : ${rec.textContent} y est revendiqué par Content ID (les autres plateformes continuent).`);
       }
       warn.textContent = msg.join(" "); warn.hidden = !msg.length;
     }

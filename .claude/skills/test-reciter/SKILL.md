@@ -12,7 +12,8 @@ few minutes after going live. So the owner checks every new reciter on Facebook 
 **Where each reciter stands: read it, do not remember it.** `content.rotation` in
 `config/project.yaml` (who is chosen, with the dated comments), the state's `claimed` and the
 `reciter` of its slots (`git show origin/state:published.json`), the claims in
-`src/quran_reels/catalog/history.yaml`, `platforms.youtube.exclude_reciters`.
+`src/quran_reels/catalog/history.yaml`, `platforms.youtube.reciter` (the one reciter of
+YouTube) and `platforms.youtube.exclude_reciters`.
 
 **Only the owner decides a publication.** Steps 4 and 5 post for real: each needs the owner's
 explicit go for that publication, after they heard the MP4 of step 3. Typing `PUBLIER` is
@@ -39,10 +40,14 @@ theirs to ask for, not yours to decide.
    - Claimed: the owner deletes it; remove the reciter from `content.rotation` with a comment
      (who claimed, where), add a `claim` line for it in `src/quran_reels/catalog/history.yaml`
      (shown by the catalogue), update the Récitateurs row of CLAUDE.md.
-6. **YouTube** (by hand, Content ID, not Meta's): the owner uploads a new reciter's first Short
-   as private and looks at the claims before making it public. Claimed there only: add the
-   reciter to `platforms.youtube.exclude_reciters` (its reels then get a YouTube version by
-   another reciter, `daily.youtube_version`), a line in `catalog/history.yaml`.
+6. **YouTube** (by hand, Content ID, not Meta's): nothing to test for a new reciter of the
+   rotation. YouTube always takes Tawfiq As-Sayegh (`platforms.youtube.reciter`, owner's
+   choice, 2026-11-11): a reel by anyone else gets its YouTube version by him
+   (`daily.youtube_version`), and a new reciter never goes there. Only if the owner changes
+   YouTube's reciter: they upload his first Short as private and look at the claims before
+   making it public; claimed there, he cannot be YouTube's reciter (a line in
+   `catalog/history.yaml`, and `platforms.youtube.exclude_reciters`, the rule used when
+   `reciter` is unset).
 7. **A test that stands in for a calendar slot** is recorded with `quran-reels state record`
    (republish skill, step 3, by hand), after each publication: Facebook, then Instagram. The
    slot is marked `by_hand`, so the daily run does not post Instagram or TikTok with this

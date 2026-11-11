@@ -106,26 +106,37 @@ def missed_text(missed: list[str], run_url: str) -> str:
 
 
 def _youtube(item: dict) -> list[str]:
-    """What to put on YouTube when it is not this video (daily.youtube_version)."""
+    """What to put on YouTube when it is not this video (daily.youtube_version): its own
+    reciter's version (`always`: platforms.youtube.reciter), or another reciter's when
+    Content ID claims this one; or nothing at all."""
     y = item.get("youtube")
     if not y:
         return []
     if not y.get("reciter"):
+        if y.get("always"):
+            return ["", (f"**YouTube : rien pour ce créneau, ne pas y mettre cette vidéo** : "
+                         f"sur YouTube, toujours {y.get('wanted', '')}, et il n'est pas prêt "
+                         f"pour ce passage ({y.get('error', '')}).")]
         return ["", (f"**YouTube : ne pas mettre cette vidéo** (récitateur revendiqué par "
                      f"Content ID) ; pas d'autre version : {y.get('error', '')}")]
     files = item.get("files") or {}
     where = (f"[ce MP4]({files['youtube_mp4']}), récitée par {y['label']}"
              if files.get("youtube_mp4") else
              f"`{y['video']}`, récitée par {y['label']}, dans l'artefact « reel » du run")
-    return ["", (f"**YouTube : pas cette vidéo** ({y['instead_of']} y est revendiqué par Content "
-                 f"ID) mais {where}. Sa légende :"), "", "```text", y["caption"].strip(), "```"]
+    reason = (f"sur YouTube, toujours {y['label']}" if y.get("always") else
+              f"{y['instead_of']} y est revendiqué par Content ID")
+    return ["", f"**YouTube : pas cette vidéo** ({reason}) mais {where}. Sa légende :",
+            "", "```text", y["caption"].strip(), "```"]
 
 
 def _files(item: dict) -> list[str]:
-    """Direct downloads (release `reels`) and the YouTube page, from ondemand.flow.daily_files."""
+    """Direct downloads (release `reels`) and the YouTube page, from ondemand.flow.daily_files.
+    No YouTube page nor command when nothing goes to YouTube for this slot."""
     f = item.get("files")
     if not f:
         return []
+    if not f.get("youtube_mp4"):
+        return ["", f"⬇️ [MP4]({f['mp4']})"]
     return ["", (f"⬇️ [MP4]({f['mp4']}) · 📺 [YouTube : MP4, titre, description, hashtags à "
                  f"copier]({f['page']})"),
             f"Mis en ligne sur YouTube ? Commente ici `{f['command']} <lien>`"]
