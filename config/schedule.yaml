@@ -3,6 +3,12 @@
 enabled: true              # first real post done on 2026-11-05 (publish-test run #12, 93:1-11)
 timezone: Europe/Paris     # slot times below are local times there (summer time included)
 
+pause:                     # days without a reel: nothing published, no slot counted as missed;
+  from: 2026-11-13         # the queues wait (owner's choice, 2026-11-12: the theme episodes start)
+  until:                   # last day without a reel; empty: until the owner turns them back on.
+                           # To turn them back on, write that day here (not delete the block:
+                           # the run would then count the last days of the pause as missed).
+
 slots:                     # two videos a day
   morning:
     time: "07:30"          # before work and school; 09:30 in Mecca, 06:30 in Casablanca

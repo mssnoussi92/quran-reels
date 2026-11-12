@@ -24,6 +24,18 @@
   kahf-first-ten, evening: kahf}` ; `queue:` en donne une pour tous), `fallback` (une file
   finie passe à une autre). `enabled: false` tant que la première publication réelle n'est pas
   faite (activé le 2026-11-05). `published_by_hand` : passages publiés hors calendrier, sautés.
+- **Pause** (`pause: {from, until}`, choix du propriétaire le 2026-11-12 : les épisodes
+  thématiques démarrent le 13, les reels attendent) : aucun reel les jours de la pause, aucun
+  créneau de ces jours compté comme manqué ; les files ne bougent pas, donc le premier créneau
+  après la pause publie le passage qui venait (vendredi compris : Al-Kahf reprend où il en
+  était). `until` vide : jusqu'à ce que le propriétaire dise de reprendre ; pour reprendre,
+  écrire dans `until` le dernier jour sans reel, ne pas effacer le bloc tout de suite (le
+  premier run compterait sinon comme manqués les créneaux des 2 derniers jours ; le bloc peut
+  partir quelques jours plus tard). `daily` imprime « paused » et ne publie rien (sauf
+  `--force`, le dry run du workflow) ; `calendar` et le catalogue disent la pause et sautent
+  ses jours ; `prepare` garde prêts les passages qui viendront en premier à la reprise. Rien
+  d'autre ne s'arrête : Word of the day (`images.yml`) et la publication à la demande
+  continuent.
 - Une file joue ses séries l'une après l'autre ; chaque créneau prend le premier passage pas
   encore publié. Série `repeat: true` (Al-Kahf) : recommence une fois finie.
 - Al-Kahf : `kahf-first-ten` (18:1-10, une seule entrée qui recommence chaque semaine) et

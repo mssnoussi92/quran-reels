@@ -10,6 +10,12 @@ GitHub's cron is not reliable in this repo: the runs that count come from `workf
 GitHub also starts some `schedule` runs, 6 to 8 hours late: a daily one finds nothing due and
 ends in 20 s, which is not a missed slot. Read, don't guess.
 
+While `config/schedule.yaml` has a `pause` covering today (no `until`, or `until` not past),
+a daily run prints « paused … nothing published » and ends green: the reels are paused on the
+owner's word, nothing is missing. Report it in one line (« en pause, rien publié, comme
+prévu »), never as a failure, and never dispatch daily.yml again or reopen a slot to make it
+publish. Only the owner ends the pause (`until`, docs/calendrier.md).
+
 1. **Find the run.** GitHub MCP `actions_list`, method `list_workflow_runs`, `resource_id` the
    workflow file, `perPage` 3. Note `head_branch`, `status`, `conclusion`, `created_at`.
 2. **Still running?** `list_workflow_jobs` gives the steps. "Install ffmpeg and Chromium" takes

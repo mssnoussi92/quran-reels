@@ -768,3 +768,105 @@ def test_a_missed_slot_is_told_once_and_not_a_reopened_one(world, monkeypatch, t
     assert daily.run(None, path, now=paris(2026, 11, 8, 12, 0), check=True) == 0   # simulated
     assert "2026-11-08/morning" not in State.load(path).data["missed"]            # time: no
 
+
+
+# ---- pause (owner's choice, 2026-11-12: the theme episodes start, the reels wait) ---------
+
+def paused_world(world, monkeypatch, start, end=None):
+    from quran_reels.selector.calendar import Pause
+
+    sched = schedule(pause=Pause(start, end))
+    monkeypatch.setattr(daily, "load_schedule", lambda cfg, series: sched)
+    return sched
+
+
+def test_nothing_is_published_on_a_day_of_the_pause(world, monkeypatch, tmp_path, capsys):
+    calls, _, path = world
+    daily.run(None, path, now=paris(2026, 11, 5, 7, 20))                 # before: published
+    paused_world(world, monkeypatch, date(2026, 11, 5))
+    out = tmp_path / "out.txt"
+    monkeypatch.setenv("GITHUB_OUTPUT", str(out))
+    assert daily.run(None, path, now=paris(2026, 11, 5, 19, 20)) == 0
+    assert daily.run(None, path, now=paris(2026, 11, 7, 7, 20)) == 0
+    assert [c[0] for c in calls["publish"]] == ["114:1-6"]
+    assert "paused (from 2026-11-05 until the reels are turned back on" in capsys.readouterr().out
+    assert "due=false" in out.read_text() and "due=true" not in out.read_text()
+    state = State.load(path)
+    assert state.queue("reading")["done"] == ["juz-amma/114:1-6"]       # the queues wait
+    assert state.slot(date(2026, 11, 5), "evening") is None
+
+
+def test_after_the_pause_each_slot_publishes_the_passage_that_was_next(world, monkeypatch):
+    calls, _, path = world
+    daily.run(None, path, now=paris(2026, 11, 3, 7, 20))                 # Tuesday: 114
+    paused_world(world, monkeypatch, date(2026, 11, 4), date(2026, 11, 6))
+    for d in (4, 5, 6):
+        daily.run(None, path, now=paris(2026, 11, d, 7, 20))
+        daily.run(None, path, now=paris(2026, 11, d, 19, 20))
+    daily.run(None, path, now=paris(2026, 11, 7, 7, 20))                 # the day after
+    assert [c[0] for c in calls["publish"]] == ["114:1-6", "113:1-5"]
+
+
+def test_the_days_of_the_pause_are_not_missed_slots(world, monkeypatch):
+    """Turned back on: the first run must not open the failure alert for the pause."""
+    from quran_reels.selector.calendar import missed_slots
+
+    _, _, path = world
+    daily.run(None, path, now=paris(2026, 11, 3, 7, 20))
+    state = State.load(path)
+    sched = paused_world(world, monkeypatch, date(2026, 11, 3), date(2026, 11, 6))
+    assert missed_slots(sched, state, paris(2026, 11, 7, 12, 0)) == ["2026-11-07/morning"]
+    assert missed_slots(schedule(), state, paris(2026, 11, 7, 12, 0)) == [
+        "2026-11-06/morning", "2026-11-06/evening", "2026-11-07/morning"]
+
+
+def test_a_forced_dry_run_ignores_the_pause(world, monkeypatch):
+    calls, _, path = world
+    paused_world(world, monkeypatch, date(2026, 11, 1))
+    daily.run(None, path, now=paris(2026, 11, 5, 7, 20), dry_run=True, force=True)
+    assert calls["render"] == [("114:1-6", "")] and not path.exists()
+
+
+def test_the_coming_days_skip_the_pause_but_prepare_keeps_the_next_passages_ready():
+    from quran_reels.selector.calendar import Pause
+
+    sched = schedule(pause=Pause(date(2026, 11, 3), date(2026, 11, 3)))
+    days = preview(sched, SERIES, State(), date(2026, 11, 2), 3)
+    assert [(d.day, item.key) for d, _, _, item in days] == [
+        (2, "114:1-6"), (2, "2:255-255"), (4, "113:1-5"), (4, "2:186-186")]
+    open_ended = schedule(pause=Pause(date(2026, 11, 2)))
+    assert preview(open_ended, SERIES, State(), date(2026, 11, 2), 3) == []
+    ready = preview(open_ended, SERIES, State(), date(2026, 11, 2), 1, skip_paused=False)
+    assert [item.key for *_, item in ready] == ["114:1-6", "2:255-255"]
+
+
+@pytest.mark.parametrize(("raw", "start", "end"), [
+    (None, None, None),
+    ({"from": date(2026, 11, 13), "until": None}, date(2026, 11, 13), None),
+    ({"from": "2026-11-13", "until": "2026-11-20"}, date(2026, 11, 13), date(2026, 11, 20)),
+])
+def test_the_pause_is_read_from_schedule_yaml(raw, start, end):
+    from quran_reels.selector.calendar import _pause
+
+    got = _pause(raw)
+    assert ((got.start, got.end) if got else (None, None)) == (start, end)
+
+
+@pytest.mark.parametrize("raw", [{"until": "2026-11-20"}, {"from": "13/11/2026"},
+                                 {"from": "2026-11-13", "until": "2026-11-12"}])
+def test_a_pause_that_does_not_read_is_refused(raw):
+    from quran_reels.selector.calendar import _pause
+
+    with pytest.raises(SystemExit):
+        _pause(raw)
+
+
+def test_the_real_schedule_reads():
+    """config/schedule.yaml as the owner left it (pause included) loads."""
+    from pathlib import Path
+
+    from quran_reels.selector.calendar import load_schedule
+
+    cfg = SimpleNamespace(root=Path(__file__).resolve().parents[1])
+    sched = load_schedule(cfg)
+    assert sched.enabled and sched.slots

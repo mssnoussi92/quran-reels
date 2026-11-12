@@ -35,6 +35,16 @@ def day_label(d: date) -> str:
     return f"{DAYS_FR[d.weekday()]} {d.day} {MONTHS_FR[d.month - 1]}"
 
 
+def pause_label(sched: Schedule, today: date) -> str:
+    """The pause of the reels (schedule.yaml `pause`), in French, while it is on or to come."""
+    p = sched.pause
+    if p is None or (p.end is not None and p.end < today):
+        return ""
+    if p.end is None:
+        return f"à partir du {day_label(p.start)}, jusqu'à réactivation"
+    return f"du {day_label(p.start)} au {day_label(p.end)} inclus"
+
+
 def ref(key: str) -> str:
     """«2:255-255» → «2:255»; «93:1-11» unchanged."""
     head, _, end = key.partition("-")

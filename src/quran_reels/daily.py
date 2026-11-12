@@ -122,7 +122,8 @@ def run(cfg: Config, state_path: Path, now: datetime | None = None, dry_run: boo
         check: bool = False, force: bool = False, report: Path | None = None,
         sleep: Callable[[float], None] = time.sleep, watch: bool | None = None) -> int:
     """check: only say whether something is due (output `due`), for the workflow to skip
-    installing ffmpeg and Chromium. force: run even if schedule.enabled is false.
+    installing ffmpeg and Chromium. force: run even if schedule.enabled is false or the day is
+    one of the pause (schedule.yaml `pause`).
     report: JSON of what this run published, for `quran-reels notify` (written even when the
     run fails half way, with the error). sleep: the wait before another try (tests).
     watch: look for slots nobody tried (output `missed`, state `missed`); by default on a real
@@ -151,6 +152,12 @@ def run(cfg: Config, state_path: Path, now: datetime | None = None, dry_run: boo
         platforms = [x for x in platforms if x != "tiktok"]
     todo = pending(sched, series, state, now, platforms)
     local = now.astimezone(sched.tz)
+    if not force:       # a day of the pause: its slots wait, their passages stay first in line
+        for p in todo:
+            if sched.paused(p.day):
+                print(f"{p.day} {p.slot.name}: paused ({sched.pause}, config/schedule.yaml): "
+                      "nothing published")
+        todo = [p for p in todo if not sched.paused(p.day)]
     if not todo:
         print(f"{local:%Y-%m-%d %H:%M} {sched.tz.key}: nothing due")
     for p in todo:
