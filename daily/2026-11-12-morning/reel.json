@@ -1,0 +1,66 @@
+{
+ "kind": "daily",
+ "id": "daily/2026-11-12-morning",
+ "stage": "daily",
+ "stage_label": "Publié par le calendrier",
+ "created": "2026-11-12T06:23:45+00:00",
+ "passage": "108:1-3",
+ "surah": {
+  "en": "Al-Kawthar",
+  "ar": "الكوثر"
+ },
+ "title": "108:1-3 · Surah Al-Kawthar · سورة الكوثر",
+ "reciter": "Tawfiq As-Sayegh",
+ "seconds": null,
+ "background": "",
+ "platforms": [
+  "Facebook",
+  "Instagram",
+  "TikTok (brouillon)",
+  "YouTube (à la main)"
+ ],
+ "issue": {
+  "title": "📋 Légendes à copier (TikTok, YouTube)",
+  "url": "https://github.com/mssnoussi92/quran-reels/issues/5"
+ },
+ "video": {
+  "full": "https://github.com/mssnoussi92/quran-reels/releases/download/reels/2026-11-12-morning-108_001-003.mp4",
+  "youtube": "https://github.com/mssnoussi92/quran-reels/releases/download/reels/2026-11-12-morning-108_001-003-youtube.mp4"
+ },
+ "frames": [],
+ "captions": [
+  {
+   "label": "Facebook",
+   "text": "Surah Al-Kawthar (108:1-3) · سورة الكوثر\n\nRecitation: Tawfiq As-Sayegh · Translation: Sahih International · Word meanings: Tafsir al-Muyassar, King Fahd Complex\n\n@quran_words_daily\n\n#QuranWordsDaily #Quran #JuzAmma #SurahAlKawthar #سورة_الكوثر #القرآن_الكريم #جزء_عم #TawfiqAsSayegh"
+  },
+  {
+   "label": "Instagram, TikTok",
+   "text": "Surah Al-Kawthar (108:1-3) · سورة الكوثر\n\nبِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ\n\nإِنَّآ أَعْطَيْنَـٰكَ ٱلْكَوْثَرَ ﴿١﴾\n1. Indeed, We have granted you, [O Muḥammad], al-Kawthar.\n\nفَصَلِّ لِرَبِّكَ وَٱنْحَرْ ﴿٢﴾\n2. So pray to your Lord and offer sacrifice [to Him alone].\n\nإِنَّ شَانِئَكَ هُوَ ٱلْأَبْتَرُ ﴿٣﴾\n3. Indeed, your enemy is the one cut off.\n\nRecitation: Tawfiq As-Sayegh\nTranslation: Sahih International\nWord meanings: التفسير الميسر، مجمع الملك فهد\n\n@quran_words_daily\n\n#QuranWordsDaily #Quran #JuzAmma #SurahAlKawthar #سورة_الكوثر\n"
+  }
+ ],
+ "youtube": {
+  "title": "Surah Al-Kawthar (108:1-3) · سورة الكوثر",
+  "description": "Surah Al-Kawthar (108:1-3) · سورة الكوثر\n\nبِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ\n\nإِنَّآ أَعْطَيْنَـٰكَ ٱلْكَوْثَرَ ﴿١﴾\n1. Indeed, We have granted you, [O Muḥammad], al-Kawthar.\n\nفَصَلِّ لِرَبِّكَ وَٱنْحَرْ ﴿٢﴾\n2. So pray to your Lord and offer sacrifice [to Him alone].\n\nإِنَّ شَانِئَكَ هُوَ ٱلْأَبْتَرُ ﴿٣﴾\n3. Indeed, your enemy is the one cut off.\n\nRecitation: Tawfiq As-Sayegh\nTranslation: Sahih International\nWord meanings: التفسير الميسر، مجمع الملك فهد\n\n@quran_words_daily\n",
+  "hashtags": "#QuranWordsDaily #Quran #JuzAmma #SurahAlKawthar #سورة_الكوثر #القرآن_الكريم #جزء_عم #TawfiqAsSayegh #توفيق_الصايغ #تفسير_القرآن #التفسير_الميسر",
+  "file": "https://github.com/mssnoussi92/quran-reels/releases/download/reels/2026-11-12-morning-108_001-003-youtube.mp4",
+  "command": "/youtube 2026-11-12/morning"
+ },
+ "results": [
+  {
+   "name": "Facebook",
+   "url": "https://www.facebook.com/reel/1162642553355801/",
+   "label": "publié"
+  },
+  {
+   "name": "Instagram",
+   "url": "https://www.instagram.com/reel/DfoY6PSjANH/",
+   "label": "publié"
+  },
+  {
+   "name": "TikTok (brouillon)",
+   "url": null,
+   "label": "brouillon, non publié"
+  }
+ ],
+ "notes": []
+}
