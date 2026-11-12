@@ -147,6 +147,7 @@ def build(cfg: Config, out: Path, state_dir: Path | None = None, previous: str |
         "state_commit": _git(["rev-parse", "HEAD"], state_dir) if state_dir else "",
         "repo": os.environ.get("GITHUB_REPOSITORY", "mssnoussi92/quran-reels"),
         "schedule": {"enabled": sched.enabled,
+                     "pause": sched_mod.pause_label(sched, today),
                      "slots": [{"name": s.name, "time": f"{s.at:%H:%M}", "queue": s.queue}
                                for s in sorted(sched.slots, key=lambda s: s.at)],
                      "fridays": sched.friday_queues, "days": days},

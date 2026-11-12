@@ -179,6 +179,23 @@ class Slot:
     queue: str
 
 
+@dataclass(frozen=True)
+class Pause:
+    """Days without a reel (owner's choice: 2026-11-12, the theme episodes start). Nothing is
+    published on them and no slot of theirs is missed; the queues wait, so the first slot after
+    the pause publishes the passage that was next. end: the last day without a reel; None until
+    the owner turns the reels back on."""
+    start: date
+    end: date | None = None
+
+    def covers(self, day: date) -> bool:
+        return self.start <= day and (self.end is None or day <= self.end)
+
+    def __str__(self) -> str:
+        return f"from {self.start}" + (f" to {self.end}" if self.end else
+                                        " until the reels are turned back on")
+
+
 @dataclass
 class Schedule:
     tz: ZoneInfo
@@ -191,6 +208,10 @@ class Schedule:
     published_by_hand: frozenset[str] = frozenset()   # passage keys the calendar skips
     early_minutes: int = 20                       # a run this early still takes the slot
     window_hours: float = 3                       # later than this, the slot is missed
+    pause: Pause | None = None                    # days without a reel (schedule.yaml, pause)
+
+    def paused(self, day: date) -> bool:
+        return self.pause is not None and self.pause.covers(day)
 
     def queue_for(self, slot: Slot, day: date) -> str:
         if day.weekday() == FRIDAY:
@@ -218,6 +239,35 @@ def _time(value: Any, where: str) -> time:
         raise SystemExit(f"{where}: «{value}» is not a time such as \"07:30\"") from None
 
 
+def _pause(raw: Any) -> Pause | None:
+    """schedule.yaml `pause: {from: 2026-11-13, until: …}`; until empty: no end yet."""
+    if not raw:
+        return None
+    where = "config/schedule.yaml, pause"
+    if not isinstance(raw, dict) or not raw.get("from"):
+        raise SystemExit(f"{where}: give its first day, `from: 2026-11-13`")
+
+    def day(value: Any, key: str) -> date | None:
+        if value in (None, ""):
+            return None
+        if isinstance(value, datetime):
+            return value.date()
+        if isinstance(value, date):
+            return value
+        try:
+            return date.fromisoformat(str(value))
+        except ValueError:
+            raise SystemExit(f"{where}: {key}: «{value}» is not a day such as 2026-11-13") \
+                from None
+
+    start, end = day(raw["from"], "from"), day(raw.get("until"), "until")
+    if start is None:
+        raise SystemExit(f"{where}: give its first day, `from: 2026-11-13`")
+    if end is not None and end < start:
+        raise SystemExit(f"{where}: until ({end}) is before from ({start})")
+    return Pause(start, end)
+
+
 def load_schedule(cfg: Config, series: dict[str, Series] | None = None) -> Schedule:
     path = cfg.root / "config" / "schedule.yaml"
     raw = yaml.safe_load(path.read_text(encoding="utf-8")) if path.is_file() else None
@@ -243,7 +293,8 @@ def load_schedule(cfg: Config, series: dict[str, Series] | None = None) -> Sched
                          _passage_key(k, "config/schedule.yaml, published_by_hand")
                          for k in raw.get("published_by_hand") or ()),
                      early_minutes=int(raw.get("early_minutes", 20)),
-                     window_hours=float(raw.get("window_hours", 3)))
+                     window_hours=float(raw.get("window_hours", 3)),
+                     pause=_pause(raw.get("pause")))
     used = {s.queue for s in slots} | set(sched.fallback.values()) | (
         {sched.friday_queue} if sched.friday_queue else set()) | set(sched.friday_queues.values())
     for q in sorted(used):
@@ -366,7 +417,8 @@ def missed_slots(sched: Schedule, state: State, now: datetime,
     GitHub started no job: 2026-11-09 evening, runs #26 and #27 without a job).
 
     Not the slots before the first one ever published, not a reopened slot (its passage is
-    republished by the next slot of its queue), not one already reported (state `missed`)."""
+    republished by the next slot of its queue), not one already reported (state `missed`), not
+    a day of the pause (nothing was meant to go out: the reels turned back on, no alarm)."""
     if not state.data["slots"]:
         return []
     first = min(state.data["slots"]).split("/")[0]
@@ -376,6 +428,8 @@ def missed_slots(sched: Schedule, state: State, now: datetime,
     out = []
     for back in range(days - 1, -1, -1):
         day = local.date() - timedelta(days=back)
+        if sched.paused(day):
+            continue
         for slot in sorted(sched.slots, key=lambda s: s.at):
             end = datetime.combine(day, slot.at, sched.tz) + timedelta(hours=sched.window_hours)
             key = f"{day.isoformat()}/{slot.name}"
@@ -438,12 +492,16 @@ def record_by_hand(sched: Schedule, series: dict[str, Series], state: State, key
 
 
 def preview(sched: Schedule, series: dict[str, Series], state: State, start: date,
-            days: int) -> list[tuple[date, Slot, str, Item | None]]:
-    """What the next days would publish if every slot succeeded (the state is not changed)."""
+            days: int, skip_paused: bool = True) -> list[tuple[date, Slot, str, Item | None]]:
+    """What the next days would publish if every slot succeeded (the state is not changed).
+    The days of the pause publish nothing (skip_paused=False: as if there were none, for the
+    passages that come first once the reels are back on: the queues wait meanwhile)."""
     sim = state.copy()
     out = []
     for d in range(days):
         day = start + timedelta(days=d)
+        if skip_paused and sched.paused(day):
+            continue
         for slot in sorted(sched.slots, key=lambda s: s.at):
             record = sim.slot(day, slot.name)
             if record:

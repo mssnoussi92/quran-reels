@@ -3,7 +3,8 @@ name: daily-reel
 # Two videos a day (config/schedule.yaml): 07:30 and 19:30 Paris time, Al-Kahf on Fridays.
 # GitHub's schedule is in UTC and often late, so each slot gets three runs, an hour apart,
 # covering summer and winter time; `quran-reels daily` decides what is due and retries the
-# platforms that failed. Nothing is published while schedule.yaml says enabled: false.
+# platforms that failed. Nothing is published while schedule.yaml says enabled: false, nor on
+# a day of its pause (pause: from/until; the queues wait).
 on:
   schedule:
     # Changed from :13 on 2026-11-05: GitHub never fired the first schedule (05:13, 06:13 and

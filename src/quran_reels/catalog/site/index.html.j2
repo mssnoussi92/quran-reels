@@ -20,7 +20,7 @@
   <p class="lead">Ce que le pipeline utilise et ce qu'il a publié, pour décider. <strong>Lecture seule</strong> :
     chaque bouton ouvre un ticket GitHub prérempli, une session de code l'applique en PR.</p>
   <p class="muted small">Mis à jour le {{ d.built_local }} ({{ d.timezone }}){% if d.commit %} · main <code>{{ d.commit[:7] }}</code>{% endif %}{% if d.state_commit %} · state <code>{{ d.state_commit[:7] }}</code>{% endif %}
-    {% if not d.schedule.enabled %} · <strong>calendrier désactivé</strong>{% endif %}</p>
+    {% if not d.schedule.enabled %} · <strong>calendrier désactivé</strong>{% endif %}{% if d.schedule.pause %} · <strong>reels en pause {{ d.schedule.pause }}</strong>{% endif %}</p>
   {% for n in d.notes %}<p class="notice">{{ n }}</p>{% endfor %}
   {% if d.on_demand %}<p><a class="act cta" href="#on-demand">➕ Publier un reel à la demande</a></p>{% endif %}
 
@@ -222,6 +222,7 @@
     <p class="muted">Les {{ d.schedule.days }} prochains jours, comme <code>quran-reels calendar --days {{ d.schedule.days }}</code> :
       {% for s in d.schedule.slots %}{{ s.time }} file <code>{{ s.queue }}</code>{{ ", " if not loop.last }}{% endfor %} ; le vendredi, Al-Kahf.
       Récitateur et durée tels que le choix se ferait aujourd'hui.</p>
+    {% if d.schedule.pause %}<p class="notice"><strong>Reels en pause {{ d.schedule.pause }}</strong> : aucun reel ces jours-là, aucun créneau compté comme manqué. Les files attendent : à la reprise, chaque créneau publie le passage qui venait (<code>pause</code> de <code>config/schedule.yaml</code>).</p>{% endif %}
     <ol class="days">
       {% for day in d.calendar %}
       <li class="day{% if day.friday %} friday{% endif %}{% if day.today %} today{% endif %}">

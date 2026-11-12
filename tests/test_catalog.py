@@ -360,3 +360,24 @@ def test_a_published_slot_without_its_reciter_is_not_guessed(cfg, monkeypatch):
     assert first["status"] == "published" and first.get("reciter_unknown")
     assert "reciter" not in first
     assert days[0]["slots"][1]["reciter"] == "budair"     # the next slot is chosen as usual
+
+
+def test_the_catalog_says_the_pause_of_the_reels():
+    from datetime import date, time
+    from zoneinfo import ZoneInfo
+
+    from quran_reels.catalog.schedule import pause_label
+    from quran_reels.selector.calendar import Pause, Schedule, Slot
+
+    def sched(pause):
+        return Schedule(tz=ZoneInfo("Europe/Paris"), enabled=True,
+                        slots=[Slot("morning", time(7, 30), "reading")],
+                        queues={"reading": []}, pause=pause)
+
+    today = date(2026, 11, 12)
+    assert pause_label(sched(None), today) == ""
+    assert pause_label(sched(Pause(date(2026, 11, 13))), today) == \
+        "à partir du vendredi 13 novembre, jusqu'à réactivation"
+    assert pause_label(sched(Pause(date(2026, 11, 13), date(2026, 11, 20))), today) == \
+        "du vendredi 13 novembre au vendredi 20 novembre inclus"
+    assert pause_label(sched(Pause(date(2026, 11, 1), date(2026, 11, 11))), today) == ""

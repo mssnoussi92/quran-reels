@@ -201,8 +201,13 @@ def main(argv: list[str] | None = None) -> int:
         series = load_series(cfg)
         sched = load_schedule(cfg, series)
         today = datetime.now(UTC).astimezone(sched.tz).date()
+        # The days of a pause count as if published nothing: its queues wait, and the passages
+        # that come first once the reels are back on are these, kept checked meanwhile.
         keys = list(dict.fromkeys(item.key for _, _, _, item in preview(
-            sched, series, State.load(Path(args.state)), today, args.upcoming) if item))
+            sched, series, State.load(Path(args.state)), today, args.upcoming,
+            skip_paused=False) if item))
+        if sched.pause and (sched.pause.end is None or sched.pause.end >= today):
+            print(f"reels paused {sched.pause}: these passages come first after the pause")
         print(f"next {args.upcoming} days: {' '.join(keys)}")
         # The rotation's reciters, and the one a platform always takes even when he is out
         # of the rotation (platforms.youtube.reciter). One process per reciter: its own sources.
@@ -441,6 +446,8 @@ def main(argv: list[str] | None = None) -> int:
                  else datetime.now(UTC).astimezone(sched.tz).date())
         if not sched.enabled:
             print("(schedule disabled: this is what it would publish)")
+        if sched.pause and (sched.pause.end is None or sched.pause.end >= start):
+            print(f"(reels paused {sched.pause}: nothing on those days, the queues wait)")
         from quran_reels import reciters as rec
 
         order = {s.name: i for i, s in enumerate(sorted(sched.slots, key=lambda s: s.at))}
