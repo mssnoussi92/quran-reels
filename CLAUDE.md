@@ -20,7 +20,7 @@ jamais en silence, ne passe jamais outre en silence.
 |---|---|
 | Format | **≈ 1 minute** (cible 60 s, 40–90 s), jamais coupé au milieu d'une phrase ; **sourate courte entière** (≤ 90 s, même très courte) ; **le soir, le passage de la série tel quel, même une seule ayah** (15 à 30 s : 76 des 111 passages des séries du soir sont une seule ayah ; constaté sur les reels publiés le 2026-11-09, gardé ainsi le 2026-11-10 : la série dit quelle ayah, on ne la noie pas dans son contexte pour atteindre la minute) |
 | Basmala | **Au début de chaque vidéo**, même pour quelques versets ; sauf sourate 9 et avant 1:1 (qui est la basmala) |
-| Rythme | **2 vidéos par jour**, heure de Paris : **07:30** lecture dans l'ordre, **19:30** séries thématiques ; **reels en pause à partir du 2026-11-13, jusqu'à réactivation** (choix du propriétaire, 2026-11-12 : les épisodes thématiques démarrent ; `pause` de `config/schedule.yaml` : rien publié, rien compté comme manqué, les files attendent ; reprendre = écrire `until`, docs/calendrier.md) |
+| Rythme | **2 vidéos par jour**, heure de Paris : **07:30** lecture dans l'ordre, **19:30** séries thématiques ; **reels en pause à partir du 2026-11-12 au soir, jusqu'à réactivation** (choix du propriétaire, 2026-11-12 : les épisodes thématiques démarrent ; `pause` de `config/schedule.yaml` : rien publié, rien compté comme manqué, les files attendent ; reprendre = écrire `until`, docs/calendrier.md) |
 | Images | **Word of the day**, carrousel de 3 images 1080×1350 (le mot, son ayah, son sens dans le Tafsir al-Muyassar), **1 par jour** à 11:30 UTC sur Instagram et Facebook ; **Ayah of the day** préparé, désactivé (docs/images.md) |
 | Lecture | **Juz' 'Amma d'abord** (114 → 78), puis Al-Fatiha et 2 → 77, passages de `config/plan.yaml` |
 | Thèmes | Ayat al-Kursi, les 7 versets « المنجيات », versets de du'a, versets du rizq, puis (proposés le 2026-11-06) la patience (ص ب ر) et le repentir (ت و ب)… : listes **proposées par l'IA en PR, validées par le propriétaire** |
@@ -403,7 +403,7 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
 - [x] App TikTok Sandbox · [x] connexion (`tiktok-auth`, compte quran_words_daily, refresh
       token jusqu'à ≈ 2027-11-04) · [x] brouillon dans la boîte TikTok en Sandbox (run #8)
 - [ ] Demande d'audit YouTube
-- [x] **Reels en pause** à partir du 2026-11-13 (`pause` de `config/schedule.yaml`, demande du
+- [x] **Reels en pause** à partir du 2026-11-12 au soir (`pause` de `config/schedule.yaml`, demande du
       propriétaire le 2026-11-12 : les épisodes thématiques démarrent) · [ ] reprise, sur sa parole
       seulement (`until`)
 - [x] Calendrier : 2 créneaux, Juz' 'Amma, séries (Ayat al-Kursi, munjiyat, du'a, rizq), Al-Kahf le

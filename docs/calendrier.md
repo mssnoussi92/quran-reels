@@ -25,7 +25,8 @@
   finie passe à une autre). `enabled: false` tant que la première publication réelle n'est pas
   faite (activé le 2026-11-05). `published_by_hand` : passages publiés hors calendrier, sautés.
 - **Pause** (`pause: {from, until}`, choix du propriétaire le 2026-11-12 : les épisodes
-  thématiques démarrent le 13, les reels attendent) : aucun reel les jours de la pause, aucun
+  thématiques démarrent, les reels attendent, à partir du créneau du soir de ce jour-là) :
+  aucun reel les jours de la pause (un créneau déjà publié ce jour-là n'est pas complété), aucun
   créneau de ces jours compté comme manqué ; les files ne bougent pas, donc le premier créneau
   après la pause publie le passage qui venait (vendredi compris : Al-Kahf reprend où il en
   était). `until` vide : jusqu'à ce que le propriétaire dise de reprendre ; pour reprendre,
