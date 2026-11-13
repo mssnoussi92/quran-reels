@@ -18,6 +18,7 @@ from quran_reels.selector.calendar import (
     OK_STATUSES,
     Schedule,
     Series,
+    Slot,
     State,
     preview,
     queue_items,
@@ -33,6 +34,27 @@ SLOTS_FR = {"morning": "matin", "evening": "soir"}
 
 def day_label(d: date) -> str:
     return f"{DAYS_FR[d.weekday()]} {d.day} {MONTHS_FR[d.month - 1]}"
+
+
+WEEKDAYS_FR = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
+
+
+def slot_days_label(slot: Slot, today: date) -> str:
+    """When a slot publishes, in French, from today on: "" every day; else its periods still
+    to come («jusqu'au vendredi 13 novembre ; puis le dimanche, à partir du dimanche 15 …»)."""
+    parts = []
+    for p in slot.days:
+        if p.end is not None and p.end < today:
+            continue
+        bits = []
+        if p.weekdays:
+            bits.append("le " + " et le ".join(WEEKDAYS_FR[d] for d in sorted(p.weekdays)))
+        if p.start and p.start > today:
+            bits.append(f"à partir du {day_label(p.start)}")
+        if p.end:
+            bits.append(f"jusqu'au {day_label(p.end)}")
+        parts.append(", ".join(bits) or "chaque jour")
+    return " ; puis ".join(parts)
 
 
 def pause_label(sched: Schedule, today: date) -> str:
@@ -125,14 +147,19 @@ def calendar(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
     return list(out.values())
 
 
-def progress(sched: Schedule, series: dict[str, Series], state: State) -> list[dict]:
-    """Each queue: its round, its series in order, how many passages each has published."""
+def progress(sched: Schedule, series: dict[str, Series], state: State,
+             today: date | None = None) -> list[dict]:
+    """Each queue: its round, its series in order, how many passages each has published.
+    A slot that ended before today (schedule.yaml `until`) uses no queue any more."""
     data = state.copy()
     users: dict[str, list[str]] = {}
+    live = {s.name for s in sched.slots if today is None or not s.ended(today)}
     for s in sched.slots:
-        users.setdefault(s.queue, []).append(f"{SLOTS_FR.get(s.name, s.name)} {s.at:%H:%M}")
+        if s.name in live:
+            users.setdefault(s.queue, []).append(f"{SLOTS_FR.get(s.name, s.name)} {s.at:%H:%M}")
     for slot, q in sched.friday_queues.items():
-        users.setdefault(q, []).append(f"vendredi {SLOTS_FR.get(slot, slot)}")
+        if slot in live:
+            users.setdefault(q, []).append(f"vendredi {SLOTS_FR.get(slot, slot)}")
     if sched.friday_queue:
         users.setdefault(sched.friday_queue, []).append("vendredi")
     out = []

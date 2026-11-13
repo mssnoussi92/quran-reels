@@ -870,3 +870,89 @@ def test_the_real_schedule_reads():
     cfg = SimpleNamespace(root=Path(__file__).resolve().parents[1])
     sched = load_schedule(cfg)
     assert sched.enabled and sched.slots
+
+
+# ---- days of a slot (owner, 2026-11-13: a reel every morning from the 14th, and the theme
+# series on Sunday evenings only) ---------------------------------------------------------
+
+def every_morning_and_sunday_evenings(**kw) -> Schedule:
+    from quran_reels.selector.calendar import Period
+
+    s = schedule(**kw)
+    morning, evening = s.slots
+    s.slots = [Slot(morning.name, morning.at, morning.queue, (Period(date(2026, 11, 7)),)),
+               Slot(evening.name, evening.at, evening.queue,
+                    (Period(end=date(2026, 11, 6)),
+                     Period(date(2026, 11, 7), weekdays=frozenset({6}))))]
+    return s
+
+
+def test_a_slot_publishes_only_on_its_days(world, monkeypatch):
+    calls, _, path = world
+    sched = every_morning_and_sunday_evenings()
+    monkeypatch.setattr(daily, "load_schedule", lambda cfg, series: sched)
+    daily.run(None, path, now=paris(2026, 11, 5, 19, 20))                # Thu evening: on
+    daily.run(None, path, now=paris(2026, 11, 6, 7, 20))                 # Fri morning: not yet
+    daily.run(None, path, now=paris(2026, 11, 6, 19, 20))                # Fri evening: on
+    daily.run(None, path, now=paris(2026, 11, 7, 7, 20))                 # Sat morning: back
+    daily.run(None, path, now=paris(2026, 11, 7, 19, 20))                # Sat evening: off
+    daily.run(None, path, now=paris(2026, 11, 8, 19, 20))                # Sun evening: on
+    daily.run(None, path, now=paris(2026, 11, 9, 19, 20))                # Mon evening: off
+    assert [c[0] for c in calls["publish"]] == ["2:255-255", "18:1-5", "114:1-6", "2:186-186"]
+
+
+def test_a_slot_outside_its_days_is_never_missed_nor_shown(world):
+    from quran_reels.selector.calendar import missed_slots
+
+    _, _, path = world
+    daily.run(None, path, now=paris(2026, 11, 4, 7, 20))                 # something published
+    state = State.load(path)
+    sched = every_morning_and_sunday_evenings()
+    assert missed_slots(sched, state, paris(2026, 11, 9, 12, 0)) == [
+        "2026-11-08/morning", "2026-11-08/evening", "2026-11-09/morning"]
+    days = preview(sched, SERIES, State(), date(2026, 11, 6), 4)
+    assert [(d.day, slot.name) for d, slot, _, _ in days] == [
+        (6, "evening"), (7, "morning"), (8, "morning"), (8, "evening"), (9, "morning")]
+    _, evening = sched.slots
+    assert not evening.ended(date(2027, 1, 1))                           # Sundays, no end
+    assert Slot("x", time(8), "q", (evening.days[0],)).ended(date(2026, 11, 7))
+
+
+def test_the_days_of_a_slot_are_read_from_schedule_yaml(tmp_path):
+    from pathlib import Path
+
+    from quran_reels.selector.calendar import Period, load_schedule
+
+    (tmp_path / "config").mkdir()
+    yaml_text = """enabled: true
+slots:
+  morning:
+    time: "07:30"
+    queue: reading
+    days:
+      - from: 2026-11-14
+  evening:
+    time: "19:30"
+    queue: reading
+    days:
+      - until: 2026-11-13
+      - from: 2026-11-14
+        weekdays: [sunday]
+queues: {reading: [juz-amma]}
+"""
+    conf = tmp_path / "config" / "schedule.yaml"
+    conf.write_text(yaml_text)
+    sched = load_schedule(SimpleNamespace(root=Path(tmp_path)))
+    assert {s.name: s.days for s in sched.slots} == {
+        "morning": (Period(date(2026, 11, 14)),),
+        "evening": (Period(end=date(2026, 11, 13)),
+                    Period(date(2026, 11, 14), weekdays=frozenset({6})))}
+    period = "      - from: 2026-11-14\n        weekdays: [sunday]\n"
+    assert period in yaml_text
+    for changed, why in (
+            ("      - from: 2026-11-14\n        x: 1\n", "only from, until and weekdays"),
+            ("      - from: 2026-11-14\n        until: 2026-11-01\n", "is before from"),
+            ("      - from: 2026-11-14\n        weekdays: [dimanche]\n", "weekdays dimanche")):
+        conf.write_text(yaml_text.replace(period, changed))
+        with pytest.raises(SystemExit, match=why):
+            load_schedule(SimpleNamespace(root=Path(tmp_path)))

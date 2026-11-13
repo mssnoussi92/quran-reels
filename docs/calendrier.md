@@ -20,10 +20,19 @@
 ## Calendrier (`selector/calendar.py`, `daily.py`)
 
 - `config/schedule.yaml` : fuseau `Europe/Paris`, créneaux `morning` 07:30 (file `reading`) et
-  `evening` 19:30 (file `themes`), vendredi : une file par créneau (`fridays: {morning:
-  kahf-first-ten, evening: kahf}` ; `queue:` en donne une pour tous), `fallback` (une file
+  `evening` 19:30 (file `themes`, le dimanche seulement depuis le 2026-11-14), vendredi : une
+  file par créneau (`fridays: {morning: kahf, evening: kahf}` depuis le 2026-11-20, avant
+  `morning: kahf-first-ten` ; `queue:` en donne une pour tous), `fallback` (une file
   finie passe à une autre). `enabled: false` tant que la première publication réelle n'est pas
   faite (activé le 2026-11-05). `published_by_hand` : passages publiés hors calendrier, sautés.
+- **Jours d'un créneau** (`days` d'un créneau : une liste de périodes `from` / `until` /
+  `weekdays`, chacune facultative ; sans `days` : tous les jours). Hors de ses jours, un créneau
+  n'est pas dû, n'est pas montré (`calendar`, catalogue, `prepare`) et n'est jamais compté comme
+  manqué. Choix du propriétaire, 2026-11-13 : réactiver ce soir-là, puis **un reel chaque matin**
+  (`from: 2026-11-14` : son créneau du 13 était encore en pause, il n'est pas manqué) et **les
+  séries thématiques le dimanche soir seulement** (soir : `until: 2026-11-13`, puis `from:
+  2026-11-14` avec `weekdays: [sunday]`). Le vendredi soir ne publie plus rien : Al-Kahf passe
+  au vendredi matin (voir plus bas). Rendre un soir : ajouter son jour à `weekdays`.
 - **Pause** (`pause: {from, until}`, choix du propriétaire le 2026-11-12 : les épisodes
   thématiques démarrent, les reels attendent, à partir du créneau du soir de ce jour-là) :
   aucun reel les jours de la pause (un créneau déjà publié ce jour-là n'est pas complété), aucun
@@ -46,6 +55,12 @@
   (doc Reels Publishing : « 3 to 90 seconds »), la rotation choisit donc Budair chaque vendredi
   matin. `series-check` accepte un passage trop long pour l'estimation Alafasy si un récitateur
   prêt de la rotation tient dans 90 s.
+  **Depuis le 2026-11-20** (choix du propriétaire, 2026-11-13, avec un seul reel par jour) : le
+  vendredi matin lit `al-kahf` à la place de 18:1-10, un passage par vendredi, là où le soir
+  s'était arrêté (18:15-16 le 2026-11-13, donc 18:17-18 le 20) ; `kahf-first-ten` n'est plus
+  jouée. Ses passages (57 à 75 s environ) tiennent avec plusieurs récitateurs, pas seulement
+  Budair. La série recommence à 18:11 une fois finie (34 vendredis, été 2027) : 18:1-10 n'y est
+  pas, à décider à ce moment-là.
 - Série (`config/series/*.yaml`) : `surahs: [...]` (passages de plan.yaml) ou `passages:`
   écrits à la main, `title_ar`/`title_en` affichés sur le premier écran («آيات الدعاء · ٤ من ٣٨»)
   et en tête de la légende. `quran-reels series-check` refuse un passage qui commence ou finit

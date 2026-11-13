@@ -110,7 +110,7 @@ def build(cfg: Config, out: Path, state_dir: Path | None = None, previous: str |
     reciters = rec_mod.collect(cfg, state.data, history, state_dir, everyayah)
 
     calendar = sched_mod.calendar(cfg, sched, series, state, today, days, picker, src)
-    queues = sched_mod.progress(sched, series, state)
+    queues = sched_mod.progress(sched, series, state, today)
     try:
         words = sched_mod.words(cfg, src, images_state if images_state and images_state.is_file()
                                 else None, now, 7)
@@ -148,8 +148,10 @@ def build(cfg: Config, out: Path, state_dir: Path | None = None, previous: str |
         "repo": os.environ.get("GITHUB_REPOSITORY", "mssnoussi92/quran-reels"),
         "schedule": {"enabled": sched.enabled,
                      "pause": sched_mod.pause_label(sched, today),
-                     "slots": [{"name": s.name, "time": f"{s.at:%H:%M}", "queue": s.queue}
-                               for s in sorted(sched.slots, key=lambda s: s.at)],
+                     "slots": [{"name": s.name, "time": f"{s.at:%H:%M}", "queue": s.queue,
+                                "when": sched_mod.slot_days_label(s, today)}
+                               for s in sorted(sched.slots, key=lambda s: s.at)
+                               if not s.ended(today)],                  # not a slot that ended
                      "fridays": sched.friday_queues, "days": days},
         "reciters": reciters, "backgrounds": backgrounds,
         "calendar": calendar, "queues": queues, "words": words,

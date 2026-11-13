@@ -16,6 +16,11 @@ owner's word, nothing is missing. Report it in one line (« en pause, rien publi
 prévu »), never as a failure, and never dispatch daily.yml again or reopen a slot to make it
 publish. Only the owner ends the pause (`until`, docs/calendrier.md).
 
+A slot outside its days (`days` of a slot in `config/schedule.yaml`) is not due either: since
+2026-11-14 there is a reel every morning and the evening slot publishes on Sundays only (the
+theme series; owner's choice, 2026-11-13). An evening run on any other day finds « nothing
+due »: normal, say so in one line, never as a failure.
+
 1. **Find the run.** GitHub MCP `actions_list`, method `list_workflow_runs`, `resource_id` the
    workflow file, `perPage` 3. Note `head_branch`, `status`, `conclusion`, `created_at`.
 2. **Still running?** `list_workflow_jobs` gives the steps. "Install ffmpeg and Chromium" takes
