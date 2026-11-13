@@ -24,6 +24,14 @@
   kahf-first-ten, evening: kahf}` ; `queue:` en donne une pour tous), `fallback` (une file
   finie passe à une autre). `enabled: false` tant que la première publication réelle n'est pas
   faite (activé le 2026-11-05). `published_by_hand` : passages publiés hors calendrier, sautés.
+- **Jours d'un créneau** (`from` / `until` d'un créneau, choix du propriétaire le 2026-11-13 :
+  « à partir de demain, une publication le matin seulement ») : hors de ses jours, un créneau
+  n'est pas dû, n'est pas montré (`calendar`, catalogue, `prepare`) et n'est jamais compté
+  comme manqué. Le soir publie pour la dernière fois le 2026-11-13 (`until`) ; le matin reprend
+  le 2026-11-14 (`from` : son créneau du 13 était encore en pause, et il n'est pas manqué).
+  Les files du soir (`themes`, et `kahf` le vendredi soir) ne bougent plus : la série des
+  munjiyat s'arrête à 5/7, la suite d'Al-Kahf à 18:15-16, jusqu'à ce qu'un créneau les reprenne.
+  Rendre le soir : retirer `until` (ou en mettre un plus tard), et `from` du jour de reprise.
 - **Pause** (`pause: {from, until}`, choix du propriétaire le 2026-11-12 : les épisodes
   thématiques démarrent, les reels attendent, à partir du créneau du soir de ce jour-là) :
   aucun reel les jours de la pause (un créneau déjà publié ce jour-là n'est pas complété), aucun

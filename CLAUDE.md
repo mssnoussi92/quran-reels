@@ -20,11 +20,11 @@ jamais en silence, ne passe jamais outre en silence.
 |---|---|
 | Format | **≈ 1 minute** (cible 60 s, 40–90 s), jamais coupé au milieu d'une phrase ; **sourate courte entière** (≤ 90 s, même très courte) ; **le soir, le passage de la série tel quel, même une seule ayah** (15 à 30 s : 76 des 111 passages des séries du soir sont une seule ayah ; constaté sur les reels publiés le 2026-11-09, gardé ainsi le 2026-11-10 : la série dit quelle ayah, on ne la noie pas dans son contexte pour atteindre la minute) |
 | Basmala | **Au début de chaque vidéo**, même pour quelques versets ; sauf sourate 9 et avant 1:1 (qui est la basmala) |
-| Rythme | **2 vidéos par jour**, heure de Paris : **07:30** lecture dans l'ordre, **19:30** séries thématiques ; **reels en pause à partir du 2026-11-12 au soir, jusqu'à réactivation** (choix du propriétaire, 2026-11-12 : les épisodes thématiques démarrent ; `pause` de `config/schedule.yaml` : rien publié, rien compté comme manqué, les files attendent ; reprendre = écrire `until`, docs/calendrier.md) |
+| Rythme | **1 vidéo par jour depuis le 2026-11-14, le matin à 07:30** (heure de Paris), lecture dans l'ordre ; le vendredi matin, 18:1-10 (choix du propriétaire, 2026-11-13 ; avant : 2 par jour, **19:30** séries thématiques, dernier reel du soir le 2026-11-13). Les files `themes` (munjiyat arrêtée à 5/7) et `kahf` (la suite d'Al-Kahf du vendredi soir) attendent qu'un créneau les reprenne. Créneaux datés : `from` / `until` d'un créneau dans `config/schedule.yaml`. Reels en pause du 2026-11-12 au soir au 2026-11-13 au matin (`pause` : les épisodes thématiques démarraient) |
 | Images | **Word of the day**, carrousel de 3 images 1080×1350 (le mot, son ayah, son sens dans le Tafsir al-Muyassar), **1 par jour** à 11:30 UTC sur Instagram et Facebook ; **Ayah of the day** préparé, désactivé (docs/images.md) |
 | Lecture | **Juz' 'Amma d'abord** (114 → 78), puis Al-Fatiha et 2 → 77, passages de `config/plan.yaml` |
 | Thèmes | Ayat al-Kursi, les 7 versets « المنجيات », versets de du'a, versets du rizq, puis (proposés le 2026-11-06) la patience (ص ب ر) et le repentir (ت و ب)… : listes **proposées par l'IA en PR, validées par le propriétaire** |
-| Vendredi | **Al-Kahf sur les deux créneaux** (choix du propriétaire, 2026-11-05) : le matin, **les 10 premières ayahs (18:1-10) en une seule vidéo, chaque vendredi** ; le soir, la suite **à partir de 18:11**, un passage par vendredi (36), puis on recommence |
+| Vendredi | **Al-Kahf sur les deux créneaux** (choix du propriétaire, 2026-11-05) : le matin, **les 10 premières ayahs (18:1-10) en une seule vidéo, chaque vendredi** ; le soir, la suite **à partir de 18:11**, un passage par vendredi (36), puis on recommence ; **depuis le 2026-11-14, le matin seulement** (18:1-10 chaque vendredi), la suite attend à 18:15-16 (1 reel par jour) |
 | Texte arabe | Uthmani (Hafs), police **Amiri Quran** (OFL) |
 | Traduction | **Sahih International** (anglais), créditée dans chaque légende |
 | Mots difficiles | **غريب التفسير الميسر** (Tafsir al-Muyassar, Complexe du Roi Fahd ; `almuyassar-ghareeb` sur tafsir.app), choix du propriétaire le 2026-11-05 (avant : Ibn Qutaybah, *Tafsir Gharib al-Qur'an*), sens en arabe, **1 à 3 mots liés** surlignés |
@@ -403,9 +403,10 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
 - [x] App TikTok Sandbox · [x] connexion (`tiktok-auth`, compte quran_words_daily, refresh
       token jusqu'à ≈ 2027-11-04) · [x] brouillon dans la boîte TikTok en Sandbox (run #8)
 - [ ] Demande d'audit YouTube
-- [x] **Reels en pause** à partir du 2026-11-12 au soir (`pause` de `config/schedule.yaml`, demande du
-      propriétaire le 2026-11-12 : les épisodes thématiques démarrent) · [ ] reprise, sur sa parole
-      seulement (`until`)
+- [x] **Reels en pause** du 2026-11-12 au soir au 2026-11-13 au matin (`pause` de
+      `config/schedule.yaml`, demande du propriétaire : les épisodes thématiques démarrent) ·
+      [x] reprise le 2026-11-13 au soir (Al-Kahf 18:15-16), puis **1 reel par jour, le matin**
+      (créneau du soir `until: 2026-11-13`, du matin `from: 2026-11-14`)
 - [x] Calendrier : 2 créneaux, Juz' 'Amma, séries (Ayat al-Kursi, munjiyat, du'a, rizq), Al-Kahf le
       vendredi, état, workflow `daily` — **activé** (`enabled: true`) ; 93:1-11, publiée à la
       main, est dans `published_by_hand` (jamais republiée par le calendrier)

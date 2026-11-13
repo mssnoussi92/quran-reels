@@ -870,3 +870,58 @@ def test_the_real_schedule_reads():
     cfg = SimpleNamespace(root=Path(__file__).resolve().parents[1])
     sched = load_schedule(cfg)
     assert sched.enabled and sched.slots
+
+
+# ---- days of a slot (owner's choice, 2026-11-13: one reel a day from the 14th, mornings) --
+
+def ending_evening(**kw) -> Schedule:
+    s = schedule(**kw)
+    morning, evening = s.slots
+    s.slots = [Slot(morning.name, morning.at, morning.queue, start=date(2026, 11, 7)),
+               Slot(evening.name, evening.at, evening.queue, end=date(2026, 11, 6))]
+    return s
+
+
+def test_a_slot_publishes_only_on_its_days(world, monkeypatch):
+    calls, _, path = world
+    sched = ending_evening()
+    monkeypatch.setattr(daily, "load_schedule", lambda cfg, series: sched)
+    daily.run(None, path, now=paris(2026, 11, 5, 19, 20))                # Thu evening: on
+    daily.run(None, path, now=paris(2026, 11, 6, 7, 20))                 # Fri morning: not yet
+    daily.run(None, path, now=paris(2026, 11, 6, 19, 20))                # Fri evening: its last
+    daily.run(None, path, now=paris(2026, 11, 7, 7, 20))                 # Sat morning: back
+    daily.run(None, path, now=paris(2026, 11, 7, 19, 20))                # Sat evening: over
+    assert [c[0] for c in calls["publish"]] == ["2:255-255", "18:1-5", "114:1-6"]
+
+
+def test_a_slot_outside_its_days_is_never_missed_nor_shown(world):
+    from quran_reels.selector.calendar import missed_slots
+
+    _, _, path = world
+    daily.run(None, path, now=paris(2026, 11, 4, 7, 20))                 # something published
+    state = State.load(path)
+    sched = ending_evening()
+    assert missed_slots(sched, state, paris(2026, 11, 8, 12, 0)) == [
+        "2026-11-07/morning", "2026-11-08/morning"]                      # no evening, no Fri morning
+    days = preview(sched, SERIES, State(), date(2026, 11, 6), 2)
+    assert [(d.day, slot.name) for d, slot, _, _ in days] == [(6, "evening"), (7, "morning")]
+
+
+def test_the_days_of_a_slot_are_read_from_schedule_yaml(tmp_path):
+    from pathlib import Path
+
+    from quran_reels.selector.calendar import load_schedule
+
+    (tmp_path / "config").mkdir()
+    text = ("enabled: true\nslots:\n"
+            "  morning: {time: \"07:30\", queue: reading, from: 2026-11-14}\n"
+            "  evening: {time: \"19:30\", queue: reading, until: 2026-11-13}\n"
+            "queues: {reading: [juz-amma]}\n")
+    (tmp_path / "config" / "schedule.yaml").write_text(text)
+    sched = load_schedule(SimpleNamespace(root=Path(tmp_path)))
+    days = {s.name: (s.start, s.end) for s in sched.slots}
+    assert days == {"morning": (date(2026, 11, 14), None), "evening": (None, date(2026, 11, 13))}
+    (tmp_path / "config" / "schedule.yaml").write_text(
+        text.replace("from: 2026-11-14", "from: 2026-11-14, until: 2026-11-01"))
+    with pytest.raises(SystemExit, match="before"):
+        load_schedule(SimpleNamespace(root=Path(tmp_path)))

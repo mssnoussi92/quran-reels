@@ -125,14 +125,19 @@ def calendar(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
     return list(out.values())
 
 
-def progress(sched: Schedule, series: dict[str, Series], state: State) -> list[dict]:
-    """Each queue: its round, its series in order, how many passages each has published."""
+def progress(sched: Schedule, series: dict[str, Series], state: State,
+             today: date | None = None) -> list[dict]:
+    """Each queue: its round, its series in order, how many passages each has published.
+    A slot that ended before today (schedule.yaml `until`) uses no queue any more."""
     data = state.copy()
     users: dict[str, list[str]] = {}
+    live = {s.name for s in sched.slots if today is None or s.end is None or s.end >= today}
     for s in sched.slots:
-        users.setdefault(s.queue, []).append(f"{SLOTS_FR.get(s.name, s.name)} {s.at:%H:%M}")
+        if s.name in live:
+            users.setdefault(s.queue, []).append(f"{SLOTS_FR.get(s.name, s.name)} {s.at:%H:%M}")
     for slot, q in sched.friday_queues.items():
-        users.setdefault(q, []).append(f"vendredi {SLOTS_FR.get(slot, slot)}")
+        if slot in live:
+            users.setdefault(q, []).append(f"vendredi {SLOTS_FR.get(slot, slot)}")
     if sched.friday_queue:
         users.setdefault(sched.friday_queue, []).append("vendredi")
     out = []

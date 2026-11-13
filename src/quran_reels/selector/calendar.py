@@ -177,6 +177,14 @@ class Slot:
     name: str
     at: time
     queue: str
+    start: date | None = None       # first day it publishes (schedule.yaml `from`)
+    end: date | None = None         # last day it publishes (`until`): owner's choice 2026-11-13,
+                                    # one reel a day from the 14th, the morning one
+
+    def on(self, day: date) -> bool:
+        """Does this slot publish on that day? Outside its days it is not due, not shown,
+        never a missed slot."""
+        return (self.start is None or self.start <= day) and (self.end is None or day <= self.end)
 
 
 @dataclass(frozen=True)
@@ -223,6 +231,8 @@ class Schedule:
         local = now.astimezone(self.tz)
         out = []
         for slot in self.slots:
+            if not slot.on(local.date()):
+                continue
             at = datetime.combine(local.date(), slot.at, self.tz)
             if at - timedelta(minutes=self.early_minutes) <= local \
                     < at + timedelta(hours=self.window_hours):
@@ -239,6 +249,20 @@ def _time(value: Any, where: str) -> time:
         raise SystemExit(f"{where}: «{value}» is not a time such as \"07:30\"") from None
 
 
+def _day(value: Any, where: str) -> date | None:
+    """A day of schedule.yaml (YAML reads 2026-11-13 as a date); empty: None."""
+    if value in (None, ""):
+        return None
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    try:
+        return date.fromisoformat(str(value))
+    except ValueError:
+        raise SystemExit(f"{where}: «{value}» is not a day such as 2026-11-13") from None
+
+
 def _pause(raw: Any) -> Pause | None:
     """schedule.yaml `pause: {from: 2026-11-13, until: …}`; until empty: no end yet."""
     if not raw:
@@ -246,21 +270,7 @@ def _pause(raw: Any) -> Pause | None:
     where = "config/schedule.yaml, pause"
     if not isinstance(raw, dict) or not raw.get("from"):
         raise SystemExit(f"{where}: give its first day, `from: 2026-11-13`")
-
-    def day(value: Any, key: str) -> date | None:
-        if value in (None, ""):
-            return None
-        if isinstance(value, datetime):
-            return value.date()
-        if isinstance(value, date):
-            return value
-        try:
-            return date.fromisoformat(str(value))
-        except ValueError:
-            raise SystemExit(f"{where}: {key}: «{value}» is not a day such as 2026-11-13") \
-                from None
-
-    start, end = day(raw["from"], "from"), day(raw.get("until"), "until")
+    start, end = _day(raw["from"], f"{where}, from"), _day(raw.get("until"), f"{where}, until")
     if start is None:
         raise SystemExit(f"{where}: give its first day, `from: 2026-11-13`")
     if end is not None and end < start:
@@ -275,8 +285,14 @@ def load_schedule(cfg: Config, series: dict[str, Series] | None = None) -> Sched
         raise SystemExit(f"{path} is missing")
     queues = {str(q): [str(s) for s in v] for q, v in (raw.get("queues") or {}).items()}
     slots = [Slot(str(name), _time(s.get("time"), f"schedule.yaml, slot {name}"),
-                  str(s.get("queue")))
+                  str(s.get("queue")),
+                  _day(s.get("from"), f"config/schedule.yaml, slot {name}, from"),
+                  _day(s.get("until"), f"config/schedule.yaml, slot {name}, until"))
              for name, s in (raw.get("slots") or {}).items()]
+    for s in slots:
+        if s.start and s.end and s.end < s.start:
+            raise SystemExit(f"config/schedule.yaml, slot {s.name}: until ({s.end}) is before "
+                             f"from ({s.start})")
     fridays = dict(raw.get("fridays") or {})       # {queue: q} for every slot, {slot: q} each
     friday_queue = fridays.pop("queue", None)
     names = {s.name for s in slots}
@@ -431,6 +447,8 @@ def missed_slots(sched: Schedule, state: State, now: datetime,
         if sched.paused(day):
             continue
         for slot in sorted(sched.slots, key=lambda s: s.at):
+            if not slot.on(day):
+                continue
             end = datetime.combine(day, slot.at, sched.tz) + timedelta(hours=sched.window_hours)
             key = f"{day.isoformat()}/{slot.name}"
             if local >= end and day.isoformat() > first and key not in state.data["slots"] \
@@ -503,6 +521,8 @@ def preview(sched: Schedule, series: dict[str, Series], state: State, start: dat
         if skip_paused and sched.paused(day):
             continue
         for slot in sorted(sched.slots, key=lambda s: s.at):
+            if not slot.on(day):
+                continue
             record = sim.slot(day, slot.name)
             if record:
                 queue = record["queue"]

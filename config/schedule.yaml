@@ -6,17 +6,22 @@ timezone: Europe/Paris     # slot times below are local times there (summer time
 pause:                     # days without a reel: nothing published, no slot counted as missed;
   from: 2026-11-12         # the queues wait (owner's choice, 2026-11-12: the theme episodes start;
                            # from that evening's slot on, the morning's reel already out)
-  until:                   # last day without a reel; empty: until the owner turns them back on.
-                           # To turn them back on, write that day here (not delete the block:
-                           # the run would then count the last days of the pause as missed).
+  until: 2026-11-12        # last day without a reel; empty: until the owner turns them back on.
+                           # Back on 2026-11-13 (owner): that evening's slot, then mornings only
+                           # (slots below). Keep the block a few days: the run would otherwise
+                           # count the last days of the pause as missed.
 
-slots:                     # two videos a day
-  morning:
-    time: "07:30"          # before work and school; 09:30 in Mecca, 06:30 in Casablanca
-    queue: reading
+slots:                     # one video a day from 2026-11-14 (owner's choice, 2026-11-13)
+  morning:                 # from/until: the days a slot publishes; outside them it is not due,
+    time: "07:30"          # not shown, never a missed slot
+    queue: reading         # before work and school; 09:30 in Mecca, 06:30 in Casablanca
+    from: 2026-11-14       # its 2026-11-13 slot was still paused (back with that evening's)
   evening:
     time: "19:30"          # after work, the busiest hours on Reels; 21:30 in Mecca
     queue: themes
+    until: 2026-11-13      # its last reel (owner, 2026-11-13: one reel a day from the 14th,
+                           # the morning one); the themes queue and Friday's Al-Kahf after
+                           # 18:1-10 wait until a slot takes them again
 
 fridays:                   # on Fridays both slots read Surah Al-Kahf (owner's choice, 2026-11-05):
   morning: kahf-first-ten  # its first ten ayahs, in one video, every Friday
