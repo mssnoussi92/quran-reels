@@ -8,7 +8,8 @@
    "34:39#0",
    "29:40#0",
    "28:32#5",
-   "12:54#1"
+   "12:54#1",
+   "28:76#1"
   ],
   "posts": {
    "2026-11-06": {
@@ -147,6 +148,26 @@
       "status": "published",
       "id": "18120430565276781",
       "url": "https://www.instagram.com/p/Dfo91pKl5h6/",
+      "error": null
+     }
+    }
+   },
+   "2026-11-13": {
+    "id": "28:76#1",
+    "surah": 28,
+    "ayah": "28:76",
+    "word": "وَءَاتَيْنَـٰهُ",
+    "results": {
+     "facebook": {
+      "status": "published",
+      "id": "1494879297031390_122101601961545959",
+      "url": "https://www.facebook.com/122095909263545959/posts/122101601961545959",
+      "error": null
+     },
+     "instagram": {
+      "status": "published",
+      "id": "17879575791572653",
+      "url": "https://www.instagram.com/p/DfrimOnDSUS/",
       "error": null
      }
     }
