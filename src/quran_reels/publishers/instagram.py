@@ -13,6 +13,12 @@ new container, up to `attempts` times; the ones set aside are still watched, and
 container ready is used. An unpublished container costs nothing: it is not posted and
 expires after 24 hours.
 
+Waiting costs calls, and the app has about 200 an hour (Meta's app rate limit): on 2026-11-13
+two rounds of three stuck containers, each asked every 10 s, made about 300 calls in 35 min,
+and the retry run was refused outright (« (#4) Application request limit reached »). So a
+container is asked every 30 s, and the wait stops once Meta says the app has used USAGE_STOP %
+of its budget (X-App-Usage): the platform fails cleanly and the next run still has calls.
+
 Tried and dropped (2026-11-06, publish-test run #24): having Instagram fetch Facebook's copy
 of the draft (video_url = GET /{video}?fields=source). That copy is 720x1280 at 201 kb/s,
 and Instagram refused it anyway (container ERROR, code 2207076).
@@ -29,13 +35,18 @@ from quran_reels.publishers.base import PublisherError, StillProcessing
 from quran_reels.publishers.meta import RUPLOAD, Graph, GraphError
 
 CAPTION_LIMIT = 2200
+USAGE_STOP = 75         # % of the app's hourly call budget: stop waiting for containers
+
+
+class OutOfCalls(StillProcessing):
+    """The app's call budget is nearly used: no more waiting, and no new container."""
 
 
 class InstagramPublisher:
     name = "instagram"
     mode = "auto"
 
-    def __init__(self, graph: Graph, ig_user_id: str, poll_interval: float = 10,
+    def __init__(self, graph: Graph, ig_user_id: str, poll_interval: float = 30,
                  timeout: float = 900, attempts: int = 3, stuck_after: float = 240,
                  max_hashtags: int | None = 5, rights_timeout: float = 600):
         self.graph = graph
@@ -105,6 +116,11 @@ class InstagramPublisher:
             if time.monotonic() >= deadline:
                 raise StillProcessing(f"instagram container {', '.join(live)}: still processing "
                                       f"after {timeout:.0f} s")
+            usage = getattr(self.graph, "usage", 0)
+            if usage >= USAGE_STOP:
+                raise OutOfCalls(f"instagram container {', '.join(live)}: still processing; "
+                                 f"stopped waiting, Meta's app call budget at {usage} % "
+                                 "(calls kept for the next run: the limit is per hour)")
             time.sleep(self.poll_interval)
 
     def _ready_container(self, reel: Reel, params: dict[str, str]) -> str:
@@ -117,8 +133,8 @@ class InstagramPublisher:
             watched.append(cid)
             try:
                 return self._first_ready(watched, self.stuck_after)
-            except StillProcessing:
-                if attempt == self.attempts:
+            except StillProcessing as e:
+                if attempt == self.attempts or isinstance(e, OutOfCalls):
                     raise
             print(f"warning: instagram container {', '.join(watched)} still IN_PROGRESS "
                   f"{self.stuck_after:.0f} s after the upload error, uploading again to a new "

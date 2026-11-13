@@ -6,6 +6,7 @@ Graph error, never from the request URL, so it cannot end up in a log.
 
 from __future__ import annotations
 
+import json
 import os
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -48,12 +49,29 @@ class Graph:
         self.session = session or requests.Session()
         self.session.headers["User-Agent"] = USER_AGENT
         self.timeout = timeout
+        # Share of the app's hourly call budget used, in %, as Meta's last answer gave it
+        # (X-App-Usage). At 100 every call is refused for up to an hour: « (#4) Application
+        # request limit reached » (2026-11-13, after 35 min of polling stuck Instagram
+        # containers every 10 s, the retry run could not even check the token).
+        self.usage = 0
+
+    def _read_usage(self, r: requests.Response) -> None:
+        raw = (getattr(r, "headers", None) or {}).get("X-App-Usage")
+        if not raw:
+            return
+        try:
+            data = json.loads(raw)
+            self.usage = max(int(data.get(k) or 0)
+                             for k in ("call_count", "total_time", "total_cputime"))
+        except (ValueError, TypeError, AttributeError):
+            pass
 
     def _call(self, method: str, url: str, what: str, **kw: Any) -> dict:
         try:
             r = self.session.request(method, url, timeout=self.timeout, **kw)
         except requests.RequestException as e:
             raise GraphError(f"{what}: network error ({type(e).__name__})", transient=True) from None
+        self._read_usage(r)
         try:
             body = r.json()
         except ValueError:

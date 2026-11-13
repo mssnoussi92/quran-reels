@@ -45,6 +45,12 @@ due »: normal, say so in one line, never as a failure.
      the run tries that platform once more itself, 180 s later (log line « did not get the
      reel, tried again »); still failed, a daily run inside the slot window retries only that
      platform, same passage and reciter.
+   - « (#4) Application request limit reached » (often at « Meta token check failed »): the
+     Meta app used its hourly call budget (2026-11-13: stuck Instagram containers polled for
+     35 min). Dispatching again at once fails the same way: wait about an hour (the window
+     rolls), then one daily run inside the slot window (07:30 or 19:30 + 3 h), or tell the owner
+     the slot is over. Or « stopped waiting, Meta's app call budget at N % »: the run stopped
+     itself before that point; same advice.
    - « save-state: … not saved » on the step that saves the state: the slot is not on the
      state branch. Do not dispatch `daily.yml` again (it would post the passage twice): tell
      the owner, with the run link.
