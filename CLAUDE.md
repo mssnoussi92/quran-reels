@@ -460,5 +460,6 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
       qualité (10 à 400 caractères) ») : scènes générées animées + zoom lent, légende Facebook
       courte · [ ] relire la liste de qualité sur le prochain reel avec une scène générée
       · « vidéo avec bordures » sur des reels (2026-11-13) : la colline de la scène de nuit,
-      presque noire et immobile, faisait une bande noire de 110 px en bas (9:51, 6:17, 111) ;
+      presque noire et immobile, faisait une bande noire de 110 px en bas (9:51, 6:17, 111,
+      confirmés par le propriétaire ; leur autre point : l'image statique, déjà corrigée) ;
       colline texturée et éclairée, brume qui passe, test Chromium (docs/rendu.md)
