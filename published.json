@@ -32,7 +32,8 @@
   "kahf": {
    "round": 1,
    "done": [
-    "al-kahf/18:11-14"
+    "al-kahf/18:11-14",
+    "al-kahf/18:15-16"
    ]
   }
  },
@@ -482,6 +483,39 @@
    "youtube": {
     "reciter": "sayegh",
     "video": "youtube/108_001-003.mp4"
+   }
+  },
+  "2026-11-13/evening": {
+   "queue": "kahf",
+   "item": "al-kahf/18:15-16",
+   "passage": "18:15-16",
+   "results": {
+    "facebook": {
+     "status": "published",
+     "id": "1133005699139847",
+     "url": "https://www.facebook.com/reel/1133005699139847/",
+     "error": null,
+     "at": "2026-11-13T18:32:39+00:00"
+    },
+    "instagram": {
+     "status": "failed",
+     "id": null,
+     "url": null,
+     "error": "instagram container 17895230685503710, 17895231759503710, 17895233175503710: still processing after 240 s",
+     "at": "2026-11-13T18:49:49+00:00"
+    },
+    "tiktok": {
+     "status": "draft",
+     "id": "v_inbox_file~v2.7707725512227063830",
+     "url": null,
+     "error": null,
+     "at": "2026-11-13T18:32:39+00:00"
+    }
+   },
+   "reciter": "minshawi",
+   "youtube": {
+    "reciter": "sayegh",
+    "video": "youtube/018_015-016.mp4"
    }
   }
  },
