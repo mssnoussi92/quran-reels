@@ -45,6 +45,18 @@
   (`backgrounds.motion`) des boucles : 4 à 5, loin des 34,9 du clip refusé (accélérés filmés
   gardés : jusqu'à 23,5). Coût : ≈ 6 à 9 min par boucle sur 4 vCPU (au lieu de 3 à 5), une
   fois par version du shader.
+- **Pas de bord plat** (2026-11-13) : la liste de qualité de Facebook a dit « vidéo avec
+  bordures » de reels de nuit. Leur colline du premier plan était d'une seule couleur presque
+  noire (#0e0e1f) et immobile : sous le voile, les 110 px du bas de l'image valaient Y 23
+  (16 = noir), écart p90 − p10 de 1, aucun mouvement, sur 9:51, 6:17 et 111:1-5, comme une
+  bande de letterbox (`cropdetect` de ffmpeg : 1080×1810 au lieu de 1080×1920). Les autres fonds
+  sombres en bas (forêt de 113:1-5, ciel de 18:11-14, aube) ont un écart de 13 à 18 et bougent.
+  Confirmé par le propriétaire : le message est sur ces trois reels exactement, et l'autre point
+  de leur liste est l'image statique, corrigée le 2026-11-09.
+  La colline a maintenant des rochers et des broussailles, un liseré de lune sur sa crête et une
+  brume basse qui passe sur le bord : 6:17 refait, bas Y 32, écart 6, mouvement 2,9,
+  `cropdetect` 1080×1920. Test : `tests/test_scenes_chromium.py` dessine chaque scène et refuse
+  un bas plat (écart < 4) ou immobile.
   Une scène modifiée change l'empreinte du shader, donc le nom du fichier en cache : la boucle
   est redessinée au premier rendu (le cache des Actions ne la sert plus) et les anciennes
   versions de cette scène sont effacées de `.cache/backgrounds/`.

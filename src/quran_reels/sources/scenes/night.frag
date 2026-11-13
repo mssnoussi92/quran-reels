@@ -76,7 +76,20 @@ vec3 scene(vec2 uv, float t) {
     mist = smoothstep(.42, .75, mist) * smoothstep(far + .04, far - .02, uv.y)
          * smoothstep(near - .02, near + .05, uv.y);
     col = mix(col, hex(96., 92., 138.) + hex(190., 110., 90.) * .3 * glow, mist * .55);
-    col = mix(col, hex(14., 14., 31.), smoothstep(near + aa, near - aa, uv.y));
+    // The near slope: never one flat colour from edge to edge. It was #0e0e1f, still, under
+    // the scrim: a black band along the bottom that Facebook's quality checklist read as a
+    // border («vidéo avec bordures», 2026-11-13, the night reels). Rocks and scrub catch the
+    // moonlight, the ridge has a lit rim, and a low mist drifts across the bottom edge.
+    float depth = clamp((near - uv.y) / max(near, .02), 0., 1.);     // 0 at the ridge
+    float rock = .6 * fbm(vec3(p.x * 6., uv.y * 9., 2.7), 4)
+               + .4 * fbm(vec3(p.x * 22., uv.y * 30., 8.1), 3);
+    vec3 ground = mix(hex(33., 30., 62.), hex(19., 18., 40.), depth) * (.45 + 1.1 * rock);
+    ground += hex(170., 140., 160.) * .14 * smoothstep(near - .012, near, uv.y)
+            * smoothstep(.15, .9, uv.x);                              // moon on the right
+    col = mix(col, ground, smoothstep(near + aa, near - aa, uv.y));
+    float low = fbm(vec3(p.x * 1.7 - t * .06, uv.y * 7., t * .05 + 7.), 4);
+    low = smoothstep(.42, .8, low) * (1. - smoothstep(0., .09, uv.y));
+    col = mix(col, hex(88., 84., 128.), low * .4);
   }
   return col;
 }

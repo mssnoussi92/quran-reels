@@ -86,3 +86,4 @@ def test_a_text_too_long_is_scaled_down_and_stays_inside(renderer, tmp_path):
     safe = cfg.video["safe_area"]
     _, top, _, bottom = drawn_box(image)
     assert top >= safe["top"] and bottom <= 1920 - safe["bottom"], (top, bottom, fit)
+
