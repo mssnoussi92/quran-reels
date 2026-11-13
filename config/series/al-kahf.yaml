@@ -1,5 +1,6 @@
-# Surah Al-Kahf on Friday evenings, from 18:11 (18:1-10 is read every Friday morning:
-# kahf-first-ten.yaml), one passage a Friday, then from 18:11 again.
+# Surah Al-Kahf on Fridays, from 18:11, one passage a Friday, then from 18:11 again. Read on
+# Friday evenings until 2026-11-13 (18:1-10 every Friday morning: kahf-first-ten.yaml), on
+# Friday mornings from 2026-11-20, the only reel of the day (owner's choice, 2026-11-13).
 # Passages: `quran-reels passages 18 --from 11` (same cuts as config/plan.yaml from 18:15;
 # seconds estimated with Alafasy, the reciter is chosen per passage).
 title_ar: سورة الكهف يوم الجمعة

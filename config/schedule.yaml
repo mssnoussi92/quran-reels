@@ -23,9 +23,11 @@ slots:                     # one video a day from 2026-11-14 (owner's choice, 20
                            # the morning one); the themes queue and Friday's Al-Kahf after
                            # 18:1-10 wait until a slot takes them again
 
-fridays:                   # on Fridays both slots read Surah Al-Kahf (owner's choice, 2026-11-05):
-  morning: kahf-first-ten  # its first ten ayahs, in one video, every Friday
-  evening: kahf            # the rest, from 18:11, one passage a Friday, then again
+fridays:                   # on Fridays the slots read Surah Al-Kahf (owner's choice, 2026-11-05)
+  morning: kahf            # from 2026-11-20 the morning goes on with the surah, one passage a
+                           # Friday, where the evening left it (owner, 2026-11-13; before: 18:1-10
+                           # every Friday morning, queue kahf-first-ten, no longer used)
+  evening: kahf            # the surah from 18:11, one passage a Friday (evening slot ended 2026-11-13)
 
 queues:                    # the series of each queue, played one after the other
   reading: [juz-amma, mushaf]

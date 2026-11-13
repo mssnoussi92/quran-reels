@@ -54,6 +54,12 @@
   (doc Reels Publishing : « 3 to 90 seconds »), la rotation choisit donc Budair chaque vendredi
   matin. `series-check` accepte un passage trop long pour l'estimation Alafasy si un récitateur
   prêt de la rotation tient dans 90 s.
+  **Depuis le 2026-11-20** (choix du propriétaire, 2026-11-13, avec un seul reel par jour) : le
+  vendredi matin lit `al-kahf` à la place de 18:1-10, un passage par vendredi, là où le soir
+  s'était arrêté (18:15-16 le 2026-11-13, donc 18:17-18 le 20) ; `kahf-first-ten` n'est plus
+  jouée. Ses passages (57 à 75 s environ) tiennent avec plusieurs récitateurs, pas seulement
+  Budair. La série recommence à 18:11 une fois finie (34 vendredis, été 2027) : 18:1-10 n'y est
+  pas, à décider à ce moment-là.
 - Série (`config/series/*.yaml`) : `surahs: [...]` (passages de plan.yaml) ou `passages:`
   écrits à la main, `title_ar`/`title_en` affichés sur le premier écran («آيات الدعاء · ٤ من ٣٨»)
   et en tête de la légende. `quran-reels series-check` refuse un passage qui commence ou finit
