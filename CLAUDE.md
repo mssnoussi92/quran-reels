@@ -20,7 +20,7 @@ jamais en silence, ne passe jamais outre en silence.
 |---|---|
 | Format | **≈ 1 minute** (cible 60 s, 40–90 s), jamais coupé au milieu d'une phrase ; **sourate courte entière** (≤ 90 s, même très courte) ; **le soir, le passage de la série tel quel, même une seule ayah** (15 à 30 s : 76 des 111 passages des séries du soir sont une seule ayah ; constaté sur les reels publiés le 2026-11-09, gardé ainsi le 2026-11-10 : la série dit quelle ayah, on ne la noie pas dans son contexte pour atteindre la minute) |
 | Basmala | **Au début de chaque vidéo**, même pour quelques versets ; sauf sourate 9 et avant 1:1 (qui est la basmala) |
-| Rythme | **1 vidéo par jour depuis le 2026-11-14, le matin à 07:30** (heure de Paris), lecture dans l'ordre ; le vendredi matin, Al-Kahf un passage par vendredi (choix du propriétaire, 2026-11-13 ; avant : 2 par jour, **19:30** séries thématiques, dernier reel du soir le 2026-11-13). La file `themes` (munjiyat arrêtée à 5/7) attend qu'un créneau la reprenne. Créneaux datés : `from` / `until` d'un créneau dans `config/schedule.yaml`. Reels en pause du 2026-11-12 au soir au 2026-11-13 au matin (`pause` : les épisodes thématiques démarraient) |
+| Rythme | Depuis le 2026-11-14 (choix du propriétaire, 2026-11-13) : **chaque matin à 07:30** (heure de Paris) la lecture dans l'ordre, le vendredi matin Al-Kahf un passage par vendredi ; **le dimanche soir à 19:30** les séries thématiques (file `themes`) ; avant : 2 par jour, 07:30 lecture et 19:30 séries. Jours d'un créneau : `days` (périodes `from` / `until` / `weekdays`) dans `config/schedule.yaml`. Reels en pause du 2026-11-12 au soir au 2026-11-13 au matin (`pause` : les épisodes thématiques démarraient) |
 | Images | **Word of the day**, carrousel de 3 images 1080×1350 (le mot, son ayah, son sens dans le Tafsir al-Muyassar), **1 par jour** à 11:30 UTC sur Instagram et Facebook ; **Ayah of the day** préparé, désactivé (docs/images.md) |
 | Lecture | **Juz' 'Amma d'abord** (114 → 78), puis Al-Fatiha et 2 → 77, passages de `config/plan.yaml` |
 | Thèmes | Ayat al-Kursi, les 7 versets « المنجيات », versets de du'a, versets du rizq, puis (proposés le 2026-11-06) la patience (ص ب ر) et le repentir (ت و ب)… : listes **proposées par l'IA en PR, validées par le propriétaire** |
@@ -405,8 +405,8 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
 - [ ] Demande d'audit YouTube
 - [x] **Reels en pause** du 2026-11-12 au soir au 2026-11-13 au matin (`pause` de
       `config/schedule.yaml`, demande du propriétaire : les épisodes thématiques démarrent) ·
-      [x] reprise le 2026-11-13 au soir (Al-Kahf 18:15-16), puis **1 reel par jour, le matin**
-      (créneau du soir `until: 2026-11-13`, du matin `from: 2026-11-14`)
+      [x] reprise le 2026-11-13 au soir (Al-Kahf 18:15-16), puis **un reel chaque matin et les
+      séries le dimanche soir** (`days` des créneaux)
 - [x] Calendrier : 2 créneaux, Juz' 'Amma, séries (Ayat al-Kursi, munjiyat, du'a, rizq), Al-Kahf le
       vendredi, état, workflow `daily` — **activé** (`enabled: true`) ; 93:1-11, publiée à la
       main, est dans `published_by_hand` (jamais republiée par le calendrier)

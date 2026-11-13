@@ -381,3 +381,18 @@ def test_the_catalog_says_the_pause_of_the_reels():
     assert pause_label(sched(Pause(date(2026, 11, 13), date(2026, 11, 20))), today) == \
         "du vendredi 13 novembre au vendredi 20 novembre inclus"
     assert pause_label(sched(Pause(date(2026, 11, 1), date(2026, 11, 11))), today) == ""
+
+
+def test_the_catalog_says_when_a_slot_publishes():
+    from datetime import date, time
+
+    from quran_reels.catalog.schedule import slot_days_label
+    from quran_reels.selector.calendar import Period, Slot
+
+    evening = Slot("evening", time(19, 30), "themes",
+                   (Period(end=date(2026, 11, 13)),
+                    Period(date(2026, 11, 14), weekdays=frozenset({6}))))
+    assert slot_days_label(evening, date(2026, 11, 13)) == (
+        "jusqu'au vendredi 13 novembre ; puis le dimanche, à partir du samedi 14 novembre")
+    assert slot_days_label(evening, date(2026, 11, 14)) == "le dimanche"
+    assert slot_days_label(Slot("morning", time(7, 30), "reading"), date(2026, 11, 14)) == ""

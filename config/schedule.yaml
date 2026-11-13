@@ -11,23 +11,29 @@ pause:                     # days without a reel: nothing published, no slot cou
                            # (slots below). Keep the block a few days: the run would otherwise
                            # count the last days of the pause as missed.
 
-slots:                     # one video a day from 2026-11-14 (owner's choice, 2026-11-13)
-  morning:                 # from/until: the days a slot publishes; outside them it is not due,
-    time: "07:30"          # not shown, never a missed slot
-    queue: reading         # before work and school; 09:30 in Mecca, 06:30 in Casablanca
-    from: 2026-11-14       # its 2026-11-13 slot was still paused (back with that evening's)
+# From 2026-11-14 (owner's choice, 2026-11-13): a reel every morning, and the theme series on
+# Sunday evenings only. `days` of a slot: the periods it publishes (from, until, weekdays; each
+# optional; none: every day). Outside them a slot is not due, not shown, never a missed slot.
+slots:
+  morning:
+    time: "07:30"          # before work and school; 09:30 in Mecca, 06:30 in Casablanca
+    queue: reading
+    days:
+      - from: 2026-11-14   # its 2026-11-13 slot was still paused (back with that evening's)
   evening:
     time: "19:30"          # after work, the busiest hours on Reels; 21:30 in Mecca
     queue: themes
-    until: 2026-11-13      # its last reel (owner, 2026-11-13: one reel a day from the 14th,
-                           # the morning one); the themes queue and Friday's Al-Kahf after
-                           # 18:1-10 wait until a slot takes them again
+    days:
+      - until: 2026-11-13  # every evening until then (that Friday: Al-Kahf 18:15-16)
+      - from: 2026-11-14   # then Sunday evenings only: the theme series go on
+        weekdays: [sunday]
 
 fridays:                   # on Fridays the slots read Surah Al-Kahf (owner's choice, 2026-11-05)
   morning: kahf            # from 2026-11-20 the morning goes on with the surah, one passage a
                            # Friday, where the evening left it (owner, 2026-11-13; before: 18:1-10
                            # every Friday morning, queue kahf-first-ten, no longer used)
-  evening: kahf            # the surah from 18:11, one passage a Friday (evening slot ended 2026-11-13)
+  evening: kahf            # the surah from 18:11, one passage a Friday (no Friday evening reel
+                           # after 2026-11-13: the evening slot is on Sundays only)
 
 queues:                    # the series of each queue, played one after the other
   reading: [juz-amma, mushaf]

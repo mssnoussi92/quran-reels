@@ -148,9 +148,10 @@ def build(cfg: Config, out: Path, state_dir: Path | None = None, previous: str |
         "repo": os.environ.get("GITHUB_REPOSITORY", "mssnoussi92/quran-reels"),
         "schedule": {"enabled": sched.enabled,
                      "pause": sched_mod.pause_label(sched, today),
-                     "slots": [{"name": s.name, "time": f"{s.at:%H:%M}", "queue": s.queue}
+                     "slots": [{"name": s.name, "time": f"{s.at:%H:%M}", "queue": s.queue,
+                                "when": sched_mod.slot_days_label(s, today)}
                                for s in sorted(sched.slots, key=lambda s: s.at)
-                               if s.end is None or s.end >= today],     # not a slot that ended
+                               if not s.ended(today)],                  # not a slot that ended
                      "fridays": sched.friday_queues, "days": days},
         "reciters": reciters, "backgrounds": backgrounds,
         "calendar": calendar, "queues": queues, "words": words,
