@@ -18,8 +18,8 @@ ALL_SCOPES = ["pages_show_list", "pages_read_engagement", "pages_manage_posts",
 
 
 class Resp:
-    def __init__(self, body, status=200):
-        self.body, self.status_code = body, status
+    def __init__(self, body, status=200, headers=None):
+        self.body, self.status_code, self.headers = body, status, headers or {}
 
     def json(self):
         return self.body
@@ -486,3 +486,37 @@ def test_the_facebook_cover_is_the_frame_instagram_shows(reel, tmp_path):
     denied = graph({("POST", "/444/thumbnails"): Resp({"error": {
         "message": "(#200) Permissions error", "code": 200}}, 403)})
     assert FacebookPublisher(denied, PAGE).cover("444", reel) is False    # never fatal
+
+
+# ---- Meta's hourly call budget (2026-11-13: « (#4) Application request limit reached ») ----
+
+def test_the_graph_reads_how_much_of_the_app_budget_is_used():
+    usage = '{"call_count": 12, "total_cputime": 3, "total_time": 81}'
+    g = graph({("GET", "/me"): Resp({"id": "1"}, headers={"X-App-Usage": usage})})
+    g.get("me")
+    assert g.usage == 81
+    g.session.routes[("GET", "/me")] = Resp({"id": "1"}, headers={"X-App-Usage": "not json"})
+    g.get("me")
+    assert g.usage == 81                      # an unreadable header changes nothing
+
+
+def test_instagram_stops_waiting_before_the_app_budget_is_gone(reel):
+    """Stuck containers asked every 10 s for 35 min used the whole budget; the retry run was
+    refused. Near the limit the wait stops: Instagram fails, the next run still has calls."""
+    from quran_reels.publishers.instagram import USAGE_STOP
+
+    routes = stuck_routes(stuck=3)
+    for key, answer in list(routes.items()):
+        if key[0] == "GET" and key[1].startswith("/22"):
+            body = answer
+            routes[key] = (lambda fields, body=body: Resp(
+                body(fields) if callable(body) else body,
+                headers={"X-App-Usage": f'{{"call_count": {USAGE_STOP}}}'}))
+    g = graph(routes)
+    r = InstagramPublisher(g, IG, poll_interval=0, stuck_after=3600).publish(reel, dry_run=True)
+    assert r.status is PublishStatus.FAILED and "call budget at 75 %" in r.error
+    assert len(g.session.find("POST", f"/{IG}/media")) == 1    # no new container either
+
+
+def test_instagram_asks_a_container_every_30_s():
+    assert InstagramPublisher(graph({}), IG).poll_interval == 30

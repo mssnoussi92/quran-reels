@@ -77,6 +77,15 @@
   après 15 min). Après cette erreur, on lit donc le conteneur : `ERROR` → échec ; sinon on attend
   4 min, puis on abandonne ce conteneur et on renvoie la vidéo dans un nouveau (3 essais au
   plus). Un conteneur non publié ne coûte rien : rien n'est posté, il expire après 24 h.
+- **2026-11-13, budget d'appels épuisé** : le soir de la reprise (Al-Kahf 18:15-16, run #48),
+  six conteneurs en deux essais sont restés `IN_PROGRESS` ; chacun était relu toutes les 10 s,
+  soit environ 300 appels en 35 min, au-delà de la limite horaire de l'app Meta (environ 200
+  appels par heure pour une app à un seul utilisateur). La relance du planificateur (run #49)
+  a été refusée dès le contrôle du jeton : « (#4) Application request limit reached » (Facebook
+  et TikTok étaient déjà passés). Depuis, un conteneur est relu toutes les 30 s, et l'attente
+  s'arrête quand Meta annonce 75 % du budget utilisé (en-tête `X-App-Usage`, `Graph.usage`) :
+  Instagram échoue proprement, sans nouveau conteneur, et le run suivant a encore des appels.
+  Ce refus se lève en moins d'une heure (fenêtre glissante).
 - **2026-11-06** : le matin (run #10), trois conteneurs de suite sont restés `IN_PROGRESS` ;
   Instagram n'est sorti qu'au run suivant. Les conteneurs mis de côté restent désormais
   surveillés aux essais suivants : le premier prêt est publié. **Essayé et abandonné** : faire
