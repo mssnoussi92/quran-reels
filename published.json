@@ -498,11 +498,11 @@
      "at": "2026-11-13T18:32:39+00:00"
     },
     "instagram": {
-     "status": "failed",
-     "id": null,
-     "url": null,
-     "error": "instagram container 17895230685503710, 17895231759503710, 17895233175503710: still processing after 240 s",
-     "at": "2026-11-13T18:49:49+00:00"
+     "status": "published",
+     "id": "18388104592232554",
+     "url": "https://www.instagram.com/reel/DfslHXAjdkR/",
+     "error": null,
+     "at": "2026-11-13T21:20:00+00:00"
     },
     "tiktok": {
      "status": "draft",
