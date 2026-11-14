@@ -1,0 +1,29 @@
+{
+ "source": "https://archive.org/download/omar-hisham-al-arabi/106.mp3",
+ "method": "word times recognised by tarteel-ai/whisper-base-ar-quran, aligned on the Uthmani text, cut at the quietest moment nearby; each segment recognised by tarteel-ai/whisper-base-ar-quran",
+ "segments": {
+  "basmala": [
+   0.0,
+   10.95
+  ],
+  "1": [
+   11.04,
+   18.98
+  ],
+  "2": [
+   18.98,
+   33.94
+  ],
+  "3": [
+   33.94,
+   51.24
+  ],
+  "4": [
+   51.24,
+   56.223
+  ]
+ },
+ "match": {
+  "basmala": 1.0
+ }
+}
