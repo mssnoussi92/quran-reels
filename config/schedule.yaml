@@ -25,8 +25,8 @@ slots:
     queue: themes
     days:
       - until: 2026-11-13  # every evening until then (that Friday: Al-Kahf 18:15-16)
-      - from: 2026-11-14   # then Sunday evenings only: the theme series go on
-        weekdays: [sunday]
+      - from: 2026-11-16   # then Sunday evenings only: the theme series go on (from 2026-11-14;
+        weekdays: [sunday] # 2026-11-15 evening called off by the owner on the 14th: first 22nd)
 
 fridays:                   # on Fridays the slots read Surah Al-Kahf (owner's choice, 2026-11-05)
   morning: kahf            # from 2026-11-20 the morning goes on with the surah, one passage a
