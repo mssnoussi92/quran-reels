@@ -9,7 +9,8 @@
     "juz-amma/111:1-5",
     "juz-amma/110:1-3",
     "juz-amma/109:1-6",
-    "juz-amma/108:1-3"
+    "juz-amma/108:1-3",
+    "juz-amma/107:1-7"
    ]
   },
   "themes": {
@@ -516,6 +517,39 @@
    "youtube": {
     "reciter": "sayegh",
     "video": "youtube/018_015-016.mp4"
+   }
+  },
+  "2026-11-14/morning": {
+   "queue": "reading",
+   "item": "juz-amma/107:1-7",
+   "passage": "107:1-7",
+   "results": {
+    "facebook": {
+     "status": "published",
+     "id": "1477162760979225",
+     "url": "https://www.facebook.com/reel/1477162760979225/",
+     "error": null,
+     "at": "2026-11-14T06:23:19+00:00"
+    },
+    "instagram": {
+     "status": "published",
+     "id": "18144733030624688",
+     "url": "https://www.instagram.com/reel/Dfti50KicY_/",
+     "error": null,
+     "at": "2026-11-14T06:23:19+00:00"
+    },
+    "tiktok": {
+     "status": "draft",
+     "id": "v_inbox_file~v2.7707907578965264406",
+     "url": null,
+     "error": null,
+     "at": "2026-11-14T06:23:19+00:00"
+    }
+   },
+   "reciter": "fares_abbad",
+   "youtube": {
+    "reciter": "sayegh",
+    "video": "youtube/107_001-007.mp4"
    }
   }
  },
