@@ -231,3 +231,21 @@ def test_a_note_of_the_run_reaches_the_owner_without_closing_anything(tmp_path):
     notify.run(path, "success", "https://run/1", "owner", issues)
     [alert] = [i for i in gh.issues if i["title"] == notify.FAILURE_TITLE]
     assert alert["state"] == "open" and "GH_SECRETS_TOKEN" in alert["body"]
+
+
+def test_an_image_post_never_closes_the_alert_of_a_reel(tmp_path):
+    """2026-11-15: the Word of the day, posted at 12:30, closed the alert of the morning reel
+    that had not gone out (Meta token cut by a password change)."""
+    gh = FakeGh()
+    issues = notify.Issues("o/r", runner=gh)
+    notify.run(tmp_path / "missing.json", "failure", "https://run/1", "owner", issues)
+    notify.run(write(tmp_path, [item()]), "success", "https://run/2", "owner", issues,
+               alert="images")
+    [reel] = [i for i in gh.issues if i["title"] == notify.FAILURE_TITLE]
+    assert reel["state"] == "open"
+    notify.run(tmp_path / "missing.json", "failure", "https://run/3", "owner", issues,
+               alert="images")
+    [image] = [i for i in gh.issues if i["title"] == notify.IMAGES_FAILURE_TITLE]
+    assert image["state"] == "open" and reel["state"] == "open"
+    notify.run(write(tmp_path, [item()]), "success", "https://run/4", "owner", issues)
+    assert reel["state"] == "closed" and image["state"] == "open"

@@ -3,8 +3,9 @@
 `quran-reels catalog build` reads config/*.yaml, config/series/*.yaml and the state branch
 (published.json, images.json, splits/), and writes a static folder:
 
-    index.html   five sections: on-demand form, reciters, backgrounds, calendar and series,
-                 recent posts
+    index.html   five sections: on-demand form, reciters, backgrounds, calendar and series
+                 (the theme videos of quran-themes-demo included), recent posts
+    stats.html   the Page's statistics (insights.json, docs/insights.md)
     data.json    everything the page shows, for other tools
     catalog.css, catalog.js
     previews/    a few seconds of each stock clip in 360p (never the clip itself)
@@ -110,6 +111,23 @@ def build(cfg: Config, out: Path, state_dir: Path | None = None, previous: str |
     reciters = rec_mod.collect(cfg, state.data, history, state_dir, everyayah)
 
     calendar = sched_mod.calendar(cfg, sched, series, state, today, days, picker, src)
+    # The theme videos of quran-themes-demo (same Page): in the calendar, and recognised on the
+    # statistics page (docs/insights.md).
+    from quran_reels.catalog import stats as stats_mod
+    from quran_reels.insights import themes as themes_mod
+    from quran_reels.insights.collect import settings as insights_settings
+
+    ins_cfg = insights_settings(cfg)
+    theme_index = None
+    if ins_cfg.get("themes"):
+        try:
+            theme_index, theme_days = themes_mod.load_github(ins_cfg["themes"], today,
+                                                             os.environ.get("GITHUB_TOKEN"))
+            stats_mod.merge_calendar(calendar, theme_days, ins_cfg["themes"].get("time", ""))
+        except Exception as e:     # noqa: BLE001  (the reels' calendar stands alone)
+            print(f"warning: quran-themes-demo calendar: {type(e).__name__}: {e}", file=sys.stderr)
+            notes.append("Calendrier des vidéos thématiques (quran-themes-demo) illisible cette "
+                         "fois : seuls les reels sont dans le calendrier.")
     queues = sched_mod.progress(sched, series, state, today)
     try:
         words = sched_mod.words(cfg, src, images_state if images_state and images_state.is_file()
@@ -159,6 +177,10 @@ def build(cfg: Config, out: Path, state_dir: Path | None = None, previous: str |
                           "on_demand": od_mod.posts(cfg, state.data, src)},
         "on_demand": od_mod.launcher(cfg, state.data, src),
         "notes": notes,
+        "stats": stats_mod.build(_json(state_dir / "insights.json") if state_dir else None,
+                                 ins_cfg, now, sched.tz, theme_index,
+                                 {n: r.get("label", n) for n, r in
+                                  (cfg.content.get("reciters") or {}).items()}),
     }
     out.mkdir(parents=True, exist_ok=True)
     try:                        # the on-demand form: sentence ends and meanings per surah
@@ -173,9 +195,10 @@ def build(cfg: Config, out: Path, state_dir: Path | None = None, previous: str |
         print(f"warning: on-demand surah files: {type(e).__name__}: {e}", file=sys.stderr)
     (out / "data.json").write_text(json.dumps(data, ensure_ascii=False, indent=1),
                                    encoding="utf-8")
-    from quran_reels.catalog.page import render
+    from quran_reels.catalog.page import render, render_stats
 
     (out / "index.html").write_text(render(data), encoding="utf-8")
+    (out / "stats.html").write_text(render_stats(data), encoding="utf-8")
     for name in ("catalog.css", "catalog.js"):
         shutil.copyfile(SITE / name, out / name)
     return out

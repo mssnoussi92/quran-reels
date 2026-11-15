@@ -157,6 +157,18 @@ def main(argv: list[str] | None = None) -> int:
                     help="minutes of Muyassar downloads for the on-demand form (default 15; "
                          "0: only what is cached)")
 
+    ins = sub.add_parser("insights", help="statistics of the Page (docs/insights.md), read only")
+    ins_sub = ins.add_subparsers(dest="insights_command", required=True)
+    ic = ins_sub.add_parser("collect", help="read Facebook and Instagram numbers → insights.json")
+    ic.add_argument("--state", default="state", help="checkout of the state branch")
+    ic.add_argument("--dry-run", action="store_true", help="read, print, save nothing")
+    ia = ins_sub.add_parser("add", help="numbers read on a screenshot (YouTube, TikTok)")
+    ia.add_argument("--state", default="state", help="checkout of the state branch")
+    ia.add_argument("--json", required=True,
+                    help='one entry or a list: {"platform": "youtube", "video": "dua/short-1", '
+                         '"published": "2026-11-17", "seen": "2026-11-22", '
+                         '"metrics": {"views": 340, "avg_watch": 41}}')
+
     from quran_reels.ondemand import cli as on_demand_cli
 
     on_demand_cli.add_parser(sub)
@@ -168,6 +180,8 @@ def main(argv: list[str] | None = None) -> int:
     note.add_argument("--report", help="default: out/daily-report.json")
     note.add_argument("--missed", default="",
                       help="slots no run took (output `missed` of `quran-reels daily --check`)")
+    note.add_argument("--alert", choices=("daily", "images"), default="daily",
+                      help="which failure issue this workflow opens and closes")
 
     args = parser.parse_args(argv)
     cfg = config.load()
@@ -543,6 +557,26 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "on-demand":
         return on_demand_cli.run(cfg, args)
 
+    if args.command == "insights":
+        import json
+        from pathlib import Path
+
+        from quran_reels.insights import collect as insights
+
+        state = Path(args.state)
+        if args.insights_command == "collect":
+            if not state.is_dir():
+                raise SystemExit(f"--state {state}: no such folder (a checkout of the state branch)")
+            return insights.main_collect(cfg, state, dry_run=args.dry_run)
+        entries = json.loads(args.json)
+        entries = entries if isinstance(entries, list) else [entries]
+        try:
+            n = insights.add_manual(state / "insights.json", entries)
+        except ValueError as e:
+            raise SystemExit(f"insights add: {e}") from None
+        print(f"insights: {n} manual entr{'y' if n == 1 else 'ies'} saved")
+        return 0
+
     if args.command == "notify":
         from pathlib import Path
 
@@ -550,7 +584,7 @@ def main(argv: list[str] | None = None) -> int:
 
         report = Path(args.report) if args.report else cfg.out / "daily-report.json"
         return notify.run(report, args.outcome, args.run_url, args.owner,
-                          missed=[k for k in args.missed.split(",") if k])
+                          missed=[k for k in args.missed.split(",") if k], alert=args.alert)
 
     print(f"'{args.command}' is not implemented yet", file=sys.stderr)
     return 2

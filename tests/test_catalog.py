@@ -396,3 +396,30 @@ def test_the_catalog_says_when_a_slot_publishes():
         "jusqu'au vendredi 13 novembre ; puis le dimanche, à partir du samedi 14 novembre")
     assert slot_days_label(evening, date(2026, 11, 14)) == "le dimanche"
     assert slot_days_label(Slot("morning", time(7, 30), "reading"), date(2026, 11, 14)) == ""
+
+
+def test_the_calendar_shows_the_theme_videos(cfg, tmp_path):
+    from quran_reels.catalog import stats as stats_mod
+    from quran_reels.insights.themes import ThemeDay
+
+    calendar = sched_mod.calendar(no_rotation(cfg), schedule(), SERIES, published_state(),
+                                  date(2026, 11, 5), 2, None)
+    stats_mod.merge_calendar(calendar, [
+        ThemeDay(day="2026-11-05", label="Du'a : le film", where="Facebook (vertical)",
+                 evening=True),
+        ThemeDay(day="2026-11-06", label="<i>une histoire nouvelle</i>", where="", todo=True)],
+        "19:00")
+    data = {
+        "built_local": "05/11/2026 23:00", "timezone": "Europe/Paris", "commit": "", "notes": [],
+        "state_commit": "", "repo": "mssnoussi92/quran-reels",
+        "schedule": {"enabled": True, "days": 2, "fridays": {},
+                     "slots": [{"name": "morning", "time": "07:30", "queue": "reading"}]},
+        "reciters": rec_mod.collect(cfg, {}, load_history(), None, None),
+        "backgrounds": bg_mod.collect(cfg, load_history(), [], [], Previews(cfg, tmp_path, False), None),
+        "calendar": calendar, "queues": [],
+        "words": {"enabled": True, "time_utc": "11:30", "gloss_source": "", "days": []},
+        "posts": {"slots": [], "removed": [], "total": 0, "images": []},
+    }
+    html = render(data)
+    assert "Du&#39;a : le film" in html and 'href="stats.html"' in html
+    assert "&lt;i&gt;une histoire nouvelle&lt;/i&gt;" in html and "à faire" in html

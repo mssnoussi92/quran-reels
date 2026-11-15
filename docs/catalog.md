@@ -12,7 +12,9 @@ rien** et **ne modifie rien** : il lit la configuration et l'état.
   Lecture seule : `config/*.yaml`, `config/series/*.yaml`, `published.json` de la branche
   `state`, le cache des fonds (`.cache/`) s'il est restauré.
 - **Aucun secret côté navigateur**, aucune donnée privée : la page est publique (le dépôt l'est).
-  Aucun identifiant de jeton, aucun log brut.
+  Aucun identifiant de jeton, aucun log brut. Les statistiques de la Page (portée, accroche, durée
+  regardée de chaque vidéo) y sont publiques par choix du propriétaire (2026-11-15,
+  docs/insights.md) ; aucune donnée personnelle.
 - **Droits des médias** :
   - récitations : **lien vers la source** (lecture des MP3 d'EveryAyah depuis leur URL), jamais
     rehébergées sur le site ;
@@ -31,9 +33,13 @@ rien** et **ne modifie rien** : il lit la configuration et l'état.
    et thème qui l'a choisi (manifestes). Les clips refusés restent listés avec la raison.
 3. **Calendrier et séries** : les 14 prochains jours (même logique que
    `quran-reels calendar --days 14`), avancement de chaque série et file, prochaines images
-   « Word of the day ».
+   « Word of the day ». Depuis le 2026-11-15, les **vidéos thématiques** de la même Page dans
+   chaque jour (en bleu, lues dans `docs/retention/calendar.md` de quran-themes-demo, telles
+   qu'écrites : publiées, prévues, à faire) : un seul calendrier pour tout ce que la Page publie.
 4. **Publications** : derniers créneaux de `published.json`, liens Facebook/Instagram, statut
    TikTok, récitateur, fond, éléments retirés (`removed`).
+5. **Statistiques** (`stats.html`, 2026-11-15, docs/insights.md) : abonnés, chaque type de vidéo
+   comparé à 48 h, chaque vidéo sur Facebook et Instagram, captures YouTube et TikTok.
 
 ## Agir depuis le téléphone
 
