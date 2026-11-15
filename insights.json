@@ -1,0 +1,3107 @@
+{
+ "version": 1,
+ "posts": {
+  "instagram:18423996307159055": {
+   "snapshots": {},
+   "platform": "instagram",
+   "id": "18423996307159055",
+   "url": "https://www.instagram.com/reel/DfVtvTtj7pZ/",
+   "published": "2026-11-05T00:12:10+00:00",
+   "kind_meta": "instagram-reel",
+   "first_line": "Surah Ad-Duhaa (93:1-11) · سورة الضحى",
+   "key": "instagram:18423996307159055",
+   "kind": "other",
+   "label": "Surah Ad-Duhaa (93:1-11) · سورة الضحى",
+   "ref": {}
+  },
+  "instagram:18007380584794972": {
+   "snapshots": {},
+   "platform": "instagram",
+   "id": "18007380584794972",
+   "url": "https://www.instagram.com/reel/DfWod8GEqrE/",
+   "published": "2026-11-05T08:45:19+00:00",
+   "kind_meta": "instagram-reel",
+   "first_line": "Surah An-Nas (114:1-6) · سورة الناس",
+   "key": "slot:2026-11-05/morning",
+   "kind": "reel-morning",
+   "label": "114:1-6",
+   "ref": {
+    "slot": "2026-11-05/morning",
+    "queue": "reading",
+    "item": "juz-amma/114:1-6",
+    "passage": "114:1-6",
+    "reciter": null
+   }
+  },
+  "facebook:1455267246753851": {
+   "snapshots": {},
+   "platform": "facebook",
+   "id": "1455267246753851",
+   "url": "https://www.facebook.com/reel/1455267246753851/",
+   "published": "2026-11-05T16:28:48+00:00",
+   "kind_meta": "facebook-reel",
+   "first_line": "Surah An-Nas (114:1-6) · سورة الناس",
+   "seconds": 41.2,
+   "key": "facebook:1455267246753851",
+   "kind": "other",
+   "label": "Surah An-Nas (114:1-6) · سورة الناس",
+   "ref": {}
+  },
+  "facebook:2066156040753820": {
+   "snapshots": {},
+   "platform": "facebook",
+   "id": "2066156040753820",
+   "url": "https://www.facebook.com/122095909263545959/videos/2066156040753820",
+   "published": "2026-11-05T16:43:36+00:00",
+   "kind_meta": "facebook-video",
+   "first_line": "",
+   "seconds": 41.2,
+   "key": "facebook:2066156040753820",
+   "kind": "other",
+   "label": "facebook:2066156040753820",
+   "ref": {}
+  },
+  "facebook:1842176293639982": {
+   "snapshots": {},
+   "platform": "facebook",
+   "id": "1842176293639982",
+   "url": "https://www.facebook.com/reel/1842176293639982/",
+   "published": "2026-11-05T20:17:10+00:00",
+   "kind_meta": "facebook-reel",
+   "first_line": "Surah Al-Baqarah (2:255-255) · سورة البقرة",
+   "seconds": 43.6,
+   "key": "slot:2026-11-05/evening",
+   "kind": "reel-series",
+   "label": "2:255-255",
+   "ref": {
+    "slot": "2026-11-05/evening",
+    "queue": "themes",
+    "item": "ayat-al-kursi/2:255-255",
+    "passage": "2:255-255",
+    "reciter": "budair"
+   }
+  },
+  "instagram:18045937688899436": {
+   "snapshots": {},
+   "platform": "instagram",
+   "id": "18045937688899436",
+   "url": "https://www.instagram.com/reel/DfX3mfGjzWL/",
+   "published": "2026-11-05T20:17:45+00:00",
+   "kind_meta": "instagram-reel",
+   "first_line": "Surah Al-Baqarah (2:255-255) · سورة البقرة",
+   "key": "slot:2026-11-05/evening",
+   "kind": "reel-series",
+   "label": "2:255-255",
+   "ref": {
+    "slot": "2026-11-05/evening",
+    "queue": "themes",
+    "item": "ayat-al-kursi/2:255-255",
+    "passage": "2:255-255",
+    "reciter": "budair"
+   },
+   "seconds": 43.6
+  },
+  "facebook:2176209046300738": {
+   "snapshots": {},
+   "platform": "facebook",
+   "id": "2176209046300738",
+   "url": "https://www.facebook.com/reel/2176209046300738/",
+   "published": "2026-11-06T06:35:34+00:00",
+   "kind_meta": "facebook-reel",
+   "first_line": "The first ten verses of Surah Al-Kahf",
+   "seconds": 87.6,
+   "key": "slot:2026-11-06/morning",
+   "kind": "reel-kahf",
+   "label": "18:1-10",
+   "ref": {
+    "slot": "2026-11-06/morning",
+    "queue": "kahf-first-ten",
+    "item": "kahf-first-ten/18:1-10",
+    "passage": "18:1-10",
+    "reciter": "budair"
+   }
+  },
+  "instagram:18142240126620153": {
+   "snapshots": {},
+   "platform": "instagram",
+   "id": "18142240126620153",
+   "url": "https://www.instagram.com/reel/DfY_ksHDkIP/",
+   "published": "2026-11-06T06:46:07+00:00",
+   "kind_meta": "instagram-reel",
+   "first_line": "The first ten verses of Surah Al-Kahf",
+   "key": "slot:2026-11-06/morning",
+   "kind": "reel-kahf",
+   "label": "18:1-10",
+   "ref": {
+    "slot": "2026-11-06/morning",
+    "queue": "kahf-first-ten",
+    "item": "kahf-first-ten/18:1-10",
+    "passage": "18:1-10",
+    "reciter": "budair"
+   },
+   "seconds": 87.6
+  },
+  "facebook:1494879297031390_122095909239545959": {
+   "snapshots": {},
+   "platform": "facebook",
+   "id": "1494879297031390_122095909239545959",
+   "url": "https://www.facebook.com/122095909263545959/posts/122095909239545959",
+   "published": "2026-11-06T11:30:00+00:00",
+   "kind_meta": "facebook-photo",
+   "first_line": "",
+   "key": "word:2026-11-06",
+   "kind": "word",
+   "label": "بِٱلْحَقِّ · 42:17",
+   "ref": {
+    "day": "2026-11-06",
+    "ayah": "42:17",
+    "word": "بِٱلْحَقِّ"
+   }
+  },
+  "instagram:18640616260033459": {
+   "snapshots": {},
+   "platform": "instagram",
+   "id": "18640616260033459",
+   "url": "https://www.instagram.com/p/DfZhD2KGOym/",
+   "published": "2026-11-06T11:37:52+00:00",
+   "kind_meta": "instagram-post",
+   "first_line": "Word of the day: بِٱلْحَقِّ",
+   "key": "word:2026-11-06",
+   "kind": "word",
+   "label": "بِٱلْحَقِّ · 42:17",
+   "ref": {
+    "day": "2026-11-06",
+    "ayah": "42:17",
+    "word": "بِٱلْحَقِّ"
+   }
+  },
+  "facebook:1185465110827294": {
+   "snapshots": {
+    "7d": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 212.0,
+     "m": {
+      "views": 340,
+      "replays": 28,
+      "follows": 0,
+      "likes": 25,
+      "avg_watch": 6.8,
+      "hook": 100.0,
+      "kept_30s": 21.7,
+      "watch_pct": 11.3
+     }
+    },
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 212.0,
+     "m": {
+      "views": 340,
+      "replays": 28,
+      "follows": 0,
+      "likes": 25,
+      "avg_watch": 6.8,
+      "hook": 100.0,
+      "kept_30s": 21.7,
+      "watch_pct": 11.3
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "1185465110827294",
+   "url": "https://www.facebook.com/reel/1185465110827294/",
+   "published": "2026-11-06T18:30:52+00:00",
+   "kind_meta": "facebook-reel",
+   "first_line": "Surah Al-Kahf on Friday · 1/36",
+   "seconds": 60.3,
+   "key": "slot:2026-11-06/evening",
+   "kind": "reel-kahf",
+   "label": "18:11-14",
+   "ref": {
+    "slot": "2026-11-06/evening",
+    "queue": "kahf",
+    "item": "al-kahf/18:11-14",
+    "passage": "18:11-14",
+    "reciter": "sayegh"
+   },
+   "retention": {
+    "0": 0.9886,
+    "1": 1,
+    "2": 1,
+    "3": 0.8636,
+    "4": 0.6477,
+    "5": 0.5455,
+    "6": 0.5114,
+    "7": 0.4091,
+    "8": 0.3523,
+    "9": 0.3295,
+    "10": 0.3182,
+    "11": 0.3182,
+    "12": 0.2955,
+    "13": 0.2955,
+    "14": 0.25,
+    "15": 0.2386,
+    "16": 0.2386,
+    "17": 0.2386,
+    "18": 0.2273,
+    "19": 0.2273,
+    "20": 0.2159,
+    "21": 0.2159,
+    "22": 0.2045,
+    "23": 0.1932,
+    "24": 0.1818,
+    "25": 0.1818,
+    "26": 0.1818,
+    "27": 0.1818,
+    "28": 0.1705,
+    "29": 0.1705,
+    "30": 0.1705,
+    "31": 0.1705,
+    "32": 0.1591,
+    "33": 0.1591,
+    "34": 0.1591,
+    "35": 0.1591,
+    "36": 0.1591,
+    "37": 0.1591,
+    "38": 0.1591,
+    "39": 0.1591,
+    "40": 0.0795
+   }
+  },
+  "instagram:17873610804642039": {
+   "snapshots": {
+    "7d": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 211.9,
+     "m": {
+      "views": 789,
+      "reach": 647,
+      "likes": 78,
+      "comments": 0,
+      "shares": 0,
+      "saves": 1,
+      "hook": 34.4,
+      "avg_watch": 45.4,
+      "watch_pct": 75.3
+     }
+    },
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 211.9,
+     "m": {
+      "views": 789,
+      "reach": 647,
+      "likes": 78,
+      "comments": 0,
+      "shares": 0,
+      "saves": 1,
+      "hook": 34.4,
+      "avg_watch": 45.4,
+      "watch_pct": 75.3
+     }
+    }
+   },
+   "platform": "instagram",
+   "id": "17873610804642039",
+   "url": "https://www.instagram.com/reel/DfaQ9bWEcqR/",
+   "published": "2026-11-06T18:37:23+00:00",
+   "kind_meta": "instagram-reel",
+   "first_line": "Surah Al-Kahf on Friday · 1/36",
+   "key": "slot:2026-11-06/evening",
+   "kind": "reel-kahf",
+   "label": "18:11-14",
+   "ref": {
+    "slot": "2026-11-06/evening",
+    "queue": "kahf",
+    "item": "al-kahf/18:11-14",
+    "passage": "18:11-14",
+    "reciter": "sayegh"
+   },
+   "seconds": 60.3
+  },
+  "facebook:1799577337919927": {
+   "snapshots": {
+    "7d": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 200.2,
+     "m": {
+      "views": 459,
+      "replays": 54,
+      "follows": 3,
+      "likes": 31,
+      "shares": 1,
+      "avg_watch": 6.2,
+      "hook": 100.0,
+      "watch_pct": 22.5
+     }
+    },
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 200.2,
+     "m": {
+      "views": 459,
+      "replays": 54,
+      "follows": 3,
+      "likes": 31,
+      "shares": 1,
+      "avg_watch": 6.2,
+      "hook": 100.0,
+      "watch_pct": 22.5
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "1799577337919927",
+   "url": "https://www.facebook.com/reel/1799577337919927/",
+   "published": "2026-11-07T06:16:55+00:00",
+   "kind_meta": "facebook-reel",
+   "first_line": "Surah Al-Falaq (113:1-5) · سورة الفلق",
+   "seconds": 27.5,
+   "key": "slot:2026-11-07/morning",
+   "kind": "reel-morning",
+   "label": "113:1-5",
+   "ref": {
+    "slot": "2026-11-07/morning",
+    "queue": "reading",
+    "item": "juz-amma/113:1-5",
+    "passage": "113:1-5",
+    "reciter": "fares_abbad"
+   },
+   "retention": {
+    "0": 1,
+    "1": 1,
+    "2": 1,
+    "3": 1,
+    "4": 0.8679,
+    "5": 0.7358,
+    "6": 0.6604,
+    "7": 0.6226,
+    "8": 0.5755,
+    "9": 0.5377,
+    "10": 0.5189,
+    "11": 0.4811,
+    "12": 0.4623,
+    "13": 0.4623,
+    "14": 0.4528,
+    "15": 0.4434,
+    "16": 0.4434,
+    "17": 0.4245,
+    "18": 0.4057,
+    "19": 0.3962,
+    "20": 0.3868,
+    "21": 0.3774,
+    "22": 0.3679,
+    "23": 0.3679,
+    "24": 0.3585,
+    "25": 0.3491,
+    "26": 0.2736,
+    "27": 0.2075,
+    "28": 0.1415
+   }
+  },
+  "instagram:17993095092069431": {
+   "snapshots": {
+    "7d": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 200.2,
+     "m": {
+      "views": 153,
+      "reach": 130,
+      "likes": 20,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "hook": 27.3,
+      "avg_watch": 6.4,
+      "watch_pct": 23.3
+     }
+    },
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 200.2,
+     "m": {
+      "views": 153,
+      "reach": 130,
+      "likes": 20,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "hook": 27.3,
+      "avg_watch": 6.4,
+      "watch_pct": 23.3
+     }
+    }
+   },
+   "platform": "instagram",
+   "id": "17993095092069431",
+   "url": "https://www.instagram.com/reel/DfbhB-GgGXY/",
+   "published": "2026-11-07T06:17:28+00:00",
+   "kind_meta": "instagram-reel",
+   "first_line": "Surah Al-Falaq (113:1-5) · سورة الفلق",
+   "key": "slot:2026-11-07/morning",
+   "kind": "reel-morning",
+   "label": "113:1-5",
+   "ref": {
+    "slot": "2026-11-07/morning",
+    "queue": "reading",
+    "item": "juz-amma/113:1-5",
+    "passage": "113:1-5",
+    "reciter": "fares_abbad"
+   },
+   "seconds": 27.5
+  },
+  "facebook:1494879297031390_122096647437545959": {
+   "snapshots": {
+    "7d": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 195.0,
+     "m": {
+      "views": 16,
+      "reach": 0,
+      "likes": 1
+     }
+    },
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 195.0,
+     "m": {
+      "views": 16,
+      "reach": 0,
+      "likes": 1
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "1494879297031390_122096647437545959",
+   "url": "https://www.facebook.com/122095909263545959/posts/122096647437545959",
+   "published": "2026-11-07T11:30:00+00:00",
+   "kind_meta": "facebook-photo",
+   "first_line": "",
+   "key": "word:2026-11-07",
+   "kind": "word",
+   "label": "غُدُوُّهَا شَهْرٌ · 34:12",
+   "ref": {
+    "day": "2026-11-07",
+    "ayah": "34:12",
+    "word": "غُدُوُّهَا شَهْرٌ"
+   }
+  },
+  "instagram:18114614036146295": {
+   "snapshots": {
+    "7d": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 194.9,
+     "m": {
+      "views": 8,
+      "reach": 2,
+      "likes": 1,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "follows": 0
+     }
+    },
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 194.9,
+     "m": {
+      "views": 8,
+      "reach": 2,
+      "likes": 1,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "follows": 0
+     }
+    }
+   },
+   "platform": "instagram",
+   "id": "18114614036146295",
+   "url": "https://www.instagram.com/p/DfcF4LnDrid/",
+   "published": "2026-11-07T11:38:04+00:00",
+   "kind_meta": "instagram-post",
+   "first_line": "Word of the day: غُدُوُّهَا شَهْرٌ",
+   "key": "word:2026-11-07",
+   "kind": "word",
+   "label": "غُدُوُّهَا شَهْرٌ · 34:12",
+   "ref": {
+    "day": "2026-11-07",
+    "ayah": "34:12",
+    "word": "غُدُوُّهَا شَهْرٌ"
+   }
+  },
+  "facebook:1590245789090863": {
+   "snapshots": {
+    "7d": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 191.9,
+     "m": {
+      "views": 0,
+      "avg_watch": 0.0,
+      "watch_pct": 0.0
+     }
+    },
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 191.9,
+     "m": {
+      "views": 0,
+      "avg_watch": 0.0,
+      "watch_pct": 0.0
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "1590245789090863",
+   "url": "https://www.facebook.com/122095909263545959/videos/1590245789090863",
+   "published": "2026-11-07T14:33:14+00:00",
+   "kind_meta": "facebook-video",
+   "first_line": "",
+   "seconds": 43.6,
+   "key": "facebook:1590245789090863",
+   "kind": "other",
+   "label": "facebook:1590245789090863",
+   "ref": {},
+   "retention": {}
+  },
+  "facebook:1135234855664308": {
+   "snapshots": {
+    "7d": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 188.2,
+     "m": {
+      "views": 304,
+      "replays": 50,
+      "follows": 0,
+      "likes": 18,
+      "avg_watch": 4.1,
+      "hook": 100.0,
+      "watch_pct": 30.1
+     }
+    },
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 188.2,
+     "m": {
+      "views": 304,
+      "replays": 50,
+      "follows": 0,
+      "likes": 18,
+      "avg_watch": 4.1,
+      "hook": 100.0,
+      "watch_pct": 30.1
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "1135234855664308",
+   "url": "https://www.facebook.com/reel/1135234855664308/",
+   "published": "2026-11-07T18:19:22+00:00",
+   "kind_meta": "facebook-reel",
+   "first_line": "The seven munjiyat verses · 1/7",
+   "seconds": 13.6,
+   "key": "slot:2026-11-07/evening",
+   "kind": "reel-series",
+   "label": "9:51-51",
+   "ref": {
+    "slot": "2026-11-07/evening",
+    "queue": "themes",
+    "item": "munjiyat/9:51-51",
+    "passage": "9:51-51",
+    "reciter": "budair"
+   },
+   "retention": {
+    "0": 1,
+    "1": 1,
+    "2": 1,
+    "3": 1,
+    "4": 0.9146,
+    "5": 0.8171,
+    "6": 0.7561,
+    "7": 0.6951,
+    "8": 0.622,
+    "9": 0.5854,
+    "10": 0.561,
+    "11": 0.5366,
+    "12": 0.5244,
+    "13": 0.5122,
+    "14": 0.4634,
+    "15": 0.378,
+    "16": 0.3049
+   }
+  },
+  "instagram:18092977178666892": {
+   "snapshots": {
+    "7d": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 188.2,
+     "m": {
+      "views": 245,
+      "reach": 203,
+      "likes": 29,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "hook": 26.4,
+      "avg_watch": 4.9,
+      "watch_pct": 36.0
+     }
+    },
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 188.2,
+     "m": {
+      "views": 245,
+      "reach": 203,
+      "likes": 29,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "hook": 26.4,
+      "avg_watch": 4.9,
+      "watch_pct": 36.0
+     }
+    }
+   },
+   "platform": "instagram",
+   "id": "18092977178666892",
+   "url": "https://www.instagram.com/reel/DfczucJD5jt/",
+   "published": "2026-11-07T18:20:02+00:00",
+   "kind_meta": "instagram-reel",
+   "first_line": "The seven munjiyat verses · 1/7",
+   "key": "slot:2026-11-07/evening",
+   "kind": "reel-series",
+   "label": "9:51-51",
+   "ref": {
+    "slot": "2026-11-07/evening",
+    "queue": "themes",
+    "item": "munjiyat/9:51-51",
+    "passage": "9:51-51",
+    "reciter": "budair"
+   },
+   "seconds": 13.6
+  },
+  "facebook:1843990706602607": {
+   "snapshots": {
+    "7d": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 176.2,
+     "m": {
+      "views": 275,
+      "replays": 22,
+      "follows": 1,
+      "likes": 16,
+      "avg_watch": 3.7,
+      "hook": 100.0,
+      "watch_pct": 18.0
+     }
+    },
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 176.2,
+     "m": {
+      "views": 275,
+      "replays": 22,
+      "follows": 1,
+      "likes": 16,
+      "avg_watch": 3.7,
+      "hook": 100.0,
+      "watch_pct": 18.0
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "1843990706602607",
+   "url": "https://www.facebook.com/reel/1843990706602607/",
+   "published": "2026-11-08T06:19:23+00:00",
+   "kind_meta": "facebook-reel",
+   "first_line": "Surah Al-Ikhlas (112:1-4) · سورة الإخلاص",
+   "seconds": 20.6,
+   "key": "slot:2026-11-08/morning",
+   "kind": "reel-morning",
+   "label": "112:1-4",
+   "ref": {
+    "slot": "2026-11-08/morning",
+    "queue": "reading",
+    "item": "juz-amma/112:1-4",
+    "passage": "112:1-4",
+    "reciter": "minshawi"
+   },
+   "retention": {
+    "0": 1,
+    "1": 1,
+    "2": 1,
+    "3": 1,
+    "4": 0.9434,
+    "5": 0.8868,
+    "6": 0.7736,
+    "7": 0.717,
+    "8": 0.6981,
+    "9": 0.6981,
+    "10": 0.6792,
+    "11": 0.6604,
+    "12": 0.6226,
+    "13": 0.6038,
+    "14": 0.6038,
+    "15": 0.5849,
+    "16": 0.566,
+    "17": 0.566,
+    "18": 0.566,
+    "19": 0.566,
+    "20": 0.566,
+    "21": 0.5283,
+    "22": 0.434,
+    "23": 0.2075,
+    "24": 0.1321
+   }
+  },
+  "instagram:18126967663910654": {
+   "snapshots": {
+    "7d": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 176.2,
+     "m": {
+      "views": 124,
+      "reach": 109,
+      "likes": 14,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "hook": 28.2,
+      "avg_watch": 10.4,
+      "watch_pct": 50.5
+     }
+    },
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 176.2,
+     "m": {
+      "views": 124,
+      "reach": 109,
+      "likes": 14,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "hook": 28.2,
+      "avg_watch": 10.4,
+      "watch_pct": 50.5
+     }
+    }
+   },
+   "platform": "instagram",
+   "id": "18126967663910654",
+   "url": "https://www.instagram.com/reel/DfeGHxSCNMD/",
+   "published": "2026-11-08T06:20:02+00:00",
+   "kind_meta": "instagram-reel",
+   "first_line": "Surah Al-Ikhlas (112:1-4) · سورة الإخلاص",
+   "key": "slot:2026-11-08/morning",
+   "kind": "reel-morning",
+   "label": "112:1-4",
+   "ref": {
+    "slot": "2026-11-08/morning",
+    "queue": "reading",
+    "item": "juz-amma/112:1-4",
+    "passage": "112:1-4",
+    "reciter": "minshawi"
+   },
+   "seconds": 20.6
+  },
+  "facebook:1494879297031390_122097414027545959": {
+   "snapshots": {
+    "7d": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 171.0,
+     "m": {
+      "views": 21,
+      "reach": 0,
+      "likes": 1
+     }
+    },
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 171.0,
+     "m": {
+      "views": 21,
+      "reach": 0,
+      "likes": 1
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "1494879297031390_122097414027545959",
+   "url": "https://www.facebook.com/122095909263545959/posts/122097414027545959",
+   "published": "2026-11-08T11:30:00+00:00",
+   "kind_meta": "facebook-photo",
+   "first_line": "",
+   "key": "word:2026-11-08",
+   "kind": "word",
+   "label": "ذِكْرُ · 21:24",
+   "ref": {
+    "day": "2026-11-08",
+    "ayah": "21:24",
+    "word": "ذِكْرُ"
+   }
+  },
+  "instagram:18134560951802009": {
+   "snapshots": {
+    "7d": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 170.9,
+     "m": {
+      "views": 4,
+      "reach": 2,
+      "likes": 2,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "follows": 0
+     }
+    },
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 170.9,
+     "m": {
+      "views": 4,
+      "reach": 2,
+      "likes": 2,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "follows": 0
+     }
+    }
+   },
+   "platform": "instagram",
+   "id": "18134560951802009",
+   "url": "https://www.instagram.com/p/DfeqtvBk2Jn/",
+   "published": "2026-11-08T11:38:27+00:00",
+   "kind_meta": "instagram-post",
+   "first_line": "Word of the day: ذِكْرُ",
+   "key": "word:2026-11-08",
+   "kind": "word",
+   "label": "ذِكْرُ · 21:24",
+   "ref": {
+    "day": "2026-11-08",
+    "ayah": "21:24",
+    "word": "ذِكْرُ"
+   }
+  },
+  "facebook:1224802519897715": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 164.2,
+     "m": {
+      "views": 11,
+      "replays": 2,
+      "follows": 0,
+      "likes": 2,
+      "avg_watch": 4.5,
+      "hook": 100.0,
+      "watch_pct": 19.4
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "1224802519897715",
+   "url": "https://www.facebook.com/reel/1224802519897715/",
+   "published": "2026-11-08T18:16:07+00:00",
+   "kind_meta": "facebook-reel",
+   "first_line": "The seven munjiyat verses · 2/7",
+   "seconds": 23.2,
+   "key": "slot:2026-11-08/evening",
+   "kind": "reel-series",
+   "label": "6:17-17",
+   "ref": {
+    "slot": "2026-11-08/evening",
+    "queue": "themes",
+    "item": "munjiyat/6:17-17",
+    "passage": "6:17-17",
+    "reciter": "fares_abbad"
+   },
+   "retention": {
+    "0": 1,
+    "1": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1,
+    "5": 0.75,
+    "6": 0.5,
+    "7": 0.25,
+    "8": 0.25,
+    "9": 0.25,
+    "10": 0.25,
+    "11": 0.25,
+    "12": 0.25,
+    "13": 0.25,
+    "14": 0.25,
+    "15": 0.25,
+    "16": 0.25,
+    "17": 0.25,
+    "18": 0.25,
+    "19": 0.25,
+    "20": 0.25,
+    "21": 0.25,
+    "22": 0.25,
+    "23": 0.25,
+    "24": 0
+   }
+  },
+  "instagram:18112893734612901": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 164.2,
+     "m": {
+      "views": 304,
+      "reach": 273,
+      "likes": 48,
+      "comments": 0,
+      "shares": 0,
+      "saves": 1,
+      "hook": 18.1,
+      "avg_watch": 4.1,
+      "watch_pct": 17.7
+     }
+    }
+   },
+   "platform": "instagram",
+   "id": "18112893734612901",
+   "url": "https://www.instagram.com/reel/DffYJoHiQMv/",
+   "published": "2026-11-08T18:16:41+00:00",
+   "kind_meta": "instagram-reel",
+   "first_line": "The seven munjiyat verses · 2/7",
+   "key": "slot:2026-11-08/evening",
+   "kind": "reel-series",
+   "label": "6:17-17",
+   "ref": {
+    "slot": "2026-11-08/evening",
+    "queue": "themes",
+    "item": "munjiyat/6:17-17",
+    "passage": "6:17-17",
+    "reciter": "fares_abbad"
+   },
+   "seconds": 23.2
+  },
+  "facebook:1644123617171400": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 152.2,
+     "m": {
+      "views": 359,
+      "replays": 32,
+      "follows": 1,
+      "likes": 18,
+      "avg_watch": 4.1,
+      "hook": 100.0,
+      "watch_pct": 13.8
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "1644123617171400",
+   "url": "https://www.facebook.com/reel/1644123617171400/",
+   "published": "2026-11-09T06:20:47+00:00",
+   "kind_meta": "facebook-reel",
+   "first_line": "Surah Al-Masad (111:1-5) · سورة المسد",
+   "seconds": 29.8,
+   "key": "slot:2026-11-09/morning",
+   "kind": "reel-morning",
+   "label": "111:1-5",
+   "ref": {
+    "slot": "2026-11-09/morning",
+    "queue": "reading",
+    "item": "juz-amma/111:1-5",
+    "passage": "111:1-5",
+    "reciter": "sayegh"
+   },
+   "retention": {
+    "0": 1,
+    "1": 1,
+    "2": 1,
+    "3": 1,
+    "4": 0.8947,
+    "5": 0.8596,
+    "6": 0.807,
+    "7": 0.7018,
+    "8": 0.6667,
+    "9": 0.5965,
+    "10": 0.5614,
+    "11": 0.5614,
+    "12": 0.5439,
+    "13": 0.5439,
+    "14": 0.5439,
+    "15": 0.5263,
+    "16": 0.5263,
+    "17": 0.5088,
+    "18": 0.4737,
+    "19": 0.4737,
+    "20": 0.4561,
+    "21": 0.4561,
+    "22": 0.4561,
+    "23": 0.4561,
+    "24": 0.4561,
+    "25": 0.4561,
+    "26": 0.4561,
+    "27": 0.4561,
+    "28": 0.4561,
+    "29": 0.4561,
+    "30": 0.4386,
+    "31": 0.2807,
+    "32": 0.193
+   }
+  },
+  "instagram:18121795487076912": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 152.1,
+     "m": {
+      "views": 141,
+      "reach": 130,
+      "likes": 11,
+      "comments": 0,
+      "shares": 0,
+      "saves": 1,
+      "hook": 13.8,
+      "avg_watch": 5.3,
+      "watch_pct": 17.8
+     }
+    }
+   },
+   "platform": "instagram",
+   "id": "18121795487076912",
+   "url": "https://www.instagram.com/reel/DfgrE75j11T/",
+   "published": "2026-11-09T06:21:21+00:00",
+   "kind_meta": "instagram-reel",
+   "first_line": "Surah Al-Masad (111:1-5) · سورة المسد",
+   "key": "slot:2026-11-09/morning",
+   "kind": "reel-morning",
+   "label": "111:1-5",
+   "ref": {
+    "slot": "2026-11-09/morning",
+    "queue": "reading",
+    "item": "juz-amma/111:1-5",
+    "passage": "111:1-5",
+    "reciter": "sayegh"
+   },
+   "seconds": 29.8
+  },
+  "facebook:1494879297031390_122098129527545959": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 147.0,
+     "m": {
+      "views": 26,
+      "reach": 0,
+      "likes": 1
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "1494879297031390_122098129527545959",
+   "url": "https://www.facebook.com/122095909263545959/posts/122098129527545959",
+   "published": "2026-11-09T11:30:00+00:00",
+   "kind_meta": "facebook-photo",
+   "first_line": "",
+   "key": "word:2026-11-09",
+   "kind": "word",
+   "label": "يَبْسُطُ · 34:39",
+   "ref": {
+    "day": "2026-11-09",
+    "ayah": "34:39",
+    "word": "يَبْسُطُ"
+   }
+  },
+  "instagram:17952298602346653": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 146.9,
+     "m": {
+      "views": 4,
+      "reach": 2,
+      "likes": 1,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "follows": 0
+     }
+    }
+   },
+   "platform": "instagram",
+   "id": "17952298602346653",
+   "url": "https://www.instagram.com/p/DfhPZ7iHcBz/",
+   "published": "2026-11-09T11:37:32+00:00",
+   "kind_meta": "instagram-post",
+   "first_line": "Word of the day: يَبْسُطُ",
+   "key": "word:2026-11-09",
+   "kind": "word",
+   "label": "يَبْسُطُ · 34:39",
+   "ref": {
+    "day": "2026-11-09",
+    "ayah": "34:39",
+    "word": "يَبْسُطُ"
+   }
+  },
+  "facebook:1666514785127140": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 144.9,
+     "m": {
+      "views": 0,
+      "avg_watch": 0.0,
+      "watch_pct": 0.0
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "1666514785127140",
+   "url": "https://www.facebook.com/122095909263545959/videos/1666514785127140",
+   "published": "2026-11-09T13:36:59+00:00",
+   "kind_meta": "facebook-video",
+   "first_line": "",
+   "seconds": 23.2,
+   "key": "facebook:1666514785127140",
+   "kind": "other",
+   "label": "facebook:1666514785127140",
+   "ref": {},
+   "retention": {}
+  },
+  "facebook:2218208059132649": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 139.4,
+     "m": {
+      "views": 245,
+      "replays": 42,
+      "follows": 1,
+      "likes": 12,
+      "avg_watch": 6.9,
+      "hook": 100.0,
+      "watch_pct": 24.0
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "2218208059132649",
+   "url": "https://www.facebook.com/reel/2218208059132649/",
+   "published": "2026-11-09T19:06:13+00:00",
+   "kind_meta": "facebook-reel",
+   "first_line": "The seven munjiyat verses · السبع آيات المنجيات · 3/7",
+   "seconds": 28.7,
+   "key": "slot:2026-11-09/evening",
+   "kind": "reel-series",
+   "label": "11:6-6",
+   "ref": {
+    "slot": "2026-11-09/evening",
+    "queue": "themes",
+    "item": "munjiyat/11:6-6",
+    "passage": "11:6-6",
+    "reciter": "minshawi"
+   },
+   "retention": {
+    "0": 1,
+    "1": 1,
+    "2": 1,
+    "3": 1,
+    "4": 0.8485,
+    "5": 0.803,
+    "6": 0.6515,
+    "7": 0.5909,
+    "8": 0.5606,
+    "9": 0.5606,
+    "10": 0.5455,
+    "11": 0.4697,
+    "12": 0.4545,
+    "13": 0.4091,
+    "14": 0.3939,
+    "15": 0.3788,
+    "16": 0.3788,
+    "17": 0.3788,
+    "18": 0.3485,
+    "19": 0.3485,
+    "20": 0.3333,
+    "21": 0.3333,
+    "22": 0.3333,
+    "23": 0.3333,
+    "24": 0.2879,
+    "25": 0.2879,
+    "26": 0.2879,
+    "27": 0.2727,
+    "28": 0.2727,
+    "29": 0.2576,
+    "30": 0.2576,
+    "31": 0.2424,
+    "32": 0.2424
+   }
+  },
+  "instagram:18215697169362560": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 139.4,
+     "m": {
+      "views": 441,
+      "reach": 369,
+      "likes": 56,
+      "comments": 1,
+      "shares": 1,
+      "saves": 1,
+      "hook": 30.4,
+      "avg_watch": 10.4,
+      "watch_pct": 36.2
+     }
+    }
+   },
+   "platform": "instagram",
+   "id": "18215697169362560",
+   "url": "https://www.instagram.com/reel/DfiCrE0CEak/",
+   "published": "2026-11-09T19:06:48+00:00",
+   "kind_meta": "instagram-reel",
+   "first_line": "The seven munjiyat verses · السبع آيات المنجيات · 3/7",
+   "key": "slot:2026-11-09/evening",
+   "kind": "reel-series",
+   "label": "11:6-6",
+   "ref": {
+    "slot": "2026-11-09/evening",
+    "queue": "themes",
+    "item": "munjiyat/11:6-6",
+    "passage": "11:6-6",
+    "reciter": "minshawi"
+   },
+   "seconds": 28.7
+  },
+  "facebook:1682781919857940": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 128.0,
+     "m": {
+      "views": 312,
+      "replays": 38,
+      "follows": 1,
+      "likes": 19,
+      "shares": 2,
+      "avg_watch": 6.0,
+      "hook": 100.0,
+      "watch_pct": 21.8
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "1682781919857940",
+   "url": "https://www.facebook.com/reel/1682781919857940/",
+   "published": "2026-11-10T06:29:22+00:00",
+   "kind_meta": "facebook-reel",
+   "first_line": "Surah An-Nasr (110:1-3) · سورة النصر",
+   "seconds": 27.5,
+   "key": "slot:2026-11-10/morning",
+   "kind": "reel-morning",
+   "label": "110:1-3",
+   "ref": {
+    "slot": "2026-11-10/morning",
+    "queue": "reading",
+    "item": "juz-amma/110:1-3",
+    "passage": "110:1-3",
+    "reciter": "fares_abbad"
+   },
+   "retention": {
+    "0": 1,
+    "1": 1,
+    "2": 1,
+    "3": 1,
+    "4": 0.8873,
+    "5": 0.7887,
+    "6": 0.6761,
+    "7": 0.6338,
+    "8": 0.6056,
+    "9": 0.5634,
+    "10": 0.5493,
+    "11": 0.5352,
+    "12": 0.5211,
+    "13": 0.507,
+    "14": 0.507,
+    "15": 0.493,
+    "16": 0.493,
+    "17": 0.493,
+    "18": 0.493,
+    "19": 0.493,
+    "20": 0.493,
+    "21": 0.4648,
+    "22": 0.4648,
+    "23": 0.4648,
+    "24": 0.4507,
+    "25": 0.4366,
+    "26": 0.3803,
+    "27": 0.2817,
+    "28": 0.2113
+   }
+  },
+  "instagram:18160162831444933": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 128.0,
+     "m": {
+      "views": 133,
+      "reach": 113,
+      "likes": 21,
+      "comments": 0,
+      "shares": 1,
+      "saves": 0,
+      "hook": 23.0,
+      "avg_watch": 6.6,
+      "watch_pct": 24.0
+     }
+    }
+   },
+   "platform": "instagram",
+   "id": "18160162831444933",
+   "url": "https://www.instagram.com/reel/DfjQ241JSep/",
+   "published": "2026-11-10T06:30:03+00:00",
+   "kind_meta": "instagram-reel",
+   "first_line": "Surah An-Nasr (110:1-3) · سورة النصر",
+   "key": "slot:2026-11-10/morning",
+   "kind": "reel-morning",
+   "label": "110:1-3",
+   "ref": {
+    "slot": "2026-11-10/morning",
+    "queue": "reading",
+    "item": "juz-amma/110:1-3",
+    "passage": "110:1-3",
+    "reciter": "fares_abbad"
+   },
+   "seconds": 27.5
+  },
+  "facebook:1494879297031390_122099004717545959": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 123.0,
+     "m": {
+      "views": 37,
+      "reach": 0,
+      "likes": 1
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "1494879297031390_122099004717545959",
+   "url": "https://www.facebook.com/122095909263545959/posts/122099004717545959",
+   "published": "2026-11-10T11:30:00+00:00",
+   "kind_meta": "facebook-photo",
+   "first_line": "",
+   "key": "word:2026-11-10",
+   "kind": "word",
+   "label": "حَاصِبًا · 29:40",
+   "ref": {
+    "day": "2026-11-10",
+    "ayah": "29:40",
+    "word": "حَاصِبًا"
+   }
+  },
+  "instagram:18149264359570195": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 122.9,
+     "m": {
+      "views": 3,
+      "reach": 2,
+      "likes": 1,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "follows": 0
+     }
+    }
+   },
+   "platform": "instagram",
+   "id": "18149264359570195",
+   "url": "https://www.instagram.com/p/Dfj0PG1F9Di/",
+   "published": "2026-11-10T11:37:56+00:00",
+   "kind_meta": "instagram-post",
+   "first_line": "Word of the day · كلمة اليوم: حَاصِبًا",
+   "key": "word:2026-11-10",
+   "kind": "word",
+   "label": "حَاصِبًا · 29:40",
+   "ref": {
+    "day": "2026-11-10",
+    "ayah": "29:40",
+    "word": "حَاصِبًا"
+   }
+  },
+  "facebook:2291568588078198": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 120.8,
+     "m": {
+      "views": 0,
+      "avg_watch": 0.0,
+      "watch_pct": 0.0
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "2291568588078198",
+   "url": "https://www.facebook.com/122095909263545959/videos/2291568588078198",
+   "published": "2026-11-10T13:38:54+00:00",
+   "kind_meta": "facebook-video",
+   "first_line": "",
+   "seconds": 28.7,
+   "key": "facebook:2291568588078198",
+   "kind": "other",
+   "label": "facebook:2291568588078198",
+   "ref": {},
+   "retention": {}
+  },
+  "facebook:1478654810870064": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 116.1,
+     "m": {
+      "views": 233,
+      "replays": 47,
+      "follows": 1,
+      "likes": 8,
+      "avg_watch": 7.9,
+      "hook": 100.0,
+      "watch_pct": 29.8
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "1478654810870064",
+   "url": "https://www.facebook.com/reel/1478654810870064/",
+   "published": "2026-11-10T18:21:27+00:00",
+   "kind_meta": "facebook-reel",
+   "first_line": "The seven munjiyat verses · السبع آيات المنجيات · 4/7",
+   "seconds": 26.5,
+   "key": "slot:2026-11-10/evening",
+   "kind": "reel-series",
+   "label": "11:56-56",
+   "ref": {
+    "slot": "2026-11-10/evening",
+    "queue": "themes",
+    "item": "munjiyat/11:56-56",
+    "passage": "11:56-56",
+    "reciter": "sayegh"
+   },
+   "retention": {
+    "0": 1,
+    "1": 1,
+    "2": 1,
+    "3": 1,
+    "4": 0.9322,
+    "5": 0.8644,
+    "6": 0.7797,
+    "7": 0.7119,
+    "8": 0.678,
+    "9": 0.678,
+    "10": 0.661,
+    "11": 0.661,
+    "12": 0.6102,
+    "13": 0.6102,
+    "14": 0.5932,
+    "15": 0.5593,
+    "16": 0.5424,
+    "17": 0.5254,
+    "18": 0.5085,
+    "19": 0.5085,
+    "20": 0.5085,
+    "21": 0.4746,
+    "22": 0.4576,
+    "23": 0.4407,
+    "24": 0.4407,
+    "25": 0.4407,
+    "26": 0.4407,
+    "27": 0.3729,
+    "28": 0.3051
+   }
+  },
+  "instagram:17935073895409628": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 116.1,
+     "m": {
+      "views": 140,
+      "reach": 114,
+      "likes": 23,
+      "comments": 0,
+      "shares": 0,
+      "saves": 1,
+      "hook": 28.9,
+      "avg_watch": 9.3,
+      "watch_pct": 35.1
+     }
+    }
+   },
+   "platform": "instagram",
+   "id": "17935073895409628",
+   "url": "https://www.instagram.com/reel/DfkiWUWgZfR/",
+   "published": "2026-11-10T18:22:12+00:00",
+   "kind_meta": "instagram-reel",
+   "first_line": "The seven munjiyat verses · السبع آيات المنجيات · 4/7",
+   "key": "slot:2026-11-10/evening",
+   "kind": "reel-series",
+   "label": "11:56-56",
+   "ref": {
+    "slot": "2026-11-10/evening",
+    "queue": "themes",
+    "item": "munjiyat/11:56-56",
+    "passage": "11:56-56",
+    "reciter": "sayegh"
+   },
+   "seconds": 26.5
+  },
+  "facebook:2286260088889811": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 104.1,
+     "m": {
+      "views": 293,
+      "replays": 27,
+      "follows": 0,
+      "likes": 12,
+      "avg_watch": 6.5,
+      "hook": 99.2,
+      "kept_30s": 36.9,
+      "watch_pct": 13.8
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "2286260088889811",
+   "url": "https://www.facebook.com/reel/2286260088889811/",
+   "published": "2026-11-11T06:23:41+00:00",
+   "kind_meta": "facebook-reel",
+   "first_line": "Surah Al-Kafirun (109:1-6) · سورة الكافرون",
+   "seconds": 47.2,
+   "key": "slot:2026-11-11/morning",
+   "kind": "reel-morning",
+   "label": "109:1-6",
+   "ref": {
+    "slot": "2026-11-11/morning",
+    "queue": "reading",
+    "item": "juz-amma/109:1-6",
+    "passage": "109:1-6",
+    "reciter": "minshawi"
+   },
+   "retention": {
+    "0": 1,
+    "1": 1,
+    "2": 1,
+    "3": 0.9846,
+    "4": 0.8308,
+    "5": 0.6923,
+    "6": 0.6308,
+    "7": 0.5846,
+    "8": 0.5385,
+    "9": 0.5077,
+    "10": 0.4462,
+    "11": 0.4462,
+    "12": 0.4462,
+    "13": 0.4462,
+    "14": 0.4462,
+    "15": 0.4462,
+    "16": 0.4308,
+    "17": 0.4308,
+    "18": 0.4308,
+    "19": 0.4308,
+    "20": 0.4154,
+    "21": 0.4,
+    "22": 0.4,
+    "23": 0.3846,
+    "24": 0.3692,
+    "25": 0.3692,
+    "26": 0.3692,
+    "27": 0.3692,
+    "28": 0.3538,
+    "29": 0.3538,
+    "30": 0.3385,
+    "31": 0.3385,
+    "32": 0.3385,
+    "33": 0.3385,
+    "34": 0.3231,
+    "35": 0.3231,
+    "36": 0.3077,
+    "37": 0.3077,
+    "38": 0.3077,
+    "39": 0.2615,
+    "40": 0.1692
+   }
+  },
+  "instagram:17885011050652228": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 104.1,
+     "m": {
+      "views": 8,
+      "reach": 5,
+      "likes": 2,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "hook": 42.9,
+      "avg_watch": 15.6,
+      "watch_pct": 33.1
+     }
+    }
+   },
+   "platform": "instagram",
+   "id": "17885011050652228",
+   "url": "https://www.instagram.com/reel/Dfl04ZXHBA-/",
+   "published": "2026-11-11T06:24:18+00:00",
+   "kind_meta": "instagram-reel",
+   "first_line": "Surah Al-Kafirun (109:1-6) · سورة الكافرون",
+   "key": "slot:2026-11-11/morning",
+   "kind": "reel-morning",
+   "label": "109:1-6",
+   "ref": {
+    "slot": "2026-11-11/morning",
+    "queue": "reading",
+    "item": "juz-amma/109:1-6",
+    "passage": "109:1-6",
+    "reciter": "minshawi"
+   },
+   "seconds": 47.2
+  },
+  "facebook:1494879297031390_122099876025545959": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 99.0,
+     "m": {
+      "views": 20,
+      "reach": 0,
+      "likes": 1
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "1494879297031390_122099876025545959",
+   "url": "https://www.facebook.com/122095909263545959/posts/122099876025545959",
+   "published": "2026-11-11T11:30:00+00:00",
+   "kind_meta": "facebook-photo",
+   "first_line": "",
+   "key": "word:2026-11-11",
+   "kind": "word",
+   "label": "وَمَلَإِي۟هِۦٓ · 28:32",
+   "ref": {
+    "day": "2026-11-11",
+    "ayah": "28:32",
+    "word": "وَمَلَإِي۟هِۦٓ"
+   }
+  },
+  "instagram:18080254229750936": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 98.9,
+     "m": {
+      "views": 8,
+      "reach": 4,
+      "likes": 2,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "follows": 0
+     }
+    }
+   },
+   "platform": "instagram",
+   "id": "18080254229750936",
+   "url": "https://www.instagram.com/p/DfmZEgll-0O/",
+   "published": "2026-11-11T11:38:15+00:00",
+   "kind_meta": "instagram-post",
+   "first_line": "Word of the day · كلمة اليوم: وَمَلَإِي۟هِۦٓ",
+   "key": "word:2026-11-11",
+   "kind": "word",
+   "label": "وَمَلَإِي۟هِۦٓ · 28:32",
+   "ref": {
+    "day": "2026-11-11",
+    "ayah": "28:32",
+    "word": "وَمَلَإِي۟هِۦٓ"
+   }
+  },
+  "facebook:3582445988582117": {
+   "snapshots": {
+    "48h": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 92.1,
+     "m": {
+      "views": 372,
+      "replays": 52,
+      "follows": 1,
+      "likes": 25,
+      "shares": 2,
+      "avg_watch": 5.6,
+      "hook": 100.0,
+      "watch_pct": 25.7
+     }
+    },
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 92.1,
+     "m": {
+      "views": 372,
+      "replays": 52,
+      "follows": 1,
+      "likes": 25,
+      "shares": 2,
+      "avg_watch": 5.6,
+      "hook": 100.0,
+      "watch_pct": 25.7
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "3582445988582117",
+   "url": "https://www.facebook.com/reel/3582445988582117/",
+   "published": "2026-11-11T18:22:04+00:00",
+   "kind_meta": "facebook-reel",
+   "first_line": "The seven munjiyat verses · السبع آيات المنجيات · 5/7",
+   "seconds": 21.8,
+   "key": "slot:2026-11-11/evening",
+   "kind": "reel-series",
+   "label": "29:60-60",
+   "ref": {
+    "slot": "2026-11-11/evening",
+    "queue": "themes",
+    "item": "munjiyat/29:60-60",
+    "passage": "29:60-60",
+    "reciter": "fares_abbad"
+   },
+   "retention": {
+    "0": 1,
+    "1": 1,
+    "2": 1,
+    "3": 1,
+    "4": 0.9545,
+    "5": 0.875,
+    "6": 0.8182,
+    "7": 0.7045,
+    "8": 0.6818,
+    "9": 0.625,
+    "10": 0.5795,
+    "11": 0.5682,
+    "12": 0.5568,
+    "13": 0.5455,
+    "14": 0.5341,
+    "15": 0.5341,
+    "16": 0.5114,
+    "17": 0.4886,
+    "18": 0.4886,
+    "19": 0.4432,
+    "20": 0.4432,
+    "21": 0.4318,
+    "22": 0.4091,
+    "23": 0.4091,
+    "24": 0.3068
+   }
+  },
+  "instagram:17877039672594960": {
+   "snapshots": {
+    "48h": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 92.1,
+     "m": {
+      "views": 360,
+      "reach": 306,
+      "likes": 46,
+      "comments": 0,
+      "shares": 0,
+      "saves": 1,
+      "hook": 27.5,
+      "avg_watch": 6.5,
+      "watch_pct": 29.8
+     }
+    },
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 92.1,
+     "m": {
+      "views": 360,
+      "reach": 306,
+      "likes": 46,
+      "comments": 0,
+      "shares": 0,
+      "saves": 1,
+      "hook": 27.5,
+      "avg_watch": 6.5,
+      "watch_pct": 29.8
+     }
+    }
+   },
+   "platform": "instagram",
+   "id": "17877039672594960",
+   "url": "https://www.instagram.com/reel/DfnHN6_jCX8/",
+   "published": "2026-11-11T18:22:39+00:00",
+   "kind_meta": "instagram-reel",
+   "first_line": "The seven munjiyat verses · السبع آيات المنجيات · 5/7",
+   "key": "slot:2026-11-11/evening",
+   "kind": "reel-series",
+   "label": "29:60-60",
+   "ref": {
+    "slot": "2026-11-11/evening",
+    "queue": "themes",
+    "item": "munjiyat/29:60-60",
+    "passage": "29:60-60",
+    "reciter": "fares_abbad"
+   },
+   "seconds": 21.8
+  },
+  "facebook:1162642553355801": {
+   "snapshots": {
+    "48h": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 80.2,
+     "m": {
+      "views": 278,
+      "replays": 50,
+      "follows": 2,
+      "likes": 12,
+      "shares": 1,
+      "avg_watch": 6.9,
+      "hook": 100.0,
+      "watch_pct": 36.5
+     }
+    },
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 80.2,
+     "m": {
+      "views": 278,
+      "replays": 50,
+      "follows": 2,
+      "likes": 12,
+      "shares": 1,
+      "avg_watch": 6.9,
+      "hook": 100.0,
+      "watch_pct": 36.5
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "1162642553355801",
+   "url": "https://www.facebook.com/reel/1162642553355801/",
+   "published": "2026-11-12T06:15:55+00:00",
+   "kind_meta": "facebook-reel",
+   "first_line": "Surah Al-Kawthar (108:1-3) · سورة الكوثر",
+   "seconds": 18.9,
+   "key": "slot:2026-11-12/morning",
+   "kind": "reel-morning",
+   "label": "108:1-3",
+   "ref": {
+    "slot": "2026-11-12/morning",
+    "queue": "reading",
+    "item": "juz-amma/108:1-3",
+    "passage": "108:1-3",
+    "reciter": "budair"
+   },
+   "retention": {
+    "0": 1,
+    "1": 1,
+    "2": 1,
+    "3": 1,
+    "4": 0.873,
+    "5": 0.8095,
+    "6": 0.7302,
+    "7": 0.6667,
+    "8": 0.6032,
+    "9": 0.5714,
+    "10": 0.5397,
+    "11": 0.5079,
+    "12": 0.5079,
+    "13": 0.4921,
+    "14": 0.4921,
+    "15": 0.4921,
+    "16": 0.4762,
+    "17": 0.4286,
+    "18": 0.3333,
+    "19": 0.2698,
+    "20": 0.254
+   }
+  },
+  "instagram:18134472961686234": {
+   "snapshots": {
+    "48h": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 80.2,
+     "m": {
+      "views": 141,
+      "reach": 117,
+      "likes": 21,
+      "comments": 0,
+      "shares": 0,
+      "saves": 1,
+      "hook": 37.9,
+      "avg_watch": 7.4,
+      "watch_pct": 39.2
+     }
+    },
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 80.2,
+     "m": {
+      "views": 141,
+      "reach": 117,
+      "likes": 21,
+      "comments": 0,
+      "shares": 0,
+      "saves": 1,
+      "hook": 37.9,
+      "avg_watch": 7.4,
+      "watch_pct": 39.2
+     }
+    }
+   },
+   "platform": "instagram",
+   "id": "18134472961686234",
+   "url": "https://www.instagram.com/reel/DfoY6PSjANH/",
+   "published": "2026-11-12T06:16:28+00:00",
+   "kind_meta": "instagram-reel",
+   "first_line": "Surah Al-Kawthar (108:1-3) · سورة الكوثر",
+   "key": "slot:2026-11-12/morning",
+   "kind": "reel-morning",
+   "label": "108:1-3",
+   "ref": {
+    "slot": "2026-11-12/morning",
+    "queue": "reading",
+    "item": "juz-amma/108:1-3",
+    "passage": "108:1-3",
+    "reciter": "budair"
+   },
+   "seconds": 18.9
+  },
+  "facebook:1494879297031390_122100746361545959": {
+   "snapshots": {
+    "48h": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 75.0,
+     "m": {
+      "views": 24,
+      "reach": 0,
+      "likes": 1
+     }
+    },
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 75.0,
+     "m": {
+      "views": 24,
+      "reach": 0,
+      "likes": 1
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "1494879297031390_122100746361545959",
+   "url": "https://www.facebook.com/122095909263545959/posts/122100746361545959",
+   "published": "2026-11-12T11:30:00+00:00",
+   "kind_meta": "facebook-photo",
+   "first_line": "",
+   "key": "word:2026-11-12",
+   "kind": "word",
+   "label": "مَكِينٌ · 12:54",
+   "ref": {
+    "day": "2026-11-12",
+    "ayah": "12:54",
+    "word": "مَكِينٌ"
+   }
+  },
+  "instagram:18120430565276781": {
+   "snapshots": {
+    "48h": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 74.9,
+     "m": {
+      "views": 6,
+      "reach": 2,
+      "likes": 1,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "follows": 0
+     }
+    },
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 74.9,
+     "m": {
+      "views": 6,
+      "reach": 2,
+      "likes": 1,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "follows": 0
+     }
+    }
+   },
+   "platform": "instagram",
+   "id": "18120430565276781",
+   "url": "https://www.instagram.com/p/Dfo91pKl5h6/",
+   "published": "2026-11-12T11:38:01+00:00",
+   "kind_meta": "instagram-post",
+   "first_line": "Word of the day · كلمة اليوم: مَكِينٌ",
+   "key": "word:2026-11-12",
+   "kind": "word",
+   "label": "مَكِينٌ · 12:54",
+   "ref": {
+    "day": "2026-11-12",
+    "ayah": "12:54",
+    "word": "مَكِينٌ"
+   }
+  },
+  "facebook:1472166961681659": {
+   "snapshots": {
+    "48h": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 74.1,
+     "m": {
+      "views": 0,
+      "avg_watch": 0.0,
+      "watch_pct": 0.0
+     }
+    },
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 74.1,
+     "m": {
+      "views": 0,
+      "avg_watch": 0.0,
+      "watch_pct": 0.0
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "1472166961681659",
+   "url": "https://www.facebook.com/122095909263545959/videos/1472166961681659",
+   "published": "2026-11-12T12:21:24+00:00",
+   "kind_meta": "facebook-video",
+   "first_line": "",
+   "seconds": 18.9,
+   "key": "facebook:1472166961681659",
+   "kind": "other",
+   "label": "facebook:1472166961681659",
+   "ref": {},
+   "retention": {}
+  },
+  "facebook:1795392461716210": {
+   "snapshots": {
+    "48h": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 74.1,
+     "m": {
+      "views": 0,
+      "avg_watch": 0.0,
+      "watch_pct": 0.0
+     }
+    },
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 74.1,
+     "m": {
+      "views": 0,
+      "avg_watch": 0.0,
+      "watch_pct": 0.0
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "1795392461716210",
+   "url": "https://www.facebook.com/122095909263545959/videos/1795392461716210",
+   "published": "2026-11-12T12:21:38+00:00",
+   "kind_meta": "facebook-video",
+   "first_line": "",
+   "seconds": 21.8,
+   "key": "facebook:1795392461716210",
+   "kind": "other",
+   "label": "facebook:1795392461716210",
+   "ref": {},
+   "retention": {}
+  },
+  "facebook:1654586606135303": {
+   "snapshots": {
+    "48h": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 74.1,
+     "m": {
+      "views": 0,
+      "avg_watch": 0.0,
+      "watch_pct": 0.0
+     }
+    },
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 74.1,
+     "m": {
+      "views": 0,
+      "avg_watch": 0.0,
+      "watch_pct": 0.0
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "1654586606135303",
+   "url": "https://www.facebook.com/122095909263545959/videos/1654586606135303",
+   "published": "2026-11-12T12:21:52+00:00",
+   "kind_meta": "facebook-video",
+   "first_line": "",
+   "seconds": 26.5,
+   "key": "facebook:1654586606135303",
+   "kind": "other",
+   "label": "facebook:1654586606135303",
+   "ref": {},
+   "retention": {}
+  },
+  "facebook:1636098964591060": {
+   "snapshots": {
+    "48h": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 74.1,
+     "m": {
+      "views": 0,
+      "avg_watch": 0.0,
+      "watch_pct": 0.0
+     }
+    },
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 74.1,
+     "m": {
+      "views": 0,
+      "avg_watch": 0.0,
+      "watch_pct": 0.0
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "1636098964591060",
+   "url": "https://www.facebook.com/122095909263545959/videos/1636098964591060",
+   "published": "2026-11-12T12:22:09+00:00",
+   "kind_meta": "facebook-video",
+   "first_line": "",
+   "seconds": 27.5,
+   "key": "facebook:1636098964591060",
+   "kind": "other",
+   "label": "facebook:1636098964591060",
+   "ref": {},
+   "retention": {}
+  },
+  "facebook:1792666799528682": {
+   "snapshots": {
+    "48h": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 68.7,
+     "m": {
+      "views": 249,
+      "replays": 10,
+      "follows": 2,
+      "likes": 8,
+      "shares": 1,
+      "avg_watch": 6.0,
+      "hook": 81.0,
+      "kept_30s": 11.9,
+      "watch_pct": 1.3
+     }
+    },
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 68.7,
+     "m": {
+      "views": 249,
+      "replays": 10,
+      "follows": 2,
+      "likes": 8,
+      "shares": 1,
+      "avg_watch": 6.0,
+      "hook": 81.0,
+      "kept_30s": 11.9,
+      "watch_pct": 1.3
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "1792666799528682",
+   "url": "https://www.facebook.com/reel/1792666799528682/",
+   "published": "2026-11-12T17:45:34+00:00",
+   "kind_meta": "facebook-reel",
+   "first_line": "Moses and al-Khidr: what looks bad is not always bad",
+   "seconds": 467.5,
+   "key": "theme:moussa-khidr-9x16/film",
+   "kind": "theme-film",
+   "label": "Moses and al-Khidr: what looks bad is not always bad · موسى والخضر: مش كل شر… شر",
+   "ref": {
+    "theme": "moussa-khidr-9x16/film",
+    "series": "Moses and al-Khidr · موسى والخضر",
+    "part": "Le film en 9:16"
+   },
+   "retention": {
+    "0": 0.9857,
+    "1": 0.3,
+    "2": 0.1429,
+    "3": 0.1,
+    "4": 0.0429,
+    "5": 0.0429,
+    "6": 0.0429,
+    "7": 0.0429,
+    "8": 0.0429,
+    "9": 0.0286,
+    "10": 0.0429,
+    "11": 0.0143,
+    "12": 0.0571,
+    "13": 0.0429,
+    "14": 0.0143,
+    "15": 0.0143,
+    "16": 0.0143,
+    "17": 0.0143,
+    "18": 0.0143,
+    "19": 0.0143,
+    "20": 0.0143,
+    "21": 0.0143,
+    "22": 0.0143,
+    "23": 0.0143,
+    "24": 0,
+    "25": 0,
+    "26": 0,
+    "27": 0,
+    "28": 0,
+    "29": 0,
+    "30": 0,
+    "31": 0,
+    "32": 0,
+    "33": 0,
+    "34": 0,
+    "35": 0,
+    "36": 0,
+    "37": 0,
+    "38": 0,
+    "39": 0,
+    "40": 0
+   }
+  },
+  "instagram:17946517917364504": {
+   "snapshots": {
+    "48h": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 68.7,
+     "m": {
+      "views": 9,
+      "reach": 4,
+      "likes": 1,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "hook": 20.0,
+      "avg_watch": 19.4,
+      "watch_pct": 4.2
+     }
+    },
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 68.7,
+     "m": {
+      "views": 9,
+      "reach": 4,
+      "likes": 1,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "hook": 20.0,
+      "avg_watch": 19.4,
+      "watch_pct": 4.2
+     }
+    }
+   },
+   "platform": "instagram",
+   "id": "17946517917364504",
+   "url": "https://www.instagram.com/reel/DfpoDzegBaC/",
+   "published": "2026-11-12T17:50:16+00:00",
+   "kind_meta": "instagram-reel",
+   "first_line": "Moses and al-Khidr: what looks bad is not always bad",
+   "key": "theme:moussa-khidr-9x16/film",
+   "kind": "theme-film",
+   "label": "Moses and al-Khidr: what looks bad is not always bad · موسى والخضر: مش كل شر… شر",
+   "ref": {
+    "theme": "moussa-khidr-9x16/film",
+    "series": "Moses and al-Khidr · موسى والخضر",
+    "part": "Le film en 9:16"
+   },
+   "seconds": 467
+  },
+  "facebook:2074608633198770": {
+   "snapshots": {
+    "48h": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 54.1,
+     "m": {
+      "views": 172,
+      "replays": 8,
+      "follows": 1,
+      "likes": 3,
+      "avg_watch": 4.4,
+      "hook": 91.0,
+      "kept_30s": 8.3,
+      "watch_pct": 4.7
+     }
+    },
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 54.1,
+     "m": {
+      "views": 172,
+      "replays": 8,
+      "follows": 1,
+      "likes": 3,
+      "avg_watch": 4.4,
+      "hook": 91.0,
+      "kept_30s": 8.3,
+      "watch_pct": 4.7
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "2074608633198770",
+   "url": "https://www.facebook.com/reel/2074608633198770/",
+   "published": "2026-11-13T08:21:41+00:00",
+   "kind_meta": "facebook-reel",
+   "first_line": "Why did he tear a hole in the boat?",
+   "seconds": 93.1,
+   "key": "theme:moussa-khidr/short-1",
+   "kind": "theme-short",
+   "label": "Why did he tear a hole in the boat? · ليه خرق السفينة؟",
+   "ref": {
+    "theme": "moussa-khidr/short-1",
+    "series": "Moses and al-Khidr · موسى والخضر",
+    "part": "Short 1"
+   },
+   "retention": {
+    "0": 1,
+    "1": 1,
+    "2": 0.6875,
+    "3": 0.5208,
+    "4": 0.2917,
+    "5": 0.1667,
+    "6": 0.125,
+    "7": 0.0833,
+    "8": 0.0833,
+    "9": 0.0833,
+    "10": 0.0833,
+    "11": 0.0833,
+    "12": 0.0833,
+    "13": 0.0833,
+    "14": 0.0833,
+    "15": 0.0833,
+    "16": 0.0625,
+    "17": 0.0625,
+    "18": 0.0625,
+    "19": 0.0625,
+    "20": 0.0625,
+    "21": 0.0625,
+    "22": 0.0625,
+    "23": 0.0417,
+    "24": 0.0417,
+    "25": 0.0417,
+    "26": 0.0417,
+    "27": 0.0417,
+    "28": 0.0417,
+    "29": 0.0417,
+    "30": 0.0417,
+    "31": 0.0417,
+    "32": 0.0417,
+    "33": 0.0417,
+    "34": 0.0417,
+    "35": 0.0417,
+    "36": 0.0417,
+    "37": 0.0417,
+    "38": 0.0417,
+    "39": 0.0208,
+    "40": 0.0208
+   }
+  },
+  "instagram:18103868138557442": {
+   "snapshots": {
+    "48h": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 54.1,
+     "m": {
+      "views": 132,
+      "reach": 122,
+      "likes": 10,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "hook": 28.0,
+      "avg_watch": 8.5,
+      "watch_pct": 9.1
+     }
+    },
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 54.1,
+     "m": {
+      "views": 132,
+      "reach": 122,
+      "likes": 10,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "hook": 28.0,
+      "avg_watch": 8.5,
+      "watch_pct": 9.1
+     }
+    }
+   },
+   "platform": "instagram",
+   "id": "18103868138557442",
+   "url": "https://www.instagram.com/reel/DfrMOg0nCQy/",
+   "published": "2026-11-13T08:22:53+00:00",
+   "kind_meta": "instagram-reel",
+   "first_line": "Why did he tear a hole in the boat?",
+   "key": "theme:moussa-khidr/short-1",
+   "kind": "theme-short",
+   "label": "Why did he tear a hole in the boat? · ليه خرق السفينة؟",
+   "ref": {
+    "theme": "moussa-khidr/short-1",
+    "series": "Moses and al-Khidr · موسى والخضر",
+    "part": "Short 1"
+   },
+   "seconds": 93
+  },
+  "facebook:1091404317056434": {
+   "snapshots": {
+    "48h": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 54.1,
+     "m": {
+      "views": 0,
+      "avg_watch": 0.0,
+      "watch_pct": 0.0
+     }
+    },
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 54.1,
+     "m": {
+      "views": 0,
+      "avg_watch": 0.0,
+      "watch_pct": 0.0
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "1091404317056434",
+   "url": "https://www.facebook.com/122095909263545959/videos/1091404317056434",
+   "published": "2026-11-13T08:24:41+00:00",
+   "kind_meta": "facebook-video",
+   "first_line": "",
+   "seconds": 60.0,
+   "key": "facebook:1091404317056434",
+   "kind": "other",
+   "label": "facebook:1091404317056434",
+   "ref": {},
+   "retention": {}
+  },
+  "facebook:1494879297031390_122101601961545959": {
+   "snapshots": {
+    "48h": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 51.0,
+     "m": {
+      "views": 21,
+      "reach": 0
+     }
+    },
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 51.0,
+     "m": {
+      "views": 21,
+      "reach": 0
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "1494879297031390_122101601961545959",
+   "url": "https://www.facebook.com/122095909263545959/posts/122101601961545959",
+   "published": "2026-11-13T11:30:00+00:00",
+   "kind_meta": "facebook-photo",
+   "first_line": "",
+   "key": "word:2026-11-13",
+   "kind": "word",
+   "label": "وَءَاتَيْنَـٰهُ · 28:76",
+   "ref": {
+    "day": "2026-11-13",
+    "ayah": "28:76",
+    "word": "وَءَاتَيْنَـٰهُ"
+   }
+  },
+  "instagram:17879575791572653": {
+   "snapshots": {
+    "48h": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 50.9,
+     "m": {
+      "views": 5,
+      "reach": 2,
+      "likes": 1,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "follows": 0
+     }
+    },
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 50.9,
+     "m": {
+      "views": 5,
+      "reach": 2,
+      "likes": 1,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "follows": 0
+     }
+    }
+   },
+   "platform": "instagram",
+   "id": "17879575791572653",
+   "url": "https://www.instagram.com/p/DfrimOnDSUS/",
+   "published": "2026-11-13T11:37:43+00:00",
+   "kind_meta": "instagram-post",
+   "first_line": "Word of the day · كلمة اليوم: وَءَاتَيْنَـٰهُ",
+   "key": "word:2026-11-13",
+   "kind": "word",
+   "label": "وَءَاتَيْنَـٰهُ · 28:76",
+   "ref": {
+    "day": "2026-11-13",
+    "ayah": "28:76",
+    "word": "وَءَاتَيْنَـٰهُ"
+   }
+  },
+  "facebook:1133005699139847": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 44.0,
+     "m": {
+      "views": 227,
+      "replays": 19,
+      "follows": 1,
+      "likes": 14,
+      "avg_watch": 5.8,
+      "hook": 93.0,
+      "kept_30s": 26.1,
+      "watch_pct": 9.0
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "1133005699139847",
+   "url": "https://www.facebook.com/reel/1133005699139847/",
+   "published": "2026-11-13T18:30:59+00:00",
+   "kind_meta": "facebook-reel",
+   "first_line": "Surah Al-Kahf on Friday · سورة الكهف يوم الجمعة · 2/36",
+   "seconds": 64.3,
+   "key": "slot:2026-11-13/evening",
+   "kind": "reel-kahf",
+   "label": "18:15-16",
+   "ref": {
+    "slot": "2026-11-13/evening",
+    "queue": "kahf",
+    "item": "al-kahf/18:15-16",
+    "passage": "18:15-16",
+    "reciter": "minshawi"
+   },
+   "retention": {
+    "0": 1,
+    "1": 1,
+    "2": 0.9189,
+    "3": 0.7027,
+    "4": 0.4865,
+    "5": 0.4324,
+    "6": 0.4054,
+    "7": 0.4054,
+    "8": 0.4054,
+    "9": 0.4054,
+    "10": 0.4054,
+    "11": 0.3784,
+    "12": 0.3784,
+    "13": 0.3784,
+    "14": 0.3243,
+    "15": 0.2973,
+    "16": 0.2973,
+    "17": 0.2973,
+    "18": 0.2973,
+    "19": 0.2432,
+    "20": 0.2162,
+    "21": 0.2162,
+    "22": 0.1892,
+    "23": 0.1892,
+    "24": 0.1892,
+    "25": 0.1892,
+    "26": 0.1892,
+    "27": 0.1892,
+    "28": 0.1892,
+    "29": 0.1892,
+    "30": 0.1892,
+    "31": 0.1892,
+    "32": 0.1892,
+    "33": 0.1892,
+    "34": 0.1892,
+    "35": 0.1892,
+    "36": 0.1892,
+    "37": 0.1892,
+    "38": 0.1892,
+    "39": 0.1892,
+    "40": 0.1892
+   }
+  },
+  "instagram:18388104592232554": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 41.2,
+     "m": {
+      "views": 2,
+      "reach": 1,
+      "likes": 1,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "hook": 0.0,
+      "avg_watch": 32.4,
+      "watch_pct": 50.4
+     }
+    }
+   },
+   "platform": "instagram",
+   "id": "18388104592232554",
+   "url": "https://www.instagram.com/reel/DfslHXAjdkR/",
+   "published": "2026-11-13T21:19:53+00:00",
+   "kind_meta": "instagram-reel",
+   "first_line": "Surah Al-Kahf on Friday · سورة الكهف يوم الجمعة · 2/36",
+   "key": "slot:2026-11-13/evening",
+   "kind": "reel-kahf",
+   "label": "18:15-16",
+   "ref": {
+    "slot": "2026-11-13/evening",
+    "queue": "kahf",
+    "item": "al-kahf/18:15-16",
+    "passage": "18:15-16",
+    "reciter": "minshawi"
+   },
+   "seconds": 64.3
+  },
+  "facebook:1477162760979225": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 32.2,
+     "m": {
+      "views": 297,
+      "replays": 33,
+      "follows": 3,
+      "likes": 30,
+      "shares": 1,
+      "avg_watch": 5.8,
+      "hook": 100.0,
+      "kept_30s": 40.9,
+      "watch_pct": 16.3
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "1477162760979225",
+   "url": "https://www.facebook.com/reel/1477162760979225/",
+   "published": "2026-11-14T06:19:43+00:00",
+   "kind_meta": "facebook-reel",
+   "first_line": "Surah Al-Ma'un (107:1-7) · سورة الماعون",
+   "seconds": 35.6,
+   "key": "slot:2026-11-14/morning",
+   "kind": "reel-morning",
+   "label": "107:1-7",
+   "ref": {
+    "slot": "2026-11-14/morning",
+    "queue": "reading",
+    "item": "juz-amma/107:1-7",
+    "passage": "107:1-7",
+    "reciter": "fares_abbad"
+   },
+   "retention": {
+    "0": 1,
+    "1": 1,
+    "2": 1,
+    "3": 1,
+    "4": 0.9091,
+    "5": 0.803,
+    "6": 0.6818,
+    "7": 0.6364,
+    "8": 0.5909,
+    "9": 0.5758,
+    "10": 0.5606,
+    "11": 0.5455,
+    "12": 0.5455,
+    "13": 0.5455,
+    "14": 0.5455,
+    "15": 0.5455,
+    "16": 0.5303,
+    "17": 0.5,
+    "18": 0.4848,
+    "19": 0.4697,
+    "20": 0.4697,
+    "21": 0.4697,
+    "22": 0.4697,
+    "23": 0.4697,
+    "24": 0.4394,
+    "25": 0.4394,
+    "26": 0.4394,
+    "27": 0.4394,
+    "28": 0.4242,
+    "29": 0.4091,
+    "30": 0.4091,
+    "31": 0.4091,
+    "32": 0.4091,
+    "33": 0.4091,
+    "34": 0.3333,
+    "35": 0.303,
+    "36": 0.1818
+   }
+  },
+  "instagram:18144733030624688": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 32.2,
+     "m": {
+      "views": 5,
+      "reach": 2,
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "hook": 66.7,
+      "avg_watch": 24.3,
+      "watch_pct": 68.3
+     }
+    }
+   },
+   "platform": "instagram",
+   "id": "18144733030624688",
+   "url": "https://www.instagram.com/reel/Dfti50KicY_/",
+   "published": "2026-11-14T06:20:26+00:00",
+   "kind_meta": "instagram-reel",
+   "first_line": "Surah Al-Ma'un (107:1-7) · سورة الماعون",
+   "key": "slot:2026-11-14/morning",
+   "kind": "reel-morning",
+   "label": "107:1-7",
+   "ref": {
+    "slot": "2026-11-14/morning",
+    "queue": "reading",
+    "item": "juz-amma/107:1-7",
+    "passage": "107:1-7",
+    "reciter": "fares_abbad"
+   },
+   "seconds": 35.6
+  },
+  "facebook:1494879297031390_122102394375545959": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 27.0,
+     "m": {
+      "views": 25,
+      "reach": 0
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "1494879297031390_122102394375545959",
+   "url": "https://www.facebook.com/122095909263545959/posts/122102394375545959",
+   "published": "2026-11-14T11:30:00+00:00",
+   "kind_meta": "facebook-photo",
+   "first_line": "",
+   "key": "word:2026-11-14",
+   "kind": "word",
+   "label": "تُؤْثِرُونَ · 87:16",
+   "ref": {
+    "day": "2026-11-14",
+    "ayah": "87:16",
+    "word": "تُؤْثِرُونَ"
+   }
+  },
+  "instagram:18127900108897137": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 26.9,
+     "m": {
+      "views": 4,
+      "reach": 1,
+      "likes": 1,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "follows": 0
+     }
+    }
+   },
+   "platform": "instagram",
+   "id": "18127900108897137",
+   "url": "https://www.instagram.com/p/DfuHaQrDUjo/",
+   "published": "2026-11-14T11:37:52+00:00",
+   "kind_meta": "instagram-post",
+   "first_line": "Word of the day · كلمة اليوم: تُؤْثِرُونَ",
+   "key": "word:2026-11-14",
+   "kind": "word",
+   "label": "تُؤْثِرُونَ · 87:16",
+   "ref": {
+    "day": "2026-11-14",
+    "ayah": "87:16",
+    "word": "تُؤْثِرُونَ"
+   }
+  },
+  "facebook:1079232511838269": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 21.1,
+     "m": {
+      "views": 203,
+      "replays": 9,
+      "follows": 2,
+      "likes": 6,
+      "avg_watch": 7.8,
+      "hook": 95.2,
+      "kept_30s": 24.5,
+      "watch_pct": 7.3
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "1079232511838269",
+   "url": "https://www.facebook.com/reel/1079232511838269/",
+   "published": "2026-11-14T17:21:22+00:00",
+   "kind_meta": "facebook-reel",
+   "first_line": "They lost their son… why?",
+   "seconds": 107.5,
+   "key": "theme:moussa-khidr/short-2",
+   "kind": "theme-short",
+   "label": "They lost their son… why? · خسروا ابنهم… ليه؟",
+   "ref": {
+    "theme": "moussa-khidr/short-2",
+    "series": "Moses and al-Khidr · موسى والخضر",
+    "part": "Short 2"
+   },
+   "retention": {
+    "0": 1,
+    "1": 1,
+    "2": 0.5849,
+    "3": 0.4528,
+    "4": 0.3774,
+    "5": 0.3396,
+    "6": 0.283,
+    "7": 0.2642,
+    "8": 0.2453,
+    "9": 0.2453,
+    "10": 0.2453,
+    "11": 0.2453,
+    "12": 0.2453,
+    "13": 0.2453,
+    "14": 0.2453,
+    "15": 0.2453,
+    "16": 0.2453,
+    "17": 0.2453,
+    "18": 0.2453,
+    "19": 0.2075,
+    "20": 0.2075,
+    "21": 0.1698,
+    "22": 0.1509,
+    "23": 0.1509,
+    "24": 0.1509,
+    "25": 0.1509,
+    "26": 0.1509,
+    "27": 0.1509,
+    "28": 0.1509,
+    "29": 0.1509,
+    "30": 0.1509,
+    "31": 0.1321,
+    "32": 0.1321,
+    "33": 0.1321,
+    "34": 0.1321,
+    "35": 0.1321,
+    "36": 0.1321,
+    "37": 0.1321,
+    "38": 0.1321,
+    "39": 0.1132,
+    "40": 0.0377
+   }
+  },
+  "instagram:18094897034196947": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 21.1,
+     "m": {
+      "views": 109,
+      "reach": 104,
+      "likes": 7,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "hook": 14.0,
+      "avg_watch": 8.0,
+      "watch_pct": 7.5
+     }
+    }
+   },
+   "platform": "instagram",
+   "id": "18094897034196947",
+   "url": "https://www.instagram.com/reel/DfuuwyVTjF1/",
+   "published": "2026-11-14T17:22:23+00:00",
+   "kind_meta": "instagram-reel",
+   "first_line": "They lost their son… why?",
+   "key": "theme:moussa-khidr/short-2",
+   "kind": "theme-short",
+   "label": "They lost their son… why? · خسروا ابنهم… ليه؟",
+   "ref": {
+    "theme": "moussa-khidr/short-2",
+    "series": "Moses and al-Khidr · موسى والخضر",
+    "part": "Short 2"
+   },
+   "seconds": 107
+  },
+  "facebook:4090025564639892": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 16.8,
+     "m": {}
+    }
+   },
+   "platform": "facebook",
+   "id": "4090025564639892",
+   "url": "https://www.facebook.com/reel/4090025564639892/",
+   "published": "2026-11-14T21:44:23+00:00",
+   "kind_meta": "facebook-video",
+   "first_line": "The secret under the wall",
+   "seconds": 123.7,
+   "key": "theme:moussa-khidr/short-3",
+   "kind": "theme-short",
+   "label": "The secret under the wall · سر تحت الجدار",
+   "ref": {
+    "theme": "moussa-khidr/short-3",
+    "series": "Moses and al-Khidr · موسى والخضر",
+    "part": "Short 3"
+   }
+  },
+  "facebook:1494879297031390_122103342705545959": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 3.0,
+     "m": {
+      "views": 7,
+      "reach": 0
+     }
+    }
+   },
+   "platform": "facebook",
+   "id": "1494879297031390_122103342705545959",
+   "url": "https://www.facebook.com/122095909263545959/posts/122103342705545959",
+   "published": "2026-11-15T11:30:00+00:00",
+   "kind_meta": "facebook-photo",
+   "first_line": "",
+   "key": "word:2026-11-15",
+   "kind": "word",
+   "label": "ٱلتَّابُوتُ · 2:248",
+   "ref": {
+    "day": "2026-11-15",
+    "ayah": "2:248",
+    "word": "ٱلتَّابُوتُ"
+   }
+  },
+  "instagram:17914199310582895": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-15T14:29:49+00:00",
+     "age_h": 1.1,
+     "m": {
+      "views": 0,
+      "reach": 0,
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "follows": 0
+     }
+    }
+   },
+   "platform": "instagram",
+   "id": "17914199310582895",
+   "url": "https://www.instagram.com/p/Dfw4NGLDb8-/",
+   "published": "2026-11-15T13:22:44+00:00",
+   "kind_meta": "instagram-post",
+   "first_line": "Word of the day · كلمة اليوم: ٱلتَّابُوتُ",
+   "key": "word:2026-11-15",
+   "kind": "word",
+   "label": "ٱلتَّابُوتُ · 2:248",
+   "ref": {
+    "day": "2026-11-15",
+    "ayah": "2:248",
+    "word": "ٱلتَّابُوتُ"
+   }
+  }
+ },
+ "accounts": {
+  "facebook": {
+   "2026-11-15": {
+    "followers_count": 41,
+    "fan_count": 41
+   }
+  },
+  "instagram": {
+   "2026-11-15": {
+    "followers_count": 14,
+    "media_count": 31
+   }
+  }
+ },
+ "unsupported": {
+  "facebook-photo": [
+   "post_impressions_unique"
+  ],
+  "facebook-video": [
+   "total_video_views_unique",
+   "total_video_impressions_unique"
+  ],
+  "facebook-reel": [
+   "post_impressions_unique"
+  ]
+ },
+ "manual": [],
+ "runs": [
+  {
+   "at": "2026-11-15T14:29:49+00:00",
+   "calls": 89,
+   "usage": 0,
+   "read": 61,
+   "stopped": "",
+   "errors": [],
+   "notes": []
+  }
+ ],
+ "updated": "2026-11-15T14:29:49+00:00"
+}
