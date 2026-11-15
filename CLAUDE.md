@@ -125,8 +125,9 @@ src/quran_reels/
                    dû à 19:00, téléchargement de `page-<doc>`, droits Meta, publication, `themes.json`) ;
                    Facebook toujours en reel, film compris (jusqu'à 15 min : seule voie où Meta vérifie
                    les droits avant publication, essais du 2026-11-15) ; Instagram : une copie réencodée
-                   sans edit list (`for_instagram`) ; publishers/facebook_video.py (/{page}/videos)
-                   n'a pas de vérification, il ne publie rien
+                   sans edit list (`for_instagram`), mise dans la release `reels` et téléchargée par
+                   Instagram (`video_url` : l'envoi direct d'un short de 2 min échouait toujours) ;
+                   publishers/facebook_video.py (/{page}/videos) n'a pas de vérification, il ne publie rien
   notify.py        `quran-reels notify` : tickets GitHub (alerte d'échec, légendes à copier ;
                    les images ont leur propre alerte, `--alert images`, depuis le 2026-11-15)
   insights/        statistiques de la Page (docs/insights.md) : collect.py (`quran-reels insights
