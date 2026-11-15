@@ -9,6 +9,7 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
+from quran_reels import feed
 from quran_reels import publish as publish_mod
 from quran_reels import reciters as rec
 from quran_reels.config import Config
@@ -430,6 +431,15 @@ def _mark_caption_entry(gh: GitHub, number: int, key: str, url: str | None) -> N
 
 # ---- daily reels: direct downloads -------------------------------------------------------
 
+def nothing_on_youtube(y: dict) -> str:
+    """Why a slot has nothing for YouTube (daily.youtube_version), as the page says it."""
+    if y.get("always"):
+        return (f"YouTube : rien pour ce créneau, ne pas y mettre cette vidéo : sur YouTube, "
+                f"toujours {y.get('wanted', '')}, et il n'est pas prêt pour ce passage.")
+    return ("YouTube : ne pas mettre cette vidéo (récitateur revendiqué par Content ID), "
+            "et pas d'autre version.")
+
+
 def daily_files(cfg: Config, hosting: Hosting, report_path: Path) -> int:
     """After `quran-reels daily`: each reel that went out goes to the release (and its YouTube
     version, when it has one), with a page for YouTube; the report gets the links, for the
@@ -466,7 +476,7 @@ def daily_files(cfg: Config, hosting: Hosting, report_path: Path) -> int:
             yt = hosting.upload(yt_video, f"{name}-youtube.mp4") if own else \
                 None if y else main
             reel = publish_mod.load_reel(yt_video if own else video)
-            rid = f"daily/{day}-{slot}"
+            rid = f"daily/{day}-{slot}{tag}"      # a dry run never hides the real one
             reciter = y.get("label") if own else None
             names = cfg.content.get("reciters") or {}
             reciter = reciter or (names.get(item.get("reciter") or "") or {}).get(
@@ -482,6 +492,14 @@ def daily_files(cfg: Config, hosting: Hosting, report_path: Path) -> int:
                                    for p, r in item["results"].items()],
                           command=f"/youtube {item['key']}")
             d["issue"] = {"title": CAPTIONS_TITLE, "url": (captions or {}).get("html_url")}
+            # the page publier.html (feed.py): the slot, the TikTok text of this very video (its
+            # captions above are those of the YouTube version when it has its own), and what
+            # finds it on YouTube
+            d |= {"key": item["key"], "day": day, "time": item.get("time", ""),
+                  "tiktok": item.get("caption", ""), "match": [f"slot:{item['key']}"],
+                  "dry_run": bool(report.get("dry_run"))}
+            if y and not own:
+                d["notes"] = [nothing_on_youtube(y)]
             files[f"{rid}/reel.json"] = json.dumps(d, ensure_ascii=False, indent=1)
             item["files"] = {"mp4": main, "youtube_mp4": yt,
                              "page": hosting.page_url(rid, datetime.now(UTC).strftime("%H%M")),
@@ -491,7 +509,8 @@ def daily_files(cfg: Config, hosting: Hosting, report_path: Path) -> int:
                   file=sys.stderr)
     try:
         if files:
-            hosting.publish(files, f"Reels du calendrier {datetime.now(UTC):%Y-%m-%d %H:%M}")
+            hosting.publish(files, f"Reels du calendrier {datetime.now(UTC):%Y-%m-%d %H:%M}",
+                            derived=feed.files)
         hosting.prune_assets()
     except Exception as e:          # noqa: BLE001
         print(f"warning: previews branch: {type(e).__name__}: {e}", file=sys.stderr)

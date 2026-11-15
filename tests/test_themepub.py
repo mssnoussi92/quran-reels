@@ -294,6 +294,28 @@ def test_the_day_goes_out_with_its_own_texts_files_and_cover(setup):
     item = json.loads((tmp / "report.json").read_text())["items"][0]
     assert item["files"]["mp4"].endswith("page-dua/dua-short-1-asked-tiktok.mp4")
     assert "dua-short-1-asked.mp4" in item["notes"][1] and "YouTube" in item["notes"][1]
+    # the page publier.html (feed.py): the TikTok text of the draft, the YouTube file and title
+    assert item["match"] == ["theme:dua/short-1"]
+    assert item["youtube"] == {
+        "title": "Patient… and he asked · صابر… ودعا!", "description": "", "hashtags": "",
+        "file": "https://github.com/o/themes/releases/download/page-dua/dua-short-1-asked.mp4"}
+
+    class Previews:
+        def publish(self, files, message, derived=None):
+            self.files, self.derived = files, derived
+
+    from quran_reels import feed
+
+    previews = Previews()
+    assert R.page_files(tmp / "report.json", previews) == 0
+    assert previews.derived is feed.files
+    e = feed.entry(json.loads(previews.files["theme/2026-11-24/reel.json"]))
+    assert (e["kind"], e["key"], e["day"], e["time"]) == ("theme", "theme:2026-11-24",
+                                                          "2026-11-24", "19:00")
+    assert e["tiktok"] == item["caption"] and e["youtube"] == item["youtube"]
+    assert e["match"] == ["theme:dua/short-1"] and e["title"] == item["label"]
+    assert {r["name"]: r["label"] for r in e["results"]} == {
+        "Facebook": "publié", "Instagram": "publié", "TikTok": "brouillon, non publié"}
     # the next run of the window does nothing more
     for p in pubs.values():
         p.calls.clear()
@@ -498,6 +520,11 @@ def test_the_cards_of_a_platform_make_its_caption_in_their_order():
     assert v.captions["youtube_title"] == "Patient… and he asked · صابر… ودعا!\n"
     assert v.captions["youtube_description"] == ("The long description\n\nQuoted:\n• a source\n\n"
                                                  "#a #b #c #d #e\n")
+    # on the page publier.html, the hashtags have their own Copy button
+    assert R.youtube_texts({"repo": "o/themes"}, v) == {
+        "title": "Patient… and he asked · صابر… ودعا!",
+        "description": "The long description\n\nQuoted:\n• a source", "hashtags": "#a #b #c #d #e",
+        "file": "https://github.com/o/themes/releases/download/page-dua/dua-short-1-asked.mp4"}
     assert (v.video, v.tiktok, v.seconds) == ("dua-short-1-asked.mp4", "dua-short-1-asked-tiktok.mp4", 109)
 
 

@@ -23,6 +23,8 @@ from collections.abc import Callable
 from datetime import date
 from pathlib import Path
 
+from quran_reels.feed import PAGE
+
 FAILURE_TITLE = "⚠️ Publication quotidienne en échec"
 CAPTIONS_TITLE = "📋 Légendes à copier (TikTok, YouTube)"
 # Each workflow closes only its own alert: a Word of the day posted at 12:30 closed the alert of
@@ -184,7 +186,10 @@ def merge_captions(body: str, report: dict, keep: int = KEEP_CAPTIONS) -> str:
     new = {i["key"]: _entry(i, report.get("dry_run", False))
            for i in reversed(report.get("items", [])) if _has_caption(i)}
     entries = list(new.items()) + [(k, v) for k, v in old.items() if k not in new]
-    head = ("Légendes des dernières vidéos, à coller sur le brouillon TikTok (il arrive dans "
+    head = (f"📱 **Tout est sur une page à lien fixe, plus simple sur le téléphone : {PAGE}** "
+            "(textes à copier d'un geste, MP4, vidéos déjà vues sur YouTube). Ce ticket reste "
+            "à jour en secours.\n\n"
+            "Légendes des dernières vidéos, à coller sur le brouillon TikTok (il arrive dans "
             "ta boîte) : 5 hashtags, la limite de TikTok. Mis à jour à chaque publication ; "
             "les plus récentes en haut. YouTube (à la main) : le lien ⬇️ MP4 de chaque vidéo "
             "s'enregistre sur le téléphone, la page 📺 donne titre, description et tous les "

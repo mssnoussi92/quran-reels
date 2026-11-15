@@ -191,6 +191,8 @@ def main(argv: list[str] | None = None) -> int:
     tr.add_argument("--now", help="pretend it is this time (ISO), for --check")
     tc = th_sub.add_parser("check", help="the next days: each row tied to a video, files public")
     tc.add_argument("--days", type=int, default=14)
+    tf = th_sub.add_parser("files", help="the day's video on the page publier.html (feed.py)")
+    tf.add_argument("--report", default="out/themes-report.json")
 
     from quran_reels.ondemand import cli as on_demand_cli
 
@@ -598,6 +600,8 @@ def main(argv: list[str] | None = None) -> int:
 
         from quran_reels.themepub import run as themes
 
+        if args.themes_command == "files":
+            return themes.page_files(Path(args.report))
         if args.themes_command == "check":
             lines, problems = themes.check_upcoming(cfg, days=args.days)
             print("\n".join(lines))

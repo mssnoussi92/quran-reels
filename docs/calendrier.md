@@ -128,7 +128,9 @@
   `daily` écrit `out/daily-report.json` (même s'il s'arrête, avec l'erreur). Échec → ticket
   « ⚠️ Publication quotidienne en échec » assigné au propriétaire et @mention (notification
   push dans l'app GitHub), commentaire s'il est déjà ouvert ; fermé par la prochaine
-  publication réussie. Chaque publication met à jour le ticket épinglé « 📋 Légendes à copier
+  publication réussie. Chaque publication met à jour la page **« À publier »**
+  (https://mssnoussi92.github.io/quran-reels/publier.html : 14 jours de vidéos, textes TikTok
+  et YouTube à copier, `feed.py`) et, en secours, le ticket épinglé « 📋 Légendes à copier
   (TikTok, YouTube) » : légendes des 4 dernières vidéos avec 5 hashtags, la limite de TikTok
   (`platforms.tiktok.max_hashtags`) ; aucune notification.
   Aussi dans le résumé du run. Dry-run : jamais le ticket d'échec, pas de TikTok (son seul

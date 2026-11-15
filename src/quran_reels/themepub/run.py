@@ -347,7 +347,80 @@ def _item(s: dict[str, Any], row: cal.Row, entry: dict,
             "label": v.title if v else "", "results": entry.get("results") or {},
             "caption": tiktok.captions.get("tiktok", "") if tiktok else "",
             "files": {"mp4": asset_url(s, tiktok.doc, tiktok.tiktok)} if tiktok else None,
-            "notes": notes}
+            "notes": notes, "youtube": youtube_texts(s, yt), "match": match_keys(row)}
+
+
+def youtube_texts(s: dict[str, Any], yt: texts_mod.Video | None) -> dict[str, str] | None:
+    """What the page publier.html gives for YouTube: the file, then its title, description
+    (description and credits cards) and hashtags, word for word."""
+    if not yt or not yt.video:
+        return None
+    parts = yt.cards.get("youtube") or []
+    tags = [t for kind, t in parts if kind == "hashtags" and t]
+    desc = [t for kind, t in parts if kind not in ("titre", "hashtags") and t]
+    return {"title": (yt.captions.get("youtube_title") or "").strip(),
+            "description": "\n\n".join(desc) if parts
+            else (yt.captions.get("youtube_description") or "").strip(),
+            "hashtags": "\n\n".join(tags), "file": asset_url(s, yt.doc, yt.video)}
+
+
+def match_keys(row: cal.Row) -> list[str]:
+    """The keys the statistics give this video (insights: theme:<doc>/<part>, a 16:9 film
+    beside its 9:16 version), so that the page sees it on YouTube."""
+    keys = [f"theme:{d}/{row.part}" for d in row.docs if row.part]
+    if row.part == "film":
+        keys += [f"theme:{d}-9x16/film" for d in row.docs if not d.endswith("-9x16")]
+    return list(dict.fromkeys(keys))
+
+
+def page_files(report_path: Path, hosting: Any = None, now: datetime | None = None) -> int:
+    """After `themes run`: the day's video on the page publier.html (feed.py), as
+    theme/<day>/reel.json on the branch `previews`, with the TikTok text of its draft and
+    what YouTube gets by hand. Nothing for a dry run or a video that went nowhere. Never
+    fails the run."""
+    from quran_reels import feed
+    from quran_reels.ondemand.flow import _RESULT_LABELS
+    from quran_reels.ondemand.page import PLATFORM_LABELS
+
+    if not report_path.is_file():
+        return 0
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    if report.get("dry_run"):
+        return 0
+    created = (now or datetime.now(UTC)).isoformat(timespec="seconds")
+    files: dict[str, str] = {}
+    for item in report.get("items") or []:
+        results = item.get("results") or {}
+        if not any((r or {}).get("status") in ("published", "draft") for r in results.values()):
+            continue
+        rid = f"theme/{item['day']}"
+        files[f"{rid}/reel.json"] = json.dumps({
+            "kind": "theme", "id": rid, "created": created, "key": item["key"],
+            "day": item["day"], "time": item.get("time", ""),
+            "title": item.get("label") or item.get("passage", ""),
+            "passage": item.get("passage", ""), "label": item.get("label", ""),
+            "results": [{"name": PLATFORM_LABELS.get(p, p).split(" (")[0],
+                         "url": (r or {}).get("url"),
+                         "label": _RESULT_LABELS.get((r or {}).get("status"),
+                                                     (r or {}).get("status"))}
+                        for p, r in results.items()],
+            "tiktok": item.get("caption", ""),
+            "video": {"tiktok": (item.get("files") or {}).get("mp4")},
+            "youtube": item.get("youtube"), "match": item.get("match") or [], "notes": [],
+        }, ensure_ascii=False, indent=1)
+    if not files:
+        return 0
+    try:
+        if hosting is None:
+            from quran_reels.ondemand.files import Hosting
+            from quran_reels.ondemand.gh import GitHub
+
+            hosting = Hosting(GitHub(), Path("."))
+        hosting.publish(files, f"Vidéo thématique {', '.join(sorted(files))}",
+                        derived=feed.files)
+    except Exception as e:          # noqa: BLE001  (the page waits for the next one)
+        print(f"warning: previews branch: {type(e).__name__}: {e}", file=sys.stderr)
+    return 0
 
 
 def run(cfg: Config, state_path: Path, now: datetime | None = None, dry_run: bool = False,
