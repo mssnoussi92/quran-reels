@@ -123,7 +123,10 @@ src/quran_reels/
                    textes par plateforme, fichiers), calendar.py (calendar.md tel qu'écrit → la vidéo
                    de chaque plateforme, jamais la ligne d'avant), run.py (`quran-reels themes run|check` :
                    dû à 19:00, téléchargement de `page-<doc>`, droits Meta, publication, `themes.json`) ;
-                   publishers/facebook_video.py : vidéo de plus de 90 s par /{page}/videos
+                   Facebook toujours en reel, film compris (jusqu'à 15 min : seule voie où Meta vérifie
+                   les droits avant publication, essais du 2026-11-15) ; Instagram : une copie réencodée
+                   sans edit list (`for_instagram`) ; publishers/facebook_video.py (/{page}/videos)
+                   n'a pas de vérification, il ne publie rien
   notify.py        `quran-reels notify` : tickets GitHub (alerte d'échec, légendes à copier ;
                    les images ont leur propre alerte, `--alert images`, depuis le 2026-11-15)
   insights/        statistiques de la Page (docs/insights.md) : collect.py (`quran-reels insights

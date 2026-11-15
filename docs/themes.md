@@ -32,12 +32,24 @@ deux ; si l'une des vérifications n'est pas propre, **rien ne part, TikTok comp
   les vidéos validées), noms écrits sur la ligne de fichier de chaque section (vidéo, version `-tiktok`,
   couverture `-cover.jpg`).
 
-## Facebook : vidéos de plus de 90 s
+## Facebook : toujours en reel, même un film
 
-L'API Reels de Facebook n'accepte que 3 à 90 s ; les shorts font 1:19 à 2:19, les films 7 à 8 min. Au-delà de
-`reels_max_seconds`, la vidéo passe par la Page (`publishers/facebook_video.py`) : envoyée entière à
-`graph-video.facebook.com/{page}/videos` non publiée, vérification des droits, renvoyée publiée, la copie non publiée
-effacée, la couverture posée. Sous 90 s, le chemin des reels (`publishers/facebook.py`).
+Essais à blanc du 2026-11-15 :
+- **en reel** (l'API Reels, `publishers/facebook.py`) : le short de 2:05 et le film de 8:24 sont acceptés, et la
+  vérification des droits de Meta répond aussitôt « complete, aucune correspondance » ;
+- **en vidéo de Page** (`/{page}/videos`, `publishers/facebook_video.py`) : Meta ne donne aucune vérification en
+  10 minutes (« dernier état : aucun ») ; rien n'aurait été publié.
+
+Toute vidéo jusqu'à `reels_max_seconds` (900 s) passe donc en reel. Au-delà, la voie des vidéos de Page reste dans le
+code, mais sans vérification elle ne publie rien.
+
+## Instagram : une copie sans edit list
+
+Les vidéos des thèmes (Remotion) portent des edit lists ; Instagram n'a jamais fini de traiter le short de 2:05
+(encore « IN_PROGRESS » après 20 minutes), comme il refusait celles des reels quotidiens avant leur encodage
+(docs/rendu.md). Instagram reçoit donc une copie réencodée comme les reels (H.264 High sans B-frames, AAC 48 kHz,
+faststart, sans edit list : `for_instagram`, une minute pour 2 minutes de vidéo) ; Facebook et TikTok reçoivent le
+fichier tel quel. Un seul conteneur, attendu jusqu'à `instagram_processing_seconds` (1 200 s).
 
 ## Ce qui tourne
 
