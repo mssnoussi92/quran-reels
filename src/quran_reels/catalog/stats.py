@@ -48,7 +48,7 @@ def _age(hours: float) -> str:
 
 def _followers(accounts: dict, today: date) -> list[dict[str, Any]]:
     out = []
-    for platform in ("facebook", "instagram"):
+    for platform in ("facebook", "instagram", "youtube"):
         days = accounts.get(platform) or {}
         if not days:
             continue
@@ -127,7 +127,8 @@ def build(insights: dict[str, Any] | None, settings: dict[str, Any], now: dateti
     min_videos, min_points = int(compare.get("min_videos", 3)), int(compare.get("min_points", 12))
     since = now - timedelta(days=int(settings.get("days", 35)))
 
-    listed = insights.get("listed")
+    listed_by = {"facebook": insights.get("listed"), "instagram": insights.get("listed"),
+                 "youtube": insights.get("listed_youtube")}
 
     def gone(rec: dict) -> bool:
         """Young enough to be listed by the last reading, and it was not: not public any more,
@@ -138,6 +139,7 @@ def build(insights: dict[str, Any] | None, settings: dict[str, Any], now: dateti
             published = datetime.fromisoformat(rec.get("published", ""))
         except ValueError:
             return False
+        listed = listed_by.get(rec.get("platform"))
         if bool(listed) and published >= since and rec.get("seen") != listed:
             return True
         snaps = [s.get("m") or {} for s in (rec.get("snapshots") or {}).values()]

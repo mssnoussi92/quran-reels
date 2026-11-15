@@ -445,8 +445,9 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-30.
   → `insights.json` (branche `state`) → page « Statistiques » du catalogue, **publique** (choix du
   propriétaire, 2026-11-15). Comparaisons à 48 h, en médianes ; sous 3 vidéos ou 12 points
   d'écart, aucune différence n'est affirmée. **YouTube lu chaque nuit** en lecture seule (choix du
-  propriétaire, 2026-11-15 : `insights/youtube.py`, Data API + Analytics API, rangé comme les
-  captures, source `youtube-api` ; mise en place : docs/plateformes.md, « Statistiques YouTube ») ;
+  propriétaire, 2026-11-15 : `insights/youtube.py`, Data API + Analytics API) : une publication
+  par vidéo comme sur Facebook et Instagram (relevés 48 h / 7 j / 28 j, rangée avec son reel ou sa
+  vidéo thématique), abonnés de la chaîne ; mise en place : docs/plateformes.md, « Statistiques YouTube ») ;
   TikTok (et YouTube tant que ses secrets manquent) : captures envoyées par le propriétaire le
   dimanche, recopiées par une session (`insights.yml`, entrée `manual`).
 - Le calendrier du catalogue montre aussi les vidéos thématiques (calendar.md de

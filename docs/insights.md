@@ -97,9 +97,13 @@ Plutôt qu'une capture de YouTube Studio chaque dimanche, le workflow `insights`
 - **YouTube Analytics API** (`yt-analytics.readonly`) : durée moyenne regardée (`avg_watch`), pourcentage regardé
   (`watch_pct`), partages, abonnés gagnés (`follows`), calculés par YouTube avec un ou deux jours de retard.
 
-Les chiffres vont là où allaient les captures (`manual`, source `youtube-api`), une entrée par vidéo et par jour ;
-la vidéo est reconnue par son titre : la référence d'un reel (« (106:1-4) » → `106:1-4`, une ayah seule
-`9:51-51`), le titre d'une vidéo thématique. Une panne de YouTube ne fait jamais perdre les chiffres de Meta (étape
+Chaque vidéo publique devient une publication comme celles de Facebook et Instagram (`youtube:<id>`, son lien, ses
+relevés à 48 h, 7 jours et 28 jours et le dernier ; une vidéo vue pour la première fois est relevée tout de suite), et
+les abonnés de la chaîne s'ajoutent à ceux de la Page. Elle se range avec son reel ou sa vidéo thématique : la
+référence d'un reel dans le titre ou dans la ligne « Surah … (9:51) » de la description collée depuis reel.html, sinon
+les noms de son titre (« Surah Al-Masad · سورة المسد » ; une sourate en plusieurs passages : le dernier publié avant) ;
+le titre d'une vidéo thématique, le film en 16:9 avec sa version verticale de Facebook. Le premier soir (2026-11-15),
+les chiffres ont été rangés comme des captures (source `youtube-api`) : ces entrées sont retirées au relevé suivant. Une panne de YouTube ne fait jamais perdre les chiffres de Meta (étape
 à part, `continue-on-error`). Ce qu'aucune API ne donne (impressions, taux de clics, « regardées » contre
 « balayées » des Shorts) reste dans YouTube Studio. Mise en place : docs/plateformes.md, « Statistiques YouTube ».
 
