@@ -383,11 +383,14 @@ dans le journal, ticket d'alerte 14 jours avant), `YOUTUBE_*`.
 Jamais un jeton dans un log : en-têtes `Authorization`, erreurs reconstruites, `::add-mask::`.
 Les logs Actions d'un dépôt public sont publics : rien d'identifiant n'y est imprimé.
 
-Jeton de Page Meta : expiration « Jamais », mais **l'accès aux données expire le 2027-02-02**
-(90 jours). Pour le renouveler : explorateur Graph → jeton utilisateur → prolonger →
-`me/accounts` → nouveau `META_PAGE_TOKEN`. Fait : `meta-check` (et chaque `publish`) lit
+Jeton de Page Meta : expiration « Jamais », mais **l'accès aux données expire le 2027-02-13**
+(90 jours ; refait le 2026-11-15, l'ancien coupé par le changement de mot de passe Facebook du
+propriétaire : tout changement de mot de passe ou « déconnexion de toutes les sessions » le coupe
+de même, code 190/460). Il porte aussi `read_insights`, `instagram_manage_insights`,
+`instagram_manage_contents` et `pages_read_user_content`. Pour le renouveler, pas à pas :
+docs/plateformes.md (« Renouveler le jeton de Page »). Fait : `meta-check` (et chaque `publish`) lit
 `data_access_expires_at` via `GET /debug_token` et fait échouer le job (message clair, marche à
-suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-19.
+suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-30.
 
 ## État
 

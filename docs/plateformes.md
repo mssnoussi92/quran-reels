@@ -17,7 +17,11 @@
 - Accès standard suffisant (l'app ne sert que les comptes du propriétaire) : pas d'App Review
   ni de vérification d'entreprise.
 - Permissions : `instagram_basic`, `instagram_content_publish`, `pages_show_list`,
-  `pages_read_engagement`, `pages_manage_posts`.
+  `pages_read_engagement`, `pages_manage_posts` (exigées par `meta-check`) ; en plus sur le jeton
+  depuis le 2026-11-15 : `pages_manage_engagement` et `pages_read_user_content` (couverture des
+  reels Facebook), `instagram_manage_contents` (retrait d'un reel Instagram rendu muet),
+  `read_insights` et `instagram_manage_insights` (statistiques de la Page et du compte
+  Instagram, pour un futur workflow `insights`).
 
 ### État de la configuration Meta (2026-11-04)
 
@@ -40,7 +44,32 @@
 - La liaison Instagram ↔ Page doit être faite depuis la Page (Paramètres → Comptes liés). Une liaison
   faite seulement via l'Espace Comptes n'expose pas `instagram_business_account` à l'API.
 - Secrets GitHub configurés : `META_PAGE_ID`, `META_PAGE_TOKEN` (jeton de Page, sans expiration,
-  accès aux données jusqu'au 2027-02-02), `IG_USER_ID`.
+  accès aux données jusqu'au 2027-02-13, refait le 2026-11-15), `IG_USER_ID`.
+
+### Renouveler le jeton de Page (fait depuis le téléphone le 2026-11-15)
+
+Le jeton est coupé quand le propriétaire change son mot de passe Facebook (2026-11-15 : « The
+session has been invalidated because the user changed their password », code 190, subcode 460 ;
+le Word of the day a échoué deux fois avant le nouveau jeton) et 90 jours après sa création
+(accès aux données). Dans Chrome en « Version pour ordinateur » :
+
+1. `developers.facebook.com/tools/explorer` → Application Meta : **Quran Words Daily Publisher**
+   → Utilisateur ou Page : **Token utilisateur** → ajouter les permissions de la liste ci-dessus.
+   Une permission absente de la liste n'est pas dans les cas d'utilisation de l'app :
+   `developers.facebook.com/apps/1673453344149749/` → Cas d'utilisation → « Tout gérer sur votre
+   Page » / « Gérer les messages et le contenu sur Instagram » → Personnaliser → Ajouter, puis
+   recharger l'explorateur.
+2. **Generate Access Token** → cocher la Page Quran Words Daily et le compte Instagram.
+3. ⓘ à côté du jeton → outil de jeton d'accès → **Étendre le jeton d'accès** → copier le jeton
+   utilisateur longue durée (le débogueur dit « Expiration : dans environ 2 mois »).
+4. Le coller dans le champ du jeton de l'explorateur → requête
+   `me/accounts?fields=id,name,access_token` → copier l'`access_token` de la Page
+   1494879297031390.
+5. Débogueur (`developers.facebook.com/tools/debug/accesstoken`) : **Type : Page**, **Expiration :
+   Jamais**, accès aux données à 90 jours, portées complètes.
+6. GitHub → Settings → Secrets and variables → Actions → `META_PAGE_TOKEN` → Update (jamais dans
+   une conversation). Puis relancer `images.yml` (dans sa fenêtre de 6 h) ou attendre le run
+   suivant : le contrôle du jeton se fait au début.
 - **Dry-run du 2026-11-04 (run #1) : échec au contrôle**, `META_PAGE_TOKEN` contient un jeton
   **USER**, pas un jeton de Page. À refaire : jeton utilisateur prolongé → `me/accounts` →
   `access_token` de la Page 1494879297031390 (le débogueur doit afficher Type : Page,
