@@ -122,14 +122,14 @@ def list_posts(budget: Budget, page_id: str, ig_id: str | None, since: datetime,
                images: dict, errors: list[str] | None = None) -> list[Post]:
     errors = [] if errors is None else errors
     posts: dict[str, Post] = {}
-    fields = "id,created_time,description,length,permalink_url,published"
+    fields = "id,created_time,description,length,permalink_url,published,status"
     for item in _listed(budget, errors, f"{page_id}/video_reels", since, "created_time",
                         fields=fields, limit=50):
-        if item.get("published") is False:
+        if not public(item):
             continue
         p = Post("facebook", str(item["id"]), _when(item["created_time"]), "facebook-reel",
                  item.get("description") or "", _fb_url(item.get("permalink_url")),
-                 _float(item.get("length")))
+                 _float(item.get("length")), {"fb_status": fb_status(item)})
         posts[p.uid] = p
     # Long videos the owner posts by hand (the 9:16 films) may not be Reels for the API.
     for item in _listed(budget, errors, f"{page_id}/videos", since, "created_time",
@@ -137,10 +137,11 @@ def list_posts(budget: Budget, page_id: str, ig_id: str | None, since: datetime,
         uid = f"facebook:{item['id']}"
         # /videos also lists what is not public: drafts left by tests, posts scheduled by hand
         # (2026-11-15: nine at 0 views, and short 3 of Moussa and al-Khidr scheduled).
-        if uid not in posts and item.get("published") is not False:
+        if uid not in posts and public(item):
             posts[uid] = Post("facebook", str(item["id"]), _when(item["created_time"]),
                               "facebook-video", item.get("description") or "",
-                              _fb_url(item.get("permalink_url")), _float(item.get("length")))
+                              _fb_url(item.get("permalink_url")), _float(item.get("length")),
+                              {"fb_status": fb_status(item)})
     # Word of the day on Facebook: photo posts, known by their id (images.json).
     for day, post in ((images.get("word") or {}).get("posts") or {}).items():
         res = (post.get("results") or {}).get("facebook") or {}
@@ -158,6 +159,29 @@ def list_posts(budget: Budget, page_id: str, ig_id: str | None, since: datetime,
                      item.get("permalink") or "")
             posts[p.uid] = p
     return sorted(posts.values(), key=lambda p: p.published)
+
+
+NOT_PUBLIC = {"draft", "scheduled", "unpublished", "not_started", "expired"}
+
+
+def fb_status(item: dict) -> dict[str, Any]:
+    """What Meta says of a video's publication, kept on the record (published, and the
+    publishing phase of `status`): the nine videos at 0 views of 2026-11-15 were not marked
+    `published: false`, this tells what they are on the next reading."""
+    phase = ((item.get("status") or {}).get("publishing_phase") or {}) \
+        if isinstance(item.get("status"), dict) else {}
+    return {k: v for k, v in (("published", item.get("published")),
+                              ("phase", phase.get("status")),
+                              ("publish_status", phase.get("publish_status")),
+                              ("video_status", (item.get("status") or {}).get("video_status")
+                               if isinstance(item.get("status"), dict) else None))
+            if v is not None}
+
+
+def public(item: dict) -> bool:
+    st = fb_status(item)
+    return st.get("published") is not False and not (
+        {str(st.get("phase", "")).lower(), str(st.get("publish_status", "")).lower()} & NOT_PUBLIC)
 
 
 def _fb_url(link: str | None) -> str:
@@ -297,6 +321,8 @@ def run(cfg: Config, state_dir: Path, graph: Graph, page_id: str, ig_id: str | N
                                         if ln.strip()), rec.get("first_line", ""))[:140]}
             if p.seconds:
                 rec["seconds"] = p.seconds
+            if p.extra.get("fb_status") is not None:
+                rec["fb_status"] = p.extra["fb_status"]
         classifier.apply(data["posts"])          # key, kind, label, seconds of the twin
 
         todo = []

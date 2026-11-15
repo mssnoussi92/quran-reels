@@ -94,12 +94,19 @@ def build(insights: dict[str, Any] | None, settings: dict[str, Any], now: dateti
 
     def gone(rec: dict) -> bool:
         """Young enough to be listed by the last reading, and it was not: not public any more,
-        or never was (a draft left by a test, a post scheduled by hand)."""
+        or never was (a draft left by a test, a post scheduled by hand). Or a Facebook video
+        nobody can have seen: no caption, not one view after two days (2026-11-15: nine such,
+        listed by /videos without being marked unpublished)."""
         try:
-            young = datetime.fromisoformat(rec.get("published", "")) >= since
+            published = datetime.fromisoformat(rec.get("published", ""))
         except ValueError:
             return False
-        return bool(listed) and young and rec.get("seen") != listed
+        if bool(listed) and published >= since and rec.get("seen") != listed:
+            return True
+        snaps = [s.get("m") or {} for s in (rec.get("snapshots") or {}).values()]
+        return (rec.get("platform") == "facebook" and rec.get("kind") == "other"
+                and not rec.get("first_line") and now - published > timedelta(hours=48)
+                and bool(snaps) and all(not m.get("views") for m in snaps))
 
     groups: dict[str, dict[str, Any]] = {}
     for uid, rec in posts.items():
