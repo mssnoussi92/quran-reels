@@ -6,11 +6,13 @@ reading asks YouTube itself, read-only:
 - YouTube Data API (youtube.readonly): the channel's uploads of the last `days`, public ones only,
   with their views, likes and comments (live counters);
 - YouTube Analytics API (yt-analytics.readonly): average view duration and percentage, shares,
-  subscribers gained, per video (YouTube computes them with a delay of a day or two).
+  subscribers gained, per video (YouTube computes them with a delay of a day or two), and the same
+  numbers day by day: the 48 h, 7 days and 28 days checkpoints are counted on those days, so that a
+  video gets them even when it was first read later (all those published before 2026-11-15).
 
-They go where the screenshots went (`manual` of insights.json, source « youtube-api »), one entry
-per video and per day, matched to the reel or theme video by its title (a reel's title carries its
-reference, « (106:1-4) »; a theme video's is its own title). TikTok stays on screenshots.
+Each public video is a post (« youtube:<id> »), beside its Facebook and Instagram twins: matched to
+the reel or theme video by its title (a reel's title carries its reference, « (106:1-4) », or its
+names; a theme video's is its own title). TikTok stays on screenshots.
 
 Access: an OAuth client of the owner's Google Cloud project (YOUTUBE_CLIENT_ID,
 YOUTUBE_CLIENT_SECRET) and a refresh token saved once by the workflow youtube-auth
@@ -24,9 +26,12 @@ import os
 import re
 import sys
 from dataclasses import dataclass
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, date, datetime, time, timedelta
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
+
+from quran_reels.insights.classify import PASSAGE, passage_of
 
 TOKEN_URL = "https://oauth2.googleapis.com/token"
 AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
@@ -35,10 +40,12 @@ ANALYTICS = "https://youtubeanalytics.googleapis.com/v2/reports"
 SCOPES = ("https://www.googleapis.com/auth/youtube.readonly",
           "https://www.googleapis.com/auth/yt-analytics.readonly")
 REFRESH_SECRET = "YOUTUBE_REFRESH_TOKEN"
-PASSAGE = re.compile(r"\((\d{1,3}):(\d{1,3})(?:-(\d{1,3}))?\)")
 DURATION = re.compile(r"P(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?")
 ANALYTICS_METRICS = ("views", "averageViewDuration", "averageViewPercentage", "shares",
                      "subscribersGained")
+DAY_METRICS = ("views", "averageViewDuration", "averageViewPercentage", "likes", "comments",
+               "shares", "subscribersGained")
+PACIFIC = ZoneInfo("America/Los_Angeles")     # YouTube Analytics counts its days in Pacific time
 
 
 class YouTubeError(RuntimeError):
@@ -187,6 +194,15 @@ class YouTube:
                     "shares": _int(r.get("shares")), "follows": _int(r.get("subscribersGained"))}
         return out
 
+    def days(self, token: str, video: str, start: date, end: date) -> list[dict[str, Any]]:
+        """One video's numbers day by day (Pacific days, start → end): views, average view
+        duration and percentage, likes, comments, shares, subscribers gained."""
+        body = self.get(ANALYTICS, token, ids="channel==MINE", startDate=start.isoformat(),
+                        endDate=end.isoformat(), metrics=",".join(DAY_METRICS),
+                        dimensions="day", filters=f"video=={video}", sort="day")
+        names = [h.get("name") for h in body.get("columnHeaders") or []]
+        return [dict(zip(names, row, strict=False)) for row in body.get("rows") or []]
+
 
 def _json(r: Any) -> dict[str, Any]:
     try:
@@ -226,15 +242,11 @@ def video_key(title: str, description: str = "") -> str:
     سورة التوبة » in its first lines); otherwise the title itself (a theme video, matched by its
     title; its description quotes verses too, never on a line of its own that starts with
     « Surah »)."""
-    m = PASSAGE.search(title or "")
-    if not m:
-        for line in (description or "").splitlines()[:4]:
-            if line.strip().startswith("Surah ") and (m := PASSAGE.search(line)):
-                break
-    if m:
-        surah, first, last = m.groups()
-        return f"{int(surah)}:{int(first)}-{int(last or first)}"
-    return (title or "").strip()
+    found = passage_of(title)
+    for line in (description or "").splitlines()[:4] if not found else ():
+        if line.strip().startswith("Surah ") and (found := passage_of(line)):
+            break
+    return found or (title or "").strip()
 
 
 SHORT_MAX = 180          # seconds: longer, a YouTube video (the 16:9 film), not a Short
@@ -244,6 +256,39 @@ def numbers(stats: dict[str, Any], extra: dict[str, Any] | None) -> dict[str, An
     """The numbers of one video, named as the page names Meta's (metrics.NUMBERS)."""
     m = {k: stats[k] for k in ("views", "likes", "comments") if stats.get(k) is not None}
     m |= {k: x for k, x in (extra or {}).items() if x is not None}
+    return m
+
+
+def _day_end(day: date) -> datetime:
+    return datetime.combine(day + timedelta(days=1), time(), PACIFIC)
+
+
+def window(published: datetime, hours: float) -> tuple[date, date]:
+    """The Pacific days a checkpoint counts: from the day of publication to the first day at whose
+    end the video is `hours` old (48 h: 49 to 72 h, like the nightly Meta snapshots)."""
+    start = end = published.astimezone(PACIFIC).date()
+    while _day_end(end) - published < timedelta(hours=hours):
+        end += timedelta(days=1)
+    return start, end
+
+
+def total(rows: list[dict[str, Any]], start: date, end: date) -> dict[str, Any] | None:
+    """The numbers of the days start → end, named as the page names them; the averages weighted
+    by each day's views. None when YouTube has no day of it."""
+    days = [r for r in rows if start.isoformat() <= str(r.get("day")) <= end.isoformat()]
+    if not days:
+        return None
+    views = [_int(r.get("views")) or 0 for r in days]
+    m: dict[str, Any] = {"views": sum(views)}
+    for name, col in (("likes", "likes"), ("comments", "comments"), ("shares", "shares"),
+                      ("follows", "subscribersGained")):
+        m[name] = sum(_int(r.get(col)) or 0 for r in days)
+    if m["views"]:
+        for name, col in (("avg_watch", "averageViewDuration"),
+                          ("watch_pct", "averageViewPercentage")):
+            m[name] = round(sum((_num(r.get(col)) or 0) * n for r, n in zip(days, views,
+                                                                             strict=True))
+                            / m["views"], 1)
     return m
 
 
@@ -288,11 +333,15 @@ def _by_name(title: str, published: datetime, posts: dict[str, dict]) -> str | N
     parts = [x for x in parts if len(x) >= 6]
     if not parts:
         return None
-    found = []
-    for uid, rec in posts.items():
-        line = norm(rec.get("first_line") or "")
-        if (rec.get("key") or "").startswith("slot:") and line and any(x in line for x in parts):
-            found.append((rec.get("published", ""), uid))
+    found: list[tuple[str, str]] = []
+    for prefix in ("slot:", "hand:"):         # a reel of the calendar first, then one by hand
+        for uid, rec in posts.items():
+            line = norm(rec.get("first_line") or "")
+            if (rec.get("key") or "").startswith(prefix) and line and \
+                    any(x in line for x in parts):
+                found.append((rec.get("published", ""), uid))
+        if found:
+            break
     if not found:
         return None
     limit = (published + timedelta(days=1)).isoformat()
@@ -304,9 +353,12 @@ def collect(path: Path, s: dict[str, Any], now: datetime | None = None,
             client: YouTube | None = None, env: YouTubeEnv | None = None,
             dry_run: bool = False, themes: Any = None) -> str:
     """Read the channel into insights.json, as the Meta posts are: one post per public video
-    (« youtube:<id> », its link, its title), its snapshots at 48 h, 7 days and 28 days and the
-    latest (collect.due; a video seen for the first time gets one at once), the subscribers of the
-    day. Returns a line for the log."""
+    (« youtube:<id> », its link, its title), the subscribers of the day, and for each video its
+    latest numbers, read every night, and its checkpoints at 48 h, 7 days and 28 days, counted on
+    YouTube Analytics' days (`window`, `total`) once the last of them is `lag_days` old, again
+    every night while the video is listed (YouTube settles its numbers). Without Analytics, the
+    checkpoints are taken as on Meta (collect.due). Returns a line for the log; a dry run adds
+    each video's 48 h."""
     from quran_reels.insights.collect import PARIS, due, load, save
 
     env = env or YouTubeEnv.from_environ()
@@ -339,7 +391,25 @@ def collect(path: Path, s: dict[str, Any], now: datetime | None = None,
             "followers_count": ch["subscribers"], "media_count": ch.get("videos")}
     listed = now.isoformat(timespec="seconds")
     data["listed_youtube"] = listed           # a video not listed again is no longer public
-    taken = 0
+    taken = counted = 0
+    checkpoints = {k: float(h) for k, h in (s.get("checkpoints") or {}).items()}
+    settled = now.astimezone(PACIFIC).date() - timedelta(
+        days=int((s.get("youtube") or {}).get("lag_days", 2)))
+    shown: list[str] = []
+    windows = {v["id"]: {k: window(v["published"], h) for k, h in checkpoints.items()}
+               for v in found if v["id"] in stats}
+    ready = {i: {k: w for k, w in ws.items() if w[1] <= settled} for i, ws in windows.items()}
+    by_days = not note                        # Analytics answered: checkpoints from its days
+    rows: dict[str, list[dict[str, Any]]] = {}
+    for i, ws in ready.items():
+        if not by_days:
+            break
+        if ws:
+            try:
+                rows[i] = yt.days(token, i, min(w[0] for w in ws.values()),
+                                  max(w[1] for w in ws.values()))
+            except YouTubeError as e:         # the checkpoints as on Meta, from tonight on
+                by_days, note = False, f" (YouTube Analytics by day unavailable: {e})"
     for v in found:
         st = stats.get(v["id"])
         if not st:
@@ -360,17 +430,36 @@ def collect(path: Path, s: dict[str, Any], now: datetime | None = None,
         rec |= {"key": info["key"] or uid, "kind": info["kind"], "label": info["label"],
                 "ref": info["ref"]}
         age_h = (now - v["published"]).total_seconds() / 3600
-        names = due(rec, age_h, s) or ([] if rec["snapshots"] else ["latest"])
-        if names:
-            snap = {"at": listed, "age_h": round(age_h, 1), "m": numbers(st, extra.get(v["id"]))}
+        snap = {"at": listed, "age_h": round(age_h, 1), "m": numbers(st, extra.get(v["id"]))}
+        if by_days:
+            for k in checkpoints:            # a checkpoint taken as on Meta, before (2026-11-15)
+                if "days" not in rec["snapshots"].get(k, {"days": True}):
+                    del rec["snapshots"][k]
+            for k, (start, end) in ready[v["id"]].items():
+                m = total(rows.get(v["id"], []), start, end)
+                if m is not None:
+                    rec["snapshots"][k] = {
+                        "at": listed, "days": [start.isoformat(), end.isoformat()], "m": m,
+                        "age_h": round((_day_end(end) - v["published"]).total_seconds() / 3600, 1)}
+            if any(k in ready[v["id"]] for k in rec["snapshots"]):
+                counted += 1
+            rec["snapshots"]["latest"] = snap
+            taken += 1
+        else:
+            names = due(rec, age_h, s) or ([] if rec["snapshots"] else ["latest"])
             for name in names:
                 rec["snapshots"][name] = snap
-            taken += 1
+            taken += bool(names)
+        if dry_run and "48h" in rec["snapshots"]:
+            c = rec["snapshots"]["48h"]
+            shown.append(f"  {v['published']:%Y-%m-%d} {rec['key']}: 48 h "
+                         f"{'/'.join(c['days']) if 'days' in c else 'as on Meta'}, {c['m']}")
     if not dry_run:
         save(path, data)
-    return (f"youtube: channel « {ch['title']} » ({ch.get('subscribers')} subscribers), "
-            f"{len(public)} public videos, {taken} read"
-            f"{' (dry run, nothing saved)' if dry_run else ''}{note}")
+    head = (f"youtube: channel « {ch['title']} » ({ch.get('subscribers')} subscribers), "
+            f"{len(public)} public videos, {taken} read, {counted} with checkpoints counted by "
+            f"day{' (dry run, nothing saved)' if dry_run else ''}{note}")
+    return "\n".join([head, *shown])
 
 
 def auth(redirect_uri: str, code: str | None, client: YouTube | None = None) -> int:

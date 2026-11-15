@@ -25,6 +25,8 @@ youtube:                   # the channel's numbers, read only (insights/youtube.
                            # 2026-11-15): read when YOUTUBE_CLIENT_ID, YOUTUBE_CLIENT_SECRET and
                            # YOUTUBE_REFRESH_TOKEN are set (workflow youtube-auth, docs/plateformes.md)
   redirect_uri: https://mssnoussi92.github.io/quran-reels/youtube-callback.html
+  lag_days: 2              # the checkpoints (48 h, 7 days, 28 days) are counted on YouTube Analytics'
+                           # days (Pacific time) once the last of them is this old
 
 compare:                   # the dashboard's rule (docs/retention.md of quran-themes-demo,
   min_videos: 3            # « Mesurer »): fewer videos, or a smaller gap in points, and no

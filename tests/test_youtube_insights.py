@@ -20,8 +20,8 @@ class Answer:
 class FakeHttp:
     """Google's answers by URL: tokens, channel, uploads, videos, analytics."""
 
-    def __init__(self, analytics_ok=True):
-        self.calls, self.analytics_ok = [], analytics_ok
+    def __init__(self, analytics_ok=True, days_ok=True):
+        self.calls, self.analytics_ok, self.days_ok = [], analytics_ok, days_ok
 
     def post(self, url, data=None, timeout=None):
         self.calls.append(("POST", url, data))
@@ -62,6 +62,14 @@ class FakeHttp:
         if url == Y.ANALYTICS:
             if not self.analytics_ok:
                 return Answer(403, {"error": {"message": "YouTube Analytics API has not been used"}})
+            if params["dimensions"] == "day":
+                if not self.days_ok:
+                    return Answer(400, {"error": {"message": "Unknown identifier (day)"}})
+                assert params["sort"] == "day" and params["ids"] == "channel==MINE"
+                rows = [r for r in DAYS.get(params["filters"], [])
+                        if params["startDate"] <= r[0] <= params["endDate"]]
+                return Answer(200, {"columnHeaders": [{"name": n} for n in ("day", *Y.DAY_METRICS)],
+                                    "rows": rows})
             assert params["filters"] == "video==v1,v2,v3" and params["ids"] == "channel==MINE"
             return Answer(200, {
                 "columnHeaders": [{"name": n} for n in ("video", "views", "averageViewDuration",
@@ -70,6 +78,15 @@ class FakeHttp:
                 "rows": [["v2", 600, 68, 73.2, 4, 2], ["v1", 110, 20, 55.5, 0, 0]]})
         raise AssertionError(url)
 
+
+# YouTube Analytics day by day (Pacific days): day, views, average view duration, average view
+# percentage, likes, comments, shares, subscribers gained
+DAYS = {
+    "video==v1": [("2026-11-13", 30, 20, 60.0, 2, 0, 0, 0), ("2026-11-14", 70, 22, 58.0, 5, 1, 0, 1),
+                  ("2026-11-15", 20, 18, 50.0, 1, 0, 1, 0), ("2026-11-16", 9, 15, 40.0, 0, 0, 0, 0)],
+    "video==v3": [("2026-11-11", 10, 12, 85.0, 1, 0, 0, 0), ("2026-11-12", 50, 11, 80.0, 3, 1, 1, 2),
+                  ("2026-11-13", 20, 9, 70.0, 1, 0, 0, 0), ("2026-11-14", 5, 9, 70.0, 0, 0, 0, 0)],
+}
 
 ENV = Y.YouTubeEnv("cid", "secret", "refresh")
 NOW = datetime(2026, 11, 15, 22, 0, tzinfo=UTC)
@@ -111,7 +128,9 @@ def posts_of_meta():
 
 def test_each_public_video_is_a_post_beside_its_twins(tmp_path):
     path = tmp_path / "insights.json"
-    path.write_text(json.dumps({"posts": posts_of_meta(), "manual": [
+    before = {"youtube:v2": {"platform": "youtube", "snapshots": {    # tonight's first reading
+        "48h": {"at": "2026-11-15T21:00:00+00:00", "age_h": 51.0, "m": {"views": 600}}}}}
+    path.write_text(json.dumps({"posts": posts_of_meta() | before, "manual": [
         {"platform": "youtube", "video": "107:1-7", "seen": "2026-11-15", "m": {"views": 1},
          "source": "youtube-api"},                                    # the first evening's way
         {"platform": "tiktok", "video": "107:1-7", "seen": "2026-11-15", "m": {"views": 9}}]}))
@@ -127,15 +146,51 @@ def test_each_public_video_is_a_post_beside_its_twins(tmp_path):
                                               "avg_watch": 20.0, "watch_pct": 55.5, "shares": 0,
                                               "follows": 0}
     assert "48h" not in v1["snapshots"]                     # 39 h old: not yet
+    # 9:51 (v3), published 2026-11-12 06:30 UTC, 22:30 the day before in Pacific time: its 48 h
+    # are YouTube's days 11-11 to 11-13, counted once 11-13 is two days old, though first read
+    # at 3 days and a half
+    assert yt["youtube:v3"]["snapshots"]["48h"] == {
+        "at": NOW.isoformat(timespec="seconds"), "days": ["2026-11-11", "2026-11-13"],
+        "age_h": 49.5, "m": {"views": 80, "likes": 5, "comments": 1, "shares": 1, "follows": 2,
+                             "avg_watch": 10.6, "watch_pct": 78.1}}
+    assert "48h" not in yt["youtube:v2"]["snapshots"]       # as on Meta, the first evening: gone
     assert yt["youtube:v3"]["key"] == "youtube:v3" and yt["youtube:v3"]["kind"] == "other"
     assert data["accounts"]["youtube"]["2026-11-15"] == {"followers_count": 57, "media_count": 22}
     assert [m["platform"] for m in data["manual"]] == ["tiktok"]           # screenshots kept
     assert data["listed_youtube"] == NOW.isoformat(timespec="seconds")
-    # two days later the 48 h checkpoint is taken, from the same video
+    # its own 48 h (Pacific days 11-13 to 11-15) once 11-15 is two days old
     Y.collect(path, S, now=datetime(2026, 11, 16, 7, 0, tzinfo=UTC),
               client=Y.YouTube("cid", "secret", FakeHttp()), env=ENV)
+    assert "48h" not in json.loads(path.read_text())["posts"]["youtube:v1"]["snapshots"]
+    Y.collect(path, S, now=datetime(2026, 11, 18, 7, 0, tzinfo=UTC),
+              client=Y.YouTube("cid", "secret", FakeHttp()), env=ENV)
+    snaps = json.loads(path.read_text())["posts"]["youtube:v1"]["snapshots"]
+    assert set(snaps) == {"48h", "latest"} and snaps["48h"]["days"] == ["2026-11-13", "2026-11-15"]
+    assert snaps["48h"]["age_h"] == 49.5 and snaps["48h"]["m"]["views"] == 120
+    assert snaps["latest"]["at"] == "2026-11-18T07:00:00+00:00"   # read every night
+
+
+def test_a_checkpoint_covers_whole_pacific_days_from_48_to_72_hours():
+    morning = datetime(2026, 11, 12, 6, 30, tzinfo=UTC)       # 07:30 Paris, 22:30 the day before
+    evening = datetime(2026, 11, 12, 18, 30, tzinfo=UTC)      # 19:30 Paris, 10:30 Pacific
+    d = lambda s: datetime.fromisoformat(s).date()
+    assert Y.window(morning, 48) == (d("2026-11-11"), d("2026-11-13"))       # 49.5 h
+    assert Y.window(evening, 48) == (d("2026-11-12"), d("2026-11-14"))       # 61.5 h
+    assert Y.window(morning, 168) == (d("2026-11-11"), d("2026-11-18"))
+    assert Y.total([], d("2026-11-11"), d("2026-11-13")) is None
+    zero = Y.total([{"day": "2026-11-11", "views": 0}], d("2026-11-11"), d("2026-11-13"))
+    assert zero == {"views": 0, "likes": 0, "comments": 0, "shares": 0, "follows": 0}
+
+
+def test_without_analytics_by_day_the_checkpoints_are_taken_as_on_meta(tmp_path):
+    path = tmp_path / "insights.json"
+    later = datetime(2026, 11, 16, 7, 0, tzinfo=UTC)
+    line = Y.collect(path, S, now=later, client=Y.YouTube("cid", "secret", FakeHttp(days_ok=False)),
+                     env=ENV)
+    assert "by day unavailable" in line and "Unknown identifier" in line
     snaps = json.loads(path.read_text())["posts"]["youtube:v1"]["snapshots"]
     assert set(snaps) == {"48h", "latest"} and snaps["48h"]["age_h"] == 48.5
+    assert "days" not in snaps["48h"]
 
 
 def test_a_short_titled_by_hand_finds_its_reel_and_a_film_its_vertical_twin():
@@ -247,3 +302,39 @@ def test_the_page_shows_youtube_like_facebook_and_instagram():
     rows = {v["key"]: v["rows"] for v in out["videos"]}
     assert set(rows) == {"slot:2026-11-14/morning"}
     assert rows["slot:2026-11-14/morning"][0]["url"] == "https://www.youtube.com/shorts/v1"
+
+
+def test_a_reel_published_by_hand_is_one_video_on_every_platform():
+    """93:1-11, published by hand on 2026-11-05 before the calendar: its Instagram post, its
+    YouTube Short titled « سورة الضحى » and its screenshots stand together; a reel of the calendar
+    with the same names still comes first (114:1-6 in the morning, again by hand at 16:28)."""
+    from quran_reels.catalog.stats import _manual_key
+    from quran_reels.insights.classify import Classifier
+
+    class NoTheme:
+        def match(self, line, platform):
+            return None
+
+    posts = {
+        "instagram:h": {"platform": "instagram", "published": "2026-11-05T00:12:00+00:00",
+                        "first_line": "Surah Ad-Duhaa (93:1-11) · سورة الضحى"},
+        "facebook:s": {"platform": "facebook", "published": "2026-11-05T08:45:00+00:00",
+                       "first_line": "Surah An-Nas (114:1-6) · سورة الناس"},
+        "facebook:t": {"platform": "facebook", "published": "2026-11-05T16:28:00+00:00",
+                       "first_line": "Surah An-Nas (114:1-6) · سورة الناس"},
+        "facebook:x": {"platform": "facebook", "published": "2026-11-07T14:33:00+00:00",
+                       "first_line": ""},
+    }
+    published = {"slots": {"2026-11-05/morning": {"queue": "reading", "passage": "114:1-6",
+                                                  "results": {"facebook": {"id": "s"}}}}}
+    Classifier(published, {}, NoTheme()).apply(posts)
+    assert {k: posts["instagram:h"][k] for k in ("key", "kind", "label", "ref")} == {
+        "key": "hand:93:1-11", "kind": "reel-hand", "label": "93:1-11", "ref": {"passage": "93:1-11"}}
+    assert posts["facebook:s"]["key"] == "slot:2026-11-05/morning"
+    assert posts["facebook:t"]["key"] == "hand:114:1-6"
+    assert posts["facebook:x"]["kind"] == "other"
+    assert Y.match("سورة الضحى", "", datetime(2026, 11, 4, 23, 51, tzinfo=UTC),
+                   posts)["key"] == "hand:93:1-11"
+    assert Y.match("سورة الناس - Surah An-Nas", "", datetime(2026, 11, 5, 8, 56, tzinfo=UTC),
+                   posts)["key"] == "slot:2026-11-05/morning"
+    assert _manual_key({"platform": "tiktok", "video": "93:1-11"}, posts, None) == "hand:93:1-11"
