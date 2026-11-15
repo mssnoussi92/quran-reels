@@ -302,6 +302,13 @@ def test_the_page_shows_youtube_like_facebook_and_instagram():
     rows = {v["key"]: v["rows"] for v in out["videos"]}
     assert set(rows) == {"slot:2026-11-14/morning"}
     assert rows["slot:2026-11-14/morning"][0]["url"] == "https://www.youtube.com/shorts/v1"
+    assert [v["name"] for v in rows["slot:2026-11-14/morning"][0]["views"]] == ["48h"]
+    # YouTube's 48 h counted on its days the same night as its latest reading: both shown
+    days = snap | {"days": ["2026-11-13", "2026-11-15"], "m": {"views": 100}}
+    data["posts"]["youtube:v1"]["snapshots"] = {"48h": days, "latest": snap}
+    out = St.build(data, {"days": 35}, datetime(2026, 11, 16, 8, tzinfo=UTC), ZoneInfo("Europe/Paris"))
+    views = next(v for v in out["videos"] if v["key"] == "slot:2026-11-14/morning")["rows"][0]["views"]
+    assert [(v["name"], v["m"]["views"]) for v in views] == [("48h", 100), ("latest", 120)]
 
 
 def test_a_reel_published_by_hand_is_one_video_on_every_platform():
