@@ -256,7 +256,7 @@ def collect(path: Path, days: int = 35, now: datetime | None = None,
             client: YouTube | None = None, env: YouTubeEnv | None = None,
             dry_run: bool = False) -> str:
     """Read the channel and add its numbers to insights.json. Returns a line for the log."""
-    from quran_reels.insights.collect import add_manual
+    from quran_reels.insights.collect import add_manual, load, save
 
     env = env or YouTubeEnv.from_environ()
     if env is None:
@@ -280,6 +280,13 @@ def collect(path: Path, days: int = 35, now: datetime | None = None,
             note = f" (YouTube Analytics unavailable: {e})"
     rows = entries(found, stats, extra, now.date())
     if rows and not dry_run:
+        # A day's reading replaces that day's earlier one whole: a video read under its title, then
+        # found by its reference, must not stay twice (2026-11-15, two readings an hour apart).
+        data = load(path)
+        today = now.date().isoformat()
+        data["manual"] = [m for m in data["manual"]
+                          if not (m.get("source") == "youtube-api" and m.get("seen") == today)]
+        save(path, data)
         add_manual(path, rows, now=now)
     return (f"youtube: channel « {ch['title']} », {len(rows)} public videos read"
             f"{' (dry run, nothing saved)' if dry_run else ''}{note}")

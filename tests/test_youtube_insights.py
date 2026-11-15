@@ -153,3 +153,22 @@ def test_the_sign_in_address_asks_read_only_scopes_and_a_refresh_token():
     url = Y.auth_url("cid.apps.googleusercontent.com", "https://x/cb", "s")
     assert "access_type=offline" in url and "prompt=consent" in url
     assert "youtube.readonly" in url and "yt-analytics.readonly" in url and "upload" not in url
+
+
+def test_a_second_reading_the_same_day_replaces_the_first_whole(tmp_path):
+    """2026-11-15: read under its title at 21:42, by its reference at 21:50, a Short stood twice."""
+    from quran_reels.insights.collect import add_manual
+
+    path = tmp_path / "insights.json"
+    add_manual(path, [{"platform": "youtube", "video": "Surah At-Tawbah · سورة التوبة",
+                       "seen": "2026-11-15", "metrics": {"views": 700}, "source": "youtube-api"},
+                      {"platform": "youtube", "video": "dua/short-1", "seen": "2026-11-15",
+                       "metrics": {"views": 50}},                   # a screenshot: kept
+                      {"platform": "youtube", "video": "Surah At-Tawbah · سورة التوبة",
+                       "seen": "2026-11-14", "metrics": {"views": 600}, "source": "youtube-api"}])
+    Y.collect(path, 35, now=NOW, client=Y.YouTube("cid", "secret", FakeHttp()), env=ENV)
+    manual = json.loads(path.read_text())["manual"]
+    today = [m["video"] for m in manual if m["seen"] == "2026-11-15" and m["source"] == "youtube-api"]
+    assert "Surah At-Tawbah · سورة التوبة" not in today and len(today) == 3
+    assert any(m["video"] == "dua/short-1" for m in manual)
+    assert any(m["seen"] == "2026-11-14" for m in manual)
