@@ -38,7 +38,7 @@ jamais en silence, ne passe jamais outre en silence.
 | Titres | **Toujours en arabe et en anglais** (choix du propriétaire, 2026-11-09) : noms des comptes, série et sourate en tête des légendes (`render.series_line` : « Supplications from the Quran · آيات الدعاء · 3/38 »), titres YouTube (raccourcis par parties entières, jamais une seule langue), Word of the day, playlists, images ; le texte des ayahs reste hors de la légende Facebook |
 | Comptes pro | Page Facebook + Instagram en type **Créateur**, reliés |
 | Signature | **@quran_words_daily** sur chaque image, dans la zone sûre (repartages) ; **TikTok : `@quran.words.daily`** (choix du propriétaire, 2026-11-09 : `@quran_words_daily` y est à quelqu'un d'autre) : sa propre version de chaque reel (`platforms.tiktok.signature`, `render.signatures` : calque fixe redessiné, `out/<passage>/tiktok.mp4`) et la même signature à la fin de sa légende (`Reel.for_platform`) |
-| Hashtags | Fin de légende, dans l'ordre : `#QuranWordsDaily`, `#Quran`, 1er tag de la série, sourate (`#SurahAdDuhaa` `#سورة_الضحى`), `#القرآن_الكريم`, autres tags de la série, récitateur, gloses (`#تفسير_القرآن`) ; **Instagram et TikTok : les 5 premiers** (leur limite), Facebook 8, `caption.txt` tous (YouTube à la main). **Facebook : légende courte, ≤ 400 caractères hashtags compris** (sa liste de qualité, 2026-11-09) : série et référence (titres en arabe et en anglais), crédits sur une ligne, signature, hashtags ; ni le texte arabe des ayahs ni la traduction (dans la vidéo ; choix du propriétaire) ; trop longue → des hashtags de la fin |
+| Hashtags | Fin de légende, dans l'ordre : `#QuranWordsDaily`, `#Quran`, 1er tag de la série, sourate (`#SurahAdDuhaa` `#سورة_الضحى`), `#القرآن_الكريم`, autres tags de la série, récitateur, gloses (`#تفسير_القرآن`) ; **Instagram et TikTok : les 5 premiers** (leur limite), Facebook 8, `caption.txt` tous (YouTube à la main). **Facebook : légende courte, ≤ 400 caractères hashtags compris** (sa liste de qualité, 2026-11-09) : série et référence (titres en arabe et en anglais), crédits sur une ligne, signature, hashtags ; ni le texte arabe des ayahs ni la traduction (dans la vidéo ; choix du propriétaire) ; trop longue → des hashtags de la fin. **Instagram et TikTok : légende courte** (2026-11-15) : la même, plus le texte arabe des ayahs, sans la traduction ; YouTube (`caption.txt`) garde tout |
 
 ## Règles de contenu (non négociables)
 
@@ -381,6 +381,9 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   8 % par minute, 12 % au plus ; `perspective` de ffmpeg, sous le texte qui ne bouge pas).
   Shader modifié → nouvelle boucle (nom = empreinte du shader), anciennes effacées du cache.
 - Hashtags déterministes (`render.hashtags`), Instagram et TikTok : les 5 premiers.
+  Instagram et TikTok : leur légende courte (`render.social_caption`, choix du propriétaire,
+  2026-11-15) : série, référence, **texte arabe des ayahs**, crédits sur une ligne, signature,
+  sans la traduction (`captions.social`) ; `caption.txt` (YouTube) reste entière.
   Facebook : sa légende courte (`render.facebook_caption`, ≤ 400 caractères,
   `platforms.facebook.max_caption_chars`), rangée dans `manifest.json` (`captions.facebook`).
 

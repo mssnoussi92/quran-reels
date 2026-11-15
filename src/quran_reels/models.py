@@ -115,6 +115,9 @@ class Passage:
         return sum(a.seconds or 0 for a in self.segments)
 
 
+SOCIAL = ("instagram", "tiktok")      # their own short caption (Reel.social), the Arabic kept
+
+
 def with_signature(text: str, old: str, new: str) -> str:
     """A caption with its signature line (exactly `old`) replaced by `new`."""
     return "\n".join(new if line == old else line for line in text.split("\n"))
@@ -129,15 +132,19 @@ class Reel:
     cover_ms: int | None = None      # frame used as cover, in ms from the start
     hashtags: list[str] = field(default_factory=list)   # most important first
     facebook: str = ""               # Facebook's short caption, hashtags included (render)
+    social: str = ""                 # Instagram's and TikTok's, without hashtags (render)
     # platforms signed with their own name (render.signatures): {"tiktok": (mp4, caption)}
     variants: dict[str, tuple[Path, str]] = field(default_factory=dict)
 
     def for_platform(self, platform: str) -> Reel:
-        """The reel a platform gets: its own MP4 and caption when it has a variant."""
-        if platform not in self.variants:
-            return self
-        video, caption = self.variants[platform]
-        return replace(self, video=video, caption=caption, variants={})
+        """The reel a platform gets: its own MP4 and caption when it has a variant (TikTok,
+        signed with its own name); Instagram and TikTok their short caption (`social`)."""
+        if platform in self.variants:
+            video, caption = self.variants[platform]
+            return replace(self, video=video, caption=caption, variants={}, social="")
+        if platform in SOCIAL and self.social:
+            return replace(self, caption=self.social, variants={}, social="")
+        return self
 
     def text(self, max_hashtags: int | None = None) -> str:
         """The caption with the first max_hashtags hashtags (all if None) on a last line."""

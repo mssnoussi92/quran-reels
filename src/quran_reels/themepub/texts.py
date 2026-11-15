@@ -11,6 +11,9 @@ One section per video:
     **Titre YouTube (35/100)**  **Description YouTube (Shorts)**
 
 Every text is taken as it is: nothing is cut, added or rewritten here (the owner validated them).
+A text the file's opening paragraph says is not validated yet (« pas encore validé(e)s », as
+tools/trial/publish.py writes it: the short captions proposed on 2026-11-15) is `pending`, and
+never published.
 """
 
 from __future__ import annotations
@@ -21,6 +24,7 @@ from dataclasses import dataclass, field
 from quran_reels.insights.themes import SECTION
 
 FILE_LINE = re.compile(r"·\s*(?P<dur>\d+:\d{2})\s*·\s*(?P<aspect>\d+:\d+)\s*·\s*(?P<where>[^·]+)")
+PENDING = re.compile(r"pas encore validée?s?\b", re.IGNORECASE)
 BLOCKS = (("titre youtube", "youtube_title"), ("description youtube", "youtube_description"),
           ("tiktok", "tiktok"), ("instagram", "instagram"), ("facebook", "facebook"))
 
@@ -40,6 +44,7 @@ class Video:
     aspect: str = ""
     platforms: list[str] = field(default_factory=list)
     captions: dict[str, str] = field(default_factory=dict)
+    pending: bool = False           # the file says its texts are not validated yet
 
     @property
     def title(self) -> str:
@@ -54,6 +59,8 @@ def _platforms(where: str) -> list[str]:
 def parse(doc: str, text: str) -> dict[str, Video]:
     """publication-<doc>.md → {video id: Video}."""
     lines = text.splitlines()
+    head = "\n".join(lines[:next((k for k, x in enumerate(lines) if x.startswith("## ")), len(lines))])
+    pending = bool(PENDING.search(head))
     out: dict[str, Video] = {}
     current: Video | None = None
     label: str | None = None
@@ -66,8 +73,8 @@ def parse(doc: str, text: str) -> dict[str, Video]:
             part = ("film" if head.startswith("Le film") else
                     "short-" + (re.sub(r"\D", "", head) or "0") if head.startswith("Short")
                     else "")
-            current = Video(f"{doc}/{part}", doc, part, m["en"].strip(), m["ar"].strip()) \
-                if part else None
+            current = Video(f"{doc}/{part}", doc, part, m["en"].strip(), m["ar"].strip(),
+                            pending=pending) if part else None
             if current:
                 out[current.id] = current
             label = None

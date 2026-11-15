@@ -133,3 +133,58 @@ def test_the_rendered_reel_carries_it_to_facebook_and_its_page(cfg, tmp_path):
                      {"label": "Instagram, TikTok", "text": reel.text(5)}]
     reel.facebook = ""                                   # rendered before: the full caption
     assert reel.text_for("facebook", 8) == reel.text(8)
+
+
+# Instagram's and TikTok's short caption (render.social_caption; owner, 2026-11-15): series and
+# reference, the Arabic of each ayah, the credits on one line, the handle; never the translation.
+
+def test_instagram_and_tiktok_keep_the_arabic_never_the_translation(cfg):
+    from quran_reels.render import social_caption
+
+    p = passage(ayahs=3, glossed=True)
+    text = social_caption(cfg, p)
+    blocks = text.rstrip("\n").split("\n\n")
+    assert blocks[0] == ("The seven munjiyat verses · السبع آيات المنجيات · 2/7\n"
+                         "Surah Al-An'am (6:17-19) · سورة الأنعام")
+    assert blocks[1].splitlines() == ["بِسْمِ", "كَلِمَة ﴿١٧﴾", "كَلِمَة ﴿١٨﴾", "كَلِمَة ﴿١٩﴾"]
+    assert blocks[2] == f"{RECITATION} · {TRANSLATION} · {MEANINGS}"
+    assert blocks[3] == cfg.video["handle"] and len(blocks) == 4
+    assert not any(a.translation in text for a in p.ayahs)
+
+
+def test_too_long_for_instagram_it_drops_the_arabic_never_the_credits(cfg):
+    from quran_reels.render import social_caption
+
+    p = passage(ayahs=2)
+    p.ayahs[0].text = "كَلِمَة " * 400
+    text = social_caption(cfg, p, limit=500)
+    assert len(text) <= 500 and "كَلِمَة" not in text and RECITATION in text
+    assert cfg.video["handle"] in text
+
+
+def test_the_rendered_reel_gives_instagram_and_tiktok_their_short_caption(cfg, tmp_path):
+    from quran_reels.render import social_caption
+
+    p = passage(glossed=True)
+    tags = hashtags(cfg, p)
+    social = social_caption(cfg, p)
+    work = tmp_path / "006_017-017"
+    (work / "preview").mkdir(parents=True)
+    (work / "tiktok.mp4").write_bytes(b"tiktok")
+    full = Reel(p, tmp_path / "x.mp4", "Full, with the translation\n", hashtags=tags).text()
+    (work / "caption.txt").write_text(full, encoding="utf-8")
+    handle = cfg.video["handle"]
+    (work / "manifest.json").write_text(json.dumps({
+        "passage": "6:17-17", "surah": {"name_ar": "الأنعام", "name_en": "Al-An'am"},
+        "hashtags": tags, "captions": {"facebook": "FB", "social": social},
+        "variants": {"tiktok": {"video": "tiktok.mp4", "signature": "@quran.words.daily",
+                                "instead_of": handle}},
+        "ayahs": [{"ref": "6:17", "glosses": [], "start": 0.4, "seconds": 3.0}]}),
+        encoding="utf-8")
+    reel = load_reel(tmp_path / "006_017-017.mp4")
+    assert reel.text_for("instagram", 5) == social + "\n" + " ".join(tags[:5]) + "\n"
+    tiktok = reel.text_for("tiktok", 5)
+    assert tiktok == social.replace(handle, "@quran.words.daily") + "\n" + " ".join(tags[:5]) + "\n"
+    assert reel.for_platform("tiktok").video.name == "tiktok.mp4"
+    assert reel.text() == full                     # caption.txt, YouTube: everything
+    assert reel.text_for("facebook") == "FB"

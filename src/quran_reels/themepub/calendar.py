@@ -107,6 +107,9 @@ def resolve(row: Row, videos: dict[str, Video], wanted: list[str]) -> Row:
         if video is None:
             row.problems.append(f"{platform} : aucune vidéo de "
                                 + ", ".join(v.id for v in candidates) + " ne le prévoit")
+        elif video.pending:
+            row.problems.append(f"{platform} : les textes de {video.id} ne sont pas encore validés "
+                                "par le propriétaire")
         elif platform in ("facebook", "instagram") and not video.captions.get(platform):
             row.problems.append(f"{platform} : {video.id} n'a pas de texte pour {platform}")
         elif platform == "tiktok" and not (video.tiktok and video.captions.get("tiktok")):

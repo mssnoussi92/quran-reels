@@ -68,6 +68,9 @@
   Sourate : `name_simple`/`name_arabic` de Quran.com (`#SurahAliImran`, `#سورة_آل_عمران`).
   `caption.txt` = légende + tous les tags sur la dernière ligne ; `manifest.json` les liste ;
   `Reel.text(n)` garde les n premiers.
+- Légende Instagram et TikTok (`render.social_caption`, 2026-11-15) : série, référence, texte
+  arabe des ayahs, crédits sur une ligne, signature ; sans la traduction (`captions.social` du
+  manifeste). `caption.txt` reste la légende entière (YouTube).
 - Légende Facebook (`render.facebook_caption`, 2026-11-09) : ≤ 400 caractères hashtags compris
   (`platforms.facebook.max_caption_chars`), ni le texte arabe des ayahs ni la traduction (dans
   la vidéo) : série et sourate en arabe et en anglais (« The seven munjiyat verses · السبع آيات

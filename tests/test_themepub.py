@@ -172,6 +172,19 @@ def test_a_row_takes_its_text_from_its_release_never_from_the_row_before():
     assert not mismatch.videos and "ne nomment pas le même texte" in mismatch.problems[0]
 
 
+def test_texts_not_validated_yet_are_never_published():
+    """2026-11-15: the short captions are proposed in the texts before the owner validates them;
+    publish.py says so in the opening paragraph, and nothing goes out with them."""
+    pending = SHORTS.replace("textes de publication\n",
+                             "textes de publication\n\nLégendes courtes **proposées par la session, pas "
+                             "encore validées par le propriétaire** : rien n'est publié avec elles avant.\n", 1)
+    vids = T.parse("dua", pending)
+    assert vids["dua/short-1"].pending and not videos()["dua/short-1"].pending
+    r = next(r for r in cal.rows(CALENDAR, date(2026, 11, 20)) if r.day == date(2026, 11, 24))
+    cal.resolve(r, vids | T.parse("dua-9x16", FILM_916), ["facebook", "instagram", "tiktok"])
+    assert not r.videos and all("pas encore validés" in p for p in r.problems)
+
+
 def test_struck_and_to_do_rows_publish_nothing():
     rows = sources().rows
     assert next(r for r in rows if r.day == date(2026, 11, 13)).published

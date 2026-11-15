@@ -63,8 +63,11 @@ quran-reels themes run --dry-run --day 2026-11-24   # essai à blanc d'un jour :
 
 ## À savoir
 
-- **Légende Facebook** : les textes validés font 850 à 2 400 caractères (sources et crédits compris) ; la liste de
-  qualité de Facebook demande 10 à 400 caractères (6:17, 2026-11-09, reels). Ils partent tels quels ; à revoir avec
-  le propriétaire si Facebook les signale.
+- **Légendes courtes** (choix du propriétaire, 2026-11-15 : « un petit texte attirant, 3 à 5 hashtags ») : Facebook,
+  Instagram et TikTok reçoivent le titre, une accroche en égyptien et en anglais (reprise de la description validée),
+  « 🎙️ AI-generated voice · صوت مولَّد بالذكاء الاصطناعي » et les hashtags (3 sur Facebook, 5 ailleurs), moins de
+  400 caractères ; YouTube garde la description entière (sources et liens, chapitres, crédits). Tant que le texte
+  d'un fichier dit « pas encore validé(e)s » (`tools/trial/publish.py` l'écrit tant que le propriétaire n'a pas
+  validé les accroches), rien n'en est publié : `themes check` et le run le disent.
 - Les statistiques de ces vidéos sont relevées comme les autres (docs/insights.md) ; elles sont reconnues par la
   première ligne de leur légende.

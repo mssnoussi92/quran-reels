@@ -142,7 +142,7 @@ class InstagramPublisher:
         raise AssertionError("unreachable")
 
     def _params(self, reel: Reel) -> dict[str, str]:
-        text = reel.text(self.max_hashtags)
+        text = reel.text_for(self.name, self.max_hashtags)     # its short caption (Reel.social)
         if len(text) > CAPTION_LIMIT:
             raise PublisherError(f"caption longer than {CAPTION_LIMIT} characters")
         params = {"media_type": "REELS", "upload_type": "resumable", "caption": text,
