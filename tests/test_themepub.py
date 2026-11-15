@@ -266,6 +266,7 @@ def setup(tmp_path, monkeypatch):
 
     def run(**kw):
         return R.run(cfg, tmp_path / "themes.json", src=sources(), download=download,
+                     encode=lambda video: video.with_name(video.stem + "-instagram.mp4"),
                      make_publishers=lambda cfg, s, row, wanted: pubs,
                      report=tmp_path / "report.json", **kw)
     return run, pubs, fetched, tmp_path
@@ -281,6 +282,8 @@ def test_the_day_goes_out_with_its_own_texts_files_and_cover(setup):
     assert pubs["instagram"].calls[0][1].cover_url == (
         "https://github.com/o/themes/releases/download/page-dua/dua-short-1-asked-cover.jpg")
     assert pubs["tiktok"].calls[0][1].video.name == "dua-short-1-asked-tiktok.mp4"
+    assert pubs["instagram"].calls[0][1].video.name == "dua-short-1-asked-instagram.mp4"
+    assert fb_reel.video.name == "dua-short-1-asked.mp4"           # Facebook: the file as it is
     assert pubs["tiktok"].calls[0][1].caption.endswith("@quran.words.daily\n")
     state = json.loads((tmp / "themes.json").read_text())["posts"]["2026-11-24"]
     assert {p: r["status"] for p, r in state["results"].items()} == {
@@ -493,3 +496,24 @@ def test_the_cards_of_a_platform_make_its_caption_in_their_order():
     assert v.captions["youtube_description"] == ("The long description\n\nQuoted:\n• a source\n\n"
                                                  "#a #b #c #d #e\n")
     assert (v.video, v.tiktok, v.seconds) == ("dua-short-1-asked.mp4", "dua-short-1-asked-tiktok.mp4", 109)
+
+
+def test_the_instagram_copy_has_no_edit_list_and_no_b_frames(tmp_path):
+    """2026-11-15: a theme short (Remotion, two edit lists) stayed IN_PROGRESS on Instagram for
+    20 minutes; the daily reels are encoded without edit list for the same reason."""
+    import shutil
+    import subprocess
+
+    if not shutil.which("ffmpeg"):
+        pytest.skip("ffmpeg not installed")
+    src = tmp_path / "short.mp4"
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "testsrc=size=108x192:rate=30",
+                    "-f", "lavfi", "-i", "sine=frequency=440:sample_rate=44100", "-t", "2",
+                    "-c:v", "libx264", "-bf", "3", "-c:a", "aac", "-shortest", str(src)], check=True)
+    out = R.for_instagram(src)
+    data = out.read_bytes()
+    assert out.name == "short-instagram.mp4" and b"elst" not in data and b"ctts" not in data
+    probe = subprocess.run(["ffmpeg", "-hide_banner", "-i", str(out)], capture_output=True, text=True,
+                           check=False)
+    assert "48000 Hz" in probe.stderr and "h264 (High)" in probe.stderr
+    assert R.for_instagram(src) == out                    # done once

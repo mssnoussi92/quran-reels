@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 import sys
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
@@ -184,15 +185,34 @@ def _download(s: dict[str, Any], doc: str, name: str, folder: Path) -> Path:
     return Http(timeout=600).download(asset_url(s, doc, name), dest, min_bytes=1000)
 
 
+def for_instagram(video: Path) -> Path:
+    """The video encoded as the daily reels are for Instagram (docs/rendu.md): H.264 High without
+    B-frames, AAC 48 kHz, faststart, no edit list. The theme videos (Remotion) carry edit lists:
+    Instagram never finished processing a 2-minute short (still IN_PROGRESS after 20 min, dry run
+    of 2026-11-15), as it refused the reels' edit lists before. Picture and sound are re-encoded,
+    nothing else changes."""
+    dest = video.with_name(video.stem + "-instagram.mp4")
+    if dest.is_file() and dest.stat().st_size > 0 and dest.stat().st_mtime >= video.stat().st_mtime:
+        return dest
+    subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-y", "-i", str(video),
+                    "-map", "0:v:0", "-map", "0:a:0?", "-c:v", "libx264", "-preset", "medium",
+                    "-crf", "20", "-maxrate", "6M", "-bufsize", "12M", "-profile:v", "high",
+                    "-pix_fmt", "yuv420p", "-bf", "0", "-c:a", "aac", "-b:a", "192k", "-ar", "48000",
+                    "-movflags", "+faststart", "-use_editlist", "0", str(dest)], check=True)
+    return dest
+
+
 def reels_for(s: dict[str, Any], row: cal.Row, folder: Path,
-              download: Callable[..., Path] = _download) -> dict[str, ThemeReel]:
-    """Each platform's file and text, downloaded from page-<doc>."""
+              download: Callable[..., Path] = _download,
+              encode: Callable[[Path], Path] = for_instagram) -> dict[str, ThemeReel]:
+    """Each platform's file and text, downloaded from page-<doc> (Instagram: its own encoding)."""
     out = {}
     for platform, v in row.videos.items():
         name = v.tiktok if platform == "tiktok" else v.video
         cover = download(s, v.doc, v.cover, folder) if v.cover and platform != "tiktok" else None
+        video = download(s, v.doc, name, folder)
         out[platform] = ThemeReel(
-            video=download(s, v.doc, name, folder), caption=v.captions[platform],
+            video=encode(video) if platform == "instagram" else video, caption=v.captions[platform],
             title=v.title, seconds=v.seconds, cover_image=cover,
             cover_url=asset_url(s, v.doc, v.cover) if v.cover else None)
     return out
@@ -316,7 +336,8 @@ def _item(s: dict[str, Any], row: cal.Row, entry: dict,
 def run(cfg: Config, state_path: Path, now: datetime | None = None, dry_run: bool = False,
         day: date | None = None, platforms: list[str] | None = None, check: bool = False,
         src: Sources | None = None, make_publishers: Callable | None = None,
-        download: Callable[..., Path] = _download, report: Path | None = None) -> dict[str, Any]:
+        download: Callable[..., Path] = _download, report: Path | None = None,
+        encode: Callable[[Path], Path] = for_instagram) -> dict[str, Any]:
     s = settings(cfg)
     now = now or datetime.now(UTC)
     state = load_state(state_path)
@@ -345,7 +366,7 @@ def run(cfg: Config, state_path: Path, now: datetime | None = None, dry_run: boo
     wanted = [p for p in (platforms or s.get("platforms", ["facebook", "instagram", "tiktok"]))
               if p in row.videos and (dry_run or not done(previous.get(p)))]
     if wanted:
-        reels = reels_for(s, row, cfg.out / "themes", download)
+        reels = reels_for(s, row, cfg.out / "themes", download, encode)
         pubs = (make_publishers or publishers_for)(cfg, s, row, wanted)
         results = publish_row(row, reels, pubs, wanted, dry_run)
         entry = {"label": row.label, "videos": {p: v.id for p, v in row.videos.items()},
