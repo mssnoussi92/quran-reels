@@ -120,16 +120,20 @@ def test_instagram_reel_numbers():
                  "shares": 3, "saves": 5}
 
 
-def test_facebook_reel_numbers_and_retention_in_seconds():
-    graph = {str(s): v for s, v in enumerate([1.0, 0.8, 0.6, 0.45, 0.4] + [0.3] * 30)}
+def test_facebook_reel_numbers_without_the_retention_graph():
+    """2026-11-15, first real reading: the graph was at 100 % until 3 s on reels watched 4 to 8 s
+    on average. It is kept raw, never turned into a hook (metrics.py)."""
+    graph = {str(s): v for s, v in enumerate([1.0, 0.8, 0.6, 0.45, 0.4] + [0.3] * 36)}
     raw = {"blue_reels_play_count": 120, "post_impressions_unique": 90,
            "post_video_avg_time_watched": 14200, "post_video_followers": 2,
            "post_video_social_actions": {"COMMENT": 1, "SHARE": 4},
            "post_video_retention_graph": graph}
     m = M.normalize("facebook-reel", raw, 60)
-    assert m["hook"] == 45.0 and m["kept_30s"] == 30.0
+    assert "hook" not in m and "kept_30s" not in m
     assert (m["views"], m["reach"], m["follows"], m["shares"], m["comments"]) == (120, 90, 2, 4, 1)
     assert m["avg_watch"] == 14.2 and m["watch_pct"] == 23.7
+    assert M.normalize("facebook-photo", {"post_media_view": 21,
+                                          "post_total_media_view_unique": 0}, None) == {"views": 21}
 
 
 def test_retention_in_forty_intervals_of_a_long_video():
@@ -216,7 +220,8 @@ def routes():
              "permalink_url": "/reel/111/"},
             {"id": "112", "created_time": theme_t, "length": 109.0,
              "description": "Patient… and he asked\nصابر… ودعا!"}]},
-        f"{PAGE}/videos": {"data": []},
+        f"{PAGE}/videos": {"data": [
+            {"id": "199", "created_time": theme_t, "length": 24.0, "published": False}]},
         f"{IG}/media": {"data": [
             {"id": "211", "timestamp": reel_t, "caption": "Surah Al-Humazah",
              "media_product_type": "REELS"},
@@ -413,3 +418,44 @@ def test_a_long_video_is_read_as_a_video_once_learnt(state):
     fake2 = FakeGraph(r)
     C.run(load(), state, graph(fake2), PAGE, IG, index(), now=NOW + timedelta(hours=2))
     assert len([c for c in fake2.calls if c[0] == "112/video_insights"]) == 1
+
+
+def test_drafts_and_scheduled_videos_are_not_read(state):
+    fake = FakeGraph(routes())
+    C.run(load(), state, graph(fake), PAGE, IG, index(), now=NOW)
+    data = json.loads((state / "insights.json").read_text())
+    assert "facebook:199" not in data["posts"]
+    assert all(p["seen"] == data["listed"] for p in data["posts"].values())
+
+
+def test_a_post_gone_from_the_listing_leaves_the_page(state):
+    from zoneinfo import ZoneInfo
+
+    from quran_reels.catalog import stats as S
+
+    C.run(load(), state, graph(FakeGraph(routes())), PAGE, IG, index(), now=NOW)
+    data = json.loads((state / "insights.json").read_text())
+    data["posts"]["facebook:old-draft"] = {
+        "platform": "facebook", "published": (NOW - timedelta(days=3)).isoformat(),
+        "kind": "other", "key": "facebook:old-draft", "label": "draft", "kind_meta":
+        "facebook-video", "snapshots": {"48h": {"at": "", "age_h": 50, "m": {"views": 0}}}}
+    s = S.build(data, C.settings(load()), NOW, ZoneInfo("Europe/Paris"), index())
+    assert "facebook:old-draft" not in [v["key"] for v in s["videos"]]
+    assert not [k for k in s["kinds"] if k["kind"] == "Autre publication"]
+
+
+def test_version_1_numbers_that_proved_wrong_are_taken_out(tmp_path):
+    path = tmp_path / "insights.json"
+    path.write_text(json.dumps({"posts": {
+        "facebook:1": {"platform": "facebook", "kind_meta": "facebook-reel", "snapshots": {
+            "48h": {"m": {"views": 10, "hook": 91.0, "kept_30s": 8.3}}}},
+        "facebook:2": {"platform": "facebook", "kind_meta": "facebook-photo", "snapshots": {
+            "latest": {"m": {"views": 21, "reach": 0}}}},
+        "instagram:3": {"platform": "instagram", "kind_meta": "instagram-reel", "snapshots": {
+            "latest": {"m": {"views": 5, "hook": 28.0, "reach": 2}}}}}}))
+    data = C.load(path)
+    assert data["version"] == 2
+    assert data["posts"]["facebook:1"]["snapshots"]["48h"]["m"] == {"views": 10}
+    assert data["posts"]["facebook:2"]["snapshots"]["latest"]["m"] == {"views": 21}
+    assert data["posts"]["instagram:3"]["snapshots"]["latest"]["m"] == {
+        "views": 5, "hook": 28.0, "reach": 2}

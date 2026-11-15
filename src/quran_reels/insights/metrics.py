@@ -4,13 +4,20 @@
 |-------------|---------------------------------------|----------------------------|----------------------------------|
 | views       | the size of the trial                 | views                      | blue_reels_play_count / total_video_views |
 | reach       | people who saw it                     | reach                      | post_impressions_unique / total_video_impressions_unique |
-| hook        | % of views past 3 s                   | 100 − reels_skip_rate      | retention graph at 3 s           |
+| hook        | % of views past 3 s                   | 100 − reels_skip_rate      | — (see below)                    |
 | avg_watch   | seconds watched on average            | ig_reels_avg_watch_time    | post_video_avg_time_watched      |
 | watch_pct   | avg_watch ÷ duration                  | computed                   | computed                         |
-| kept_30s    | % still there at 0:30 (films)         | —                          | retention graph at 30 s          |
+| kept_30s    | % still there at 0:30 (films)         | —                          | — (see below)                    |
 | shares, saves, comments, likes, follows, replays: as Meta counts them. |
 
 Meta names a few of these « in development »: an empty answer stays empty, never 0.
+
+Facebook's retention graph is kept raw (insights.json, `retention`) and not read: on the first
+real reading (2026-11-15) it gave 41 points whatever the length, at 100 % until 3 s on some
+reels whose average watch was 4 to 8 s, so neither « seconds » nor « 40 intervals » fits.
+`retention_at` is ready for the day its meaning is checked against Meta Business Suite.
+Facebook's reach is not served for Reels (post_impressions_unique refused, code 100), and for
+photo posts post_total_media_view_unique answers 0 next to real views: no reach on Facebook.
 """
 
 from __future__ import annotations
@@ -36,8 +43,7 @@ REQUEST = {
                        "total_video_impressions_unique", "total_video_avg_time_watched",
                        "total_video_view_total_time", "total_video_retention_graph",
                        "total_video_stories_by_action_type", "total_video_reactions_by_type_total"],
-    "facebook-photo": ["post_total_media_view_unique", "post_media_view", "post_impressions_unique",
-                       "post_reactions_by_type_total", "post_clicks"],
+    "facebook-photo": ["post_media_view", "post_reactions_by_type_total", "post_clicks"],
 }
 NUMBERS = ("views", "reach", "hook", "avg_watch", "watch_pct", "kept_30s", "shares", "saves",
            "comments", "likes", "follows", "replays")
@@ -142,10 +148,6 @@ def normalize(kind: str, raw: dict[str, Any], duration: float | None) -> dict[st
         ms = _num(raw.get("post_video_avg_time_watched"))
         if ms is not None:
             put("avg_watch", ms / 1000, 1)
-        graph = raw.get("post_video_retention_graph")
-        put("hook", retention_at(graph, 3, duration), 1)
-        if duration and duration > 30:
-            put("kept_30s", retention_at(graph, 30, duration), 1)
     elif kind == "facebook-video":
         put("views", _num(raw.get("total_video_views")))
         put("reach", _num(raw.get("total_video_impressions_unique")))
@@ -156,15 +158,8 @@ def normalize(kind: str, raw: dict[str, Any], duration: float | None) -> dict[st
         ms = _num(raw.get("total_video_avg_time_watched"))
         if ms is not None:
             put("avg_watch", ms / 1000, 1)
-        graph = raw.get("total_video_retention_graph")
-        put("hook", retention_at(graph, 3, duration), 1)
-        if duration and duration > 30:
-            put("kept_30s", retention_at(graph, 30, duration), 1)
     elif kind == "facebook-photo":
         put("views", _num(raw.get("post_media_view")))
-        put("reach", _num(raw.get("post_total_media_view_unique"))
-            if raw.get("post_total_media_view_unique") is not None
-            else _num(raw.get("post_impressions_unique")))
         put("likes", _num(raw.get("post_reactions_by_type_total")))
     if "avg_watch" in m and duration:
         m["watch_pct"] = round(100 * m["avg_watch"] / duration, 1)
