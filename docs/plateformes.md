@@ -367,6 +367,37 @@ github.com → photo de profil → Settings → Developer settings → Personal 
   de 7 jours. Il faut passer l'écran de consentement en **« En production »** (écran « app non
   validée » accepté pour un usage personnel) pour garder un refresh token durable.
 
+### Statistiques YouTube (lecture seule, choix du propriétaire, 2026-11-15)
+
+Le workflow `insights` lit chaque nuit les chiffres de la chaîne (docs/insights.md, « YouTube, lu chaque nuit »)
+avec un client OAuth du projet Google Cloud du propriétaire. Lecture seule : `youtube.readonly` et
+`yt-analytics.readonly`, rien ne peut être mis en ligne, modifié ni supprimé. Mise en place, depuis le téléphone :
+
+1. **Projet** : https://console.cloud.google.com/projectcreate, avec le compte Google de la chaîne, nom « Quran
+   Words Daily » → Créer, puis le choisir en haut de la page.
+2. **Deux API**, bouton « Activer » de chacune :
+   https://console.cloud.google.com/apis/library/youtube.googleapis.com et
+   https://console.cloud.google.com/apis/library/youtubeanalytics.googleapis.com.
+3. **Écran de consentement** : https://console.cloud.google.com/auth/overview → Commencer : nom de l'app « Quran
+   Words Daily », e-mail d'assistance, audience **Externe**, coordonnées, accepter → Créer. Puis **Audience →
+   Publier l'application → « En production »** : en « Test », Google invalide le jeton au bout de 7 jours.
+   L'application reste « non validée » : pour un usage par son seul propriétaire, c'est permis (avertissement à
+   passer à la connexion).
+4. **Client** : https://console.cloud.google.com/auth/clients → Créer un client → type **Application Web**, nom
+   « quran-reels », URI de redirection autorisé :
+   `https://mssnoussi92.github.io/quran-reels/youtube-callback.html` → Créer. Garder l'ID client et le code secret.
+5. **Secrets GitHub** (dépôt quran-reels → Settings → Secrets and variables → Actions) : `YOUTUBE_CLIENT_ID` et
+   `YOUTUBE_CLIENT_SECRET`. Jamais dans une conversation.
+6. **Connexion** : https://mssnoussi92.github.io/quran-reels/youtube-login.html, coller l'ID client → Google :
+   le compte de la chaîne, « Google n'a pas validé cette application » → Paramètres avancés → Accéder à Quran Words
+   Daily, cocher les deux cases → la page de retour montre un code → dans les minutes qui suivent, Actions →
+   **youtube-auth** → coller le code → Run. Le jeton est enregistré dans `YOUTUBE_REFRESH_TOKEN`
+   (`GH_SECRETS_TOKEN`) ; le résumé du run nomme la chaîne.
+7. **Essai** : Actions → **insights** → `dry_run` coché → l'étape « Read YouTube » dit combien de vidéos elle lit.
+
+Un changement de mot de passe Google ou une révocation (myaccount.google.com → Sécurité → Accès tiers) coupe le
+jeton : refaire l'étape 6. Sans ces secrets, YouTube reste aux captures.
+
 ## Format vidéo commun
 
 MP4 H.264 + AAC, 1080×1920, 30 i/s, 20–90 s. Zone sûre : haut 250 px, bas 420 px, côtés 90 px.

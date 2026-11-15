@@ -1,0 +1,45 @@
+name: youtube-auth
+
+# One-time Google sign-in for the channel's statistics, read only (insights/youtube.py): again if
+# the refresh token is lost or revoked (a Google password change revokes it).
+# 1. https://mssnoussi92.github.io/quran-reels/youtube-login.html → Google → copy the code.
+# 2. Run this workflow within a few minutes with that code.
+# The code is exchanged here with YOUTUBE_CLIENT_SECRET; the refresh token is saved into the
+# YOUTUBE_REFRESH_TOKEN secret with GH_SECRETS_TOKEN (fine-grained token, Secrets: read and
+# write on this repository). The code is read from the event file and never shown in the log.
+
+on:
+  workflow_dispatch:
+    inputs:
+      code:
+        description: "Code shown by youtube-callback.html"
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: insights            # read only: never waits behind a publication
+  cancel-in-progress: false
+
+env:
+  # What changes the render or the recognition is installed at the versions of constraints.txt.
+  PIP_CONSTRAINT: ${{ github.workspace }}/constraints.txt
+
+jobs:
+  exchange:
+    runs-on: ubuntu-24.04     # pinned: same ffmpeg as tested; ubuntu-latest is moving to 26.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: pip install -e .
+      - name: Exchange the code and save the refresh token
+        env:
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          GH_SECRETS_TOKEN: ${{ secrets.GH_SECRETS_TOKEN }}
+        run: quran-reels youtube-auth

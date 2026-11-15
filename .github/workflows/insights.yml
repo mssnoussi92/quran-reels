@@ -78,6 +78,22 @@ jobs:
             quran-reels insights collect --state state-branch
           fi
 
+      - name: Read YouTube
+        # The channel's numbers (insights/youtube.py), read only; nothing when the YouTube secrets
+        # are not set (screenshots then). A failure here never loses the Meta numbers.
+        if: always() && inputs.manual == ''
+        continue-on-error: true
+        env:
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            quran-reels insights youtube --state state-branch --dry-run
+          else
+            quran-reels insights youtube --state state-branch
+          fi
+
       - name: Save the state
         if: always() && inputs.dry_run != true
         working-directory: state-branch

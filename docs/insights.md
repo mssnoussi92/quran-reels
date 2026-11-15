@@ -87,9 +87,25 @@ moins de 12 points d'écart : ce n'est pas une différence (`compare` de `config
 `docs/retention.md` de quran-themes-demo, « Mesurer »). Chaque type a son jour fixe dans la grille : le jour et le
 type se confondent, à garder en tête.
 
+## YouTube, lu chaque nuit (choix du propriétaire, 2026-11-15)
+
+Plutôt qu'une capture de YouTube Studio chaque dimanche, le workflow `insights` lit la chaîne lui-même, en
+**lecture seule** (`insights/youtube.py`, étape « Read YouTube », sans effet tant que les secrets manquent) :
+
+- **YouTube Data API** (`youtube.readonly`) : les vidéos publiques des `days` derniers jours, avec leurs vues, likes
+  et commentaires (compteurs en direct) ;
+- **YouTube Analytics API** (`yt-analytics.readonly`) : durée moyenne regardée (`avg_watch`), pourcentage regardé
+  (`watch_pct`), partages, abonnés gagnés (`follows`), calculés par YouTube avec un ou deux jours de retard.
+
+Les chiffres vont là où allaient les captures (`manual`, source `youtube-api`), une entrée par vidéo et par jour ;
+la vidéo est reconnue par son titre : la référence d'un reel (« (106:1-4) » → `106:1-4`, une ayah seule
+`9:51-51`), le titre d'une vidéo thématique. Une panne de YouTube ne fait jamais perdre les chiffres de Meta (étape
+à part, `continue-on-error`). Ce qu'aucune API ne donne (impressions, taux de clics, « regardées » contre
+« balayées » des Shorts) reste dans YouTube Studio. Mise en place : docs/plateformes.md, « Statistiques YouTube ».
+
 ## Captures YouTube et TikTok
 
-Le propriétaire envoie les captures **une fois par semaine** (le dimanche), de préférence la liste « Contenu » de
+TikTok, et YouTube tant que sa lecture n'est pas branchée : le propriétaire envoie les captures **une fois par semaine** (le dimanche), de préférence la liste « Contenu » de
 YouTube Studio et de TikTok (toutes les vidéos d'un coup), et pour une vidéo qui compte, sa page de statistiques
 (rétention, « regardées » contre « balayées »). La session lit les chiffres sur l'image, les montre au
 propriétaire, puis lance `insights.yml` sur `main` avec `manual` :

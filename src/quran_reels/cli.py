@@ -73,6 +73,12 @@ def main(argv: list[str] | None = None) -> int:
     auth_url.add_argument("--state", default="quran-reels")
     auth = sub.add_parser("tiktok-auth", help="exchange the TikTok code, save the refresh token")
     auth.add_argument("--code", help="default: $TIKTOK_AUTH_CODE or the workflow input")
+    yurl = sub.add_parser("youtube-auth-url",
+                          help="print the Google sign-in URL (needs YOUTUBE_CLIENT_ID)")
+    yurl.add_argument("--state", default="quran-reels")
+    yauth = sub.add_parser("youtube-auth",
+                           help="exchange the Google code, save YOUTUBE_REFRESH_TOKEN (read only)")
+    yauth.add_argument("--code", help="default: $YOUTUBE_AUTH_CODE or the workflow input")
 
     plan = sub.add_parser("plan", help="split every surah; --write freezes config/plan.yaml")
     plan.add_argument("--write", action="store_true")
@@ -162,6 +168,9 @@ def main(argv: list[str] | None = None) -> int:
     ic = ins_sub.add_parser("collect", help="read Facebook and Instagram numbers → insights.json")
     ic.add_argument("--state", default="state", help="checkout of the state branch")
     ic.add_argument("--dry-run", action="store_true", help="read, print, save nothing")
+    iy = ins_sub.add_parser("youtube", help="read the channel's YouTube numbers → insights.json")
+    iy.add_argument("--state", default="state", help="checkout of the state branch")
+    iy.add_argument("--dry-run", action="store_true", help="read, print, save nothing")
     ia = ins_sub.add_parser("add", help="numbers read on a screenshot (YouTube, TikTok)")
     ia.add_argument("--state", default="state", help="checkout of the state branch")
     ia.add_argument("--json", required=True,
@@ -387,6 +396,18 @@ def main(argv: list[str] | None = None) -> int:
         print(auth_url(os.environ["TIKTOK_CLIENT_KEY"], conf["redirect_uri"], args.state))
         return 0
 
+    if args.command in ("youtube-auth-url", "youtube-auth"):
+        import os
+
+        from quran_reels.insights import collect as insights_collect
+        from quran_reels.insights import youtube
+
+        redirect = (insights_collect.settings(cfg).get("youtube") or {})["redirect_uri"]
+        if args.command == "youtube-auth-url":
+            print(youtube.auth_url(os.environ["YOUTUBE_CLIENT_ID"], redirect, args.state))
+            return 0
+        return youtube.auth(redirect, args.code)
+
     if args.command == "tiktok-auth":
         from quran_reels import publish as publish_mod
 
@@ -610,6 +631,18 @@ def main(argv: list[str] | None = None) -> int:
             if not state.is_dir():
                 raise SystemExit(f"--state {state}: no such folder (a checkout of the state branch)")
             return insights.main_collect(cfg, state, dry_run=args.dry_run)
+        if args.insights_command == "youtube":
+            from quran_reels.insights import youtube
+
+            if not state.is_dir():
+                raise SystemExit(f"--state {state}: no such folder (a checkout of the state branch)")
+            days = int(insights.settings(cfg).get("days", 35))
+            try:
+                print(youtube.collect(state / "insights.json", days, dry_run=args.dry_run))
+            except youtube.YouTubeError as e:
+                print(f"::warning::YouTube non lu : {e}")
+                return 1
+            return 0
         entries = json.loads(args.json)
         entries = entries if isinstance(entries, list) else [entries]
         try:

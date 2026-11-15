@@ -136,7 +136,8 @@ src/quran_reels/
                    chiffres des captures YouTube/TikTok), classify.py (créneau, Word of the day,
                    vidéo thématique reconnue par son titre), metrics.py (chiffres Meta → vues,
                    accroche à 3 s, durée regardée, partages…), themes.py (publication-*.md et
-                   calendar.md de quran-themes-demo, lus en ligne) ; lecture seule
+                   calendar.md de quran-themes-demo, lus en ligne), youtube.py (`quran-reels insights
+                   youtube` : la chaîne, Data API + Analytics API ; `youtube-auth`) ; lecture seule
   ondemand/        publication à la demande (docs/on-demand.md) : request.py (ticket), check.py
                    (mêmes règles que le calendrier, plages valides proposées), commands.py
                    (propriétaire seulement, approbation), flow.py (`quran-reels on-demand
@@ -157,6 +158,8 @@ tests/             pytest, sans réseau
                    schedule.yaml dit enabled: false ; état sur la branche `state`),
                    publish-test.yml (manuel : dry-run, ou publication réelle avec PUBLIER),
                    tiktok-auth.yml (manuel : échange du code TikTok → TIKTOK_REFRESH_TOKEN)
+                   youtube-auth.yml (manuel : échange du code Google → YOUTUBE_REFRESH_TOKEN, lecture
+                   seule, pages docs/youtube-login.html et youtube-callback.html)
                    prepare.yml (chaque nuit : découpes vérifiées de la semaine → `state` ;
                    son propre groupe de concurrence, hors de `accounts`)
                    tests.yml (pytest + ruff à chaque PR et sur main, ffmpeg statique, et
@@ -421,7 +424,8 @@ GitHub Actions secrets : `META_PAGE_ID`, `META_PAGE_TOKEN`, `IG_USER_ID`, `TIKTO
 `TIKTOK_CLIENT_SECRET`, `TIKTOK_REFRESH_TOKEN` (écrit par le workflow `tiktok-auth` puis à
 chaque rotation), `GH_SECRETS_TOKEN` (jeton fin GitHub, Secrets : lecture/écriture sur ce dépôt
 seulement, voir docs/plateformes.md ; son échéance est lue à chaque publication et imprimée
-dans le journal, ticket d'alerte 14 jours avant), `YOUTUBE_*`.
+dans le journal, ticket d'alerte 14 jours avant), `YOUTUBE_CLIENT_ID`, `YOUTUBE_CLIENT_SECRET`,
+`YOUTUBE_REFRESH_TOKEN` (statistiques YouTube en lecture seule, écrit par le workflow `youtube-auth`).
 Jamais un jeton dans un log : en-têtes `Authorization`, erreurs reconstruites, `::add-mask::`.
 Les logs Actions d'un dépôt public sont publics : rien d'identifiant n'y est imprimé.
 
@@ -440,8 +444,11 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-30.
   tout ce que la Page publie (reels, Word of the day, vidéos thématiques reconnues par leur titre)
   → `insights.json` (branche `state`) → page « Statistiques » du catalogue, **publique** (choix du
   propriétaire, 2026-11-15). Comparaisons à 48 h, en médianes ; sous 3 vidéos ou 12 points
-  d'écart, aucune différence n'est affirmée. YouTube et TikTok : captures envoyées par le
-  propriétaire le dimanche, recopiées par une session (`insights.yml`, entrée `manual`).
+  d'écart, aucune différence n'est affirmée. **YouTube lu chaque nuit** en lecture seule (choix du
+  propriétaire, 2026-11-15 : `insights/youtube.py`, Data API + Analytics API, rangé comme les
+  captures, source `youtube-api` ; mise en place : docs/plateformes.md, « Statistiques YouTube ») ;
+  TikTok (et YouTube tant que ses secrets manquent) : captures envoyées par le propriétaire le
+  dimanche, recopiées par une session (`insights.yml`, entrée `manual`).
 - Le calendrier du catalogue montre aussi les vidéos thématiques (calendar.md de
   quran-themes-demo, tel qu'écrit) : un seul calendrier pour la Page ; à partir du 2026-11-23
   ils y sont « automatique », et « publié » d'après `themes.json`.
