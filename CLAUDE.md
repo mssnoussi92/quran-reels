@@ -361,7 +361,7 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   Les workflows sont donc lancés par des **tâches planifiées Claude** (choix du propriétaire,
   2026-11-05) qui réveillent la session « Quran Words Daily – planificateur » (Sonnet, dépôt
   attaché, outils GitHub) : `prepare.yml` 02:41 Paris, `daily.yml` 07:12 et 19:12 Paris, `themes.yml` 18:41 Paris du lundi au samedi (tâche
-  créée après l'essai à blanc, première publication le 2026-11-23)
+  créée le 2026-11-15 après les essais à blanc ; rien n'est dû avant le 2026-11-23)
   (`CRON_TZ=Europe/Paris`), `images.yml` 11:36 UTC ; chacune lance le workflow sur `main`,
   attend la fin, relance une fois en cas d'échec (sauf prepare) et résume (skill
   `check-publication`).
