@@ -16,7 +16,10 @@ The owner decides; the review proposes. Nothing here publishes, changes a calend
 2. **Read both calendars.** `quran-reels calendar --days 21 --state <state checkout>` (reels),
    `docs/retention/calendar.md` of quran-themes-demo (themes: what is published, struck; what is
    « à faire »). Note the **stock**: the first day without a theme video, three weeks ahead.
-3. **Screenshots (YouTube, TikTok).** When the owner sends some: read each number on the image,
+3. **Screenshots (TikTok; YouTube only while its nightly reading is not connected).** YouTube is
+   read every night when YOUTUBE_REFRESH_TOKEN exists (entries with source `youtube-api`): then ask
+   only for TikTok, and for a YouTube Short's own page when its retention matters. When the owner
+   sends screenshots: read each number on the image,
    write them back to him in a short table (video, platform, views, hook, average watched,
    shares, follows) and ask « je les enregistre ? ». On his yes, dispatch `insights.yml` on
    `main` with input `manual` (JSON list, docs/insights.md); never a number that is not on the
