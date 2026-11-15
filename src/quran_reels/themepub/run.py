@@ -209,6 +209,10 @@ def publishers_for(cfg: Config, s: dict[str, Any], row: cal.Row, platforms: list
         graph, env, token = publish_mod.meta_check(cfg, meta)
         print(token.summary(), file=sys.stderr)
         out = publish_mod.meta_publishers(cfg, graph, env, meta)
+        if "instagram" in out:      # longer than a daily reel: one container, waited for longer
+            wait = float(s.get("instagram_processing_seconds", 1200))
+            ig = out["instagram"]
+            ig.timeout, ig.stuck_after, ig.attempts = wait, wait, 1
         fb = row.videos.get("facebook")
         if "facebook" in out and fb and (fb.seconds or 0) > float(s.get("reels_max_seconds", 90)):
             out["facebook"] = FacebookVideoPublisher(
