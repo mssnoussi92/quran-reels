@@ -11,6 +11,8 @@
     ### Mots                    (optional)
     auto                (the usual rules), aucun, or the numbers the preview lists, a word of
                         the quotation after «=»: 2, 5=قلى (`/mots` writes it)
+    ### Basmala                 (optional)
+    oui, non, or auto   (as the calendar's reels that day: content.basmala.days_off)
 
 Only the first non-empty line under each heading counts; anything else (the catalogue's
 footer) is ignored. Pure parsing: what is allowed is decided by check.py.
@@ -27,11 +29,12 @@ PLATFORMS = ("facebook", "instagram", "tiktok", "youtube")
 AUTO = "auto"
 
 LABELS = {"reciter": "Récitateur", "passage": "Passage", "background": "Fond",
-          "platforms": "Plateformes", "words": "Mots"}
+          "platforms": "Plateformes", "words": "Mots", "basmala": "Basmala"}
 _ALIASES = {"recitateur": "reciter", "reciter": "reciter", "passage": "passage",
             "sourate": "passage", "fond": "background", "background": "background",
             "plateformes": "platforms", "platforms": "platforms", "mots": "words",
-            "words": "words", "mots expliques": "words"}
+            "words": "words", "mots expliques": "words", "basmala": "basmala",
+            "bismillah": "basmala"}
 _PLATFORM_ALIASES = {"fb": "facebook", "ig": "instagram", "insta": "instagram",
                      "tt": "tiktok", "yt": "youtube"}
 _HEADING = re.compile(r"^\s*#{2,4}\s*(.+?)\s*$")
@@ -39,6 +42,8 @@ _PASSAGE = re.compile(r"^(\d{1,3})(?:\s*:\s*(\d{1,3})(?:\s*-\s*(\d{1,3}))?)?$")
 _NO_RESPONSE = "_no response_"
 _DIGITS = str.maketrans("٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹", "01234567890123456789")
 NONE_WORDS = ("aucun", "aucune", "none", "rien", "0")
+YES = ("oui", "avec", "yes", "with", "on", "1", "x", "[x]", "✅")
+NO = ("non", "sans", "no", "without", "off", "0", "[ ]")
 
 Words = tuple[tuple[int, tuple[str, ...]], ...]    # (number in the preview's list, words)
 
@@ -60,6 +65,7 @@ class Request:
     background: str = AUTO          # AUTO or an id of config/backgrounds.yaml
     platforms: tuple[str, ...] = field(default=PLATFORMS)
     words: Words | None = None      # word meanings: None the usual rules, () none
+    basmala: bool | None = None     # None: as the calendar's reels that day (check.py)
 
     @property
     def whole(self) -> bool:
@@ -160,6 +166,23 @@ def parse_words(text: str) -> Words | None:
     return tuple((n, tuple(ws)) for n, ws in out)
 
 
+def parse_basmala(text: str) -> bool | None:
+    """'oui' → True, 'non' → False, 'auto' or nothing → None (as the calendar that day)."""
+    t = _plain(text or "")
+    if not t or t == AUTO:
+        return None
+    if t in YES:
+        return True
+    if t in NO:
+        return False
+    raise ValueError(f"basmala « {text} » : écrire oui, non ou auto")
+
+
+def basmala_text(basmala: bool | None) -> str:
+    """The «Basmala» section as parse_basmala reads it."""
+    return AUTO if basmala is None else ("oui" if basmala else "non")
+
+
 def words_text(words: Words | None) -> str:
     """The «Mots» section as parse_words reads it."""
     if words is None:
@@ -191,13 +214,18 @@ def parse(body: str) -> Request:
         words = parse_words(found.get("words") or "")
     except ValueError as e:
         problems.append(str(e))
+    basmala = None
+    try:
+        basmala = parse_basmala(found.get("basmala") or "")
+    except ValueError as e:
+        problems.append(str(e))
     if problems:
         raise RequestError(problems)
     reciter = (found.get("reciter") or AUTO).strip().lower()
     background = (found.get("background") or AUTO).strip()
     return Request(reciter=reciter, surah=surah, start=start, end=end,
                    background=AUTO if background.lower() == AUTO else background,
-                   platforms=platforms, words=words)
+                   platforms=platforms, words=words, basmala=basmala)
 
 
 def body(req: Request, footer: str = "") -> str:
@@ -205,7 +233,8 @@ def body(req: Request, footer: str = "") -> str:
     parts = [f"### {LABELS['reciter']}\n\n{req.reciter}", f"### {LABELS['passage']}\n\n{req.passage}",
              f"### {LABELS['background']}\n\n{req.background}",
              f"### {LABELS['platforms']}\n\n{', '.join(req.platforms)}",
-             f"### {LABELS['words']}\n\n{words_text(req.words)}"]
+             f"### {LABELS['words']}\n\n{words_text(req.words)}",
+             f"### {LABELS['basmala']}\n\n{basmala_text(req.basmala)}"]
     return "\n\n".join(parts) + (f"\n\n---\n{footer}" if footer else "") + "\n"
 
 

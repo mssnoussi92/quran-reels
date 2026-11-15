@@ -148,7 +148,7 @@ def run_preview(cfg: Config, gh: GitHub, hosting: Hosting, number: int, state: d
     if status != "ok":
         return 0
     gh.react(number, "eyes")
-    pcfg = rec.with_reciter(cfg, checked.reciter)
+    pcfg = rec.with_reciter(checked.config(cfg), checked.reciter)     # basmala or not
     result = render_passage(pcfg, checked.key, background=checked.background,
                             glosses=checked.glosses)
     video = result.video
@@ -185,7 +185,8 @@ def run_preview(cfg: Config, gh: GitHub, hosting: Hosting, number: int, state: d
             "body": comments.body_hash(issue_data.get("body")), "rid": rid,
             "key": checked.key, "slug": result.passage.slug, "reciter": checked.reciter,
             "background": checked.background, "platforms": list(checked.platforms),
-            "seconds": round(result.seconds, 1), "words": words_text(checked.request.words)}
+            "seconds": round(result.seconds, 1), "words": words_text(checked.request.words),
+            "basmala": checked.basmala}
     (work / "checked.json").write_text(json.dumps(checked.as_dict() | {"meta": meta},
                                                   ensure_ascii=False, indent=1), "utf-8")
     gh.comment(number, comments.preview(d, meta, hosting.page_url(rid, "1"), notes))

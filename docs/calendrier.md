@@ -46,6 +46,11 @@
   ses jours ; `prepare` garde prêts les passages qui viendront en premier à la reprise. Rien
   d'autre ne s'arrête : Word of the day (`images.yml`) et la publication à la demande
   continuent.
+- **Jours sans basmala** (`content.basmala.days_off: {from, until}` de project.yaml, choix du
+  propriétaire le 2026-11-15) : depuis le 2026-11-16, les reels du calendrier n'ont plus de
+  basmala, début de sourate compris, jusqu'à ce qu'il la remette (`until` : le dernier jour
+  sans elle). Chaque créneau suit le réglage de son jour (`passage.for_day`) ; `calendar` et le
+  catalogue écrivent « sans basmala » ; durées et récitateurs prêts comptés sans elle.
 - Une file joue ses séries l'une après l'autre ; chaque créneau prend le premier passage pas
   encore publié. Série `repeat: true` (Al-Kahf) : recommence une fois finie.
 - Al-Kahf : `kahf-first-ten` (18:1-10, une seule entrée qui recommence chaque semaine) et

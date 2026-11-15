@@ -47,7 +47,9 @@ titre, description et hashtags prêts à copier, puis `/youtube <lien>` pour le 
 1. **Demande** — catalogue, section « À la demande » (ou bouton « Publier à la demande » d'une
    carte récitateur ou fond) : récitateur (`auto` ou un de `content.rotation`, sauf écartés
    `claimed`), sourate, entière ou de l'ayah X à Y, fond (`auto` ou un de `backgrounds.yaml`),
-   plateformes → « Préparer » ouvre un ticket prérempli « À la demande : … » → Envoyer.
+   plateformes, **basmala** (case cochée par défaut comme les reels du calendrier ce jour-là :
+   décochée depuis le 2026-11-16, `content.basmala.days_off` ; choix du propriétaire,
+   2026-11-15) → « Préparer » ouvre un ticket prérempli « À la demande : … » → Envoyer.
    **Avant de créer le ticket** (ajout du 2026-11-06, choix du propriétaire) : le formulaire
    affiche les ayahs choisies (arabe et Sahih International lus en direct sur Quran.com, rien
    n'est recopié sur le site), prévient si la plage coupe une phrase (bouton « Prendre » la
@@ -137,7 +139,9 @@ sur le ticket des légendes : `/youtube <jour>/<créneau> [lien]`.
 - Le lecteur de la page d'aperçu lit le MP4 depuis la release ; si le navigateur refuse, la
   page propose le téléchargement (même fichier).
 - Pas de modèle d'issue (voir 1) : un ticket ouvert à la main doit garder le format
-  « ### Récitateur … ### Passage … ### Fond … ### Plateformes » (« ### Mots » facultatif).
+  « ### Récitateur … ### Passage … ### Fond … ### Plateformes » (« ### Mots » facultatif ;
+  « ### Basmala » facultatif : `oui`, `non`, ou `auto`, le défaut, comme le calendrier du jour
+  de la vérification ; l'aperçu dit « sans basmala » quand il n'en a pas).
 - Les numéros de `/mots` sont ceux du dernier aperçu : changer le passage les renumérote
   (le nouvel aperçu montre ce qui est affiché).
 - Le contrôle des droits après publication reste celui du calendrier

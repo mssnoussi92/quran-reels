@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import pytest
 from jinja2 import Environment, FileSystemLoader
 
 from quran_reels.config import Config
@@ -155,3 +156,91 @@ def test_text_to_paste_on_tiktok_keeps_five_hashtags(tmp_path):
                backgrounds=[], gloss_headwords={})
     assert copy_text(c, tmp_path / "114_001-006.mp4") == "Body\n\n#t1 #t2 #t3 #t4 #t5\n"
     assert copy_text(c, tmp_path / "missing.mp4") == ""
+
+
+# ---- days without the basmala (content.basmala.days_off; owner's choice, 2026-11-15) -------
+
+def off(start="2026-11-16", until=None, enabled=True) -> Config:
+    c = cfg(enabled=enabled)
+    c.content["basmala"]["days_off"] = {"from": start, "until": until}
+    return c
+
+
+def test_the_calendar_drops_the_basmala_from_its_first_day_off_until_turned_back_on():
+    from datetime import date
+
+    from quran_reels.passage import basmala_on, for_day
+
+    c = off()
+    assert basmala_on(c, date(2026, 11, 15)) and for_day(c, date(2026, 11, 15)) is c
+    for day in (date(2026, 11, 16), date(2027, 6, 1)):          # no end: until turned back on
+        assert not basmala_on(c, day)
+        d = for_day(c, day)
+        assert not needs_basmala(d, 106, 1)                     # at the start of a surah too
+        assert not needs_basmala(d, 18, 17)                     # and mid-surah
+    assert needs_basmala(c, 106, 1)                             # cfg itself is not changed
+    back = off(until="2026-11-30")                              # turned back on the next day
+    assert not basmala_on(back, date(2026, 11, 30)) and basmala_on(back, date(2026, 12, 1))
+    assert not basmala_on(cfg(enabled=False), date(2026, 11, 1))
+
+
+@pytest.mark.parametrize(("days_off", "message"), [
+    ({"until": "2026-11-30"}, "give its first day"),
+    ({"from": "2026-11-16", "until": "2026-11-01"}, "is before"),
+    ({"from": "16/11/2026"}, "is not a day"),
+    ({"from": "2026-11-16", "weekdays": ["friday"]}, "only from and until")])
+def test_a_wrong_days_off_says_what_to_write(days_off, message):
+    from datetime import date
+
+    from quran_reels.passage import basmala_on
+
+    c = cfg()
+    c.content["basmala"]["days_off"] = days_off
+    with pytest.raises(SystemExit, match=message):
+        basmala_on(c, date(2026, 11, 16))
+
+
+def test_the_owners_choice_no_basmala_from_2026_11_16():
+    """config/project.yaml as the owner chose on 2026-11-15 (CLAUDE.md, « Basmala »)."""
+    from datetime import date
+
+    from quran_reels.config import load
+    from quran_reels.passage import basmala_on
+
+    real = load()
+    assert basmala_on(real, date(2026, 11, 15))
+    assert not basmala_on(real, date(2026, 11, 16))
+
+
+def test_the_daily_run_renders_a_day_off_without_the_basmala(monkeypatch, tmp_path):
+    from datetime import datetime
+    from types import SimpleNamespace
+    from zoneinfo import ZoneInfo
+
+    import quran_reels.render as render_mod
+    from quran_reels import daily
+    from quran_reels.models import PublishResult, PublishStatus
+    from tests.test_calendar import SERIES, schedule
+
+    seen = []
+    monkeypatch.setattr(daily, "load_series", lambda c: SERIES)
+    monkeypatch.setattr(daily, "load_schedule", lambda c, series: schedule())
+    monkeypatch.setattr(daily.publish_mod, "platforms_for", lambda c, req: ["facebook"])
+    monkeypatch.setattr(daily.publish_mod, "meta_check", lambda c, p: None)
+    monkeypatch.setattr(daily.publish_mod, "publish_reel", lambda c, video, platforms, dry, ch=None:
+                        [PublishResult(p, PublishStatus.PUBLISHED, remote_id="1")
+                         for p in platforms])
+
+    def render(c, key, *args, **kw):
+        seen.append((key, needs_basmala(c, 114, 1)))
+        return SimpleNamespace(video=tmp_path / f"{key}.mp4")
+
+    monkeypatch.setattr(render_mod, "render_passage", render)
+    c = off(start="2026-11-07")
+    c = Config(root=tmp_path, project={**c.project, "platforms": {}}, backgrounds=[],
+               gloss_headwords={})
+    paris = ZoneInfo("Europe/Paris")
+    path = tmp_path / "published.json"
+    daily.run(c, path, now=datetime(2026, 11, 5, 7, 20, tzinfo=paris))
+    daily.run(c, path, now=datetime(2026, 11, 7, 7, 20, tzinfo=paris))     # Saturday
+    assert seen == [("114:1-6", True), ("113:1-5", False)]
