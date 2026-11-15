@@ -160,7 +160,8 @@ class YouTube:
                     "views": _int(s.get("viewCount")), "likes": _int(s.get("likeCount")),
                     "comments": _int(s.get("commentCount")),
                     "seconds": seconds((v.get("contentDetails") or {}).get("duration") or ""),
-                    "title": (v.get("snippet") or {}).get("title", "")}
+                    "title": (v.get("snippet") or {}).get("title", ""),
+                    "description": (v.get("snippet") or {}).get("description", "")}
         return out
 
     def analytics(self, token: str, ids: list[str], start: date, end: date
@@ -214,11 +215,18 @@ def seconds(iso: str) -> float | None:
     return d * 86400 + h * 3600 + mi * 60 + s
 
 
-def video_key(title: str) -> str:
+def video_key(title: str, description: str = "") -> str:
     """What the statistics page matches a YouTube video with: a reel's passage, written as the
-    calendar writes it (« 106:1-4 », a single ayah « 9:51-51 »), or the title itself (a theme
-    video, matched by its title)."""
+    calendar writes it (« 106:1-4 », a single ayah « 9:51-51 »), from its title or, titled by
+    hand, from its description's surah line (the reel's caption.txt: « Surah At-Tawbah (9:51) ·
+    سورة التوبة » in its first lines); otherwise the title itself (a theme video, matched by its
+    title; its description quotes verses too, never on a line of its own that starts with
+    « Surah »)."""
     m = PASSAGE.search(title or "")
+    if not m:
+        for line in (description or "").splitlines()[:4]:
+            if line.strip().startswith("Surah ") and (m := PASSAGE.search(line)):
+                break
     if m:
         surah, first, last = m.groups()
         return f"{int(surah)}:{int(first)}-{int(last or first)}"
@@ -237,7 +245,8 @@ def entries(found: list[dict[str, Any]], stats: dict[str, dict], extra: dict[str
         nums |= {k: x for k, x in (extra.get(v["id"]) or {}).items() if x is not None}
         if not nums:
             continue
-        out.append({"platform": "youtube", "video": video_key(s.get("title") or v["title"]),
+        out.append({"platform": "youtube",
+                    "video": video_key(s.get("title") or v["title"], s.get("description") or ""),
                     "published": v["published"].date().isoformat(), "seen": today.isoformat(),
                     "metrics": nums, "source": "youtube-api"})
     return out

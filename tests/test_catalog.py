@@ -441,3 +441,28 @@ def test_theme_days_from_the_automatic_start_say_so():
     by = {d["date"]: d["themes"][0] for d in calendar}
     assert not by["2026-11-22"]["auto"] and by["2026-11-23"]["auto"] and by["2026-11-24"]["auto"]
     assert by["2026-11-23"]["sent"] == ["facebook", "tiktok"] and by["2026-11-24"]["sent"] == []
+
+
+
+def test_youtube_entries_find_their_reel_by_name_and_the_film_its_vertical_twin():
+    """2026-11-15: titled by hand on YouTube (« Surah Al-Masad · سورة المسد »), the Shorts did not
+    find their reel; the 16:9 film (YouTube) stood apart from its 9:16 version (Facebook)."""
+    from quran_reels.catalog import stats as S
+
+    posts = {
+        "a": {"key": "slot:2026-11-09/morning", "published": "2026-11-09T06:20:00+00:00",
+              "first_line": "Surah Al-Masad (111:1-5) · سورة المسد"},
+        "b": {"key": "slot:2026-11-06/evening", "published": "2026-11-06T18:30:00+00:00",
+              "first_line": "Surah Al-Kahf on Friday · سورة الكهف يوم الجمعة · 1/36"},
+        "c": {"key": "slot:2026-11-13/evening", "published": "2026-11-13T21:19:00+00:00",
+              "first_line": "Surah Al-Kahf on Friday · سورة الكهف يوم الجمعة · 2/36"},
+    }
+    groups = {"theme:moussa-khidr-9x16/film": {}}
+    key = lambda video, published: S._manual_key(
+        {"platform": "youtube", "video": video, "published": published}, posts, None, groups)
+    assert key("Surah Al-Masad · سورة المسد", "2026-11-09") == "slot:2026-11-09/morning"
+    assert key("سورة الكهف - Surah Al-Kahf", "2026-11-07") == "slot:2026-11-06/evening"
+    assert key("سورة الكهف - Surah Al-Kahf", "2026-11-14") == "slot:2026-11-13/evening"
+    assert key("Something else entirely", "2026-11-14") == "manual:Something else entirely"
+    assert S._film("theme:moussa-khidr/film", groups) == "theme:moussa-khidr-9x16/film"
+    assert S._film("theme:dua/film", groups) == "theme:dua/film"

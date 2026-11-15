@@ -10,6 +10,7 @@
 
 from __future__ import annotations
 
+import re
 import statistics
 from datetime import UTC, date, datetime, timedelta
 from typing import Any
@@ -64,11 +65,47 @@ def _followers(accounts: dict, today: date) -> list[dict[str, Any]]:
     return out
 
 
-def _manual_key(entry: dict, posts: dict, themes: Any) -> str:
-    """Which video a screenshot entry is about: a theme id, a reel passage, or a title."""
+def _film(key: str, groups: dict) -> str:
+    """The 16:9 film (YouTube) and its 9:16 version (Facebook) are one video on the page:
+    « theme:dua/film » goes with « theme:dua-9x16/film » when only that one was read."""
+    if key.startswith("theme:") and key.endswith("/film") and key not in groups:
+        tall = key[:-len("/film")] + "-9x16/film"
+        if tall in groups:
+            return tall
+    return key
+
+
+def _by_name(entry: dict, posts: dict) -> str | None:
+    """A reel known only by the names in its title (YouTube, titled by hand: « Surah Al-Masad ·
+    سورة المسد », « آية الكرسي - Ayat al-Kursi »): the reel whose first caption line carries one
+    of them; several (a surah read in parts), the last one published before it, a day's margin."""
+    from quran_reels.insights.themes import norm
+
+    parts = [norm(x) for x in re.split(r" · | - | \| ", entry.get("video", ""))]
+    parts = [x for x in parts if len(x) >= 6]
+    if not parts:
+        return None
+    found = []
+    for rec in posts.values():
+        key = rec.get("key") or ""
+        line = norm(rec.get("first_line") or "")
+        if key.startswith("slot:") and line and any(x in line for x in parts):
+            found.append((rec.get("published", ""), key))
+    if not found:
+        return None
+    when = str(entry.get("published") or "")
+    limit = (date.fromisoformat(when) + timedelta(days=1)).isoformat() if when else "9999"
+    before = sorted(f for f in found if f[0][:10] <= limit)
+    return (before[-1] if before else min(found))[1]
+
+
+def _manual_key(entry: dict, posts: dict, themes: Any, groups: dict | None = None) -> str:
+    """Which video a screenshot or YouTube entry is about: a theme id, a reel passage, the names
+    in a reel's title, or the title alone."""
+    groups = groups or {}
     video = entry.get("video", "")
     if themes is not None and video in getattr(themes, "by_id", {}):
-        return f"theme:{video}"
+        return _film(f"theme:{video}", groups)
     for rec in posts.values():
         ref = rec.get("ref") or {}
         if video and video in (ref.get("passage"), ref.get("theme"), rec.get("key")):
@@ -76,8 +113,8 @@ def _manual_key(entry: dict, posts: dict, themes: Any) -> str:
     if themes is not None:
         found = themes.match(video, entry.get("platform", ""))
         if found:
-            return f"theme:{found.id}"
-    return f"manual:{video}"
+            return _film(f"theme:{found.id}", groups)
+    return _by_name(entry, posts) or f"manual:{video}"
 
 
 def build(insights: dict[str, Any] | None, settings: dict[str, Any], now: datetime,
@@ -140,7 +177,7 @@ def build(insights: dict[str, Any] | None, settings: dict[str, Any], now: dateti
 
     manual_loose = []
     for e in insights.get("manual") or []:
-        key = _manual_key(e, posts, themes)
+        key = _manual_key(e, posts, themes, groups)
         m = _full(e.get("m"))
         item = {"platform": PLATFORMS.get(e["platform"], e["platform"]), "seen": e.get("seen"),
                 "video": e.get("video"), "published": e.get("published"), "m": m}

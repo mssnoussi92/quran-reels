@@ -81,6 +81,14 @@ def test_a_reel_is_matched_by_its_reference_a_theme_video_by_its_title():
     assert Y.video_key(" Why did he tear a hole in the boat? · ليه خرق السفينة؟ ") == (
         "Why did he tear a hole in the boat? · ليه خرق السفينة؟")
     assert Y.seconds("PT1M33S") == 93 and Y.seconds("PT14S") == 14 and Y.seconds("") is None
+    # titled by hand: the reference is in the description pasted from reel.html (caption.txt)
+    assert Y.video_key("Surah At-Tawbah · سورة التوبة",
+                       "The seven munjiyat verses · السبع آيات المنجيات · 1/7\n"
+                       "Surah At-Tawbah (9:51) · سورة التوبة\n\nبِسْمِ") == "9:51-51"
+    # a theme video's description quotes verses, never on a line of its own starting « Surah »
+    assert Y.video_key("Light in the Quran… how many times?",
+                       "The word 'light' in the Quran… The first time, a light that is lost (2:17).") == (
+        "Light in the Quran… how many times?")
 
 
 def test_the_public_videos_go_where_the_screenshots_went(tmp_path):
