@@ -267,6 +267,7 @@ def setup(tmp_path, monkeypatch):
     def run(**kw):
         return R.run(cfg, tmp_path / "themes.json", src=sources(), download=download,
                      encode=lambda video: video.with_name(video.stem + "-instagram.mp4"),
+                     publish_file=lambda path: f"https://example.org/reels/{path.name}",
                      make_publishers=lambda cfg, s, row, wanted: pubs,
                      report=tmp_path / "report.json", **kw)
     return run, pubs, fetched, tmp_path
@@ -283,6 +284,8 @@ def test_the_day_goes_out_with_its_own_texts_files_and_cover(setup):
         "https://github.com/o/themes/releases/download/page-dua/dua-short-1-asked-cover.jpg")
     assert pubs["tiktok"].calls[0][1].video.name == "dua-short-1-asked-tiktok.mp4"
     assert pubs["instagram"].calls[0][1].video.name == "dua-short-1-asked-instagram.mp4"
+    assert pubs["instagram"].calls[0][1].video_url == (
+        "https://example.org/reels/dua-short-1-asked-instagram.mp4")
     assert fb_reel.video.name == "dua-short-1-asked.mp4"           # Facebook: the file as it is
     assert pubs["tiktok"].calls[0][1].caption.endswith("@quran.words.daily\n")
     state = json.loads((tmp / "themes.json").read_text())["posts"]["2026-11-24"]
@@ -517,3 +520,23 @@ def test_the_instagram_copy_has_no_edit_list_and_no_b_frames(tmp_path):
                            check=False)
     assert "48000 Hz" in probe.stderr and "h264 (High)" in probe.stderr
     assert R.for_instagram(src) == out                    # done once
+
+
+def test_instagram_fetches_a_video_given_by_its_address():
+    """2026-11-15: sent to Instagram's upload address, a 2-minute short failed every time; by
+    `video_url` Instagram fetches the file, and nothing is sent to rupload."""
+    from types import SimpleNamespace
+
+    from quran_reels.publishers.instagram import InstagramPublisher
+
+    posted, uploads = [], []
+    graph = SimpleNamespace(version="v24.0",
+                            post=lambda path, **kw: posted.append(kw) or {"id": "c1"},
+                            upload=lambda *a: uploads.append(a))
+    pub = InstagramPublisher(graph, "ig")
+    reel = R.ThemeReel(video=Path("x.mp4"), caption="Title\n", video_url="https://h/x.mp4",
+                       cover_url="https://h/c.jpg")
+    params = pub._params(reel)
+    assert params["video_url"] == "https://h/x.mp4" and "upload_type" not in params
+    assert pub._upload(reel, params) == ("c1", False) and not uploads
+    assert posted[0]["cover_url"] == "https://h/c.jpg"

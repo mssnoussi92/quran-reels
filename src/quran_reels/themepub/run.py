@@ -60,6 +60,7 @@ class ThemeReel:
     cover_image: Path | None = None       # Facebook: the cover file
     cover_url: str | None = None          # Instagram: the same, by its public address
     cover_ms: int | None = None
+    video_url: str | None = None          # Instagram: the file by its public address
     hashtags: list[str] = field(default_factory=list)
     facebook: str = ""
     variants: dict = field(default_factory=dict)
@@ -202,17 +203,33 @@ def for_instagram(video: Path) -> Path:
     return dest
 
 
+def host(path: Path) -> str:
+    """The public address of a file in the release `reels` (ondemand/files.py: public, 30 days).
+    Instagram fetches a theme video from there (`video_url`): sent to its upload address, a
+    2-minute short failed at once (ProcessingFailedError) and its container never left
+    IN_PROGRESS, four times on 2026-11-15, re-encoded or not."""
+    from quran_reels.ondemand.files import Hosting
+    from quran_reels.ondemand.gh import GitHub
+
+    return Hosting(GitHub(), Path(".")).upload(path, path.name)
+
+
 def reels_for(s: dict[str, Any], row: cal.Row, folder: Path,
               download: Callable[..., Path] = _download,
-              encode: Callable[[Path], Path] = for_instagram) -> dict[str, ThemeReel]:
-    """Each platform's file and text, downloaded from page-<doc> (Instagram: its own encoding)."""
+              encode: Callable[[Path], Path] = for_instagram,
+              publish_file: Callable[[Path], str] = host) -> dict[str, ThemeReel]:
+    """Each platform's file and text, downloaded from page-<doc> (Instagram: its own encoding,
+    fetched by Instagram from the release `reels`)."""
     out = {}
     for platform, v in row.videos.items():
         name = v.tiktok if platform == "tiktok" else v.video
         cover = download(s, v.doc, v.cover, folder) if v.cover and platform != "tiktok" else None
         video = download(s, v.doc, name, folder)
+        if platform == "instagram":
+            video = encode(video)
         out[platform] = ThemeReel(
-            video=encode(video) if platform == "instagram" else video, caption=v.captions[platform],
+            video=video, video_url=publish_file(video) if platform == "instagram" else None,
+            caption=v.captions[platform],
             title=v.title, seconds=v.seconds, cover_image=cover,
             cover_url=asset_url(s, v.doc, v.cover) if v.cover else None)
     return out
@@ -337,7 +354,8 @@ def run(cfg: Config, state_path: Path, now: datetime | None = None, dry_run: boo
         day: date | None = None, platforms: list[str] | None = None, check: bool = False,
         src: Sources | None = None, make_publishers: Callable | None = None,
         download: Callable[..., Path] = _download, report: Path | None = None,
-        encode: Callable[[Path], Path] = for_instagram) -> dict[str, Any]:
+        encode: Callable[[Path], Path] = for_instagram,
+        publish_file: Callable[[Path], str] = host) -> dict[str, Any]:
     s = settings(cfg)
     now = now or datetime.now(UTC)
     state = load_state(state_path)
@@ -366,7 +384,7 @@ def run(cfg: Config, state_path: Path, now: datetime | None = None, dry_run: boo
     wanted = [p for p in (platforms or s.get("platforms", ["facebook", "instagram", "tiktok"]))
               if p in row.videos and (dry_run or not done(previous.get(p)))]
     if wanted:
-        reels = reels_for(s, row, cfg.out / "themes", download, encode)
+        reels = reels_for(s, row, cfg.out / "themes", download, encode, publish_file)
         pubs = (make_publishers or publishers_for)(cfg, s, row, wanted)
         results = publish_row(row, reels, pubs, wanted, dry_run)
         entry = {"label": row.label, "videos": {p: v.id for p, v in row.videos.items()},
