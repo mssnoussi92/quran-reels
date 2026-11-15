@@ -30,7 +30,7 @@ face) : la question va dans le rapport, ses options numérotées.
 | Format | **≈ 1 minute** (cible 60 s, 40–90 s), jamais coupé au milieu d'une phrase ; **sourate courte entière** (≤ 90 s, même très courte) ; **le soir, le passage de la série tel quel, même une seule ayah** (15 à 30 s : 76 des 111 passages des séries du soir sont une seule ayah ; constaté sur les reels publiés le 2026-11-09, gardé ainsi le 2026-11-10 : la série dit quelle ayah, on ne la noie pas dans son contexte pour atteindre la minute) |
 | Basmala | **Au début de chaque vidéo**, même pour quelques versets ; sauf sourate 9 et avant 1:1 (qui est la basmala) |
 | Rythme | Depuis le 2026-11-14 (choix du propriétaire, 2026-11-13) : **chaque matin à 07:30** (heure de Paris) la lecture dans l'ordre, le vendredi matin Al-Kahf un passage par vendredi ; **le dimanche soir à 19:30** les séries thématiques (file `themes` ; celui du 2026-11-15 annulé par le propriétaire, premier le 2026-11-22) ; avant : 2 par jour, 07:30 lecture et 19:30 séries. Jours d'un créneau : `days` (périodes `from` / `until` / `weekdays`) dans `config/schedule.yaml`. Reels en pause du 2026-11-12 au soir au 2026-11-13 au matin (`pause` : les épisodes thématiques démarraient) |
-| Images | **Word of the day**, carrousel de 3 images 1080×1350 (le mot, son ayah, son sens dans le Tafsir al-Muyassar), **1 par jour** à 11:30 UTC sur Instagram et Facebook ; **Ayah of the day** préparé, désactivé (docs/images.md) |
+| Images | **Word of the day**, carrousel de 3 images 1080×1350 (le mot, son ayah, son sens dans le Tafsir al-Muyassar), 1 par jour à 11:30 UTC sur Instagram et Facebook, **en pause depuis le 2026-11-15** (choix du propriétaire : 4 vues en médiane par publication sur Instagram, 21 vues en tout sur Facebook en 9 jours ; `enabled: false`, prêt à reprendre) ; **Ayah of the day** préparé, désactivé (docs/images.md) |
 | Lecture | **Juz' 'Amma d'abord** (114 → 78), puis Al-Fatiha et 2 → 77, passages de `config/plan.yaml` |
 | Thèmes | Ayat al-Kursi, les 7 versets « المنجيات », versets de du'a, versets du rizq, puis (proposés le 2026-11-06) la patience (ص ب ر) et le repentir (ت و ب)… : listes **proposées par l'IA en PR, validées par le propriétaire** |
 | Vendredi | **Al-Kahf** (choix du propriétaire, 2026-11-05) : **depuis le 2026-11-20, le vendredi matin, la sourate un passage par vendredi** (série `al-kahf`, à partir de 18:17-18, là où le soir s'était arrêté ; choix du propriétaire, 2026-11-13, avec 1 reel par jour) ; avant : le matin **18:1-10 chaque vendredi** (`kahf-first-ten`, plus jouée), le soir la suite **à partir de 18:11** (36 passages), puis on recommence |
@@ -467,7 +467,8 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-30.
       (2026-11-06, `sabr.yaml`, `tawba.yaml`, après rizq dans la file `themes`)
 - [x] Fonds choisis selon le passage (scènes générées + 3 clips Pexels, PR #8 ; + 21 clips
       Pixabay validés ; tickets du catalogue : 2 retirés, 3 clips de mer ajoutés, 4 écartés)
-- [x] Publications image : Word of the day **activé** (tirages du 6 au 12 novembre avec le
+- [x] Publications image : Word of the day **en pause depuis le 2026-11-15** (presque pas vu : 4 vues en médiane sur
+      Instagram ; choix du propriétaire), activé du 6 au 15 novembre (tirages du 6 au 12 novembre avec le
       Muyassar validés par le propriétaire le 2026-11-05 ; candidats refaits : 8 599 mots,
       4 913 ayahs), Ayah of the day désactivé · [ ] premier dry-run Meta des images ·
       [ ] première publication réelle (11:30 UTC le lendemain de la fusion)
