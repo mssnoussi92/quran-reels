@@ -25,6 +25,10 @@ from pathlib import Path
 
 FAILURE_TITLE = "⚠️ Publication quotidienne en échec"
 CAPTIONS_TITLE = "📋 Légendes à copier (TikTok, YouTube)"
+# Each workflow closes only its own alert: a Word of the day posted at 12:30 closed the alert of
+# the morning reel that had not gone out (2026-11-15, the Meta token cut by a password change).
+IMAGES_FAILURE_TITLE = "⚠️ Image du jour en échec"
+ALERTS = {"daily": FAILURE_TITLE, "images": IMAGES_FAILURE_TITLE}
 KEEP_CAPTIONS = 4               # the last two days
 
 _DAYS = ["lun.", "mar.", "mer.", "jeu.", "ven.", "sam.", "dim."]
@@ -225,7 +229,8 @@ class Issues:
 
 
 def run(report_path: Path, outcome: str, run_url: str, owner: str | None,
-        issues: Issues | None = None, missed: list[str] | None = None) -> int:
+        issues: Issues | None = None, missed: list[str] | None = None,
+        alert: str = "daily") -> int:
     issues = issues or Issues(os.environ["GITHUB_REPOSITORY"])
     report = json.loads(report_path.read_text(encoding="utf-8")) if report_path.is_file() else None
     dry_run = bool(report and report.get("dry_run"))
@@ -240,7 +245,8 @@ def run(report_path: Path, outcome: str, run_url: str, owner: str | None,
 
     if dry_run:
         return 0                    # a test run never opens nor closes the failure issue
-    failure = issues.find(FAILURE_TITLE)
+    title = ALERTS[alert]
+    failure = issues.find(title)
     # What the owner has to know whatever this run did: a slot no run took, a token about to
     # expire (report `notes`). Told even when this run published, and its success does not
     # close the alert it has just opened.
@@ -252,7 +258,7 @@ def run(report_path: Path, outcome: str, run_url: str, owner: str | None,
             issues.comment(failure["number"], text)
         else:
             mention = f"@{owner} : " if owner else ""
-            issues.create(FAILURE_TITLE, mention + "à regarder.\n\n" + text, assignee=owner)
+            issues.create(title, mention + "à regarder.\n\n" + text, assignee=owner)
         print("failure issue updated (note for the owner)")
         return 0
     if outcome == "failure":
@@ -261,7 +267,7 @@ def run(report_path: Path, outcome: str, run_url: str, owner: str | None,
             issues.comment(failure["number"], "Encore en échec.\n\n" + text)
         else:
             mention = f"@{owner} : " if owner else ""
-            issues.create(FAILURE_TITLE, mention + "la publication quotidienne a échoué.\n\n"
+            issues.create(title, mention + "la publication quotidienne a échoué.\n\n"
                           + text, assignee=owner)
         print("failure issue updated")
     elif outcome == "success" and failure and report and report.get("items"):

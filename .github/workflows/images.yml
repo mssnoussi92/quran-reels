@@ -109,7 +109,7 @@ jobs:
           OUTCOME: ${{ job.status }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           OWNER: ${{ github.repository_owner }}
-        run: quran-reels notify --outcome "$OUTCOME" --run-url "$RUN_URL" --owner "$OWNER" --report out/images-report.json
+        run: quran-reels notify --alert images --outcome "$OUTCOME" --run-url "$RUN_URL" --owner "$OWNER" --report out/images-report.json
 
       - name: Keep the images
         if: always() && steps.due.outputs.due == 'true'

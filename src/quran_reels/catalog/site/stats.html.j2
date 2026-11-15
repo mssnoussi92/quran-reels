@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Statistiques · Quran Words Daily</title>
+<meta name="description" content="Statistiques de la Page Quran Words Daily (lecture seule).">
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="catalog.css">
+</head>
+<body>
+<main class="catalog stats">
+  <header class="site">
+    <a class="brand" href="../">Quran Words Daily</a>
+    <nav><a href="./">Catalogue</a><a href="./#calendar">Calendrier</a></nav>
+  </header>
+
+  <h1>Statistiques</h1>
+  <p class="lead">Facebook et Instagram, lus chaque nuit par le workflow <code>insights</code> (lecture seule) ;
+    YouTube et TikTok, recopiés des captures. Les reels, le Word of the day et les vidéos thématiques de la même Page.</p>
+
+  {% if s.empty %}
+  <p class="notice">Pas encore de statistiques : le premier relevé se fait la nuit qui suit la mise en service
+    (après <code>prepare-splits</code>), puis chaque nuit.</p>
+  {% else %}
+  <p class="muted small">Relevé du {{ s.updated }}{% if s.calls is not none %} · {{ s.calls }} appels, budget Meta {{ s.usage }} %{% endif %}</p>
+  {% if s.stale %}<p class="notice">Le dernier relevé date de plus de 36 h : le workflow <code>insights</code> n'a pas tourné ou a échoué.</p>{% endif %}
+  {% if s.stopped %}<p class="notice">Relevé arrêté avant la fin ({{ s.stopped }}) : la suite la nuit prochaine.</p>{% endif %}
+  {% for n in s.notes %}<p class="notice">{{ n }}</p>{% endfor %}
+  {% if s.errors %}<p class="notice">{{ s.errors }} lecture{{ 's' if s.errors > 1 }} en erreur au dernier relevé (journal du workflow).</p>{% endif %}
+
+  <nav class="tabs" aria-label="Sections">
+    <a href="#followers">Abonnés</a><a href="#compare">Comparer</a><a href="#videos">Chaque vidéo</a>{% if s.manual %}<a href="#captures">Captures</a>{% endif %}
+  </nav>
+
+  <section id="followers">
+    <h2>Abonnés</h2>
+    <div class="grid two">
+      {% for f in s.followers %}
+      <article class="card">
+        <div class="head"><h4>{{ f.platform }}</h4>{% if f.delta is not none %}<span class="badge {{ 'rot' if f.delta > 0 else 'out' }}">{{ '+' if f.delta > 0 }}{{ f.delta }} en 7 jours</span>{% endif %}</div>
+        <p class="big-num">{{ f.now }}</p>
+        {% if f.series|length > 1 %}<p class="spark" aria-hidden="true">{% set top = f.series|map(attribute=1)|max %}{% set low = f.series|map(attribute=1)|min %}{% for d, n in f.series %}<i title="{{ d }} : {{ n }}" style="height: {{ (8 + 32 * ((n - low) / (top - low) if top > low else 1))|round(0) }}px"></i>{% endfor %}</p>{% endif %}
+        <p class="meta">au {{ f.day }}</p>
+      </article>
+      {% else %}
+      <p class="muted">Pas encore relevé.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section id="compare">
+    <h2>Comparer les types de vidéos</h2>
+    <p class="muted">Chaque type au même âge, <b>48 heures</b> après sa publication : la médiane de ses vidéos. « Passent 3 s » est l'accroche,
+      « % regardé » la durée moyenne regardée sur la durée de la vidéo.</p>
+    <p class="notice small">Moins de {{ s.min_videos }} vidéos, ou moins de {{ s.min_points }} points d'écart : ce n'est pas une différence
+      (à une centaine de vues, le hasard suffit). On regarde les tendances sur plusieurs semaines.</p>
+    {% if s.kinds %}
+    <div class="scroll">
+    <table class="stats-table">
+      <thead><tr><th>Type</th><th>n</th>{% for c in s.columns %}<th>{{ c[1] }}</th>{% endfor %}</tr></thead>
+      <tbody>
+        {% for k in s.kinds %}
+        <tr class="{{ 'few' if k.few }}">
+          <td>{{ k.kind }}<span class="sub">{{ k.platform }}</span></td>
+          <td>{{ k.n }}{% if k.few %} <span class="sub">trop peu</span>{% endif %}</td>
+          <td>{{ k.views|number }}</td><td>{{ k.hook|number(' %') }}</td><td>{{ k.watch_pct|number(' %') }}</td>
+          <td>{{ k.engage|number }}</td><td>{{ k.follows|number }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% else %}
+    <p class="muted">Aucune vidéo n'a encore 48 heures depuis la mise en service.</p>
+    {% endif %}
+  </section>
+
+  <section id="videos">
+    <h2>Chaque vidéo</h2>
+    <p class="muted">Les {{ s.days }} derniers jours, la plus récente d'abord. « — » : Meta n'a pas donné ce chiffre (jamais compté comme 0).</p>
+    {% for v in s.videos %}
+    <article class="card post">
+      <div class="head"><h4>{{ v.when|capitalize }}</h4><span class="badge {{ 'cand' if v.kind.startswith('theme') else ('plan' if v.kind == 'word' else 'rot') }}">{{ v.kind_label }}</span></div>
+      <p><b><bdi>{{ v.label }}</bdi></b></p>
+      <p class="meta">{% if v.seconds %}{{ v.seconds|seconds }}{% endif %}{% if v.reciter %} · {{ v.reciter }}{% endif %}{% if v.ref.series %} · <bdi>{{ v.ref.series }}</bdi>{% endif %}</p>
+      {% for r in v.rows %}
+      <div class="measure">
+        <p class="pf">{% if r.url %}<a href="{{ r.url }}" rel="noopener">{{ r.platform }} ↗</a>{% else %}{{ r.platform }}{% endif %}</p>
+        {% for w in r.views %}
+        <p class="nums"><span class="when">{{ w.title }} ({{ w.age }})</span>
+          <span><b>{{ w.m.views|number }}</b> vues</span>
+          {% if w.m.hook is not none %}<span><b>{{ w.m.hook|number(' %') }}</b> passent 3 s</span>{% endif %}
+          {% if w.m.avg_watch is not none %}<span><b>{{ w.m.avg_watch|number(' s') }}</b> regardées{% if w.m.watch_pct is not none %} ({{ w.m.watch_pct|number(' %') }}){% endif %}</span>{% endif %}
+          {% if w.m.kept_30s is not none %}<span><b>{{ w.m.kept_30s|number(' %') }}</b> encore là à 0:30</span>{% endif %}
+          {% if w.m.engage is not none %}<span><b>{{ w.m.engage|number }}</b> partages + enreg.</span>{% endif %}
+          {% if w.m.follows is not none %}<span><b>{{ w.m.follows|number }}</b> abonnés</span>{% endif %}
+          {% if w.m.reach is not none %}<span>{{ w.m.reach|number }} personnes</span>{% endif %}
+        </p>
+        {% else %}
+        <p class="nums muted">pas encore lu</p>
+        {% endfor %}
+      </div>
+      {% endfor %}
+      {% for m in v.manual %}
+      <div class="measure">
+        <p class="pf">{{ m.platform }} <span class="muted">· capture du {{ m.seen }}</span></p>
+        <p class="nums"><span><b>{{ m.m.views|number }}</b> vues</span>
+          {% if m.m.hook is not none %}<span><b>{{ m.m.hook|number(' %') }}</b> passent 3 s</span>{% endif %}
+          {% if m.m.avg_watch is not none %}<span><b>{{ m.m.avg_watch|number(' s') }}</b> regardées{% if m.m.watch_pct is not none %} ({{ m.m.watch_pct|number(' %') }}){% endif %}</span>{% endif %}
+          {% if m.m.engage is not none %}<span><b>{{ m.m.engage|number }}</b> partages + enreg.</span>{% endif %}
+          {% if m.m.follows is not none %}<span><b>{{ m.m.follows|number }}</b> abonnés</span>{% endif %}
+        </p>
+      </div>
+      {% endfor %}
+    </article>
+    {% else %}
+    <p class="muted">Rien de publié dans la période.</p>
+    {% endfor %}
+  </section>
+
+  {% if s.manual %}
+  <section id="captures">
+    <h2>Captures sans vidéo reconnue</h2>
+    {% for m in s.manual %}
+    <article class="card post">
+      <div class="head"><h4><bdi>{{ m.video }}</bdi></h4><span class="badge out">{{ m.platform }}</span></div>
+      <p class="nums"><span><b>{{ m.m.views|number }}</b> vues</span>{% if m.m.avg_watch is not none %}<span><b>{{ m.m.avg_watch|number(' s') }}</b> regardées</span>{% endif %}<span class="muted">capture du {{ m.seen }}</span></p>
+    </article>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if s.unsupported %}
+  <p class="muted small">Chiffres que Meta ne donne pas pour certains types de publication (plus demandés) :
+    {% for k, v in s.unsupported.items() %}{{ k }} : {{ v|join(', ') }}{{ ' · ' if not loop.last }}{% endfor %}.</p>
+  {% endif %}
+  {% endif %}
+
+  <footer>Quran Words Daily · statistiques en lecture seule · <a href="data.json">data.json</a> ·
+    <a href="https://github.com/{{ d.repo }}" rel="noopener">code</a> · <a href="../privacy.html">Privacy</a></footer>
+</main>
+</body>
+</html>

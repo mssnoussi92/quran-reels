@@ -1,0 +1,87 @@
+name: insights
+
+# Statistics of the Page (docs/insights.md): once a night, the Facebook and Instagram numbers of
+# every post of the last weeks (reels, Word of the day, theme videos of quran-themes-demo) →
+# insights.json on the state branch → the catalogue's « Statistiques » page (catalog.yml runs
+# after this one). Read only: nothing is posted, changed or deleted on Facebook or Instagram.
+#
+# Started when prepare-splits ends (itself started at 02:41 Paris by the scheduler session):
+# no scheduled task of its own, and no GitHub cron (late and irregular in this repository).
+# Its own concurrency group, not `accounts`: it never takes the one waiting place of a
+# publication. The Meta app's hourly call budget is shared with the publications, so the run
+# stops at max_usage % (config/insights.yaml) and goes on the next night.
+#
+# By hand (Actions → insights → Run workflow): `manual` records numbers read on a YouTube or
+# TikTok screenshot (a session copies them, `quran-reels insights add`); nothing else is read.
+on:
+  workflow_run:
+    workflows: [prepare-splits]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Read and print, save nothing"
+        type: boolean
+        default: false
+      manual:
+        description: 'Numbers from a screenshot (JSON, see docs/insights.md); empty: read Meta'
+        required: false
+
+permissions:
+  contents: write          # the state branch (insights.json)
+
+concurrency:
+  group: insights
+  cancel-in-progress: false
+
+env:
+  PIP_CONSTRAINT: ${{ github.workspace }}/constraints.txt
+
+jobs:
+  read:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install the package
+        run: pip install -e .
+
+      - name: Load the state
+        run: |
+          if git ls-remote --exit-code --heads origin state >/dev/null; then
+            git fetch --depth=1 origin state:state
+            git worktree add state-branch state
+          else
+            git worktree add --orphan -b state state-branch
+          fi
+
+      - name: Numbers from a screenshot
+        if: inputs.manual != ''
+        env:
+          MANUAL: ${{ inputs.manual }}
+        run: quran-reels insights add --state state-branch --json "$MANUAL"
+
+      - name: Read Facebook and Instagram
+        if: inputs.manual == ''
+        env:                   # secrets for this step only
+          META_PAGE_ID: ${{ secrets.META_PAGE_ID }}
+          META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          GITHUB_TOKEN: ${{ github.token }}     # only to list quran-themes-demo's texts (public)
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            quran-reels insights collect --state state-branch --dry-run
+          else
+            quran-reels insights collect --state state-branch
+          fi
+
+      - name: Save the state
+        if: always() && inputs.dry_run != true
+        working-directory: state-branch
+        env:
+          SAVE_STATE_LEVEL: warning    # not saved: the next night reads again
+        run: |
+          bash "$GITHUB_WORKSPACE/.github/scripts/save-state.sh" "Insights" insights.json

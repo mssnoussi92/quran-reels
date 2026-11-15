@@ -109,7 +109,15 @@ src/quran_reels/
                    figée), select.py (exclusions, ordre stable, état), cards.py + templates/
                    (1080×1350), caption.py, publish.py (carrousel Instagram, post Facebook
                    multi-photos), daily.py (`quran-reels images run`)
-  notify.py        `quran-reels notify` : tickets GitHub (alerte d'échec, légendes à copier)
+  notify.py        `quran-reels notify` : tickets GitHub (alerte d'échec, légendes à copier ;
+                   les images ont leur propre alerte, `--alert images`, depuis le 2026-11-15)
+  insights/        statistiques de la Page (docs/insights.md) : collect.py (`quran-reels insights
+                   collect` : abonnés, publications des 35 jours, relevés à 48 h / 7 j / 28 j,
+                   arrêt à 75 % du budget Meta → `insights.json` sur `state` ; `insights add` :
+                   chiffres des captures YouTube/TikTok), classify.py (créneau, Word of the day,
+                   vidéo thématique reconnue par son titre), metrics.py (chiffres Meta → vues,
+                   accroche à 3 s, durée regardée, partages…), themes.py (publication-*.md et
+                   calendar.md de quran-themes-demo, lus en ligne) ; lecture seule
   ondemand/        publication à la demande (docs/on-demand.md) : request.py (ticket), check.py
                    (mêmes règles que le calendrier, plages valides proposées), commands.py
                    (propriétaire seulement, approbation), flow.py (`quran-reels on-demand
@@ -121,7 +129,8 @@ src/quran_reels/
                    « Publier » : ondemand.py écrit surahs/SSS.json, fins de phrase et sens du
                    Muyassar numérotés, téléchargés 15 min max par construction)
                    (docs/catalog.md) : récitateurs (+ candidats EveryAyah), fonds (aperçus
-                   360p), calendrier et séries, publications ; décisions par tickets préremplis ;
+                   360p), calendrier et séries (+ vidéos thématiques de quran-themes-demo),
+                   publications, statistiques (stats.py → stats.html) ; décisions par tickets préremplis ;
                    history.yaml (revendications, clips refusés) ; ne modifie rien
   cli.py           `quran-reels ingest|render|passages|plan|series-check|calendar|daily|publish|catalog`
 tests/             pytest, sans réseau
@@ -136,8 +145,11 @@ tests/             pytest, sans réseau
                    polices chargées, texte dans la zone sûre même réduit)
                    images.yml (lancé par le planificateur ; `images run --check` décide selon
                    config/images.yaml ; état images.json sur la branche `state`)
-                   catalog.yml (push main config/docs, après daily/images/prepare, chaque jour,
+                   catalog.yml (push main config/docs, après daily/images/insights, chaque jour,
                    à la main : docs/ + catalog/ → GitHub Pages, source « GitHub Actions »)
+                   insights.yml (à la fin de prepare-splits : statistiques Facebook et Instagram
+                   → `insights.json` ; à la main avec `manual` : chiffres d'une capture ; son
+                   propre groupe de concurrence, lecture seule, docs/insights.md)
                    on-demand.yml (tickets « À la demande » et commentaires `/publier`,
                    `/essai`, `/apercu`, `/mots`, `/youtube` **du propriétaire seulement** ; aperçu hors
                    groupe `accounts`, publication dans `accounts`)
@@ -200,6 +212,8 @@ quran-reels images run              # publie le format dû, écrit state/images.
 
 ```bash
 quran-reels catalog build --state state-branch --out _site/catalog   # catalogue (lecture seule)
+quran-reels insights collect --state state-branch [--dry-run]       # statistiques de la nuit
+quran-reels insights add --state state-branch --json '{"platform": "youtube", …}'  # capture
 ```
 
 ```bash
@@ -371,7 +385,9 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
 Procédures à suivre, pour toute session (le planificateur compris) : `check-publication`
 (lire un run, l'état, rapporter), `test-reciter` (découper, vérifier, Facebook d'abord, puis
 Instagram), `republish` (rouvrir un créneau et republier), `add-background` (chercher, vérifier,
-proposer un fond), `propose-series` (proposer une série, validée en PR).
+proposer un fond), `propose-series` (proposer une série, validée en PR), `weekly-review`
+(le dimanche : statistiques, deux calendriers, stock des thèmes, captures YouTube/TikTok
+enregistrées sur parole du propriétaire, 1 à 3 propositions ; ne change rien seule).
 
 ## Secrets (jamais dans le code ni dans la conversation)
 
@@ -391,6 +407,17 @@ de même, code 190/460). Il porte aussi `read_insights`, `instagram_manage_insig
 docs/plateformes.md (« Renouveler le jeton de Page »). Fait : `meta-check` (et chaque `publish`) lit
 `data_access_expires_at` via `GET /debug_token` et fait échouer le job (message clair, marche à
 suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-30.
+
+## Statistiques (détails : docs/insights.md)
+
+- Chaque nuit (fin de `prepare-splits`), `insights.yml` lit les chiffres Facebook et Instagram de
+  tout ce que la Page publie (reels, Word of the day, vidéos thématiques reconnues par leur titre)
+  → `insights.json` (branche `state`) → page « Statistiques » du catalogue, **publique** (choix du
+  propriétaire, 2026-11-15). Comparaisons à 48 h, en médianes ; sous 3 vidéos ou 12 points
+  d'écart, aucune différence n'est affirmée. YouTube et TikTok : captures envoyées par le
+  propriétaire le dimanche, recopiées par une session (`insights.yml`, entrée `manual`).
+- Le calendrier du catalogue montre aussi les vidéos thématiques (calendar.md de
+  quran-themes-demo, tel qu'écrit) : un seul calendrier pour la Page.
 
 ## État
 

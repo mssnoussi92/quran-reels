@@ -1,0 +1,26 @@
+# Statistics of the Page (docs/insights.md): read every night by the insights workflow,
+# after prepare-splits, and shown on the catalogue's « Statistiques » page. Read only: nothing
+# is posted or changed on Facebook or Instagram. Owner's choice (2026-11-15): public, like the
+# rest of the state branch and the catalogue.
+
+enabled: true
+days: 35                   # posts published in the last 35 days are read
+refresh_days: 8            # read every night until this age (the « latest » column)
+checkpoints:               # a snapshot kept for good the first night after each age (hours):
+  48h: 48                  # the owner's sheet (docs/retention/calendar.md of quran-themes-demo)
+  7d: 168                  # a film, a week later
+  28d: 672                 # what stays
+tolerance_hours: 48        # a checkpoint missed for longer is left empty, never back-filled
+max_usage: 75              # % of the Meta app's hourly budget (X-App-Usage): stop reading above
+max_calls: 150             # and never more calls than this in one run
+
+themes:                    # the videos of quran-themes-demo, published on the same Page
+  repo: mssnoussi92/quran-themes-demo
+  ref: main
+  calendar: docs/retention/calendar.md          # « Le calendrier » table: date, what, where
+  texts: docs/retention                         # publication-*.md: title, file, duration
+  time: "19:00"                                 # Paris (owner's decision, 2026-11-13)
+
+compare:                   # the dashboard's rule (docs/retention.md of quran-themes-demo,
+  min_videos: 3            # « Mesurer »): fewer videos, or a smaller gap in points, and no
+  min_points: 12           # difference is claimed between two kinds of video
