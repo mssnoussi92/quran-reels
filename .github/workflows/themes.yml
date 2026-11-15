@@ -1,0 +1,102 @@
+name: themes
+
+# The theme videos of quran-themes-demo on the Page (docs/themes.md; owner's decision 2026-11-15):
+# the day's video of docs/retention/calendar.md at 19:00 Paris, from the public pre-release
+# page-<doc>, its texts word for word from publication-<doc>.md. Facebook and Instagram only
+# after Meta's copyright check (anything but clear: nothing goes out, TikTok included); TikTok
+# its own version as a draft in the inbox; YouTube by hand (the captions issue gives the file).
+# Nothing before config/themes.yaml `from` (the owner publishes those by hand).
+#
+# Started by the scheduler session at 18:41 Paris, Monday to Saturday, not by GitHub's cron.
+# By hand: a dry run of a given day (dry_run + day): upload, Meta's checks, the Facebook copy
+# deleted, nothing public, no TikTok draft, nothing recorded.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (nothing public, state unchanged)"
+        type: boolean
+        default: false
+      day:
+        description: "Dry run only: that day's video, e.g. 2026-11-24"
+        required: false
+      platforms:
+        description: "Dry run only: e.g. facebook,instagram (empty: all)"
+        required: false
+
+permissions:
+  contents: write          # the state branch (themes.json)
+  issues: write            # failure alert, captions to copy (quran-reels notify)
+
+concurrency:
+  group: accounts          # never two runs posting at the same time (reels, images, themes)
+  cancel-in-progress: false
+
+env:
+  PIP_CONSTRAINT: ${{ github.workspace }}/constraints.txt
+
+jobs:
+  post:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60    # a 9:16 film is sent twice to Facebook (unpublished, then published)
+    env:
+      STATE: state-branch/themes.json
+      GITHUB_TOKEN: ${{ github.token }}      # only to list quran-themes-demo's texts (public)
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install the package
+        run: pip install -e .
+
+      - name: Load the state
+        run: |
+          if git ls-remote --exit-code --heads origin state >/dev/null; then
+            git fetch --depth=1 origin state:state
+            git worktree add state-branch state
+          else
+            git worktree add --orphan -b state state-branch
+          fi
+
+      - name: What is due
+        id: due
+        if: inputs.dry_run != true
+        run: quran-reels themes run --state "$STATE" --check
+
+      - name: Post
+        id: post
+        if: inputs.dry_run == true || steps.due.outputs.due == 'true'
+        env:                   # secrets for this step only
+          META_PAGE_ID: ${{ secrets.META_PAGE_ID }}
+          META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
+          TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
+          TIKTOK_REFRESH_TOKEN: ${{ secrets.TIKTOK_REFRESH_TOKEN }}
+          GH_SECRETS_TOKEN: ${{ secrets.GH_SECRETS_TOKEN }}
+          DAY: ${{ inputs.day }}
+          PLATFORMS: ${{ inputs.platforms }}
+        run: |
+          args=()
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            args+=(--dry-run)
+            [ -n "$DAY" ] && args+=(--day "$DAY")
+            for p in ${PLATFORMS//,/ }; do args+=(--platform "$p"); done
+          fi
+          quran-reels themes run --state "$STATE" "${args[@]}"
+
+      - name: Save the state
+        if: always() && inputs.dry_run != true && steps.due.outputs.due == 'true'
+        working-directory: state-branch
+        run: |
+          bash "$GITHUB_WORKSPACE/.github/scripts/save-state.sh" "Themes" themes.json
+
+      - name: Tell the owner
+        if: always() && inputs.dry_run != true && steps.due.outputs.due == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OUTCOME: ${{ job.status }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          OWNER: ${{ github.repository_owner }}
+        run: quran-reels notify --alert themes --outcome "$OUTCOME" --run-url "$RUN_URL" --owner "$OWNER" --report out/themes-report.json

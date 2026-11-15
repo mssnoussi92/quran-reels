@@ -423,3 +423,21 @@ def test_the_calendar_shows_the_theme_videos(cfg, tmp_path):
     html = render(data)
     assert "Du&#39;a : le film" in html and 'href="stats.html"' in html
     assert "&lt;i&gt;une histoire nouvelle&lt;/i&gt;" in html and "à faire" in html
+
+
+def test_theme_days_from_the_automatic_start_say_so():
+    from quran_reels.catalog import stats as stats_mod
+    from quran_reels.insights.themes import ThemeDay
+
+    calendar = [{"date": "2026-11-22"}, {"date": "2026-11-23"}, {"date": "2026-11-24"}]
+    stats_mod.merge_calendar(calendar, [
+        ThemeDay(day="2026-11-22", label="a", where="les quatre"),
+        ThemeDay(day="2026-11-23", label="b", where="les quatre"),
+        ThemeDay(day="2026-11-24", label="c", where="les quatre")],
+        "19:00", "2026-11-23",
+        {"2026-11-23": {"results": {"facebook": {"status": "published"},
+                                    "tiktok": {"status": "draft"},
+                                    "instagram": {"status": "failed"}}}})
+    by = {d["date"]: d["themes"][0] for d in calendar}
+    assert not by["2026-11-22"]["auto"] and by["2026-11-23"]["auto"] and by["2026-11-24"]["auto"]
+    assert by["2026-11-23"]["sent"] == ["facebook", "tiktok"] and by["2026-11-24"]["sent"] == []

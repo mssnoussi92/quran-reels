@@ -28,7 +28,8 @@ CAPTIONS_TITLE = "📋 Légendes à copier (TikTok, YouTube)"
 # Each workflow closes only its own alert: a Word of the day posted at 12:30 closed the alert of
 # the morning reel that had not gone out (2026-11-15, the Meta token cut by a password change).
 IMAGES_FAILURE_TITLE = "⚠️ Image du jour en échec"
-ALERTS = {"daily": FAILURE_TITLE, "images": IMAGES_FAILURE_TITLE}
+THEMES_FAILURE_TITLE = "⚠️ Vidéo thématique en échec"
+ALERTS = {"daily": FAILURE_TITLE, "images": IMAGES_FAILURE_TITLE, "themes": THEMES_FAILURE_TITLE}
 KEEP_CAPTIONS = 4               # the last two days
 
 _DAYS = ["lun.", "mar.", "mer.", "jeu.", "ven.", "sam.", "dim."]
@@ -70,7 +71,14 @@ def failure_text(report: dict | None, run_url: str) -> str:
         lines += ["", "```text", e.strip(), "```"]
     blocked = any(r.get("status") == "blocked" for i in (report or {}).get("items", [])
                   for r in i["results"].values())
-    if blocked:
+    themes = any(str(i.get("key", "")).startswith("theme:") for i in (report or {}).get("items", []))
+    if blocked and themes:
+        lines += ["", ("⛔ Meta a reconnu un contenu protégé dans la vidéo thématique (ou n'a pas pu "
+                       "vérifier) : rien n'est publié, sur aucune plateforme, et elle n'est pas "
+                       "réessayée. À voir dans une session de quran-themes-demo (la récitation, "
+                       "l'ambiance ou le clip en cause), puis `page-files` et une publication à "
+                       "la main.")]
+    elif blocked:
         lines += ["", ("⛔ Meta a reconnu un contenu protégé (ou n'a pas pu vérifier) : rien n'est "
                        "publié, sur aucune plateforme, et le créneau n'est pas réessayé. Le passage "
                        "reste en tête de sa file : changer de récitateur (config/project.yaml → "
@@ -151,7 +159,8 @@ def _entry(item: dict, dry_run: bool) -> str:
     if item.get("label"):
         title += f" · {item['label']}"
     return "\n".join([f"<!-- entry {item['key']} -->", title, "", _results(item), *_files(item),
-                      "", "```text", item["caption"].strip(), "```", *_youtube(item)])
+                      "", "```text", item["caption"].strip(), "```", *_youtube(item),
+                      *(item.get("notes") or [])])
 
 
 _ENTRY = re.compile(r"<!-- entry (\S+) -->")

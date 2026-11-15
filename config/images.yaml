@@ -3,7 +3,8 @@
 
 formats:
   word:                      # Word of the day: 3-image carousel (word, its ayah, its meaning)
-    enabled: true            # picks with the Muyassar meanings approved by the owner (2026-11-05)
+    enabled: false           # paused by the owner, 2026-11-15: median of 4 views per post on Instagram, 21 views in all
+                             # on Facebook over 9 days (docs/insights.md); picks approved 2026-11-05, kept for a restart
     time_utc: "11:30"        # once a day (12:30 Paris in winter, 13:30 in summer)
     seed: quran-words-daily  # fixed: the order of the candidates never changes
   ayah:                      # Ayah of the day: one image, prepared, not published yet

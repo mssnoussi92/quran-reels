@@ -29,6 +29,7 @@ from pathlib import Path
 from quran_reels.config import Config
 from quran_reels.gh_secrets import save_secret
 from quran_reels.models import (
+    SOCIAL,
     Passage,
     PublishResult,
     PublishStatus,
@@ -124,15 +125,18 @@ def load_reel(video: Path) -> Reel:
     tag_line = " ".join(tags)
     if tags and text.rstrip().endswith(tag_line):         # written by render: body + tags
         text = text.rstrip()[: -len(tag_line)].rstrip() + "\n"
+    captions = manifest.get("captions") or {}
+    social = captions.get("social") or ""      # an older render: the full caption everywhere
     variants = {}
     for name, v in (manifest.get("variants") or {}).items():
         mp4 = work / v["video"]
         if mp4.is_file():           # missing (an older artifact): the platform gets the main one
-            variants[name] = (mp4, with_signature(text, v["instead_of"], v["signature"]))
+            own = social if name in SOCIAL and social else text
+            variants[name] = (mp4, with_signature(own, v["instead_of"], v["signature"]))
     return Reel(passage=passage, video=video, caption=text, hashtags=list(tags),
                 cover=work / "preview" / f"{surah:03d}{int(cover['ref'].split(':')[1]):03d}.png",
                 cover_ms=int((cover["start"] + cover["seconds"] / 2) * 1000),
-                facebook=(manifest.get("captions") or {}).get("facebook") or "",
+                facebook=captions.get("facebook") or "", social=social,
                 variants=variants)
 
 

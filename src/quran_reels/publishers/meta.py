@@ -19,6 +19,7 @@ from quran_reels import __version__
 from quran_reels.publishers.base import PublisherError, wait  # noqa: F401 (re-export)
 
 GRAPH = "https://graph.facebook.com"
+GRAPH_VIDEO = "https://graph-video.facebook.com"
 RUPLOAD = "https://rupload.facebook.com"
 USER_AGENT = f"quran-reels/{__version__} (+https://github.com/mssnoussi92/quran-reels)"
 
@@ -67,8 +68,9 @@ class Graph:
             pass
 
     def _call(self, method: str, url: str, what: str, **kw: Any) -> dict:
+        timeout = kw.pop("timeout", None) or self.timeout
         try:
-            r = self.session.request(method, url, timeout=self.timeout, **kw)
+            r = self.session.request(method, url, timeout=timeout, **kw)
         except requests.RequestException as e:
             raise GraphError(f"{what}: network error ({type(e).__name__})", transient=True) from None
         self._read_usage(r)
@@ -118,6 +120,14 @@ class Graph:
             return self._call("POST", f"{GRAPH}/{self.version}/{path}", f"POST {path}",
                               data=data, files={field: (file.name, f, "image/jpeg")},
                               headers=self._auth())
+
+    def post_video(self, path: str, video: Path, timeout: float = 1800, **data: Any) -> dict:
+        """Multipart upload of a whole video to graph-video.facebook.com (Page videos longer than
+        the 90 s of the Reels API: the theme films and shorts)."""
+        with video.open("rb") as f:
+            return self._call("POST", f"{GRAPH_VIDEO}/{self.version}/{path}", f"POST {path}",
+                              data=data, files={"source": (video.name, f, "video/mp4")},
+                              headers=self._auth(), timeout=timeout)
 
     def delete(self, path: str) -> dict:
         return self._call("DELETE", f"{GRAPH}/{self.version}/{path}", f"DELETE {path}",

@@ -140,7 +140,14 @@ le Word of the day a échoué deux fois avant le nouveau jeton) et 90 jours apr�
   hashtags de la fin.
   Calculée au rendu, rangée dans `manifest.json` (`captions.facebook`), lue par `load_reel` :
   calendrier, publish-test et à la demande. Un reel rendu avant reçoit la légende entière.
-  Instagram, TikTok, YouTube et `caption.txt` ne changent pas.
+  YouTube et `caption.txt` gardent la légende entière.
+- **Instagram et TikTok : légende courte, l'arabe gardé** (choix du propriétaire, 2026-11-15 :
+  « très longue et inutile ») : `render.social_caption`, série et référence, le texte arabe de
+  chaque ayah (on cherche un verset par ses mots, et les deux applis cherchent dans les
+  légendes), crédits sur une ligne, signature (TikTok : la sienne), leurs 5 hashtags ; **sans la
+  traduction** (dans la vidéo). Plus de 2 200 caractères : sans l'arabe, comme Facebook.
+  Rangée dans `manifest.json` (`captions.social`), lue par `load_reel` (`Reel.social`,
+  `Reel.for_platform`) ; un reel rendu avant reçoit la légende entière.
 - Résultats : `out/<passage>/publish.json` et résumé sur la page de l'exécution GitHub.
 
 ### Vérification des droits avant publication (`publishers/rights.py`)

@@ -112,3 +112,17 @@ propriétaire, puis lance `insights.yml` sur `main` avec `manual` :
   relevé ne départage deux heures. Instagram ne donne la répartition des abonnés (pays, heures) qu'à partir de
   100 abonnés.
 - **TikTok et YouTube** : seulement les captures (choix du propriétaire, 2026-11-15).
+
+## À regarder à la prochaine revue (2026-11-15)
+
+- **Trois reels presque pas montrés par Instagram**, quand Facebook les a montrés comme les autres : 109:1-6
+  (11 nov., Minshawi : 8 vues sur Instagram, 293 sur Facebook), 18:15-16 (13 nov., Minshawi : 2 et 228), 107:1-7
+  (14 nov., Fares Abbad : 5 et 298) ; les 11 autres : 124 à 789 vues sur Instagram. Rien ne les distingue dans nos
+  données (récitateurs, heures, fonds, publication sans reprise ni erreur), et les captures du propriétaire donnent
+  les mêmes chiffres que l'API. « Statut du compte » d'Instagram est au vert pour les recommandations (seule la
+  monétisation est en attente : « Présence établie », un compte trop récent). Hypothèse non prouvée : l'audio reconnu
+  après la publication. **À demander au propriétaire** (questions à choix) : le reel 107:1-7 affiche-t-il dans l'app
+  une mention « Audio indisponible » ou « Ce reel est limité » ? Pas encore regardé le 2026-11-15. Et voir si d'autres
+  reels suivent.
+- **Word of the day en pause** depuis le 2026-11-15 (choix du propriétaire : 4 vues en médiane par publication sur
+  Instagram, 21 vues en tout sur Facebook en 9 jours) ; ses relevés restent pour comparer s'il revient.

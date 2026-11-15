@@ -1,0 +1,21 @@
+# The theme videos of quran-themes-demo, published on the Page by the workflow `themes`
+# (docs/themes.md). Owner's decision, 2026-11-15: Facebook and Instagram after Meta's copyright
+# check, TikTok as a draft in the inbox (the owner posts it), YouTube by hand.
+#
+# What and when: docs/retention/calendar.md of quran-themes-demo, as written (« Le calendrier »);
+# the texts: its publication-<doc>.md; the files: its public pre-release page-<doc> (workflow
+# page-files, run once the owner has validated). Nothing is generated here.
+
+enabled: true
+from: 2026-11-23           # first day published automatically (the film of Dhul-Qarnayn);
+                           # before it the owner publishes by hand, and the run never touches it
+repo: mssnoussi92/quran-themes-demo
+ref: main
+calendar: docs/retention/calendar.md
+texts: docs/retention
+release_prefix: page-      # https://github.com/<repo>/releases/download/page-<doc>/<file>
+time: "19:00"              # Paris (owner's decision, 2026-11-13)
+early_minutes: 20          # a run up to 20 min before takes the day's video
+window_hours: 3            # after that, the day's video is missed (an alert says so)
+platforms: [facebook, instagram, tiktok]
+reels_max_seconds: 90      # Facebook's Reels API: 3 to 90 s; longer, a Page video (facebook_video.py)

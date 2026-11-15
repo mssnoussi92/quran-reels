@@ -16,7 +16,7 @@ on:
       - "src/quran_reels/catalog/**"
       - ".github/workflows/catalog.yml"
   workflow_run:               # after the runs that update the state branch
-    workflows: [daily-reel, images, insights]   # insights runs after prepare-splits
+    workflows: [daily-reel, images, insights, themes]   # insights runs after prepare-splits
     types: [completed]
   schedule:
     - cron: "37 3 * * *"      # once a day (04:37 Paris in winter): the calendar moves on

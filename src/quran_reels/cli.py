@@ -169,6 +169,20 @@ def main(argv: list[str] | None = None) -> int:
                          '"published": "2026-11-17", "seen": "2026-11-22", '
                          '"metrics": {"views": 340, "avg_watch": 41}}')
 
+    th = sub.add_parser("themes", help="the theme videos of quran-themes-demo on the Page "
+                                       "(docs/themes.md)")
+    th_sub = th.add_subparsers(dest="themes_command", required=True)
+    tr = th_sub.add_parser("run", help="publish the day's theme video when it is due")
+    tr.add_argument("--state", default="state/themes.json")
+    tr.add_argument("--dry-run", action="store_true",
+                    help="upload, read Meta's checks, delete; nothing public, nothing recorded")
+    tr.add_argument("--day", help="YYYY-MM-DD: that day's video, whatever the time (dry run)")
+    tr.add_argument("--platform", action="append", choices=("facebook", "instagram", "tiktok"))
+    tr.add_argument("--check", action="store_true", help="only say whether one is due")
+    tr.add_argument("--now", help="pretend it is this time (ISO), for --check")
+    tc = th_sub.add_parser("check", help="the next days: each row tied to a video, files public")
+    tc.add_argument("--days", type=int, default=14)
+
     from quran_reels.ondemand import cli as on_demand_cli
 
     on_demand_cli.add_parser(sub)
@@ -180,7 +194,7 @@ def main(argv: list[str] | None = None) -> int:
     note.add_argument("--report", help="default: out/daily-report.json")
     note.add_argument("--missed", default="",
                       help="slots no run took (output `missed` of `quran-reels daily --check`)")
-    note.add_argument("--alert", choices=("daily", "images"), default="daily",
+    note.add_argument("--alert", choices=("daily", "images", "themes"), default="daily",
                       help="which failure issue this workflow opens and closes")
 
     args = parser.parse_args(argv)
@@ -556,6 +570,34 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "on-demand":
         return on_demand_cli.run(cfg, args)
+
+    if args.command == "themes":
+        from datetime import date, datetime
+        from pathlib import Path
+
+        from quran_reels.themepub import run as themes
+
+        if args.themes_command == "check":
+            lines, problems = themes.check_upcoming(cfg, days=args.days)
+            print("\n".join(lines))
+            for p in problems:
+                print(f"PROBLÈME {p}", file=sys.stderr)
+            return 1 if problems else 0
+        if args.day and not args.dry_run:
+            raise SystemExit("--day is for a dry run only: the real run publishes today's video")
+        out = themes.run(cfg, Path(args.state), dry_run=args.dry_run,
+                         now=datetime.fromisoformat(args.now) if args.now else None,
+                         day=date.fromisoformat(args.day) if args.day else None,
+                         platforms=args.platform, check=args.check,
+                         report=cfg.out / "themes-report.json")
+        if args.check:
+            import os
+
+            if os.environ.get("GITHUB_OUTPUT"):
+                with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
+                    f.write(f"due={'true' if out['due'] else 'false'}\n")
+            return 0
+        return 1 if out.get("failed") else 0
 
     if args.command == "insights":
         import json

@@ -123,7 +123,13 @@ def build(cfg: Config, out: Path, state_dir: Path | None = None, previous: str |
         try:
             theme_index, theme_days = themes_mod.load_github(ins_cfg["themes"], today,
                                                              os.environ.get("GITHUB_TOKEN"))
-            stats_mod.merge_calendar(calendar, theme_days, ins_cfg["themes"].get("time", ""))
+            from quran_reels.themepub.run import settings as themes_settings
+
+            auto = themes_settings(cfg)
+            stats_mod.merge_calendar(
+                calendar, theme_days, ins_cfg["themes"].get("time", ""),
+                str(auto.get("from", "")) if auto.get("enabled") else "",
+                (_json(state_dir / "themes.json") or {}).get("posts") if state_dir else None)
         except Exception as e:     # noqa: BLE001  (the reels' calendar stands alone)
             print(f"warning: quran-themes-demo calendar: {type(e).__name__}: {e}", file=sys.stderr)
             notes.append("Calendrier des vidéos thématiques (quran-themes-demo) illisible cette "

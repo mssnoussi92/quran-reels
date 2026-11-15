@@ -124,6 +124,37 @@ def caption(cfg: Config, passage: Passage, limit: int = CAPTION_LIMIT) -> str:
     return text
 
 
+def _credits(cfg: Config, passage: Passage) -> list[str]:
+    """Reciter and translation; the word meanings when the reel shows some."""
+    c = cfg.content
+    credits = [_recitation(cfg), f"Translation: {c['translation']['label']}"]
+    if any(a.glosses for a in passage.ayahs):
+        g = c["glosses"]
+        credits.append(f"Word meanings: {g.get('label_en') or g['label']}")
+    return credits
+
+
+def _reference(passage: Passage, label: bool = True) -> str:
+    """The series line (when the passage has one) over the surah and its reference."""
+    return (series_line(passage) + "\n" if passage.label_en and label else "") + \
+        f"Surah {passage.surah_name_en} ({passage.reference}) · سورة {passage.surah_name_ar}"
+
+
+def social_caption(cfg: Config, passage: Passage, limit: int = CAPTION_LIMIT) -> str:
+    """Instagram's and TikTok's caption, without hashtags (owner, 2026-11-15: shorter, the Arabic
+    kept): series and reference, the Arabic of each ayah (a verse is looked up by its words, and
+    both apps search captions), the credits on one line, the handle. No translation: it is in the
+    video, as the credits are. Over `limit`: without the Arabic, as Facebook's."""
+    arabic = [passage.basmala.text] if passage.basmala else []
+    arabic += [f"{a.text} ﴿{arabic_digits(a.ref.ayah)}﴾" for a in passage.ayahs]
+    for body in ("\n".join(arabic), ""):
+        blocks = [_reference(passage), body, " · ".join(_credits(cfg, passage)), cfg.video["handle"]]
+        text = "\n\n".join(b for b in blocks if b) + "\n"
+        if len(text) <= limit:
+            break
+    return text
+
+
 def facebook_caption(cfg: Config, passage: Passage, tags: list[str]) -> str:
     """Facebook's short caption, hashtags included, at most platforms.facebook.
     max_caption_chars (400: Facebook's quality checklist asks for 10 to 400 characters, and
@@ -142,16 +173,10 @@ def facebook_caption(cfg: Config, passage: Passage, tags: list[str]) -> str:
         return ""
     if conf.get("max_hashtags") is not None:
         tags = tags[:int(conf["max_hashtags"])]
-    c = cfg.content
-    credits = [_recitation(cfg), f"Translation: {c['translation']['label']}"]
-    if any(a.glosses for a in passage.ayahs):
-        g = c["glosses"]
-        credits.append(f"Word meanings: {g.get('label_en') or g['label']}")
+    credits = _credits(cfg, passage)
 
     def text(n_tags: int, handle: bool = True, label: bool = True) -> str:
-        head = (series_line(passage) + "\n" if passage.label_en and label else "") + \
-            f"Surah {passage.surah_name_en} ({passage.reference}) · سورة {passage.surah_name_ar}"
-        blocks = [head, " · ".join(credits), cfg.video["handle"] if handle else "",
+        blocks = [_reference(passage, label), " · ".join(credits), cfg.video["handle"] if handle else "",
                   " ".join(tags[:n_tags])]
         return "\n\n".join(b for b in blocks if b)
 
@@ -379,14 +404,17 @@ def render_passage(cfg: Config, key: str, label_ar: str = "", label_en: str = ""
 
     tags = hashtags(cfg, passage)
     record = manifest(cfg, src, passage, timeline, bg_info, shown, levelled)
-    if short := facebook_caption(cfg, passage, tags):    # what Facebook gets (publish.py)
-        record["captions"] = {"facebook": short}
+    room = CAPTION_LIMIT - len(" ".join(tags)) - 2       # all of them, even on Instagram
+    # What Facebook gets, and Instagram and TikTok (publish.load_reel); caption.txt keeps it all
+    # (YouTube, by hand).
+    record["captions"] = {"social": social_caption(cfg, passage, room)}
+    if short := facebook_caption(cfg, passage, tags):
+        record["captions"]["facebook"] = short
     if signed:                  # publish.load_reel: their MP4 and caption
         record["variants"] = {p: {"video": f"{p}.mp4", "signature": sig,
                                   "instead_of": v["handle"]} for p, sig in signed.items()}
     (work / "manifest.json").write_text(json.dumps(record, ensure_ascii=False, indent=2),
                                         encoding="utf-8")
-    room = CAPTION_LIMIT - len(" ".join(tags)) - 2       # all of them, even on Instagram
     reel_text = Reel(passage, out, caption(cfg, passage, room), hashtags=tags).text()
     (work / "caption.txt").write_text(reel_text, encoding="utf-8")
     shutil.rmtree(audio_dir)
