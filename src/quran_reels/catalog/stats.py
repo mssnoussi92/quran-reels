@@ -169,8 +169,12 @@ def build(insights: dict[str, Any] | None, settings: dict[str, Any], now: dateti
                "url": rec.get("url", ""), "views": []}
         for name, title in (("48h", "à 48 h"), ("latest", "dernier relevé")):
             s = snaps.get(name)
-            if name == "latest" and s and snaps.get("48h", {}).get("at") == s.get("at"):
-                continue                     # the same reading: shown once, as « à 48 h »
+            # the same reading shown once, as « à 48 h »; YouTube's 48 h, counted on its days,
+            # is computed the night its latest is read, with other numbers: both shown
+            first = snaps.get("48h") or {}
+            if name == "latest" and s and (first.get("at"), first.get("m")) == (s.get("at"),
+                                                                                s.get("m")):
+                continue
             if s:
                 m = _full(s.get("m"))
                 row["views"].append({"name": name, "title": title, "age": _age(s.get("age_h", 0)),
