@@ -259,9 +259,9 @@
           <time>{{ t.time }}</time>
           <div class="what">
             <b>{{ t.label }}</b>
-            <span class="sub">vidéo thématique{% if t.where %} · {{ t.where }}{% endif %}{% if t.span %} · {{ t.span }}{% endif %} · publiée à la main</span>
+            <span class="sub">vidéo thématique{% if t.where %} · {{ t.where }}{% endif %}{% if t.span %} · {{ t.span }}{% endif %} · {% if t.auto %}automatique : Facebook, Instagram, brouillon TikTok ; YouTube à la main{% else %}publiée à la main{% endif %}</span>
           </div>
-          {% if t.published %}<span class="state ok">publié</span>{% elif t.todo %}<span class="state warn">à faire</span>{% else %}<span class="state plan">prévu</span>{% endif %}
+          {% if t.published or t.sent %}<span class="state ok">publié{% if t.sent and not t.published %} ({{ t.sent|join(", ") }}){% endif %}</span>{% elif t.todo %}<span class="state warn">à faire</span>{% else %}<span class="state plan">prévu</span>{% endif %}
         </div>
         {% endfor %}
       </li>

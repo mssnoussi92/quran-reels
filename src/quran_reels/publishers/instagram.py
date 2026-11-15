@@ -147,7 +147,9 @@ class InstagramPublisher:
             raise PublisherError(f"caption longer than {CAPTION_LIMIT} characters")
         params = {"media_type": "REELS", "upload_type": "resumable", "caption": text,
                   "share_to_feed": "true"}
-        if reel.cover_ms is not None:
+        if getattr(reel, "cover_url", None):     # an image made for it, public (theme videos)
+            params["cover_url"] = reel.cover_url
+        elif reel.cover_ms is not None:
             params["thumb_offset"] = str(reel.cover_ms)
         return params
 

@@ -83,21 +83,25 @@ class FacebookPublisher:
         first ayah with a word meaning), as its preferred thumbnail; Facebook picks a frame
         itself otherwise. Needs pages_manage_engagement and pages_read_user_content. Never
         fails the publication: False, with a warning."""
-        if reel.cover_ms is None:
+        given = getattr(reel, "cover_image", None)   # an image made for it (theme videos)
+        if reel.cover_ms is None and not (given and given.is_file()):
             return False
-        jpg = reel.video.with_suffix("") / "cover.jpg"
+        jpg = given if given and given.is_file() else reel.video.with_suffix("") / "cover.jpg"
         try:
-            jpg.parent.mkdir(parents=True, exist_ok=True)
-            subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-ss",
-                            f"{reel.cover_ms / 1000:.3f}", "-i", str(reel.video), "-frames:v",
-                            "1", "-q:v", "2", "-y", str(jpg)], capture_output=True, check=True)
+            if jpg is not given:
+                jpg.parent.mkdir(parents=True, exist_ok=True)
+                subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-ss",
+                                f"{reel.cover_ms / 1000:.3f}", "-i", str(reel.video),
+                                "-frames:v", "1", "-q:v", "2", "-y", str(jpg)],
+                               capture_output=True, check=True)
             self.graph.post_file(f"{video_id}/thumbnails", "source", jpg, is_preferred="true")
         except (OSError, subprocess.CalledProcessError, PublisherError) as e:
             why = "no frame" if isinstance(e, subprocess.CalledProcessError) else str(e)
             print(f"warning: facebook reel {video_id}: cover not set ({why})", file=sys.stderr)
             return False
-        print(f"facebook: cover of {video_id} set ({reel.cover_ms / 1000:.1f} s into the reel)",
-              file=sys.stderr)
+        print(f"facebook: cover of {video_id} set ("
+              + (jpg.name if jpg is given else f"{reel.cover_ms / 1000:.1f} s into the reel")
+              + ")", file=sys.stderr)
         return True
 
     def rights(self, video_id: str) -> rights.RightsCheck:

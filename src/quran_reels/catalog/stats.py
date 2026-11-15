@@ -195,12 +195,20 @@ def build(insights: dict[str, Any] | None, settings: dict[str, Any], now: dateti
     }
 
 
-def merge_calendar(calendar: list[dict], theme_days: list[Any], time: str) -> None:
+def merge_calendar(calendar: list[dict], theme_days: list[Any], time: str,
+                   auto_from: str = "", posted: dict[str, Any] | None = None) -> None:
     """Put the theme videos of quran-themes-demo in the catalogue's calendar (each day: `themes`).
-    The reels stay computed by their own calendar; the themes come from calendar.md as written."""
+    The reels stay computed by their own calendar; the themes come from calendar.md as written.
+    From `auto_from` (config/themes.yaml `from`) they go out by themselves (docs/themes.md);
+    `posted` is themes.json's `posts`: the platforms that got a day's video."""
+    posted = posted or {}
     by_day: dict[str, list[dict]] = {}
     for t in theme_days:
-        by_day.setdefault(t.day, []).append(t.to_dict() | {"time": time})
+        results = (posted.get(t.day) or {}).get("results") or {}
+        sent = sorted(p for p, r in results.items()
+                      if (r or {}).get("status") in ("published", "draft"))
+        by_day.setdefault(t.day, []).append(t.to_dict() | {
+            "time": time, "auto": bool(auto_from) and t.day >= auto_from, "sent": sent})
     for day in calendar:
         day["themes"] = by_day.get(day.get("date", ""), [])
 

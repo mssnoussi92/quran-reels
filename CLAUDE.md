@@ -34,6 +34,7 @@ jamais en silence, ne passe jamais outre en silence.
 | Exécution | GitHub Actions (dépôt public → gratuit), migrable sur le homelab (Docker) |
 | À la demande | Reel choisi depuis le téléphone (récitateur, sourate entière ou ayahs X à Y, fond, plateformes, **mots expliqués** cochés dans le formulaire **avant le ticket**, sous les ayahs affichées, ou `/mots 1 4` après l'aperçu, parmi les sens numérotés du Muyassar, jamais écrits ; extraits du Muyassar publiés sur le site pour le formulaire, choix du 2026-11-06) : catalogue → ticket prérempli → **aperçu** en commentaire → publié seulement après **`/publier`** du propriétaire ; **en plus** des 2 créneaux ; le calendrier **ne saute pas** un passage publié à la demande ; YouTube coché : une seule vidéo par demande, donc « Auto » = Tawfiq As-Sayegh pour tout le reel, et YouTube retiré de la demande avec un autre récitateur (choix du 2026-11-11, docs/on-demand.md) |
 | Périmètre | **Pas seulement des versets récités** : la page publiera aussi des thèmes et des sujets variés (épisodes de quran-themes-demo : thèmes, histoires…), choix du propriétaire le 2026-11-09 ; bios, images et site disent ce qui ne change pas (le Coran et la Sunna au quotidien, toujours sourcés), pas la liste du moment (docs/profils.md) |
+| Vidéos thématiques | **Publiées automatiquement à partir du 2026-11-23** (choix du propriétaire, 2026-11-15) : celle du jour de `docs/retention/calendar.md` de quran-themes-demo à **19:00**, du lundi au samedi, ses textes validés mot pour mot (`publication-<doc>.md`), ses fichiers de la pré-release publique `page-<doc>` ; Facebook et Instagram après la vérification des droits de Meta (sinon rien, TikTok compris), **TikTok en brouillon** (le propriétaire publie), **YouTube à la main** ; avant le 23, le propriétaire publie à la main (docs/themes.md) |
 | Titres | **Toujours en arabe et en anglais** (choix du propriétaire, 2026-11-09) : noms des comptes, série et sourate en tête des légendes (`render.series_line` : « Supplications from the Quran · آيات الدعاء · 3/38 »), titres YouTube (raccourcis par parties entières, jamais une seule langue), Word of the day, playlists, images ; le texte des ayahs reste hors de la légende Facebook |
 | Comptes pro | Page Facebook + Instagram en type **Créateur**, reliés |
 | Signature | **@quran_words_daily** sur chaque image, dans la zone sûre (repartages) ; **TikTok : `@quran.words.daily`** (choix du propriétaire, 2026-11-09 : `@quran_words_daily` y est à quelqu'un d'autre) : sa propre version de chaque reel (`platforms.tiktok.signature`, `render.signatures` : calque fixe redessiné, `out/<passage>/tiktok.mp4`) et la même signature à la fin de sa légende (`Reel.for_platform`) |
@@ -109,6 +110,11 @@ src/quran_reels/
                    figée), select.py (exclusions, ordre stable, état), cards.py + templates/
                    (1080×1350), caption.py, publish.py (carrousel Instagram, post Facebook
                    multi-photos), daily.py (`quran-reels images run`)
+  themepub/        vidéos thématiques sur la Page (docs/themes.md) : texts.py (publication-<doc>.md :
+                   textes par plateforme, fichiers), calendar.py (calendar.md tel qu'écrit → la vidéo
+                   de chaque plateforme, jamais la ligne d'avant), run.py (`quran-reels themes run|check` :
+                   dû à 19:00, téléchargement de `page-<doc>`, droits Meta, publication, `themes.json`) ;
+                   publishers/facebook_video.py : vidéo de plus de 90 s par /{page}/videos
   notify.py        `quran-reels notify` : tickets GitHub (alerte d'échec, légendes à copier ;
                    les images ont leur propre alerte, `--alert images`, depuis le 2026-11-15)
   insights/        statistiques de la Page (docs/insights.md) : collect.py (`quran-reels insights
@@ -150,6 +156,9 @@ tests/             pytest, sans réseau
                    insights.yml (à la fin de prepare-splits : statistiques Facebook et Instagram
                    → `insights.json` ; à la main avec `manual` : chiffres d'une capture ; son
                    propre groupe de concurrence, lecture seule, docs/insights.md)
+                   themes.yml (lancé par le planificateur à 18:41, lundi à samedi : la vidéo
+                   thématique du jour, groupe `accounts`, état themes.json sur `state`, ticket
+                   « ⚠️ Vidéo thématique en échec » ; à la main : essai à blanc d'un jour, docs/themes.md)
                    on-demand.yml (tickets « À la demande » et commentaires `/publier`,
                    `/essai`, `/apercu`, `/mots`, `/youtube` **du propriétaire seulement** ; aperçu hors
                    groupe `accounts`, publication dans `accounts`)
@@ -338,7 +347,8 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   attente aurait été annulée de même, sans job donc sans alerte).
   Les workflows sont donc lancés par des **tâches planifiées Claude** (choix du propriétaire,
   2026-11-05) qui réveillent la session « Quran Words Daily – planificateur » (Sonnet, dépôt
-  attaché, outils GitHub) : `prepare.yml` 02:41 Paris, `daily.yml` 07:12 et 19:12 Paris
+  attaché, outils GitHub) : `prepare.yml` 02:41 Paris, `daily.yml` 07:12 et 19:12 Paris, `themes.yml` 18:41 Paris du lundi au samedi (tâche
+  créée après l'essai à blanc, première publication le 2026-11-23)
   (`CRON_TZ=Europe/Paris`), `images.yml` 11:36 UTC ; chacune lance le workflow sur `main`,
   attend la fin, relance une fois en cas d'échec (sauf prepare) et résume (skill
   `check-publication`).
@@ -417,7 +427,8 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-30.
   d'écart, aucune différence n'est affirmée. YouTube et TikTok : captures envoyées par le
   propriétaire le dimanche, recopiées par une session (`insights.yml`, entrée `manual`).
 - Le calendrier du catalogue montre aussi les vidéos thématiques (calendar.md de
-  quran-themes-demo, tel qu'écrit) : un seul calendrier pour la Page.
+  quran-themes-demo, tel qu'écrit) : un seul calendrier pour la Page ; à partir du 2026-11-23
+  ils y sont « automatique », et « publié » d'après `themes.json`.
 
 ## État
 
