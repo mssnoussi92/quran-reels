@@ -385,7 +385,9 @@ def add_manual(path: Path, entries: list[dict[str, Any]], now: datetime | None =
     Each entry: {"platform", "video" (a theme video id such as "dua/short-1", a reel passage
     such as "106:1-4", or a title), "published" (YYYY-MM-DD), "seen" (YYYY-MM-DD, the day of the
     screenshot), "metrics": {views, hook, avg_watch, watch_pct, kept_30s, shares, saves,
-    comments, likes, follows}}. The same platform, video and seen day replaces the old entry."""
+    comments, likes, follows, finished}}. The same platform, video and seen day replaces the old
+    entry; with "remove": true, that entry goes (one sent with a wrong video, skill
+    record-stats)."""
     now = now or datetime.now(UTC)
     data = load(path)
     for e in entries:
@@ -397,6 +399,10 @@ def add_manual(path: Path, entries: list[dict[str, Any]], now: datetime | None =
             raise ValueError("video is missing")
         seen = str(e.get("seen") or now.astimezone(PARIS).date().isoformat())
         date.fromisoformat(seen)
+        if e.get("remove") is True:
+            data["manual"] = [m for m in data["manual"] if not (
+                m["platform"] == platform and m["video"] == video and m["seen"] == seen)]
+            continue
         if e.get("published"):
             date.fromisoformat(str(e["published"]))
         nums = {}

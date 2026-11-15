@@ -424,8 +424,9 @@ Procédures à suivre, pour toute session (le planificateur compris) : `check-pu
 (lire un run, l'état, rapporter), `test-reciter` (découper, vérifier, Facebook d'abord, puis
 Instagram), `republish` (rouvrir un créneau et republier), `add-background` (chercher, vérifier,
 proposer un fond), `propose-series` (proposer une série, validée en PR), `weekly-review`
-(le dimanche : statistiques, deux calendriers, stock des thèmes, captures YouTube/TikTok
-enregistrées sur parole du propriétaire, 1 à 3 propositions ; ne change rien seule).
+(le dimanche : statistiques, deux calendriers, stock des thèmes, 1 à 3 propositions ; ne change rien
+seule), `record-stats` (les captures de statistiques, TikTok surtout, envoyées dans n'importe quelle
+session : reconnaître la vidéo, lire, montrer, demander, enregistrer, vérifier).
 
 ## Secrets (jamais dans le code ni dans la conversation)
 
@@ -458,8 +459,8 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-30.
   par vidéo comme sur Facebook et Instagram (relevés 48 h / 7 j / 28 j **comptés sur les jours de
   YouTube Analytics**, donc aussi pour les vidéos plus anciennes ; rangée avec son reel ou sa vidéo
   thématique ; 93:1-11, publiée à la main, est `hand:93:1-11`), abonnés de la chaîne ; mise en place : docs/plateformes.md, « Statistiques YouTube ») ;
-  TikTok (et YouTube tant que ses secrets manquent) : captures envoyées par le propriétaire le
-  dimanche, recopiées par une session (`insights.yml`, entrée `manual`).
+  TikTok : captures envoyées par le propriétaire **dans n'importe quelle session**, enregistrées
+  après son accord par le skill `record-stats` (`insights.yml`, entrée `manual`).
 - Le calendrier du catalogue montre aussi les vidéos thématiques (calendar.md de
   quran-themes-demo, tel qu'écrit) : un seul calendrier pour la Page ; à partir du 2026-11-23
   ils y sont « automatique », et « publié » d'après `themes.json`.

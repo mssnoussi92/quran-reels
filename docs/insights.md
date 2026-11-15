@@ -118,12 +118,14 @@ les chiffres ont été rangés comme des captures (source `youtube-api`) : ces e
 à part, `continue-on-error`). Ce qu'aucune API ne donne (impressions, taux de clics, « regardées » contre
 « balayées » des Shorts) reste dans YouTube Studio. Mise en place : docs/plateformes.md, « Statistiques YouTube ».
 
-## Captures YouTube et TikTok
+## Captures TikTok (et ce que l'API YouTube ne donne pas)
 
-TikTok, et YouTube tant que sa lecture n'est pas branchée : le propriétaire envoie les captures **une fois par semaine** (le dimanche), de préférence la liste « Contenu » de
-YouTube Studio et de TikTok (toutes les vidéos d'un coup), et pour une vidéo qui compte, sa page de statistiques
-(rétention, « regardées » contre « balayées »). La session lit les chiffres sur l'image, les montre au
-propriétaire, puis lance `insights.yml` sur `main` avec `manual` :
+TikTok n'a pas d'API pour nous : ses chiffres n'existent que par les captures du propriétaire, envoyées **dans
+n'importe quelle session** (sa demande, 2026-11-15), quran-reels, quran-themes-demo ou le planificateur, le dimanche
+à la revue ou un autre jour : de préférence la liste « Contenu » de TikTok Studio (toutes les vidéos d'un coup), et
+pour une vidéo qui compte, sa page de statistiques. La marche à suivre est le skill **`record-stats`**
+(`.claude/skills/record-stats/`, et son renvoi dans quran-themes-demo) : la session reconnaît chaque vidéo, lit les
+chiffres sur l'image, les montre au propriétaire et demande, puis lance `insights.yml` sur `main` avec `manual` :
 
 ```json
 [{"platform": "youtube", "video": "dua/short-1", "published": "2026-11-17", "seen": "2026-11-22",
@@ -133,8 +135,10 @@ propriétaire, puis lance `insights.yml` sur `main` avec `manual` :
 - `video` : l'identifiant d'une vidéo thématique (`<publication>/<short-N|film>`, voir la page), le passage d'un
   reel (`106:1-4`) ou un titre ; une entrée non reconnue est listée à part (« Captures sans vidéo reconnue »).
 - `metrics` : `views`, `hook` (% qui passent 3 s ; YouTube : « regardées » ; TikTok : 100 − « taux de saut » s'il
-  est affiché), `avg_watch` (s), `watch_pct`, `kept_30s`, `shares`, `saves`, `comments`, `likes`, `follows`.
-- La même plateforme, la même vidéo et le même jour de capture remplacent l'entrée d'avant.
+  est affiché), `avg_watch` (s), `watch_pct`, `kept_30s`, `finished` (% qui ont regardé jusqu'au bout ; TikTok :
+  « A regardé la vidéo en entier »), `shares`, `saves`, `comments`, `likes`, `follows`, `reach`.
+- La même plateforme, la même vidéo et le même jour de capture remplacent l'entrée d'avant ; avec
+  `"remove": true` (sans `metrics`), l'entrée de ce jour est retirée (une capture rangée sous une mauvaise vidéo).
 - Aucun chiffre deviné : ce qui n'est pas sur la capture n'est pas écrit.
 
 ## Ce que les statistiques ne disent pas encore

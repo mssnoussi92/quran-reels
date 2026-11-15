@@ -46,7 +46,8 @@ REQUEST = {
     "facebook-photo": ["post_media_view", "post_reactions_by_type_total", "post_clicks"],
 }
 NUMBERS = ("views", "reach", "hook", "avg_watch", "watch_pct", "kept_30s", "shares", "saves",
-           "comments", "likes", "follows", "replays")
+           "comments", "likes", "follows", "replays",
+           "finished")      # % who watched to the end (TikTok: « A regardé la vidéo en entier »)
 
 
 def values(answer: dict[str, Any]) -> dict[str, Any]:

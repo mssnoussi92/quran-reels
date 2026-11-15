@@ -329,6 +329,14 @@ def test_manual_numbers_from_a_screenshot(tmp_path):
         C.add_manual(path, [entry | {"platform": "snapchat"}])
     with pytest.raises(ValueError):
         C.add_manual(path, [entry | {"metrics": {"likes_per_hour": 3}}])
+    # TikTok's « watched the full video »; an entry sent with a wrong video, taken back
+    wrong = {"platform": "tiktok", "video": "107:1-77", "seen": "2026-11-22",
+             "metrics": {"views": 676, "finished": 31.2}}
+    C.add_manual(path, [wrong])
+    assert json.loads(path.read_text())["manual"][-1]["m"] == {"views": 676, "finished": 31.2}
+    C.add_manual(path, [{"platform": "tiktok", "video": "107:1-77", "seen": "2026-11-22",
+                         "remove": True}])
+    assert [m["video"] for m in json.loads(path.read_text())["manual"]] == ["dua/short-1"]
 
 
 # ------------------------------------------------------------------------------ the page
