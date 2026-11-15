@@ -18,4 +18,11 @@ time: "19:00"              # Paris (owner's decision, 2026-11-13)
 early_minutes: 20          # a run up to 20 min before takes the day's video
 window_hours: 3            # after that, the day's video is missed (an alert says so)
 platforms: [facebook, instagram, tiktok]
-reels_max_seconds: 90      # Facebook's Reels API: 3 to 90 s; longer, a Page video (facebook_video.py)
+reels_max_seconds: 900     # Facebook: up to 15 min through the Reels API, with Meta's rights check on the
+                           # unpublished reel. Dry runs of 2026-11-15: a 2:05 short and the 8:24 film taken
+                           # as reels, check « complete, aucune correspondance »; as Page videos
+                           # (/videos, facebook_video.py, still used beyond this) Meta gave no check in
+                           # 10 min, so nothing would have been published.
+instagram_processing_seconds: 1200   # a 2-minute video is still processing after 4 min (dry run of
+                                     # 2026-11-15: three uploads given up at 240 s each); one upload,
+                                     # waited for, rather than new containers

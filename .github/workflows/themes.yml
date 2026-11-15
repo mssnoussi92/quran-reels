@@ -50,6 +50,16 @@ jobs:
       - name: Install the package
         run: pip install -e .
 
+      - name: ffmpeg
+        run: |
+          # The Instagram copy is re-encoded without edit list (themepub/run.py, for_instagram).
+          # Static build of imageio-ffmpeg, as in daily.yml (no apt).
+          pip install -q imageio-ffmpeg==0.8.1
+          mkdir -p ~/bin
+          ln -sf "$(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')" ~/bin/ffmpeg
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+          ~/bin/ffmpeg -version | head -1
+
       - name: Load the state
         run: |
           if git ls-remote --exit-code --heads origin state >/dev/null; then

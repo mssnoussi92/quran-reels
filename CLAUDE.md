@@ -123,7 +123,11 @@ src/quran_reels/
                    textes par plateforme, fichiers), calendar.py (calendar.md tel qu'écrit → la vidéo
                    de chaque plateforme, jamais la ligne d'avant), run.py (`quran-reels themes run|check` :
                    dû à 19:00, téléchargement de `page-<doc>`, droits Meta, publication, `themes.json`) ;
-                   publishers/facebook_video.py : vidéo de plus de 90 s par /{page}/videos
+                   Facebook toujours en reel, film compris (jusqu'à 15 min : seule voie où Meta vérifie
+                   les droits avant publication, essais du 2026-11-15) ; Instagram : une copie réencodée
+                   sans edit list (`for_instagram`), mise dans la release `reels` et téléchargée par
+                   Instagram (`video_url` : l'envoi direct d'un short de 2 min échouait toujours) ;
+                   publishers/facebook_video.py (/{page}/videos) n'a pas de vérification, il ne publie rien
   notify.py        `quran-reels notify` : tickets GitHub (alerte d'échec, légendes à copier ;
                    les images ont leur propre alerte, `--alert images`, depuis le 2026-11-15)
   insights/        statistiques de la Page (docs/insights.md) : collect.py (`quran-reels insights
@@ -357,7 +361,7 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   Les workflows sont donc lancés par des **tâches planifiées Claude** (choix du propriétaire,
   2026-11-05) qui réveillent la session « Quran Words Daily – planificateur » (Sonnet, dépôt
   attaché, outils GitHub) : `prepare.yml` 02:41 Paris, `daily.yml` 07:12 et 19:12 Paris, `themes.yml` 18:41 Paris du lundi au samedi (tâche
-  créée après l'essai à blanc, première publication le 2026-11-23)
+  créée le 2026-11-15 après les essais à blanc ; rien n'est dû avant le 2026-11-23)
   (`CRON_TZ=Europe/Paris`), `images.yml` 11:36 UTC ; chacune lance le workflow sur `main`,
   attend la fin, relance une fois en cas d'échec (sauf prepare) et résume (skill
   `check-publication`).

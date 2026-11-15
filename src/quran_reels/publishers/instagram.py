@@ -84,6 +84,8 @@ class InstagramPublisher:
         """New container, video uploaded to it. Returns (container id, upload failed)."""
         container = self.graph.post(f"{self.ig_user_id}/media", **params)
         cid = str(container["id"])
+        if "video_url" in params:       # Instagram fetches it: nothing to send
+            return cid, False
         url = container.get("uri") or f"{RUPLOAD}/ig-api-upload/{self.graph.version}/{cid}"
         try:
             self.graph.upload(url, reel.video, f"upload instagram container {cid}")
@@ -147,6 +149,9 @@ class InstagramPublisher:
             raise PublisherError(f"caption longer than {CAPTION_LIMIT} characters")
         params = {"media_type": "REELS", "upload_type": "resumable", "caption": text,
                   "share_to_feed": "true"}
+        if getattr(reel, "video_url", None):     # public address: Instagram fetches the file
+            del params["upload_type"]
+            params["video_url"] = reel.video_url
         if getattr(reel, "cover_url", None):     # an image made for it, public (theme videos)
             params["cover_url"] = reel.cover_url
         elif reel.cover_ms is not None:
