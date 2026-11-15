@@ -636,9 +636,21 @@ def main(argv: list[str] | None = None) -> int:
 
             if not state.is_dir():
                 raise SystemExit(f"--state {state}: no such folder (a checkout of the state branch)")
-            days = int(insights.settings(cfg).get("days", 35))
+            import os
+            from datetime import datetime
+
+            from quran_reels.insights import themes as themes_mod
+
+            s = insights.settings(cfg)
+            try:      # the theme videos, recognised by their title (as on Facebook and Instagram)
+                index, _ = themes_mod.load_github(s["themes"], datetime.now(insights.PARIS).date(),
+                                                  os.environ.get("GITHUB_TOKEN"))
+            except Exception as e:     # noqa: BLE001  (the reels are still matched)
+                index = None
+                print(f"::warning::vidéos thématiques non lues ({type(e).__name__})")
             try:
-                print(youtube.collect(state / "insights.json", days, dry_run=args.dry_run))
+                print(youtube.collect(state / "insights.json", s, dry_run=args.dry_run,
+                                      themes=index))
             except youtube.YouTubeError as e:
                 print(f"::warning::YouTube non lu : {e}")
                 return 1

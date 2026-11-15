@@ -17,8 +17,8 @@
   </header>
 
   <h1>Statistiques</h1>
-  <p class="lead">Facebook et Instagram, lus chaque nuit par le workflow <code>insights</code> (lecture seule) ;
-    YouTube et TikTok, recopiés des captures. Les reels, le Word of the day et les vidéos thématiques de la même Page.</p>
+  <p class="lead">Facebook, Instagram et YouTube, lus chaque nuit par le workflow <code>insights</code> (lecture seule) ;
+    TikTok, recopié des captures du dimanche. Les reels, le Word of the day et les vidéos thématiques de la même Page.</p>
 
   {% if s.empty %}
   <p class="notice">Pas encore de statistiques : le premier relevé se fait la nuit qui suit la mise en service
@@ -79,7 +79,9 @@
 
   <section id="videos">
     <h2>Chaque vidéo</h2>
-    <p class="muted">Les {{ s.days }} derniers jours, la plus récente d'abord. « — » : Meta n'a pas donné ce chiffre (jamais compté comme 0).</p>
+    <p class="muted">Les {{ s.days }} derniers jours, la plus récente d'abord, chaque plateforme sur sa ligne : la même vidéo sur Facebook,
+      Instagram et YouTube (le Short, ou le film en 16:9 à côté de sa version verticale). « — » : la plateforme n'a pas donné ce chiffre
+      (jamais compté comme 0). YouTube calcule la durée regardée avec un ou deux jours de retard.</p>
     {% for v in s.videos %}
     <article class="card post">
       <div class="head"><h4>{{ v.when|capitalize }}</h4><span class="badge {{ 'cand' if v.kind.startswith('theme') else ('plan' if v.kind == 'word' else 'rot') }}">{{ v.kind_label }}</span></div>
@@ -96,6 +98,8 @@
           {% if w.m.kept_30s is not none %}<span><b>{{ w.m.kept_30s|number(' %') }}</b> encore là à 0:30</span>{% endif %}
           {% if w.m.engage is not none %}<span><b>{{ w.m.engage|number }}</b> partages + enreg.</span>{% endif %}
           {% if w.m.follows is not none %}<span><b>{{ w.m.follows|number }}</b> abonnés</span>{% endif %}
+          {% if w.m.likes is not none %}<span><b>{{ w.m.likes|number }}</b> j'aime</span>{% endif %}
+          {% if w.m.comments is not none %}<span><b>{{ w.m.comments|number }}</b> commentaires</span>{% endif %}
           {% if w.m.reach is not none %}<span>{{ w.m.reach|number }} personnes</span>{% endif %}
         </p>
         {% else %}

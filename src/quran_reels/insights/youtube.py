@@ -113,13 +113,17 @@ class YouTube:
         return body
 
     def channel(self, token: str) -> dict[str, str]:
-        items = self.get(f"{DATA}/channels", token, part="contentDetails,snippet",
+        items = self.get(f"{DATA}/channels", token, part="contentDetails,snippet,statistics",
                          mine="true").get("items") or []
         if not items:
             raise YouTubeError("no YouTube channel for this Google account")
         c = items[0]
+        st = c.get("statistics") or {}
         return {"id": c["id"], "title": (c.get("snippet") or {}).get("title", ""),
-                "uploads": c["contentDetails"]["relatedPlaylists"]["uploads"]}
+                "uploads": c["contentDetails"]["relatedPlaylists"]["uploads"],
+                "subscribers": None if st.get("hiddenSubscriberCount") else _int(
+                    st.get("subscriberCount")),
+                "videos": _int(st.get("videoCount"))}
 
     def uploads(self, token: str, playlist: str, since: datetime) -> list[dict[str, Any]]:
         """The channel's videos published since `since`, newest first (the uploads playlist is
@@ -233,30 +237,77 @@ def video_key(title: str, description: str = "") -> str:
     return (title or "").strip()
 
 
-def entries(found: list[dict[str, Any]], stats: dict[str, dict], extra: dict[str, dict],
-            today: date) -> list[dict[str, Any]]:
-    """One insights `manual` entry per public video (source « youtube-api »)."""
-    out = []
-    for v in found:
-        s = stats.get(v["id"])
-        if not s:
-            continue                       # private, unlisted or gone
-        nums = {k: s[k] for k in ("views", "likes", "comments") if s.get(k) is not None}
-        nums |= {k: x for k, x in (extra.get(v["id"]) or {}).items() if x is not None}
-        if not nums:
-            continue
-        out.append({"platform": "youtube",
-                    "video": video_key(s.get("title") or v["title"], s.get("description") or ""),
-                    "published": v["published"].date().isoformat(), "seen": today.isoformat(),
-                    "metrics": nums, "source": "youtube-api"})
-    return out
+SHORT_MAX = 180          # seconds: longer, a YouTube video (the 16:9 film), not a Short
 
 
-def collect(path: Path, days: int = 35, now: datetime | None = None,
+def numbers(stats: dict[str, Any], extra: dict[str, Any] | None) -> dict[str, Any]:
+    """The numbers of one video, named as the page names Meta's (metrics.NUMBERS)."""
+    m = {k: stats[k] for k in ("views", "likes", "comments") if stats.get(k) is not None}
+    m |= {k: x for k, x in (extra or {}).items() if x is not None}
+    return m
+
+
+def match(title: str, description: str, published: datetime, posts: dict[str, dict],
+          themes: Any = None) -> dict[str, Any]:
+    """Which video of the Page a YouTube video is (key, kind, label, ref), so that it stands beside
+    its Facebook and Instagram twins: a reel by its reference (title, or the description's surah
+    line) or by the names in its title; a theme video by its title (the 16:9 film beside its 9:16
+    version). Unknown: on its own, kind « other »."""
+    key = video_key(title, description)
+    twin = None
+    if PASSAGE.fullmatch(f"({key})"):
+        twin = next((r for r in posts.values() if r.get("platform") != "youtube" and
+                     (r.get("ref") or {}).get("passage") == key), None)
+    if twin is None and themes is not None:
+        video = themes.match(title, "youtube")
+        if video:
+            info = {"key": f"theme:{video.id}", "kind": video.kind,
+                    "label": f"{video.title_en} · {video.title_ar}",
+                    "ref": {"theme": video.id, "series": video.series, "part": video.part}}
+            if video.id.endswith("/film"):
+                tall = f"theme:{video.id[:-len('/film')]}-9x16/film"
+                if any(r.get("key") == tall for r in posts.values()):
+                    info["key"] = tall
+            return info
+    if twin is None:
+        found = _by_name(title, published, posts)
+        twin = posts.get(found) if found else None
+    if twin is not None:
+        return {k: twin.get(k) for k in ("key", "kind", "label", "ref")} | {
+            "ref": dict(twin.get("ref") or {})}
+    return {"key": "", "kind": "other", "label": title, "ref": {}}
+
+
+def _by_name(title: str, published: datetime, posts: dict[str, dict]) -> str | None:
+    """A reel known only by the names in its title (« Surah Al-Masad · سورة المسد », « آية الكرسي -
+    Ayat al-Kursi »): the reel whose first caption line carries one of them; several (a surah
+    read in parts), the last one published before it, a day's margin. Returns its uid."""
+    from quran_reels.insights.themes import norm
+
+    parts = [norm(x) for x in re.split(r" · | - | \| ", title or "")]
+    parts = [x for x in parts if len(x) >= 6]
+    if not parts:
+        return None
+    found = []
+    for uid, rec in posts.items():
+        line = norm(rec.get("first_line") or "")
+        if (rec.get("key") or "").startswith("slot:") and line and any(x in line for x in parts):
+            found.append((rec.get("published", ""), uid))
+    if not found:
+        return None
+    limit = (published + timedelta(days=1)).isoformat()
+    before = [f for f in found if f[0] <= limit]
+    return (max(before) if before else min(found))[1]
+
+
+def collect(path: Path, s: dict[str, Any], now: datetime | None = None,
             client: YouTube | None = None, env: YouTubeEnv | None = None,
-            dry_run: bool = False) -> str:
-    """Read the channel and add its numbers to insights.json. Returns a line for the log."""
-    from quran_reels.insights.collect import add_manual, load, save
+            dry_run: bool = False, themes: Any = None) -> str:
+    """Read the channel into insights.json, as the Meta posts are: one post per public video
+    (« youtube:<id> », its link, its title), its snapshots at 48 h, 7 days and 28 days and the
+    latest (collect.due; a video seen for the first time gets one at once), the subscribers of the
+    day. Returns a line for the log."""
+    from quran_reels.insights.collect import PARIS, due, load, save
 
     env = env or YouTubeEnv.from_environ()
     if env is None:
@@ -266,7 +317,7 @@ def collect(path: Path, days: int = 35, now: datetime | None = None,
     yt = client or YouTube(env.client_id, env.client_secret)
     token = yt.access(str(env.refresh_token))
     ch = yt.channel(token)
-    found = yt.uploads(token, ch["uploads"], now - timedelta(days=days))
+    found = yt.uploads(token, ch["uploads"], now - timedelta(days=int(s.get("days", 35))))
     ids = [v["id"] for v in found if v.get("id")]
     stats = yt.videos(token, ids) if ids else {}
     public = [i for i in ids if i in stats]
@@ -278,17 +329,47 @@ def collect(path: Path, days: int = 35, now: datetime | None = None,
             extra = yt.analytics(token, public, start, now.date())
         except YouTubeError as e:            # the counters are still worth keeping
             note = f" (YouTube Analytics unavailable: {e})"
-    rows = entries(found, stats, extra, now.date())
-    if rows and not dry_run:
-        # A day's reading replaces that day's earlier one whole: a video read under its title, then
-        # found by its reference, must not stay twice (2026-11-15, two readings an hour apart).
-        data = load(path)
-        today = now.date().isoformat()
-        data["manual"] = [m for m in data["manual"]
-                          if not (m.get("source") == "youtube-api" and m.get("seen") == today)]
+
+    data = load(path)
+    # Read once as screenshot-like entries (2026-11-15, the first evening): posts now.
+    data["manual"] = [m for m in data["manual"] if m.get("source") != "youtube-api"]
+    today = now.astimezone(PARIS).date().isoformat()
+    if ch.get("subscribers") is not None:
+        data["accounts"].setdefault("youtube", {})[today] = {
+            "followers_count": ch["subscribers"], "media_count": ch.get("videos")}
+    listed = now.isoformat(timespec="seconds")
+    data["listed_youtube"] = listed           # a video not listed again is no longer public
+    taken = 0
+    for v in found:
+        st = stats.get(v["id"])
+        if not st:
+            continue
+        uid = f"youtube:{v['id']}"
+        title = st.get("title") or v["title"]
+        seconds_ = st.get("seconds")
+        short = seconds_ is not None and seconds_ <= SHORT_MAX
+        rec = data["posts"].setdefault(uid, {"snapshots": {}})
+        rec |= {"platform": "youtube", "id": v["id"], "seen": listed,
+                "url": f"https://www.youtube.com/{'shorts/' + v['id'] if short else 'watch?v=' + v['id']}",
+                "published": v["published"].isoformat(timespec="seconds"),
+                "kind_meta": "youtube-short" if short else "youtube-video",
+                "first_line": title[:140]}
+        if seconds_:
+            rec["seconds"] = seconds_
+        info = match(title, st.get("description") or "", v["published"], data["posts"], themes)
+        rec |= {"key": info["key"] or uid, "kind": info["kind"], "label": info["label"],
+                "ref": info["ref"]}
+        age_h = (now - v["published"]).total_seconds() / 3600
+        names = due(rec, age_h, s) or ([] if rec["snapshots"] else ["latest"])
+        if names:
+            snap = {"at": listed, "age_h": round(age_h, 1), "m": numbers(st, extra.get(v["id"]))}
+            for name in names:
+                rec["snapshots"][name] = snap
+            taken += 1
+    if not dry_run:
         save(path, data)
-        add_manual(path, rows, now=now)
-    return (f"youtube: channel « {ch['title']} », {len(rows)} public videos read"
+    return (f"youtube: channel « {ch['title']} » ({ch.get('subscribers')} subscribers), "
+            f"{len(public)} public videos, {taken} read"
             f"{' (dry run, nothing saved)' if dry_run else ''}{note}")
 
 

@@ -87,6 +87,7 @@ jobs:
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}     # only to list quran-themes-demo's texts (public)
         run: |
           if [ "${{ inputs.dry_run }}" = "true" ]; then
             quran-reels insights youtube --state state-branch --dry-run
