@@ -373,8 +373,12 @@ def check_upcoming(cfg: Config, days: int = 14, today: date | None = None,
         import requests
 
         def exists(url: str) -> bool:
+            # One byte, by GET: a release file redirects to a storage address signed for GET only,
+            # which answers HEAD with 401 (2026-11-15: every file of page-* read as missing).
             try:
-                return requests.head(url, allow_redirects=True, timeout=30).status_code == 200
+                with requests.get(url, headers={"Range": "bytes=0-0"}, allow_redirects=True,
+                                  stream=True, timeout=30) as r:
+                    return r.status_code in (200, 206)
             except requests.RequestException:
                 return False
     first = date.fromisoformat(str(s.get("from"))) if s.get("from") else today
