@@ -10,6 +10,12 @@ One section per video:
     **Instagram (5 hashtags)**  **TikTok : la vidéo `…-tiktok.mp4` (5 hashtags)**
     **Titre YouTube (35/100)**  **Description YouTube (Shorts)**
 
+Since 2026-11-15 a platform's text comes in cards, each with its own Copy button on the owner's
+page, pasted into one caption (« **Facebook · Titre** », « … · Description », « … · Crédits »,
+« … · Hashtags (3) »; « **YouTube · Titre (78/100)** » is YouTube's title field, its other cards its
+description): the caption here is those cards joined by a blank line, in their order. On Facebook,
+Instagram and TikTok the short caption has three (title, hook with the AI-voice line, hashtags).
+
 Every text is taken as it is: nothing is cut, added or rewritten here (the owner validated them).
 A text the file's opening paragraph says is not validated yet (« pas encore validé(e)s », as
 tools/trial/publish.py writes it: the short captions proposed on 2026-11-15) is `pending`, and
@@ -24,6 +30,8 @@ from dataclasses import dataclass, field
 from quran_reels.insights.themes import SECTION
 
 FILE_LINE = re.compile(r"·\s*(?P<dur>\d+:\d{2})\s*·\s*(?P<aspect>\d+:\d+)\s*·\s*(?P<where>[^·]+)")
+CARD = re.compile(r"^(?P<platform>facebook|instagram|tiktok|youtube)\s+·\s+(?P<kind>titre|description|"
+                  r"crédits|credits|hashtags)\b", re.IGNORECASE)
 PENDING = re.compile(r"pas encore validée?s?\b", re.IGNORECASE)
 BLOCKS = (("titre youtube", "youtube_title"), ("description youtube", "youtube_description"),
           ("tiktok", "tiktok"), ("instagram", "instagram"), ("facebook", "facebook"))
@@ -45,6 +53,7 @@ class Video:
     platforms: list[str] = field(default_factory=list)
     captions: dict[str, str] = field(default_factory=dict)
     pending: bool = False           # the file says its texts are not validated yet
+    cards: dict[str, list[tuple[str, str]]] = field(default_factory=dict)   # platform → (kind, text)
 
     @property
     def title(self) -> str:
@@ -64,6 +73,7 @@ def parse(doc: str, text: str) -> dict[str, Video]:
     out: dict[str, Video] = {}
     current: Video | None = None
     label: str | None = None
+    card: tuple[str, str] | None = None         # (platform, kind) of a card label
     i = 0
     while i < len(lines):
         line = lines[i]
@@ -97,13 +107,30 @@ def parse(doc: str, text: str) -> dict[str, Video]:
                 current.platforms = _platforms(f["where"])
         elif current and line.startswith("**") and line.rstrip().endswith("**"):
             low = line.strip("* ").casefold()
-            label = next((key for word, key in BLOCKS if low.startswith(word)), None)
-        elif current and label and line.strip() == "```text":
+            c = CARD.match(low)
+            card = (c["platform"], c["kind"].replace("credits", "crédits")) if c else None
+            label = None if c else next((key for word, key in BLOCKS if low.startswith(word)), None)
+        elif current and (label or card) and line.strip() == "```text":
             j = i + 1
             while j < len(lines) and lines[j].strip() != "```":
                 j += 1
-            current.captions[label] = "\n".join(lines[i + 1:j]).strip("\n") + "\n"
-            label = None
+            body = "\n".join(lines[i + 1:j]).strip("\n")
+            if card:
+                current.cards.setdefault(card[0], []).append((card[1], body))
+            else:
+                current.captions[label] = body + "\n"
+            label = card = None
             i = j
         i += 1
+    for video in out.values():
+        for platform, parts in video.cards.items():
+            if platform == "youtube":
+                title = [t for kind, t in parts if kind == "titre"]
+                if title:
+                    video.captions["youtube_title"] = title[0] + "\n"
+                rest = [t for kind, t in parts if kind != "titre" and t]
+                if rest:
+                    video.captions["youtube_description"] = "\n\n".join(rest) + "\n"
+            else:
+                video.captions[platform] = "\n\n".join(t for _, t in parts if t) + "\n"
     return out

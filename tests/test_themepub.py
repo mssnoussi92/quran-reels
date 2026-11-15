@@ -400,3 +400,96 @@ def test_theme_failures_have_their_own_issue_and_youtube_lines():
     text = notify.failure_text({"items": [item | {"results": {
         "facebook": {"status": "blocked", "error": "droits"}}}]}, "https://run")
     assert "quran-theme" in text and "récitateur" not in text
+
+
+CARDS = """# Du'a · الدعاء : textes de publication
+
+Pour chaque short, les textes à copier. Légendes courtes **validées par le propriétaire le 2026-11-16**.
+
+## Short 1 · Patient… and he asked · صابر… ودعا!
+
+`dua-short-1-asked.mp4` (TikTok : `dua-short-1-asked-tiktok.mp4`, signée `@quran.words.daily`) · 1:49 · 9:16 · Facebook, Instagram, TikTok, YouTube Shorts · couverture : `dua-short-1-asked-cover.jpg`
+
+**Facebook · Titre**
+
+```text
+Patient… and he asked
+صابر… ودعا!
+```
+
+**Facebook · Description**
+
+```text
+Hook (ar)
+Hook (en)
+
+🎙️ AI-generated voice
+```
+
+**Facebook · Hashtags (3)**
+
+```text
+#a #b #c
+```
+
+Sur TikTok : la vidéo `dua-short-1-asked-tiktok.mp4`, signée `@quran.words.daily`.
+
+**TikTok · Titre**
+
+```text
+Patient… and he asked
+صابر… ودعا!
+```
+
+**TikTok · Description**
+
+```text
+Hook (TT)
+```
+
+**TikTok · Hashtags (5)**
+
+```text
+#a #b #c #d #e
+```
+
+**YouTube · Titre (35/100)**
+
+```text
+Patient… and he asked · صابر… ودعا!
+```
+
+**YouTube · Description**
+
+```text
+The long description
+```
+
+**YouTube · Crédits**
+
+```text
+Quoted:
+• a source
+```
+
+**YouTube · Hashtags (5)**
+
+```text
+#a #b #c #d #e
+```
+"""
+
+
+def test_the_cards_of_a_platform_make_its_caption_in_their_order():
+    """2026-11-15: the texts come in cards (title, description, credits, hashtags), each copied on
+    the owner's page and pasted into one caption; reading only one of them would have posted the
+    hashtags alone."""
+    v = T.parse("dua", CARDS)["dua/short-1"]
+    assert v.captions["facebook"] == ("Patient… and he asked\nصابر… ودعا!\n\nHook (ar)\nHook (en)\n\n"
+                                      "🎙️ AI-generated voice\n\n#a #b #c\n")
+    assert v.captions["tiktok"] == "Patient… and he asked\nصابر… ودعا!\n\nHook (TT)\n\n#a #b #c #d #e\n"
+    assert "instagram" not in v.captions and not v.pending
+    assert v.captions["youtube_title"] == "Patient… and he asked · صابر… ودعا!\n"
+    assert v.captions["youtube_description"] == ("The long description\n\nQuoted:\n• a source\n\n"
+                                                 "#a #b #c #d #e\n")
+    assert (v.video, v.tiktok, v.seconds) == ("dua-short-1-asked.mp4", "dua-short-1-asked-tiktok.mp4", 109)
