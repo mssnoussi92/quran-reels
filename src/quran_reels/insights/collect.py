@@ -122,9 +122,11 @@ def list_posts(budget: Budget, page_id: str, ig_id: str | None, since: datetime,
                images: dict, errors: list[str] | None = None) -> list[Post]:
     errors = [] if errors is None else errors
     posts: dict[str, Post] = {}
-    fields = "id,created_time,description,length,permalink_url"
+    fields = "id,created_time,description,length,permalink_url,published"
     for item in _listed(budget, errors, f"{page_id}/video_reels", since, "created_time",
                         fields=fields, limit=50):
+        if item.get("published") is False:
+            continue
         p = Post("facebook", str(item["id"]), _when(item["created_time"]), "facebook-reel",
                  item.get("description") or "", _fb_url(item.get("permalink_url")),
                  _float(item.get("length")))
@@ -133,7 +135,9 @@ def list_posts(budget: Budget, page_id: str, ig_id: str | None, since: datetime,
     for item in _listed(budget, errors, f"{page_id}/videos", since, "created_time",
                         fields=fields, limit=50):
         uid = f"facebook:{item['id']}"
-        if uid not in posts:
+        # /videos also lists what is not public: drafts left by tests, posts scheduled by hand
+        # (2026-11-15: nine at 0 views, and short 3 of Moussa and al-Khidr scheduled).
+        if uid not in posts and item.get("published") is not False:
             posts[uid] = Post("facebook", str(item["id"]), _when(item["created_time"]),
                               "facebook-video", item.get("description") or "",
                               _fb_url(item.get("permalink_url")), _float(item.get("length")))
@@ -217,14 +221,27 @@ def due(record: dict, age_h: float, s: dict[str, Any]) -> list[str]:
 # ------------------------------------------------------------------------------ state
 
 
+VERSION = 2
+
+
 def load(path: Path) -> dict[str, Any]:
     data = json.loads(path.read_text(encoding="utf-8")) if path.is_file() and \
         path.read_text(encoding="utf-8").strip() else {}
-    data.setdefault("version", 1)
     for k in ("posts", "accounts", "unsupported"):
         data.setdefault(k, {})
     for k in ("manual", "runs"):
         data.setdefault(k, [])
+    if data.get("version", VERSION if not data["posts"] else 1) < 2:
+        # Version 1 (the first reading, 2026-11-15) read Facebook's retention graph and photo
+        # reach, which proved wrong (metrics.py): those numbers are taken out of every snapshot.
+        for rec in data["posts"].values():
+            if rec.get("platform") != "facebook":
+                continue
+            for snap in (rec.get("snapshots") or {}).values():
+                for k in ("hook", "kept_30s") + (("reach",) if rec.get("kind_meta") ==
+                                                  "facebook-photo" else ()):
+                    (snap.get("m") or {}).pop(k, None)
+    data["version"] = VERSION
     return data
 
 
@@ -269,8 +286,11 @@ def run(cfg: Config, state_dir: Path, graph: Graph, page_id: str, ig_id: str | N
                 k: ig[k] for k in ("followers_count", "media_count") if k in ig}
 
         posts = list_posts(budget, page_id, ig_id, since, images, errors)
+        listed = now.isoformat(timespec="seconds")
+        data["listed"] = listed                 # the page shows what this listing found
         for p in posts:
             rec = data["posts"].setdefault(p.uid, {"snapshots": {}})
+            rec["seen"] = listed
             rec |= {"platform": p.platform, "id": p.id, "url": p.url or rec.get("url", ""),
                     "published": p.published.isoformat(timespec="seconds"), "kind_meta": p.kind,
                     "first_line": next((ln.strip() for ln in p.caption.splitlines()

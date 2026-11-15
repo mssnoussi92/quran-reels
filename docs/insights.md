@@ -47,12 +47,28 @@ Ceux de la fiche du propriétaire (`docs/retention/calendar.md` de quran-themes-
 | Chiffre | Instagram | Facebook |
 |---|---|---|
 | Vues | `views` | `blue_reels_play_count` (reel), `total_video_views` (vidéo), `post_media_view` (photo) |
-| Personnes | `reach` | `post_impressions_unique`, `total_video_impressions_unique` |
-| **Passent 3 s** (l'accroche) | 100 − `reels_skip_rate` | courbe de rétention à 3 s |
+| Personnes | `reach` | — (refusé pour les reels, 0 faux pour les photos) |
+| **Passent 3 s** (l'accroche) | 100 − `reels_skip_rate` | — (courbe de rétention gardée brute, non lue) |
 | **Durée moyenne regardée** et % de la durée | `ig_reels_avg_watch_time` | `post_video_avg_time_watched` |
-| Encore là à 0:30 (films) | — | courbe de rétention à 30 s |
+| Encore là à 0:30 (films) | — | — (même courbe) |
 | Partages, enregistrements | `shares`, `saved` | partages (`post_video_social_actions`) |
 | Abonnés gagnés | — (seulement pour le compte, par jour) | `post_video_followers` |
+
+**Premier vrai relevé (2026-11-15, 61 publications, 89 appels, aucune erreur)**, et ce qu'il a corrigé :
+
+- La **courbe de rétention de Facebook** a 41 points quelle que soit la durée, et reste à 100 % jusqu'à
+  3 s sur des reels regardés 4 à 8 s en moyenne : ni « secondes » ni « 40 intervalles » ne colle. Elle est
+  gardée brute (`retention`), plus lue ; les accroches Facebook du premier relevé (81 à 100 %) sont retirées
+  (`insights.json` version 2). À reprendre le jour où une courbe est comparée à Meta Business Suite.
+- **Portée Facebook** : `post_impressions_unique` refusé pour les reels (code 100), `post_total_media_view_unique`
+  à 0 pour des photos vues 7 à 25 fois : pas de portée sur Facebook.
+- `/{page}/videos` renvoie aussi ce qui n'est pas public : neuf vidéos à 0 vue (brouillons laissés par des
+  essais) et le short 3 de Moussa et al-Khadir, programmé. Elles sont écartées (`published`), et la page ne
+  montre que ce que le dernier relevé a trouvé (`listed`, `seen`).
+- **Attention en comparant les plateformes** : Facebook et Instagram comptent chaque lecture commencée
+  (un défilement compte), YouTube Studio donne la durée moyenne des seules « vues engagées ». Une durée
+  moyenne de 8 s sur Facebook et de 1:08 sur YouTube ne disent pas la même chose : on compare une vidéo à une
+  autre sur la même plateforme.
 
 - Un chiffre que Meta ne donne pas reste vide (« — »), jamais 0. Meta marque plusieurs de ces chiffres « en
   développement » et Instagram peut avoir 48 h de retard.

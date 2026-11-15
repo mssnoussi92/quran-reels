@@ -90,8 +90,21 @@ def build(insights: dict[str, Any] | None, settings: dict[str, Any], now: dateti
     min_videos, min_points = int(compare.get("min_videos", 3)), int(compare.get("min_points", 12))
     since = now - timedelta(days=int(settings.get("days", 35)))
 
+    listed = insights.get("listed")
+
+    def gone(rec: dict) -> bool:
+        """Young enough to be listed by the last reading, and it was not: not public any more,
+        or never was (a draft left by a test, a post scheduled by hand)."""
+        try:
+            young = datetime.fromisoformat(rec.get("published", "")) >= since
+        except ValueError:
+            return False
+        return bool(listed) and young and rec.get("seen") != listed
+
     groups: dict[str, dict[str, Any]] = {}
     for uid, rec in posts.items():
+        if gone(rec):
+            continue
         try:
             published = datetime.fromisoformat(rec["published"])
         except (KeyError, ValueError):
@@ -142,7 +155,7 @@ def build(insights: dict[str, Any] | None, settings: dict[str, Any], now: dateti
     table: dict[tuple[str, str], list[dict]] = {}
     for rec in posts.values():
         s = (rec.get("snapshots") or {}).get("48h")
-        if s:
+        if s and not gone(rec):
             table.setdefault((rec.get("kind", "other"), rec.get("platform", "")), []).append(
                 _full(s.get("m")))
     kinds = []
