@@ -130,6 +130,9 @@ src/quran_reels/
                    publishers/facebook_video.py (/{page}/videos) n'a pas de vérification, il ne publie rien
   notify.py        `quran-reels notify` : tickets GitHub (alerte d'échec, légendes à copier ;
                    les images ont leur propre alerte, `--alert images`, depuis le 2026-11-15)
+  feed.py          la page « À publier » (docs/publier.html, lien fixe) : `feed.json` sur
+                   `previews`, les 14 derniers jours, refait avec chaque `reel.json` (reels et
+                   vidéos thématiques)
   insights/        statistiques de la Page (docs/insights.md) : collect.py (`quran-reels insights
                    collect` : abonnés, publications des 35 jours, relevés à 48 h / 7 j / 28 j,
                    arrêt à 75 % du budget Meta → `insights.json` sur `state` ; `insights add` :
@@ -192,7 +195,8 @@ tests/             pytest, sans réseau
                    libx264, aac ; les tests passent avec), sans ffprobe (durées lues par
                    ffmpeg) ; Chromium de Playwright, `--with-deps` seulement s'il ne démarre pas.
 docs/              site GitHub Pages (CGU, confidentialité, tiktok-login.html, tiktok-callback.html,
-                   reel.html : aperçu d'un reel et textes YouTube à copier),
+                   reel.html : aperçu d'un reel et textes YouTube à copier ; publier.html : ce qui se
+                   publie à la main, TikTok et YouTube, lien fixe),
                    déployé par catalog.yml avec le catalogue (/quran-reels/catalog/) ;
                    notes : sources.md, calendrier.md, rendu.md, images.md, plateformes.md,
                    catalog.md, on-demand.md, profils.md (bio, images, playlists des 4 comptes)
@@ -368,9 +372,14 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   (`CRON_TZ=Europe/Paris`), `images.yml` 11:36 UTC ; chacune lance le workflow sur `main`,
   attend la fin, relance une fois en cas d'échec (sauf prepare) et résume (skill
   `check-publication`).
-- Échec → ticket « ⚠️ Publication quotidienne en échec » (`notify.py`) ; légendes TikTok dans
-  le ticket épinglé « 📋 Légendes à copier », avec pour chaque vidéo le lien MP4 direct, la page
-  YouTube et la commande `/youtube`.
+- Échec → ticket « ⚠️ Publication quotidienne en échec » (`notify.py`). **Ce qui se publie à la
+  main** (texte du brouillon TikTok, MP4 et textes YouTube) : la page **« À publier »**, lien
+  fixe https://mssnoussi92.github.io/quran-reels/publier.html (demande du propriétaire,
+  2026-11-15 : le ticket était difficile à utiliser depuis le téléphone ; `feed.py` :
+  `feed.json` sur `previews`, refait dans le commit de chaque `reel.json`, par `on-demand
+  daily-files` et `themes files` ; la page lit aussi l'état pour dire « ✓ sur YouTube »). Le
+  ticket épinglé « 📋 Légendes à copier » reste à jour en secours (lien MP4, page YouTube,
+  commande `/youtube`, devenue facultative).
 - **À la demande** (docs/on-demand.md) : `on_demand` de `published.json`, une entrée par ticket,
   un résultat par plateforme (YouTube : `manual` puis `published` + `by_hand`) ; le calendrier
   ne le lit pas (il republie le passage à son tour, choix du propriétaire). Aperçus : images et
@@ -446,8 +455,9 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-30.
   propriétaire, 2026-11-15). Comparaisons à 48 h, en médianes ; sous 3 vidéos ou 12 points
   d'écart, aucune différence n'est affirmée. **YouTube lu chaque nuit** en lecture seule (choix du
   propriétaire, 2026-11-15 : `insights/youtube.py`, Data API + Analytics API) : une publication
-  par vidéo comme sur Facebook et Instagram (relevés 48 h / 7 j / 28 j, rangée avec son reel ou sa
-  vidéo thématique), abonnés de la chaîne ; mise en place : docs/plateformes.md, « Statistiques YouTube ») ;
+  par vidéo comme sur Facebook et Instagram (relevés 48 h / 7 j / 28 j **comptés sur les jours de
+  YouTube Analytics**, donc aussi pour les vidéos plus anciennes ; rangée avec son reel ou sa vidéo
+  thématique ; 93:1-11, publiée à la main, est `hand:93:1-11`), abonnés de la chaîne ; mise en place : docs/plateformes.md, « Statistiques YouTube ») ;
   TikTok (et YouTube tant que ses secrets manquent) : captures envoyées par le propriétaire le
   dimanche, recopiées par une session (`insights.yml`, entrée `manual`).
 - Le calendrier du catalogue montre aussi les vidéos thématiques (calendar.md de

@@ -8,11 +8,14 @@ side by side:
 - Word of the day: images.json (« word:2026-11-15 »);
 - theme video of quran-themes-demo: the first line of its caption is the English title of a
   section of publication-*.md (« theme:dua/short-1 »);
+- a reel published by hand (publish-test, before the calendar: 93:1-11 on 2026-11-05): the
+  reference in the first line of its caption (« hand:93:1-11 »);
 - anything else: the post alone (« facebook:<id> »), kind « other ».
 """
 
 from __future__ import annotations
 
+import re
 from datetime import date
 from typing import Any
 
@@ -23,12 +26,24 @@ KINDS = {   # kind → how the dashboard names it
     "reel-kahf": "Reel du vendredi (Al-Kahf)",
     "reel-series": "Reel du soir (série)",
     "reel-on-demand": "Reel à la demande",
+    "reel-hand": "Reel publié à la main",
     "word": "Word of the day",
     "theme-film": "Thème : film",
     "theme-short": "Thème : short d'histoire",
     "theme-episode": "Thème : épisode de série",
     "other": "Autre publication",
 }
+
+PASSAGE = re.compile(r"\((\d{1,3}):(\d{1,3})(?:-(\d{1,3}))?\)")    # « (93:1-11) », « (9:51) »
+
+
+def passage_of(line: str | None) -> str | None:
+    """The reference of a reel's caption line, written as the calendar writes it (« 9:51-51 »)."""
+    m = PASSAGE.search(line or "")
+    if not m:
+        return None
+    surah, first, last = m.groups()
+    return f"{int(surah)}:{int(first)}-{int(last or first)}"
 
 
 def _reel_kind(record: dict, slot: str) -> str:
@@ -79,6 +94,10 @@ class Classifier:
                     "label": f"{video.title_en} · {video.title_ar}",
                     "ref": {"theme": video.id, "series": video.series, "part": video.part},
                     "seconds": video.seconds}
+        passage = passage_of(record.get("first_line"))
+        if passage:
+            return {"key": f"hand:{passage}", "kind": "reel-hand", "label": passage,
+                    "ref": {"passage": passage}}
         return {"key": uid, "kind": "other", "label": record.get("first_line") or uid, "ref": {}}
 
     def apply(self, posts: dict[str, dict]) -> None:

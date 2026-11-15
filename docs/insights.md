@@ -95,14 +95,25 @@ Plutôt qu'une capture de YouTube Studio chaque dimanche, le workflow `insights`
 - **YouTube Data API** (`youtube.readonly`) : les vidéos publiques des `days` derniers jours, avec leurs vues, likes
   et commentaires (compteurs en direct) ;
 - **YouTube Analytics API** (`yt-analytics.readonly`) : durée moyenne regardée (`avg_watch`), pourcentage regardé
-  (`watch_pct`), partages, abonnés gagnés (`follows`), calculés par YouTube avec un ou deux jours de retard.
+  (`watch_pct`), partages, abonnés gagnés (`follows`), calculés par YouTube avec un ou deux jours de retard ; et les
+  mêmes chiffres **jour par jour** (vues, likes, commentaires compris).
 
-Chaque vidéo publique devient une publication comme celles de Facebook et Instagram (`youtube:<id>`, son lien, ses
-relevés à 48 h, 7 jours et 28 jours et le dernier ; une vidéo vue pour la première fois est relevée tout de suite), et
-les abonnés de la chaîne s'ajoutent à ceux de la Page. Elle se range avec son reel ou sa vidéo thématique : la
+Chaque vidéo publique devient une publication comme celles de Facebook et Instagram (`youtube:<id>`, son lien, son
+dernier relevé, refait chaque nuit), et les abonnés de la chaîne s'ajoutent à ceux de la Page. **Ses relevés à 48 h,
+7 jours et 28 jours sont comptés sur les jours de YouTube Analytics** (2026-11-15, `youtube.window` et `total`) : du
+jour de la publication au premier jour à la fin duquel la vidéo a l'âge voulu, en heure du Pacifique (celle de
+YouTube) ; pour 48 h, de 49 à 72 heures, comme le relevé de nuit de Meta (48 à 72 h). Ils sont comptés quand le dernier
+de ces jours a `youtube.lag_days` jours (2 : YouTube remplit ses jours avec retard), puis recomptés chaque nuit tant
+que la vidéo est dans les `days` derniers jours (YouTube affine ses chiffres). Ainsi les vidéos publiées avant la
+lecture automatique ont aussi leurs 48 h, et la comparaison « à 48 h » de YouTube porte sur toutes. Les moyennes
+(`avg_watch`, `watch_pct`) sont pondérées par les vues de chaque jour. Sans les chiffres par jour (une erreur de
+YouTube Analytics), les relevés se prennent comme sur Meta, à l'âge de la vidéo la nuit du relevé (`collect.due`).
+Sur YouTube, un Short qui repart en boucle compte encore : son `watch_pct` dépasse souvent 100 %. Elle se range avec son reel ou sa vidéo thématique : la
 référence d'un reel dans le titre ou dans la ligne « Surah … (9:51) » de la description collée depuis reel.html, sinon
 les noms de son titre (« Surah Al-Masad · سورة المسد » ; une sourate en plusieurs passages : le dernier publié avant) ;
-le titre d'une vidéo thématique, le film en 16:9 avec sa version verticale de Facebook. Le premier soir (2026-11-15),
+le titre d'une vidéo thématique, le film en 16:9 avec sa version verticale de Facebook ; à défaut, un reel publié à
+la main (`hand:93:1-11` : une publication de Meta hors du calendrier dont la légende porte la référence, ses captures
+avec elle). Le premier soir (2026-11-15),
 les chiffres ont été rangés comme des captures (source `youtube-api`) : ces entrées sont retirées au relevé suivant. Une panne de YouTube ne fait jamais perdre les chiffres de Meta (étape
 à part, `continue-on-error`). Ce qu'aucune API ne donne (impressions, taux de clics, « regardées » contre
 « balayées » des Shorts) reste dans YouTube Studio. Mise en place : docs/plateformes.md, « Statistiques YouTube ».
@@ -131,7 +142,8 @@ propriétaire, puis lance `insights.yml` sur `main` avec `manual` :
 - **L'heure et le jour** : à une centaine de vues, presque toutes d'inconnus, et avec un type par jour, aucun
   relevé ne départage deux heures. Instagram ne donne la répartition des abonnés (pays, heures) qu'à partir de
   100 abonnés.
-- **TikTok et YouTube** : seulement les captures (choix du propriétaire, 2026-11-15).
+- **TikTok** : seulement les captures (choix du propriétaire, 2026-11-15) ; YouTube est lu chaque nuit depuis le
+  2026-11-15 (ci-dessus).
 
 ## À regarder à la prochaine revue (2026-11-15)
 

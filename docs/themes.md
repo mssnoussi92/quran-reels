@@ -8,8 +8,8 @@ part, à partir du **lundi 23 novembre** (le film de Dhul-Qarnayn). Avant, il le
 |---|---|
 | Facebook | la vidéo (le film en 9:16, ou le short), son texte Facebook validé, sa couverture |
 | Instagram | le short, son texte Instagram validé, sa couverture (pas les films : leur texte ne prévoit pas Instagram) |
-| TikTok | la version signée `@quran.words.daily`, en **brouillon** dans la boîte : le propriétaire la publie, le texte est dans le ticket « 📋 Légendes à copier » |
-| YouTube | **à la main** : le ticket des légendes donne le lien du MP4 (le short, ou le film 16:9) et le titre ; la description est sur sa page « Films et shorts à publier » |
+| TikTok | la version signée `@quran.words.daily`, en **brouillon** dans la boîte : le propriétaire la publie, le texte est sur la page « À publier » (publier.html ; aussi dans le ticket « 📋 Légendes à copier ») |
+| YouTube | **à la main** : la page « À publier » donne le MP4 (le short, ou le film 16:9), son titre, sa description et ses hashtags (`themes files` après la publication : `theme/<jour>/reel.json` sur `previews`) |
 
 **Comme les reels** : Facebook et Instagram reçoivent d'abord la vidéo non publiée, Meta vérifie les droits sur les
 deux ; si l'une des vérifications n'est pas propre, **rien ne part, TikTok compris**, et le ticket

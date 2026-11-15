@@ -13,7 +13,7 @@
 <main class="catalog stats">
   <header class="site">
     <a class="brand" href="../">Quran Words Daily</a>
-    <nav><a href="./">Catalogue</a><a href="./#calendar">Calendrier</a></nav>
+    <nav><a href="./">Catalogue</a><a href="./#calendar">Calendrier</a><a href="../publier.html">À publier</a></nav>
   </header>
 
   <h1>Statistiques</h1>
@@ -53,7 +53,9 @@
   <section id="compare">
     <h2>Comparer les types de vidéos</h2>
     <p class="muted">Chaque type au même âge, <b>48 heures</b> après sa publication : la médiane de ses vidéos. « Passent 3 s » est l'accroche,
-      « % regardé » la durée moyenne regardée sur la durée de la vidéo.</p>
+      « % regardé » la durée moyenne regardée sur la durée de la vidéo. Sur YouTube, un Short qui repart en boucle compte encore :
+      son « % regardé » dépasse souvent 100 % et ne se compare qu'entre vidéos YouTube. Ses 48 heures sont comptées par YouTube
+      jour par jour (heure du Pacifique), de 49 à 72 heures après la publication, comme le relevé de nuit de Facebook et d'Instagram.</p>
     <p class="notice small">Moins de {{ s.min_videos }} vidéos, ou moins de {{ s.min_points }} points d'écart : ce n'est pas une différence
       (à une centaine de vues, le hasard suffit). On regarde les tendances sur plusieurs semaines.</p>
     {% if s.kinds %}
@@ -81,7 +83,8 @@
     <h2>Chaque vidéo</h2>
     <p class="muted">Les {{ s.days }} derniers jours, la plus récente d'abord, chaque plateforme sur sa ligne : la même vidéo sur Facebook,
       Instagram et YouTube (le Short, ou le film en 16:9 à côté de sa version verticale). « — » : la plateforme n'a pas donné ce chiffre
-      (jamais compté comme 0). YouTube calcule la durée regardée avec un ou deux jours de retard.</p>
+      (jamais compté comme 0). YouTube compte ses chiffres par jour, avec deux jours de retard : sa ligne « à 48 h » arrive le
+      quatrième ou le cinquième jour.</p>
     {% for v in s.videos %}
     <article class="card post">
       <div class="head"><h4>{{ v.when|capitalize }}</h4><span class="badge {{ 'cand' if v.kind.startswith('theme') else ('plan' if v.kind == 'word' else 'rot') }}">{{ v.kind_label }}</span></div>

@@ -96,9 +96,13 @@ titre, description et hashtags prêts à copier, puis `/youtube <lien>` pour le 
    que les demandes arrivées sur une plateforme.
 6. **Reels du calendrier** — même téléchargement direct : après chaque run `daily`, le MP4
    publié et sa version YouTube (par Tawfiq As-Sayegh, quand la rotation a choisi quelqu'un
-   d'autre) vont dans la release ; le ticket épinglé « 📋 Légendes à copier » donne, pour
-   chaque vidéo, le lien MP4, la page YouTube (titre, description, hashtags) et la commande
-   `/youtube <créneau> <lien>` à y commenter. Tawfiq pas prêt pour le passage : le MP4 seul,
+   d'autre) vont dans la release ; la page **« À publier »** (lien fixe :
+   https://mssnoussi92.github.io/quran-reels/publier.html, `src/quran_reels/feed.py`, demande du
+   propriétaire, 2026-11-15) donne pour chaque vidéo des 14 derniers jours le texte du
+   brouillon TikTok, le MP4 YouTube, son titre, sa description et ses hashtags, chacun avec un
+   bouton Copier, et dit si la vidéo est déjà sur YouTube (relevé de la nuit). Le ticket épinglé
+   « 📋 Légendes à copier » reste à jour en secours (lien MP4, page YouTube, commande
+   `/youtube <créneau> <lien>`, devenue facultative : le relevé de la nuit retrouve la vidéo). Tawfiq pas prêt pour le passage : le MP4 seul,
    et « rien pour YouTube ce créneau ».
 
 Commandes (commentaires du propriétaire seulement) : `/publier`, `/essai`, `/apercu` (refaire

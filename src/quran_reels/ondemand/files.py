@@ -108,9 +108,12 @@ class Hosting:
         return path.read_text(encoding="utf-8") if path.is_file() else None
 
     def publish(self, files: dict[str, Path | str], message: str,
-                prune_days: int | None = KEEP_DAYS, now: datetime | None = None) -> None:
+                prune_days: int | None = KEEP_DAYS, now: datetime | None = None,
+                derived: Callable[[Path], dict[str, str]] | None = None) -> None:
         """Write files (path in the branch → local file or text) on `previews` and push;
-        on a refused push, start again from the new tip (other runs write other folders)."""
+        on a refused push, start again from the new tip (other runs write other folders).
+        `derived` makes more files from the branch as it then is (feed.files: the page
+        publier.html), in the same commit."""
         wt = self._worktree()
         for attempt in range(5):
             try:
@@ -128,6 +131,8 @@ class Hosting:
                     dest.write_text(content, encoding="utf-8")
             if prune_days:
                 prune_folders(wt, prune_days, now, keep=set(files))
+            for rel, text in (derived(wt) if derived else {}).items():
+                (wt / rel).write_text(text, encoding="utf-8")
             self._git("add", "-A", ".", cwd=wt)
             status = self._git("status", "--porcelain", cwd=wt)
             if not status.strip():

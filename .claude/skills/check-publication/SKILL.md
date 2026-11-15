@@ -85,7 +85,9 @@ due »: normal, say so in one line, never as a failure.
 5. **Nothing ran for a due slot** (scheduler down): dispatch `daily.yml` on `main`, no inputs,
    while the window is open (3 h after 07:30 / 19:30 Paris). Publish nothing else on your own.
 6. **Report in French, short:** passage, reciter, link per platform, the TikTok draft waiting
-   in the inbox (caption in the pinned issue « 📋 Légendes à copier »), the YouTube file
+   in the inbox (caption on the page « À publier »,
+   https://mssnoussi92.github.io/quran-reels/publier.html, and in the pinned issue
+   « 📋 Légendes à copier »), the YouTube file
    (always recited by Tawfiq As-Sayegh: the same MP4 when the reel is his, else
    `youtube/<passage>.mp4`, the slot's `youtube`; its direct link and YouTube page are in the
    captions issue entry; or none for this slot, see step 4), what

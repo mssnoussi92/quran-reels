@@ -440,6 +440,7 @@ class FakeHosting:
 
     def publish(self, files, message, **kw):
         self.pages.update(files)
+        self.kw = kw
 
     def read(self, rel):
         return self.pages.get(rel)
@@ -665,6 +666,12 @@ def test_daily_reels_get_a_direct_download_and_a_youtube_page(world, tmp_path):
     assert item["files"]["youtube_mp4"].endswith("-youtube.mp4")
     page = json.loads(world.hosting.pages["daily/2026-11-06-morning/reel.json"])
     assert page["youtube"]["command"] == "/youtube 2026-11-06/morning"
+    # the page publier.html (feed.py): this video's own TikTok text, its slot, rebuilt feed
+    from quran_reels import feed
+
+    assert (page["key"], page["day"], page["time"], page["tiktok"], page["match"]) == (
+        "2026-11-06/morning", "2026-11-06", "07:30", "Al-Kahf\n", ["slot:2026-11-06/morning"])
+    assert world.hosting.kw["derived"] is feed.files
     entry = notify.merge_captions("", {"items": [item]})
     assert "⬇️ [MP4](https://dl/2026-11-06-morning-018_001-010.mp4)" in entry
     assert "`/youtube 2026-11-06/morning <lien>`" in entry
@@ -692,6 +699,7 @@ def test_a_slot_with_nothing_for_youtube_offers_no_youtube_file(world, tmp_path)
     assert item["files"]["mp4"].endswith("018_001-010.mp4") and not item["files"]["youtube_mp4"]
     page = json.loads(world.hosting.pages["daily/2026-11-13-morning/reel.json"])
     assert page["youtube"] is None and "YouTube (à la main)" not in page["platforms"]
+    assert page["notes"][0].startswith("YouTube : rien pour ce créneau")
     entry = notify.merge_captions("", {"items": [item]})
     assert "**YouTube : rien pour ce créneau" in entry
     assert "`/youtube 2026-11-13/morning" not in entry          # nothing to record there
@@ -952,3 +960,21 @@ def test_the_catalogue_lists_only_requests_that_reached_a_platform(cfg):
     assert [p["issue"] for p in posts] == [42]
     assert {r["platform"]: r["label"] for r in posts[0]["results"]}["youtube"] == (
         "annulé (pas mis en ligne)")
+
+
+def test_a_dry_run_of_the_day_has_its_own_folder_never_on_the_page(world, tmp_path):
+    """A forced dry run of a slot already out (daily --dry-run --force) wrote the same reel.json
+    as the real one: on the page publier.html, the real video would have gone."""
+    from quran_reels import feed
+
+    make_reel(world.cfg.out, "18:1-10")
+    report = {"dry_run": True, "items": [{
+        "key": "2026-11-06/morning", "day": "2026-11-06", "time": "07:30", "passage": "18:1-10",
+        "label": "", "reciter": "sayegh", "caption": "Al-Kahf\n",
+        "results": {"facebook": {"status": "ready", "url": None}}}]}
+    path = tmp_path / "report.json"
+    path.write_text(json.dumps(report), "utf-8")
+    assert flow.daily_files(world.cfg, world.hosting, path) == 0
+    assert list(world.hosting.pages) == ["daily/2026-11-06-morning-essai/reel.json"]
+    meta = json.loads(world.hosting.pages["daily/2026-11-06-morning-essai/reel.json"])
+    assert meta["dry_run"] is True and feed.entry(meta) is None

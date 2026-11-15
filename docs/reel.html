@@ -129,7 +129,7 @@
   const $ = (id) => document.getElementById(id);
   const params = new URLSearchParams(location.search);
   const rid = params.get("r") || "";
-  if (!/^(od\/\d+\/[\w-]+|daily\/\d{4}-\d{2}-\d{2}-[a-z]+)$/.test(rid)) {
+  if (!/^(od\/\d+\/[\w-]+|daily\/\d{4}-\d{2}-\d{2}-[a-z]+(-essai)?)$/.test(rid)) {
     return fail("Adresse incomplète : ouvre cette page depuis le lien du ticket.");
   }
   const url = `https://raw.githubusercontent.com/${REPO}/previews/${rid}/reel.json?v=${encodeURIComponent(params.get("v") || Date.now())}`;

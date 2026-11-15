@@ -102,6 +102,14 @@ jobs:
         run: |
           bash "$GITHUB_WORKSPACE/.github/scripts/save-state.sh" "Themes" themes.json
 
+      # The page publier.html (src/quran_reels/feed.py): the TikTok text of the draft and what
+      # YouTube gets by hand, on a fixed link. Never fails the run.
+      - name: The page « À publier »
+        if: always() && inputs.dry_run != true && steps.due.outputs.due == 'true'
+        continue-on-error: true
+        timeout-minutes: 5
+        run: quran-reels themes files --report out/themes-report.json
+
       - name: Tell the owner
         if: always() && inputs.dry_run != true && steps.due.outputs.due == 'true'
         env:
