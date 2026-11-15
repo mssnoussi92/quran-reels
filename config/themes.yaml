@@ -18,7 +18,7 @@ time: "19:00"              # Paris (owner's decision, 2026-11-13)
 early_minutes: 20          # a run up to 20 min before takes the day's video
 window_hours: 3            # after that, the day's video is missed (an alert says so)
 platforms: [facebook, instagram, tiktok]
-reels_max_seconds: 180     # TRIAL 2026-11-15: does the Reels API take a 2-minute short (and its rights check)?
+reels_max_seconds: 600     # TRIAL 2026-11-15: does the Reels API take the 8:24 film too?
 instagram_processing_seconds: 1200   # a 2-minute video is still processing after 4 min (dry run of
                                      # 2026-11-15: three uploads given up at 240 s each); one upload,
                                      # waited for, rather than new containers
