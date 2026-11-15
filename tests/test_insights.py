@@ -459,3 +459,35 @@ def test_version_1_numbers_that_proved_wrong_are_taken_out(tmp_path):
     assert data["posts"]["facebook:2"]["snapshots"]["latest"]["m"] == {"views": 21}
     assert data["posts"]["instagram:3"]["snapshots"]["latest"]["m"] == {
         "views": 5, "hook": 28.0, "reach": 2}
+
+
+def test_facebook_publication_status_is_read_and_kept(state):
+    r = routes()
+    r[f"{PAGE}/videos"] = {"data": [
+        {"id": "301", "created_time": stamp(NOW - timedelta(hours=60)), "length": 20.0,
+         "status": {"video_status": "ready", "publishing_phase": {"status": "not_started"}}},
+        {"id": "302", "created_time": stamp(NOW - timedelta(hours=60)), "length": 20.0,
+         "status": {"publishing_phase": {"status": "complete", "publish_status": "scheduled"}}},
+        {"id": "303", "created_time": stamp(NOW - timedelta(hours=60)), "length": 20.0,
+         "description": "Something", "published": True,
+         "status": {"video_status": "ready", "publishing_phase": {"status": "complete"}}}]}
+    C.run(load(), state, graph(FakeGraph(r)), PAGE, IG, index(), now=NOW)
+    posts = json.loads((state / "insights.json").read_text())["posts"]
+    assert "facebook:301" not in posts and "facebook:302" not in posts
+    assert posts["facebook:303"]["fb_status"] == {"published": True, "phase": "complete",
+                                                  "video_status": "ready"}
+
+
+def test_a_facebook_video_nobody_saw_is_not_shown(state):
+    from zoneinfo import ZoneInfo
+
+    from quran_reels.catalog import stats as S
+
+    C.run(load(), state, graph(FakeGraph(routes())), PAGE, IG, index(), now=NOW)
+    data = json.loads((state / "insights.json").read_text())
+    data["posts"]["facebook:404"] = {
+        "platform": "facebook", "published": (NOW - timedelta(days=3)).isoformat(),
+        "seen": data["listed"], "kind": "other", "key": "facebook:404", "label": "x",
+        "first_line": "", "snapshots": {"latest": {"at": "", "age_h": 72, "m": {"views": 0}}}}
+    s = S.build(data, C.settings(load()), NOW, ZoneInfo("Europe/Paris"), index())
+    assert "facebook:404" not in [v["key"] for v in s["videos"]]
