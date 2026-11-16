@@ -44,6 +44,7 @@ from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
+from quran_reels import passage as passage_mod
 from quran_reels import publish as publish_mod
 from quran_reels.config import Config
 from quran_reels.models import PublishResult, PublishStatus
@@ -381,7 +382,12 @@ def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
             if got is None:
                 continue
             p.queue, p.item = got
-        pcfg, reciter = cfg, None
+        # The day's basmala (content.basmala.days_off): the reciter's choice (length, cut
+        # checked), the reel and its YouTube version all go with it.
+        dcfg = passage_mod.for_day(cfg, p.day) if cfg is not None else cfg
+        if dcfg is not cfg:
+            print(f"{p.item.key}: without the basmala on {p.day} (content.basmala.days_off)")
+        pcfg, reciter = dcfg, None
         refused: set[str] = set()   # reciters whose cut of this passage the recording denies
         while True:
             same = False
@@ -392,13 +398,13 @@ def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
                     reciter = before["reciter"]      # a retry posts the same recitation
                 else:
                     reciter, opts = rec.choose(
-                        cfg, p.item.key, rec.recent_reciters(state, order),
+                        dcfg, p.item.key, rec.recent_reciters(state, order),
                         rec.claimed_reciters(state) | refused)
                     print(f"{p.item.key}: {reciter} (" + ", ".join(
                         f"{o.name}: cut refused" if o.name in refused else
                         f"{o.name} {o.seconds} s" if o.seconds is not None else
                         f"{o.name}: {o.why}" for o in opts) + ")")
-                pcfg = rec.with_reciter(cfg, reciter)
+                pcfg = rec.with_reciter(dcfg, reciter)
             try:
                 video = render_passage(pcfg, p.item.key, p.item.label_ar, p.item.label_en,
                                        p.item.series.hashtags).video
@@ -420,7 +426,7 @@ def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
         failed |= any(r.status in (PublishStatus.FAILED, PublishStatus.BLOCKED,
                                    PublishStatus.REMOVED) for r in results)
         caption = copy_text(cfg, video)
-        youtube = youtube_version(cfg, p, reciter, rec.claimed_reciters(state))
+        youtube = youtube_version(dcfg, p, reciter, rec.claimed_reciters(state))
         log["items"].append({
             "key": f"{p.day.isoformat()}/{p.slot.name}", "day": p.day.isoformat(),
             "time": f"{p.slot.at:%H:%M}", "passage": p.item.key, "label": p.item.label_en,

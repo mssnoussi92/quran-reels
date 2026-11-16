@@ -310,6 +310,23 @@ def test_the_request_form_knows_youtubes_own_reciter(cfg):
     assert not any(r["youtube"] for r in out["reciters"])
 
 
+def test_the_request_form_has_the_basmala_box(cfg):
+    """Ticked by default as the calendar's reels of the day the page is opened: the page
+    gets the days without it (content.basmala.days_off) and its time zone."""
+    from pathlib import Path
+
+    from quran_reels.catalog import ondemand as od_mod
+
+    form = od_mod.launcher(cfg, {})
+    assert form["basmala"] == {"enabled": True, "from": "2026-11-16", "until": "",
+                               "tz": "Europe/Paris"}
+    assert form["headings"]["basmala"] == "Basmala"
+    site = Path(od_mod.__file__).parent / "site"
+    page = (site / "index.html.j2").read_text(encoding="utf-8")
+    assert 'name="basmala"' in page and "data-off-from" in page
+    assert "h.basmala" in (site / "catalog.js").read_text(encoding="utf-8")
+
+
 def test_history_is_dated_facts(cfg):
     history = load_history()
     listed = set(cfg.content["reciters"])

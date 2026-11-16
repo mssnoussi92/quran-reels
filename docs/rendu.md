@@ -83,6 +83,14 @@
   traduction de 1:1 (Quran.com), premier segment du minutage ; écran sans référence ni numéro.
   Comptée dans le découpage (93 entière : 62 s). Pas pour la sourate 9 (`skip_surahs`) ni
   quand la vidéo commence à 1:1. Ligne arabe en tête de la légende.
+  **Jours sans basmala** (`days_off: {from, until}`, choix du propriétaire le 2026-11-15) : les
+  reels du calendrier de ces jours n'en ont pas, début de sourate compris (1:1 reste : c'est
+  une ayah) ; depuis le 2026-11-16, `until` vide : jusqu'à ce qu'il la remette (écrire alors
+  dans `until` le dernier jour sans elle). `passage.for_day` : `daily` (choix du récitateur,
+  reel, version YouTube), `calendar`, le catalogue (« sans basmala ») et `prepare` (la basmala
+  d'un récitateur n'a pas à être vérifiée pour ces jours). Le plan (`plan.yaml`) et
+  `series-check` comptent toujours la basmala : un passage tient aussi quand elle revient. À
+  la demande : la case « Basmala » du formulaire (docs/on-demand.md).
 - MP4 : H.264 High sans B-frames, AAC 48 kHz, `faststart`, **sans edit list** (`-use_editlist 0`) :
   Instagram Reels refuse les edit lists que ffmpeg écrit par défaut.
 - **Volume** (décision du propriétaire, 2026-11-10) : le son de chaque reel est mis à
