@@ -139,6 +139,14 @@
       const v = q.get(name);
       if (v && form.elements[name].querySelector(`option[value="${CSS.escape(v)}"]`)) form.elements[name].value = v;
     }
+    // The basmala box: ticked as the calendar's reels of today (content.basmala.days_off).
+    const bsm = form.elements.basmala;
+    if (bsm) {
+      const today = new Intl.DateTimeFormat("en-CA", { timeZone: bsm.dataset.tz || "Europe/Paris" }).format(new Date());
+      const from = bsm.dataset.offFrom, until = bsm.dataset.offUntil;
+      const off = Boolean(from) && from <= today && (!until || today <= until);
+      bsm.checked = bsm.dataset.enabled === "1" && !off;
+    }
     const warn = form.querySelector(".od-warn");
     const panel = document.getElementById("od-passage");
     const maxPer = Number(form.dataset.maxPerAyah) || 2;
@@ -306,7 +314,8 @@
       const body = [`### ${h.reciter}\n\n${f.reciter.value}`, `### ${h.passage}\n\n${passage}`,
                     `### ${h.background}\n\n${f.background.value}`,
                     `### ${h.platforms}\n\n${platforms.join(", ")}`,
-                    `### ${h.words}\n\n${wordsValue()}`].join("\n\n")
+                    `### ${h.words}\n\n${wordsValue()}`,
+                    `### ${h.basmala}\n\n${f.basmala && !f.basmala.checked ? "non" : "oui"}`].join("\n\n")
                    + `\n\n---\n${form.dataset.footer}\n`;
       const who = f.reciter.value === "auto" ? "auto" : rec.textContent;
       const title = `${form.dataset.prefix} : ${passage} · ${who}`;

@@ -14,6 +14,7 @@ from typing import Any
 
 from quran_reels import reciters as rec
 from quran_reels.config import Config
+from quran_reels.passage import for_day
 from quran_reels.selector.calendar import (
     OK_STATUSES,
     Schedule,
@@ -117,12 +118,15 @@ def calendar(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
                     "title_ar": item.series.title_ar, "index": item.index, "total": total,
                     "label": item.label_en or (item.series.id if total == 1
                                                else f"{item.series.id} · {item.index}/{total}")}
+            dcfg = for_day(cfg, day)             # without the basmala on its days off
+            if dcfg is not cfg:
+                row["no_basmala"] = True
             if rotation:
                 name = (record or {}).get("reciter")
                 try:
                     if not name:
-                        name = rec.choose(cfg, item.key, recent, claimed)[0]
-                    secs = rec.passage_seconds(rec.with_reciter(cfg, name), item.key).seconds
+                        name = rec.choose(dcfg, item.key, recent, claimed)[0]
+                    secs = rec.passage_seconds(rec.with_reciter(dcfg, name), item.key).seconds
                     recent.append(name)         # as `quran-reels calendar` does
                 except SystemExit:
                     secs = None
@@ -130,7 +134,7 @@ def calendar(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
                         row["not_ready"] = [
                             {"name": o.name, "label": labels.get(o.name, o.name),
                              "why": o.why or (f"{o.seconds:.0f} s" if o.seconds else "")}
-                            for o in rec.options(cfg, item.key, claimed)]
+                            for o in rec.options(dcfg, item.key, claimed)]
                 if record and not record.get("reciter"):
                     row["reciter_unknown"] = True       # published: never guessed on the page
                 elif name and not row.get("not_ready"):

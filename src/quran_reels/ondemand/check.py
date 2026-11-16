@@ -7,6 +7,8 @@
 - duration: at most content.passage.max_seconds (90 s) with that reciter, as its checked
   split says; a recording not split yet for this passage is split first (`split`);
 - background: `auto` or an id of config/backgrounds.yaml;
+- basmala: the form's box (`oui` / `non`); `auto` (a request written by hand): as the
+  calendar's reels that day (content.basmala.days_off; the owner's choice, 2026-11-15);
 - YouTube has its own reciter, always the same (platforms.youtube.reciter: Tawfiq As-Sayegh,
   owner's choice 2026-11-11), and a request makes one video: with `auto` and YouTube ticked
   he recites it for every platform; with another reciter named, YouTube is dropped and the
@@ -20,12 +22,14 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import UTC, date, datetime
 from typing import Any
 
 from quran_reels import reciters as rec
 from quran_reels.config import Config
 from quran_reels.models import AyahRef
-from quran_reels.ondemand.request import AUTO, Request, words_text
+from quran_reels.ondemand.request import AUTO, Request, basmala_text, words_text
+from quran_reels.passage import basmala_on, without_basmala
 from quran_reels.reciters import Option
 from quran_reels.selector.plan import ends_sentence, sentence_ends, starts_sentence
 
@@ -62,6 +66,11 @@ class Checked:
     reciter_label: str = ""
     options: list[Option] = field(default_factory=list)
     glosses: dict | None = None                # the owner's word meanings (passage.build)
+    basmala: bool = True                       # the request's, `auto` resolved
+
+    def config(self, cfg: Config) -> Config:
+        """cfg for this request's reel: without the basmala when it says so."""
+        return cfg if self.basmala else without_basmala(cfg)
 
     @property
     def ok(self) -> bool:
@@ -73,11 +82,13 @@ class Checked:
                 "background": self.background, "platforms": list(self.platforms),
                 "problems": self.problems, "suggestions": [str(s) for s in self.suggestions],
                 "alternatives": [str(s) for s in self.alternatives], "notes": self.notes,
-                "split": self.split, "words": words_text(self.request.words), "request": {
+                "split": self.split, "words": words_text(self.request.words),
+                "basmala": self.basmala, "request": {
                     "reciter": self.request.reciter, "passage": self.request.passage,
                     "background": self.request.background,
                     "platforms": list(self.request.platforms),
-                    "words": words_text(self.request.words)}}
+                    "words": words_text(self.request.words),
+                    "basmala": basmala_text(self.request.basmala)}}
 
 
 def allowed_reciters(cfg: Config, state: dict) -> list[str]:
@@ -162,13 +173,29 @@ def published_before(state: dict, key: str) -> list[str]:
     return out
 
 
+def calendar_today(cfg: Config) -> date:
+    """Today in the calendar's time zone (config/schedule.yaml)."""
+    from quran_reels.selector.calendar import load_schedule
+
+    return datetime.now(UTC).astimezone(load_schedule(cfg).tz).date()
+
+
 def check(cfg: Config, req: Request, state: dict, src: Any = None,
           seconds: Callable[[str, str], Option] | None = None,
           plan: dict[int, list[tuple[int, int]]] | None = None,
-          meanings: Callable[[str], list] | None = None) -> Checked:
+          meanings: Callable[[str], list] | None = None,
+          today: date | None = None) -> Checked:
     """The verdict on a request. seconds(reciter, key) → Option (reciters.passage_seconds by
     default); plan: {surah: [(start, end)]} (config/plan.yaml by default); meanings(key) →
-    the source's word meanings for the passage (ondemand.words.meanings by default)."""
+    the source's word meanings for the passage (ondemand.words.meanings by default); today:
+    the day whose calendar setting an `auto` basmala follows (calendar_today by default)."""
+    out = Checked(request=req, platforms=tuple(req.platforms))
+    out.basmala = req.basmala if req.basmala is not None else \
+        basmala_on(cfg, today or calendar_today(cfg))
+    cfg = out.config(cfg)               # lengths and reciters' readiness without it, if so
+    if not out.basmala:
+        out.notes.append("sans basmala" + (" (comme les publications automatiques en ce "
+                                           "moment)" if req.basmala is None else ""))
     if src is None:
         from quran_reels.sources import Sources
 
@@ -184,7 +211,6 @@ def check(cfg: Config, req: Request, state: dict, src: Any = None,
             memo[(name, key)] = seconds(name, key)
         return memo[(name, key)]
 
-    out = Checked(request=req, platforms=tuple(req.platforms))
     catalogue = cfg.content.get("reciters") or {}
     allowed = allowed_reciters(cfg, state)
     high = float(cfg.content["passage"]["max_seconds"])

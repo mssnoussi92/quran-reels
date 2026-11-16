@@ -74,12 +74,20 @@
         <legend>Plateformes</legend>
         {% for p in O.platforms %}<label class="inline"><input type="checkbox" name="platform" value="{{ p.id }}" checked> {{ p.label }}</label>{% endfor %}
       </fieldset>
+      <fieldset>
+        <legend>Basmala</legend>
+        <label class="inline"><input type="checkbox" name="basmala" value="oui"{% if O.basmala.enabled and not O.basmala.from %} checked{% endif %}
+          data-enabled="{{ 1 if O.basmala.enabled else 0 }}" data-off-from="{{ O.basmala.from }}"
+          data-off-until="{{ O.basmala.until }}" data-tz="{{ O.basmala.tz }}"> Au début du reel</label>
+        <p class="small muted">Cochée par défaut comme les publications automatiques du jour{% if O.basmala.from %} : sans basmala
+          {% if O.basmala.until %}du {{ O.basmala.from }} au {{ O.basmala.until }}{% else %}depuis le {{ O.basmala.from }}, jusqu'à ce que tu la remettes{% endif %}{% endif %}.</p>
+      </fieldset>
       <p class="small notice od-warn" hidden></p>
       <button type="submit" class="act">Préparer la demande</button>
     </form>
     <noscript><p class="notice">Le formulaire a besoin de JavaScript. Sinon :
       <a href="{{ O.new_issue }}?title={{ O.title_prefix|urlencode }}%20%3A%20">un ticket « {{ O.title_prefix }} : … »</a>
-      avec les sections ### Récitateur, ### Passage, ### Fond, ### Plateformes.</p></noscript>
+      avec les sections ### Récitateur, ### Passage, ### Fond, ### Plateformes, ### Basmala (oui ou non).</p></noscript>
   </section>
   {% endif %}
 
@@ -242,6 +250,7 @@
             <span class="sub">
               {% if s.reciter %}{{ s.reciter_label }}{% if s.seconds %} · {{ s.seconds|seconds }}{% endif %}{% elif s.reciter_unknown %}récitateur non noté{% elif s.not_ready %}<span class="bad">⚠ aucun récitateur prêt</span>{% endif %}
               {% if s.background %} · fond <a href="#bg-{{ s.background.id }}">{{ s.background.id }}</a> ({{ s.background.theme|theme }}){% endif %}
+              {% if s.no_basmala %} · sans basmala{% endif %}
             </span>
             {% if s.not_ready %}
             <details class="why"><summary>pourquoi</summary>

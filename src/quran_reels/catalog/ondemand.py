@@ -92,7 +92,11 @@ def surah_files(cfg: Config, src: Any, out: Path, budget: float = MEANINGS_BUDGE
 
 
 def launcher(cfg: Config, state: dict, src: Any = None) -> dict[str, Any]:
+    from quran_reels.passage import basmala_off
+    from quran_reels.selector.calendar import load_schedule
+
     names = cfg.content.get("reciters") or {}
+    off = basmala_off(cfg)
     allowed = allowed_reciters(cfg, state)
     own = rec.fixed_on(cfg, "youtube")      # YouTube: always this reciter (ondemand/check.py)
     surahs = []
@@ -111,6 +115,12 @@ def launcher(cfg: Config, state: dict, src: Any = None) -> dict[str, Any]:
                         for b in cfg.backgrounds.get("backgrounds") or []
                         if b.get("scene") or b.get("file") or b.get("pixabay_id")],
         "platforms": [{"id": p, "label": PLATFORM_LABELS[p]} for p in PLATFORMS],
+        # The «Basmala» box, ticked by default as the calendar's reels of the day the owner
+        # opens the page (content.basmala.days_off, read by the page itself in tz).
+        "basmala": {"enabled": bool((cfg.content.get("basmala") or {}).get("enabled")),
+                    "from": off[0].isoformat() if off else "",
+                    "until": off[1].isoformat() if off and off[1] else "",
+                    "tz": str(load_schedule(cfg).tz)},
         "new_issue": f"https://github.com/{REPO}/issues/new",
         "title_prefix": TITLE_PREFIX, "headings": LABELS, "footer": FOOTER, "doc": DOC,
         "max_seconds": int(cfg.content["passage"]["max_seconds"]),

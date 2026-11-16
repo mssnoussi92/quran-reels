@@ -230,21 +230,27 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "split" and args.upcoming:
         import os
         import subprocess
-        from datetime import UTC, datetime
+        from datetime import UTC, date, datetime
         from pathlib import Path
 
         from quran_reels import reciters as rec
         from quran_reels.config import RECITER_ENV
+        from quran_reels.passage import for_day
         from quran_reels.selector.calendar import State, load_schedule, load_series, preview
 
         series = load_series(cfg)
         sched = load_schedule(cfg, series)
         today = datetime.now(UTC).astimezone(sched.tz).date()
         # The days of a pause count as if published nothing: its queues wait, and the passages
-        # that come first once the reels are back on are these, kept checked meanwhile.
-        keys = list(dict.fromkeys(item.key for _, _, _, item in preview(
-            sched, series, State.load(Path(args.state)), today, args.upcoming,
-            skip_paused=False) if item))
+        # that come first once the reels are back on are these, kept checked meanwhile. Each
+        # with the day it is due: on the basmala's days off, a reciter's basmala does not have
+        # to be checked for it (passage.for_day).
+        days: dict[str, date] = {}
+        for day, _, _, item in preview(sched, series, State.load(Path(args.state)), today,
+                                       args.upcoming, skip_paused=False):
+            if item:
+                days.setdefault(item.key, day)
+        keys = list(days)
         if sched.pause and (sched.pause.end is None or sched.pause.end >= today):
             print(f"reels paused {sched.pause}: these passages come first after the pause")
         print(f"next {args.upcoming} days: {' '.join(keys)}")
@@ -257,14 +263,17 @@ def main(argv: list[str] | None = None) -> int:
             subprocess.run(["quran-reels", "split", *keys], env=env, check=False)
         missing = []                        # a reciter may fail; a passage must have one
         for key in keys:
-            ready = [o.name for o in rec.options(cfg, key) if o.seconds is not None]
+            ready = [o.name for o in rec.options(for_day(cfg, days[key]), key)
+                     if o.seconds is not None]
             print(f"{key:<12} {', '.join(ready) or 'NO RECITER READY'}")
             if not ready:
                 missing.append(key)
         # A platform's own reciter not ready: that passage gets nothing there (YouTube). Not
         # red, the other platforms publish; said days ahead, so that the split can be fixed.
         for platform in cfg.project.get("platforms") or {}:
-            gaps = rec.fixed_gaps(cfg, platform, keys)
+            gaps: dict[str, str] = {}
+            for key in keys:
+                gaps |= rec.fixed_gaps(for_day(cfg, days[key]), platform, [key])
             if gaps:
                 own = rec.fixed_on(cfg, platform)
                 text = "; ".join(f"{key} ({reason})" for key, reason in gaps.items())
@@ -503,19 +512,24 @@ def main(argv: list[str] | None = None) -> int:
 
         order = {s.name: i for i, s in enumerate(sorted(sched.slots, key=lambda s: s.at))}
         recent = rec.recent_reciters(state, order)
+        from quran_reels.passage import for_day
+
         for day, slot, queue, item in preview(sched, series, state, start, args.days):
             what = f"{item.key:<10} {item.label_en or item.series.id}" if item else "— nothing left"
             reciter = ""
+            dcfg = for_day(cfg, day)            # without the basmala on its days off
             if item and rec.rotation(cfg):
                 done = state.slot(day, slot.name) or {}
                 try:
                     name = done.get("reciter") or rec.choose(
-                        cfg, item.key, recent, rec.claimed_reciters(state))[0]
-                    secs = rec.passage_seconds(rec.with_reciter(cfg, name), item.key).seconds
+                        dcfg, item.key, recent, rec.claimed_reciters(state))[0]
+                    secs = rec.passage_seconds(rec.with_reciter(dcfg, name), item.key).seconds
                     reciter = f"  [{name}, {secs} s]"
                     recent.append(name)
                 except SystemExit:
                     reciter = "  [no reciter ready: quran-reels split " + item.key + "]"
+            if item and dcfg is not cfg:
+                reciter += "  (no basmala)"
             print(f"{day:%a %Y-%m-%d} {slot.at:%H:%M} {queue:<8} {what}{reciter}")
         return 0
 

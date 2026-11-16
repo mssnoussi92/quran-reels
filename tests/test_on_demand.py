@@ -131,14 +131,63 @@ def seconds(name, key):
 
 def verdict(cfg, reciter="budair", start=None, end=None, state=None, **kw):
     req = Request(reciter, 93, start, end, kw.pop("background", "auto"),
-                  kw.pop("platforms", ("facebook", "instagram", "tiktok", "youtube")))
+                  kw.pop("platforms", ("facebook", "instagram", "tiktok", "youtube")),
+                  basmala=kw.pop("basmala", True))
     return check(cfg, req, state or {}, src=SRC, seconds=kw.pop("seconds", seconds),
-                 plan={93: [(1, 11)]})
+                 plan={93: [(1, 11)]}, **kw)
 
 
 def test_a_whole_short_surah_is_allowed(cfg):
     c = verdict(cfg, "sayegh")
     assert c.ok and c.key == "93:1-11" and c.seconds == 57.0 and c.reciter == "sayegh"
+
+
+@pytest.mark.parametrize(("text", "expected"), [
+    ("oui", True), ("Non", False), ("sans", False), ("auto", None), ("_No response_", None)])
+def test_the_basmala_section(text, expected):
+    req = parse(f"### Passage\n93\n### Basmala\n{text}\n")
+    assert req.basmala is expected
+    assert parse(body(req)) == req                      # what body() writes is read back
+    assert parse("### Passage\n93\n").basmala is None    # an older request: auto
+
+
+def test_a_wrong_basmala_is_refused():
+    with pytest.raises(RequestError, match="oui, non ou auto"):
+        parse("### Passage\n93\n### Basmala\npeut-être\n")
+
+
+def test_the_basmala_box_decides_and_auto_follows_the_calendar_that_day(cfg, monkeypatch):
+    """The owner's box (oui / non) decides; « auto » (a request written by hand) goes as the
+    calendar's reels that day: none from 2026-11-16 (content.basmala.days_off)."""
+    from datetime import date
+
+    import quran_reels.ondemand.check as check_mod
+    from quran_reels.passage import needs_basmala
+
+    asked = []                  # with the basmala, as the reciters' lengths are read?
+
+    def passage_seconds(c, key):
+        asked.append(needs_basmala(c, 93, 1))
+        return Option(c.content["reciter"]["name"], 50.0)
+
+    monkeypatch.setattr(check_mod.rec, "passage_seconds", passage_seconds)
+    before, after = date(2026, 11, 15), date(2026, 11, 16)
+    on = check(cfg, Request("sayegh", 93, None, None, basmala=None), {}, src=SRC,
+               plan={93: [(1, 11)]}, today=before)
+    assert on.ok and on.basmala and asked[-1] is True
+    assert not [n for n in on.notes if "basmala" in n]
+    off = check(cfg, Request("sayegh", 93, None, None, basmala=None), {}, src=SRC,
+                plan={93: [(1, 11)]}, today=after)
+    assert off.basmala is False and asked[-1] is False
+    assert off.notes[0] == "sans basmala (comme les publications automatiques en ce moment)"
+    assert not needs_basmala(off.config(cfg), 93, 1) and needs_basmala(cfg, 93, 1)
+    ticked = check(cfg, Request("sayegh", 93, None, None, basmala=True), {}, src=SRC,
+                   plan={93: [(1, 11)]}, today=after)
+    assert ticked.basmala and asked[-1] is True              # the box wins over the day
+    unticked = check(cfg, Request("sayegh", 93, None, None, basmala=False), {}, src=SRC,
+                     plan={93: [(1, 11)]}, today=before)
+    assert not unticked.basmala and unticked.notes[0] == "sans basmala"
+    assert unticked.as_dict()["request"]["basmala"] == "non"
 
 
 def test_a_range_that_cuts_a_sentence_is_refused_with_valid_ranges(cfg):

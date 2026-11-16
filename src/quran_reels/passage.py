@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import copy
+import dataclasses
 import sys
 from dataclasses import dataclass
+from datetime import date, datetime
 from itertools import pairwise
 
 from quran_reels.arabic import locate, normalize, quoted_words, similarity, trim, words
@@ -156,6 +159,61 @@ def needs_basmala(cfg: Config, surah: int, start: int) -> bool:
     if surah in (b.get("skip_surahs") or []):
         return False
     return not (surah == BASMALA.surah and start == BASMALA.ayah)
+
+
+def _day(value: object, where: str) -> date | None:
+    """A day of project.yaml (YAML reads 2026-11-16 as a date); empty: None."""
+    if value in (None, ""):
+        return None
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    try:
+        return date.fromisoformat(str(value))
+    except ValueError:
+        raise SystemExit(f"{where}: «{value}» is not a day such as 2026-11-16") from None
+
+
+def basmala_off(cfg: Config) -> tuple[date, date | None] | None:
+    """content.basmala.days_off: the days the calendar's reels go without the basmala, as
+    (first day, last day or None: until the owner turns it back on). None: no such days."""
+    raw = (cfg.content.get("basmala") or {}).get("days_off")
+    if not raw:
+        return None
+    where = "config/project.yaml, content.basmala.days_off"
+    if not isinstance(raw, dict) or set(raw) - {"from", "until"}:
+        raise SystemExit(f"{where}: only from and until, e.g. `from: 2026-11-16`")
+    start = _day(raw.get("from"), f"{where}, from")
+    end = _day(raw.get("until"), f"{where}, until")
+    if start is None:
+        raise SystemExit(f"{where}: give its first day, `from: 2026-11-16`")
+    if end is not None and end < start:
+        raise SystemExit(f"{where}: until ({end}) is before from ({start})")
+    return start, end
+
+
+def basmala_on(cfg: Config, day: date) -> bool:
+    """Do the calendar's reels of that day open with the basmala? content.basmala.enabled,
+    and the day outside content.basmala.days_off (owner's choice, 2026-11-15: none from
+    2026-11-16, at the start of a surah too, until the owner turns it back on). On-demand
+    reels: the form's «Basmala» box, ticked by default when this is true (ondemand/check.py)."""
+    if not (cfg.content.get("basmala") or {}).get("enabled", False):
+        return False
+    off = basmala_off(cfg)
+    return off is None or not (off[0] <= day and (off[1] is None or day <= off[1]))
+
+
+def without_basmala(cfg: Config) -> Config:
+    """The same configuration, every passage without the basmala (1:1 stays: an ayah)."""
+    project = copy.deepcopy(cfg.project)
+    project["content"].setdefault("basmala", {})["enabled"] = False
+    return dataclasses.replace(cfg, project=project)
+
+
+def for_day(cfg: Config, day: date) -> Config:
+    """cfg as the calendar's reels of that day use it: without the basmala on its days off."""
+    return cfg if basmala_on(cfg, day) else without_basmala(cfg)
 
 
 def build(cfg: Config, key: str, src: Sources | None = None,
