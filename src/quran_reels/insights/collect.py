@@ -292,7 +292,8 @@ def run(cfg: Config, state_dir: Path, graph: Graph, page_id: str, ig_id: str | N
     data = load(path)
     published = _json(state_dir / "published.json")
     images = _json(state_dir / "images.json")
-    classifier = Classifier(published, images, themes or ThemeIndex([]))
+    classifier = Classifier(published, images, themes or ThemeIndex([]),
+                            _json(state_dir / "themes.json"))
     budget = Budget(graph, float(s.get("max_usage", 75)), int(s.get("max_calls", 150)))
     since = now - timedelta(days=int(s.get("days", 35)))
     errors: list[str] = []

@@ -92,7 +92,7 @@
       <p class="meta">{% if v.seconds %}{{ v.seconds|seconds }}{% endif %}{% if v.reciter %} · {{ v.reciter }}{% endif %}{% if v.ref.series %} · <bdi>{{ v.ref.series }}</bdi>{% endif %}</p>
       {% for r in v.rows %}
       <div class="measure">
-        <p class="pf">{% if r.url %}<a href="{{ r.url }}" rel="noopener">{{ r.platform }} ↗</a>{% else %}{{ r.platform }}{% endif %}</p>
+        <p class="pf">{% if r.url %}<a href="{{ r.url }}" rel="noopener">{{ r.platform }} ↗</a>{% else %}{{ r.platform }}{% endif %}{% if r.is_cut %} <span class="muted">· version courte{% if r.cut %}, {{ r.cut|seconds }}{% endif %}</span>{% endif %}</p>
         {% for w in r.views %}
         <p class="nums"><span class="when">{{ w.title }} ({{ w.age }})</span>
           <span><b>{{ w.m.views|number }}</b> vues</span>

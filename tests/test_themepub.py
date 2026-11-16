@@ -323,6 +323,36 @@ def test_the_day_goes_out_with_its_own_texts_files_and_cover(setup):
     assert not any(p.calls for p in pubs.values())
 
 
+def test_facebook_and_instagram_take_the_short_version(setup, monkeypatch):
+    """2026-11-16 (quran-themes-demo, PR #36; the owner's trial on Dhul-Qarnayn's three shorts):
+    a short cut for Facebook and Instagram, named on the line of files after the cover; TikTok
+    and YouTube keep the whole short, and every platform its own text."""
+    line = "couverture : `dua-short-1-asked-cover.jpg`"
+    monkeypatch.setitem(globals(), "SHORTS", SHORTS.replace(
+        line, line + " · version courte pour Facebook et Instagram : `dua-short-1-asked-cut.mp4`, 1:13",
+        1))
+    v = videos()["dua/short-1"]
+    assert (v.video, v.cut, v.cut_seconds, v.seconds, v.aspect) == (
+        "dua-short-1-asked.mp4", "dua-short-1-asked-cut.mp4", 73, 109, "9:16")
+    assert v.platforms == ["facebook", "instagram", "tiktok", "youtube"]
+    assert [R.file_for(p, v) for p in ("facebook", "instagram", "tiktok", "youtube")] == [
+        ("dua-short-1-asked-cut.mp4", 73), ("dua-short-1-asked-cut.mp4", 73),
+        ("dua-short-1-asked-tiktok.mp4", 109), ("dua-short-1-asked.mp4", 109)]
+    run, pubs, _fetched, tmp = setup
+    out = run(now=paris("2026-11-24", "18:45"))
+    assert out["due"] and not out["failed"]
+    fb, ig, tt = (pubs[p].calls[0][1] for p in ("facebook", "instagram", "tiktok"))
+    assert (fb.video.name, fb.seconds) == ("dua-short-1-asked-cut.mp4", 73)
+    assert ig.video.name == "dua-short-1-asked-cut-instagram.mp4"
+    assert tt.video.name == "dua-short-1-asked-tiktok.mp4"
+    assert fb.caption.startswith("Patient… and he asked\n")
+    state = json.loads((tmp / "themes.json").read_text())["posts"]["2026-11-24"]
+    assert state["cut"] == {"facebook": "dua-short-1-asked-cut.mp4",
+                            "instagram": "dua-short-1-asked-cut.mp4"}
+    item = json.loads((tmp / "report.json").read_text())["items"][0]
+    assert item["youtube"]["file"].endswith("page-dua/dua-short-1-asked.mp4")
+
+
 def test_a_rights_match_stops_every_platform_tiktok_included(setup):
     run, pubs, _, tmp = setup
     pubs["instagram"].clear = False

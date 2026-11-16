@@ -87,6 +87,13 @@ moins de 12 points d'écart : ce n'est pas une différence (`compare` de `config
 `docs/retention.md` de quran-themes-demo, « Mesurer »). Chaque type a son jour fixe dans la grille : le jour et le
 type se confondent, à garder en tête.
 
+## Version courte d'un short (Facebook, Instagram)
+
+Depuis l'essai du 24 novembre 2026 (docs/themes.md), Facebook et Instagram peuvent recevoir la version courte d'un
+short de quran-themes-demo. `classify.Classifier` la reconnaît par `themes.json` (`cut` du jour, identifiants des
+publications) : même clé que le short (`theme:qarnayn/short-1`), son propre type (`theme-short-cut`, « Thème : short,
+version courte ») et sa propre durée. La carte du short garde le type et la durée du short entier.
+
 ## YouTube, lu chaque nuit (choix du propriétaire, 2026-11-15)
 
 Plutôt qu'une capture de YouTube Studio chaque dimanche, le workflow `insights` lit la chaîne lui-même, en

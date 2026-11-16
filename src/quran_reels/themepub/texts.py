@@ -16,6 +16,11 @@ page, pasted into one caption (« **Facebook · Titre** », « … · Descriptio
 description): the caption here is those cards joined by a blank line, in their order. On Facebook,
 Instagram and TikTok the short caption has three (title, hook with the AI-voice line, hashtags).
 
+Since 2026-11-16 the line of files may end with a short version for Facebook and Instagram, cut
+by quran-themes-demo and validated by the owner (« · version courte pour Facebook et Instagram :
+`qarnayn-short-1-west-cut.mp4`, 1:13 »): `cut` and `cut_seconds`. The first `.mp4` stays the whole
+short, and the duration, format and platforms read are its own.
+
 Every text is taken as it is: nothing is cut, added or rewritten here (the owner validated them).
 A text the file's opening paragraph says is not validated yet (« pas encore validé(e)s », as
 tools/trial/publish.py writes it: the short captions proposed on 2026-11-15) is `pending`, and
@@ -29,6 +34,7 @@ from dataclasses import dataclass, field
 
 from quran_reels.insights.themes import SECTION
 
+CUT = re.compile(r"`(?P<name>[^`]+-cut\.mp4)`(?:\s*,\s*(?P<dur>\d+:\d{2}))?")
 FILE_LINE = re.compile(r"·\s*(?P<dur>\d+:\d{2})\s*·\s*(?P<aspect>\d+:\d+)\s*·\s*(?P<where>[^·]+)")
 CARD = re.compile(r"^(?P<platform>facebook|instagram|tiktok|youtube)\s+·\s+(?P<kind>titre|description|"
                   r"crédits|credits|hashtags)\b", re.IGNORECASE)
@@ -46,6 +52,8 @@ class Video:
     title_ar: str
     video: str = ""                 # file names in the release page-<doc>
     tiktok: str = ""
+    cut: str = ""                   # the short version for Facebook and Instagram (« -cut.mp4 »)
+    cut_seconds: float | None = None
     cover: str = ""
     thumbnail: str = ""
     seconds: float | None = None
@@ -93,12 +101,18 @@ def parse(doc: str, text: str) -> dict[str, Video]:
             for n in names:
                 if n.endswith("-tiktok.mp4"):
                     current.tiktok = n
+                elif n.endswith("-cut.mp4"):
+                    current.cut = n
                 elif n.endswith(".mp4") and not current.video:
                     current.video = n
                 elif n.endswith("-cover.jpg"):
                     current.cover = n
                 elif n.endswith(".jpg"):
                     current.thumbnail = n
+            c = CUT.search(line)
+            if c and c["dur"]:
+                mm, ss = c["dur"].split(":")
+                current.cut_seconds = int(mm) * 60 + int(ss)
             f = FILE_LINE.search(line)
             if f:
                 mm, ss = f["dur"].split(":")
