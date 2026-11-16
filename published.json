@@ -10,7 +10,8 @@
     "juz-amma/110:1-3",
     "juz-amma/109:1-6",
     "juz-amma/108:1-3",
-    "juz-amma/107:1-7"
+    "juz-amma/107:1-7",
+    "juz-amma/106:1-4"
    ]
   },
   "themes": {
@@ -551,6 +552,35 @@
     "reciter": "sayegh",
     "video": "youtube/107_001-007.mp4"
    }
+  },
+  "2026-11-16/morning": {
+   "queue": "reading",
+   "item": "juz-amma/106:1-4",
+   "passage": "106:1-4",
+   "results": {
+    "facebook": {
+     "status": "published",
+     "id": "2375960956553939",
+     "url": "https://www.facebook.com/reel/2375960956553939/",
+     "error": null,
+     "at": "2026-11-16T06:23:46+00:00"
+    },
+    "instagram": {
+     "status": "published",
+     "id": "18414710686090868",
+     "url": "https://www.instagram.com/reel/DfyspaQiO4k/",
+     "error": null,
+     "at": "2026-11-16T06:23:46+00:00"
+    },
+    "tiktok": {
+     "status": "draft",
+     "id": "v_inbox_file~v2.7708650269759866902",
+     "url": null,
+     "error": null,
+     "at": "2026-11-16T06:23:46+00:00"
+    }
+   },
+   "reciter": "sayegh"
   }
  },
  "removed": [
