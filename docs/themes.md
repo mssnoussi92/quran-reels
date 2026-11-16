@@ -58,6 +58,22 @@ qu'Instagram refusait déjà sur les reels, docs/rendu.md), mise dans la release
 des reels, effacée après 30 jours), et le conteneur est fait avec son adresse. Facebook et TikTok reçoivent le fichier
 tel quel. Un seul conteneur, attendu jusqu'à `instagram_processing_seconds` (1 200 s).
 
+## Version courte pour Facebook et Instagram (essai, à partir du 24 novembre)
+
+Premières mesures (2026-11-16) : sur Facebook et Instagram, on regarde un short de 2 minutes 4 à 8 secondes. La
+session quran-themes-demo coupe donc un short en version courte (60 à 75 s, même voix, un verset ou une explication
+en moins), validée par le propriétaire, et l'écrit sur la ligne des fichiers du short, après la couverture : « ·
+version courte pour Facebook et Instagram : `qarnayn-short-1-west-cut.mp4`, 1:13 » (fichier public dans
+`page-<doc>`).
+
+- Facebook et Instagram reçoivent la version courte (`run.file_for`), avec les **mêmes textes** ; TikTok (sa version
+  signée) et YouTube (le MP4 du ticket et de la page « À publier ») gardent le short entier.
+- `themes.json` note `cut` pour le jour ; la page « Statistiques » range ces publications sous leur short, avec leur
+  durée (« version courte, 73 s »), et les compare à part (« Thème : short, version courte »).
+- **L'essai** (choix du propriétaire, 2026-11-16, question à choix) : les trois shorts de Dhul-Qarnayn, 24, 25 et 26
+  novembre. Un seul n'aurait rien montré : sous 3 vidéos, la page n'affirme aucune différence. Les coupes des shorts
+  2 et 3 sont à faire par quran-themes-demo ; sans elles, ces jours-là publient le short entier.
+
 ## Ce qui tourne
 
 | Pièce | Où |

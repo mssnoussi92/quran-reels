@@ -92,13 +92,14 @@
       <p class="meta">{% if v.seconds %}{{ v.seconds|seconds }}{% endif %}{% if v.reciter %} · {{ v.reciter }}{% endif %}{% if v.ref.series %} · <bdi>{{ v.ref.series }}</bdi>{% endif %}</p>
       {% for r in v.rows %}
       <div class="measure">
-        <p class="pf">{% if r.url %}<a href="{{ r.url }}" rel="noopener">{{ r.platform }} ↗</a>{% else %}{{ r.platform }}{% endif %}</p>
+        <p class="pf">{% if r.url %}<a href="{{ r.url }}" rel="noopener">{{ r.platform }} ↗</a>{% else %}{{ r.platform }}{% endif %}{% if r.is_cut %} <span class="muted">· version courte{% if r.cut %}, {{ r.cut|seconds }}{% endif %}</span>{% endif %}</p>
         {% for w in r.views %}
         <p class="nums"><span class="when">{{ w.title }} ({{ w.age }})</span>
           <span><b>{{ w.m.views|number }}</b> vues</span>
           {% if w.m.hook is not none %}<span><b>{{ w.m.hook|number(' %') }}</b> passent 3 s</span>{% endif %}
           {% if w.m.avg_watch is not none %}<span><b>{{ w.m.avg_watch|number(' s') }}</b> regardées{% if w.m.watch_pct is not none %} ({{ w.m.watch_pct|number(' %') }}){% endif %}</span>{% endif %}
           {% if w.m.kept_30s is not none %}<span><b>{{ w.m.kept_30s|number(' %') }}</b> encore là à 0:30</span>{% endif %}
+          {% if w.m.finished is not none %}<span><b>{{ w.m.finished|number(' %') }}</b> jusqu'au bout</span>{% endif %}
           {% if w.m.engage is not none %}<span><b>{{ w.m.engage|number }}</b> partages + enreg.</span>{% endif %}
           {% if w.m.follows is not none %}<span><b>{{ w.m.follows|number }}</b> abonnés</span>{% endif %}
           {% if w.m.likes is not none %}<span><b>{{ w.m.likes|number }}</b> j'aime</span>{% endif %}
@@ -116,8 +117,12 @@
         <p class="nums"><span><b>{{ m.m.views|number }}</b> vues</span>
           {% if m.m.hook is not none %}<span><b>{{ m.m.hook|number(' %') }}</b> passent 3 s</span>{% endif %}
           {% if m.m.avg_watch is not none %}<span><b>{{ m.m.avg_watch|number(' s') }}</b> regardées{% if m.m.watch_pct is not none %} ({{ m.m.watch_pct|number(' %') }}){% endif %}</span>{% endif %}
+          {% if m.m.kept_30s is not none %}<span><b>{{ m.m.kept_30s|number(' %') }}</b> encore là à 0:30</span>{% endif %}
+          {% if m.m.finished is not none %}<span><b>{{ m.m.finished|number(' %') }}</b> jusqu'au bout</span>{% endif %}
           {% if m.m.engage is not none %}<span><b>{{ m.m.engage|number }}</b> partages + enreg.</span>{% endif %}
           {% if m.m.follows is not none %}<span><b>{{ m.m.follows|number }}</b> abonnés</span>{% endif %}
+          {% if m.m.likes is not none %}<span><b>{{ m.m.likes|number }}</b> j'aime</span>{% endif %}
+          {% if m.m.comments is not none %}<span><b>{{ m.m.comments|number }}</b> commentaires</span>{% endif %}
         </p>
       </div>
       {% endfor %}

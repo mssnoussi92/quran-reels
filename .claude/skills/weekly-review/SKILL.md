@@ -1,6 +1,6 @@
 ---
 name: weekly-review
-description: Sunday review of the Page for the owner of Quran Words Daily - read the statistics (insights.json on the state branch, the catalogue's « Statistiques » page), both calendars (reels of quran-reels, theme videos of quran-themes-demo), the theme stock, record the YouTube and TikTok screenshots the owner sends, and propose one to three changes for the next two weeks, each with its evidence and how sure it is. Use when the weekly scheduled task fires, when the owner sends statistics screenshots, or when the owner asks what the numbers say.
+description: Sunday review of the Page for the owner of Quran Words Daily - read the statistics (insights.json on the state branch, the catalogue's « Statistiques » page), both calendars (reels of quran-reels, theme videos of quran-themes-demo), the theme stock, ask for the TikTok screenshots (recorded with the skill record-stats), and propose one to three changes for the next two weeks, each with its evidence and how sure it is. Use when the weekly scheduled task fires or when the owner asks what the numbers say; screenshots sent on their own go to the skill record-stats.
 ---
 
 # Weekly review (Sunday)
@@ -16,14 +16,10 @@ The owner decides; the review proposes. Nothing here publishes, changes a calend
 2. **Read both calendars.** `quran-reels calendar --days 21 --state <state checkout>` (reels),
    `docs/retention/calendar.md` of quran-themes-demo (themes: what is published, struck; what is
    « à faire »). Note the **stock**: the first day without a theme video, three weeks ahead.
-3. **Screenshots (TikTok; YouTube only while its nightly reading is not connected).** YouTube is
-   read every night when YOUTUBE_REFRESH_TOKEN exists (entries with source `youtube-api`): then ask
-   only for TikTok, and for a YouTube Short's own page when its retention matters. When the owner
-   sends screenshots: read each number on the image,
-   write them back to him in a short table (video, platform, views, hook, average watched,
-   shares, follows) and ask « je les enregistre ? ». On his yes, dispatch `insights.yml` on
-   `main` with input `manual` (JSON list, docs/insights.md); never a number that is not on the
-   image. Check the next catalogue build shows them.
+3. **Screenshots (TikTok).** Facebook, Instagram and YouTube are read every night; TikTok only
+   through the owner's screenshots. Ask for the list « Contenu » of TikTok Studio (and a video's
+   own page when one matters); when they come, follow the skill `record-stats` (read, show, ask,
+   save, check). The owner may send them any day, in any session: the same skill.
 4. **What the data says.** Compare kinds at 48 h (medians, n). Below 3 videos or 12 points,
    say « pas encore de différence » — never a conclusion from noise. Look for: the hook (first
    frame), the share of the video watched, shares and saves, follows; the film against its

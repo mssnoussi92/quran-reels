@@ -219,10 +219,11 @@ def reels_for(s: dict[str, Any], row: cal.Row, folder: Path,
               encode: Callable[[Path], Path] = for_instagram,
               publish_file: Callable[[Path], str] = host) -> dict[str, ThemeReel]:
     """Each platform's file and text, downloaded from page-<doc> (Instagram: its own encoding,
-    fetched by Instagram from the release `reels`)."""
+    fetched by Instagram from the release `reels`). Facebook and Instagram take the short version
+    when the line of files names one (`cut`, owner's trial from 2026-11-24); same texts."""
     out = {}
     for platform, v in row.videos.items():
-        name = v.tiktok if platform == "tiktok" else v.video
+        name, seconds = file_for(platform, v)
         cover = download(s, v.doc, v.cover, folder) if v.cover and platform != "tiktok" else None
         video = download(s, v.doc, name, folder)
         if platform == "instagram":
@@ -230,9 +231,22 @@ def reels_for(s: dict[str, Any], row: cal.Row, folder: Path,
         out[platform] = ThemeReel(
             video=video, video_url=publish_file(video) if platform == "instagram" else None,
             caption=v.captions[platform],
-            title=v.title, seconds=v.seconds, cover_image=cover,
+            title=v.title, seconds=seconds, cover_image=cover,
             cover_url=asset_url(s, v.doc, v.cover) if v.cover else None)
     return out
+
+
+CUT_PLATFORMS = ("facebook", "instagram")
+
+
+def file_for(platform: str, v: texts_mod.Video) -> tuple[str, float | None]:
+    """The file a platform gets, and its length: TikTok its signed version; Facebook and
+    Instagram the short version when there is one; the short itself otherwise."""
+    if platform == "tiktok":
+        return v.tiktok, v.seconds
+    if platform in CUT_PLATFORMS and v.cut:
+        return v.cut, v.cut_seconds or v.seconds
+    return v.video, v.seconds
 
 
 def publishers_for(cfg: Config, s: dict[str, Any], row: cal.Row, platforms: list[str]) -> dict:
@@ -251,7 +265,8 @@ def publishers_for(cfg: Config, s: dict[str, Any], row: cal.Row, platforms: list
             ig = out["instagram"]
             ig.timeout, ig.stuck_after, ig.attempts = wait, wait, 1
         fb = row.videos.get("facebook")
-        if "facebook" in out and fb and (fb.seconds or 0) > float(s.get("reels_max_seconds", 90)):
+        if "facebook" in out and fb and (file_for("facebook", fb)[1] or 0) > float(
+                s.get("reels_max_seconds", 90)):
             out["facebook"] = FacebookVideoPublisher(
                 graph, env.page_id, rights_timeout=out["facebook"].rights_timeout)
     if "tiktok" in platforms:
@@ -460,8 +475,9 @@ def run(cfg: Config, state_path: Path, now: datetime | None = None, dry_run: boo
         reels = reels_for(s, row, cfg.out / "themes", download, encode, publish_file)
         pubs = (make_publishers or publishers_for)(cfg, s, row, wanted)
         results = publish_row(row, reels, pubs, wanted, dry_run)
+        cut = {p: v.cut for p, v in row.videos.items() if p in CUT_PLATFORMS and v.cut}
         entry = {"label": row.label, "videos": {p: v.id for p, v in row.videos.items()},
-                 "at": now.isoformat(timespec="seconds"),
+                 "at": now.isoformat(timespec="seconds"), **({"cut": cut} if cut else {}),
                  "results": previous | {n: asdict(r) | {"status": r.status.value}
                                         for n, r in results.items()}}
         if not dry_run:
@@ -510,7 +526,7 @@ def check_upcoming(cfg: Config, days: int = 14, today: date | None = None,
             continue
         missing = []
         for platform, v in row.videos.items():
-            names = [v.tiktok if platform == "tiktok" else v.video]
+            names = [file_for(platform, v)[0]]
             if v.cover and platform != "tiktok":
                 names.append(v.cover)
             missing += [n for n in names if not exists(asset_url(s, v.doc, n))]

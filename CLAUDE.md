@@ -43,7 +43,7 @@ face) : la question va dans le rapport, ses options numérotées.
 | Exécution | GitHub Actions (dépôt public → gratuit), migrable sur le homelab (Docker) |
 | À la demande | Reel choisi depuis le téléphone (récitateur, sourate entière ou ayahs X à Y, fond, plateformes, **mots expliqués** cochés dans le formulaire **avant le ticket**, sous les ayahs affichées, ou `/mots 1 4` après l'aperçu, parmi les sens numérotés du Muyassar, jamais écrits ; extraits du Muyassar publiés sur le site pour le formulaire, choix du 2026-11-06) : catalogue → ticket prérempli → **aperçu** en commentaire → publié seulement après **`/publier`** du propriétaire ; **en plus** des 2 créneaux ; le calendrier **ne saute pas** un passage publié à la demande ; YouTube coché : une seule vidéo par demande, donc « Auto » = Tawfiq As-Sayegh pour tout le reel, et YouTube retiré de la demande avec un autre récitateur (choix du 2026-11-11, docs/on-demand.md) |
 | Périmètre | **Pas seulement des versets récités** : la page publiera aussi des thèmes et des sujets variés (épisodes de quran-themes-demo : thèmes, histoires…), choix du propriétaire le 2026-11-09 ; bios, images et site disent ce qui ne change pas (le Coran et la Sunna au quotidien, toujours sourcés), pas la liste du moment (docs/profils.md) |
-| Vidéos thématiques | **Publiées automatiquement à partir du 2026-11-23** (choix du propriétaire, 2026-11-15) : celle du jour de `docs/retention/calendar.md` de quran-themes-demo à **19:00**, du lundi au samedi, ses textes validés mot pour mot (`publication-<doc>.md`), ses fichiers de la pré-release publique `page-<doc>` ; Facebook et Instagram après la vérification des droits de Meta (sinon rien, TikTok compris), **TikTok en brouillon** (le propriétaire publie), **YouTube à la main** ; avant le 23, le propriétaire publie à la main (docs/themes.md) |
+| Vidéos thématiques | **Publiées automatiquement à partir du 2026-11-23** (choix du propriétaire, 2026-11-15) : celle du jour de `docs/retention/calendar.md` de quran-themes-demo à **19:00**, du lundi au samedi, ses textes validés mot pour mot (`publication-<doc>.md`), ses fichiers de la pré-release publique `page-<doc>` ; Facebook et Instagram après la vérification des droits de Meta (sinon rien, TikTok compris), **TikTok en brouillon** (le propriétaire publie), **YouTube à la main** ; avant le 23, le propriétaire publie à la main (docs/themes.md) ; **version courte sur Facebook et Instagram** quand la ligne des fichiers d'un short en nomme une (`…-cut.mp4`, essai choisi par le propriétaire le 2026-11-16 sur les trois shorts de Dhul-Qarnayn, 24 à 26 novembre ; mêmes textes ; TikTok et YouTube gardent le short entier ; comparée à part sur la page « Statistiques ») |
 | Titres | **Toujours en arabe et en anglais** (choix du propriétaire, 2026-11-09) : noms des comptes, série et sourate en tête des légendes (`render.series_line` : « Supplications from the Quran · آيات الدعاء · 3/38 »), titres YouTube (raccourcis par parties entières, jamais une seule langue), Word of the day, playlists, images ; le texte des ayahs reste hors de la légende Facebook |
 | Comptes pro | Page Facebook + Instagram en type **Créateur**, reliés |
 | Signature | **@quran_words_daily** sur chaque image, dans la zone sûre (repartages) ; **TikTok : `@quran.words.daily`** (choix du propriétaire, 2026-11-09 : `@quran_words_daily` y est à quelqu'un d'autre) : sa propre version de chaque reel (`platforms.tiktok.signature`, `render.signatures` : calque fixe redessiné, `out/<passage>/tiktok.mp4`) et la même signature à la fin de sa légende (`Reel.for_platform`) |
@@ -424,8 +424,9 @@ Procédures à suivre, pour toute session (le planificateur compris) : `check-pu
 (lire un run, l'état, rapporter), `test-reciter` (découper, vérifier, Facebook d'abord, puis
 Instagram), `republish` (rouvrir un créneau et republier), `add-background` (chercher, vérifier,
 proposer un fond), `propose-series` (proposer une série, validée en PR), `weekly-review`
-(le dimanche : statistiques, deux calendriers, stock des thèmes, captures YouTube/TikTok
-enregistrées sur parole du propriétaire, 1 à 3 propositions ; ne change rien seule).
+(le dimanche : statistiques, deux calendriers, stock des thèmes, 1 à 3 propositions ; ne change rien
+seule), `record-stats` (les captures de statistiques, TikTok surtout, envoyées dans n'importe quelle
+session : reconnaître la vidéo, lire, montrer, demander, enregistrer, vérifier).
 
 ## Secrets (jamais dans le code ni dans la conversation)
 
@@ -458,8 +459,8 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-30.
   par vidéo comme sur Facebook et Instagram (relevés 48 h / 7 j / 28 j **comptés sur les jours de
   YouTube Analytics**, donc aussi pour les vidéos plus anciennes ; rangée avec son reel ou sa vidéo
   thématique ; 93:1-11, publiée à la main, est `hand:93:1-11`), abonnés de la chaîne ; mise en place : docs/plateformes.md, « Statistiques YouTube ») ;
-  TikTok (et YouTube tant que ses secrets manquent) : captures envoyées par le propriétaire le
-  dimanche, recopiées par une session (`insights.yml`, entrée `manual`).
+  TikTok : captures envoyées par le propriétaire **dans n'importe quelle session**, enregistrées
+  après son accord par le skill `record-stats` (`insights.yml`, entrée `manual`).
 - Le calendrier du catalogue montre aussi les vidéos thématiques (calendar.md de
   quran-themes-demo, tel qu'écrit) : un seul calendrier pour la Page ; à partir du 2026-11-23
   ils y sont « automatique », et « publié » d'après `themes.json`.

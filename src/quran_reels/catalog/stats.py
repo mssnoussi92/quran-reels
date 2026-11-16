@@ -157,16 +157,20 @@ def build(insights: dict[str, Any] | None, settings: dict[str, Any], now: dateti
             continue
         if published < since:
             continue
+        # a short version (Facebook, Instagram) is a row of its short, never its kind nor length
+        cut = (rec.get("ref") or {}).get("cut")
+        kind = "theme-short" if cut else rec.get("kind", "other")
         g = groups.setdefault(rec.get("key") or uid, {
-            "key": rec.get("key") or uid, "kind": rec.get("kind", "other"),
-            "kind_label": KINDS.get(rec.get("kind", "other"), rec.get("kind", "")),
+            "key": rec.get("key") or uid, "kind": kind, "kind_label": KINDS.get(kind, kind),
             "label": rec.get("label") or uid, "ref": rec.get("ref") or {},
-            "published": published, "seconds": rec.get("seconds"), "rows": [], "manual": []})
+            "published": published, "seconds": None, "rows": [], "manual": []})
         g["published"] = min(g["published"], published)
-        g["seconds"] = g["seconds"] or rec.get("seconds")
+        if not cut:
+            g["seconds"] = g["seconds"] or rec.get("seconds")
         snaps = rec.get("snapshots") or {}
         row = {"platform": PLATFORMS.get(rec.get("platform"), rec.get("platform")),
-               "url": rec.get("url", ""), "views": []}
+               "url": rec.get("url", ""), "views": [],
+               "cut": rec.get("seconds") if cut else None, "is_cut": bool(cut)}
         for name, title in (("48h", "à 48 h"), ("latest", "dernier relevé")):
             s = snaps.get(name)
             # the same reading shown once, as « à 48 h »; YouTube's 48 h, counted on its days,

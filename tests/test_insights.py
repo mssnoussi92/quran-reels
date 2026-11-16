@@ -329,6 +329,14 @@ def test_manual_numbers_from_a_screenshot(tmp_path):
         C.add_manual(path, [entry | {"platform": "snapchat"}])
     with pytest.raises(ValueError):
         C.add_manual(path, [entry | {"metrics": {"likes_per_hour": 3}}])
+    # TikTok's « watched the full video »; an entry sent with a wrong video, taken back
+    wrong = {"platform": "tiktok", "video": "107:1-77", "seen": "2026-11-22",
+             "metrics": {"views": 676, "finished": 31.2}}
+    C.add_manual(path, [wrong])
+    assert json.loads(path.read_text())["manual"][-1]["m"] == {"views": 676, "finished": 31.2}
+    C.add_manual(path, [{"platform": "tiktok", "video": "107:1-77", "seen": "2026-11-22",
+                         "remove": True}])
+    assert [m["video"] for m in json.loads(path.read_text())["manual"]] == ["dua/short-1"]
 
 
 # ------------------------------------------------------------------------------ the page
@@ -366,6 +374,53 @@ def test_the_statistics_page(state):
     assert "&lt;b&gt;unknown&lt;/b&gt;" in html and "<b>unknown</b>" not in html
     assert "trop peu" in html and "60 %" in html                # Instagram reel: 100 − 40
     assert "0 vues" not in html                                  # nothing invented
+
+
+def test_the_short_version_is_a_row_of_its_short_and_compared_apart():
+    """Facebook and Instagram got the short version (themes.json `cut`): the page shows it
+    under its short, with its own length, and compares it apart from the whole shorts."""
+    from zoneinfo import ZoneInfo
+
+    from quran_reels.catalog import stats as S
+    from quran_reels.insights.classify import Classifier
+
+    snap = {"at": "2026-11-26T02:00:00+00:00", "age_h": 55, "m": {"views": 300}}
+    posts = {
+        "facebook:fb1": {"platform": "facebook", "id": "fb1", "seconds": 73,
+                         "published": "2026-11-24T18:01:00+00:00",
+                         "first_line": "Patient… and he asked", "snapshots": {"48h": snap}},
+        "instagram:ig1": {"platform": "instagram", "id": "ig1",
+                          "published": "2026-11-24T18:02:00+00:00",
+                          "first_line": "Patient… and he asked", "snapshots": {"48h": snap}},
+        "youtube:yt1": {"platform": "youtube", "id": "yt1", "seconds": 109,
+                        "published": "2026-11-24T20:00:00+00:00",
+                        "first_line": "Patient… and he asked", "snapshots": {"48h": snap}},
+    }
+    themes_state = {"posts": {"2026-11-24": {
+        "videos": {"facebook": "dua/short-1", "instagram": "dua/short-1", "tiktok": "dua/short-1"},
+        "cut": {"facebook": "dua-short-1-asked-cut.mp4", "instagram": "dua-short-1-asked-cut.mp4"},
+        "results": {"facebook": {"status": "published", "remote_id": "fb1"},
+                    "instagram": {"status": "published", "remote_id": "ig1"},
+                    "tiktok": {"status": "draft", "remote_id": "v_inbox~1"}}}}}
+    Classifier({}, {}, index(), themes_state).apply(posts)
+    assert {u: (r["key"], r["kind"], r["seconds"]) for u, r in posts.items()} == {
+        "facebook:fb1": ("theme:dua/short-1", "theme-short-cut", 73),
+        "instagram:ig1": ("theme:dua/short-1", "theme-short-cut", 73),      # its twin's length
+        "youtube:yt1": ("theme:dua/short-1", "theme-short", 109)}
+    assert posts["facebook:fb1"]["ref"]["cut"] == "dua-short-1-asked-cut.mp4"
+    s = S.build({"posts": posts}, {"days": 35}, datetime(2026, 11, 26, 8, tzinfo=UTC),
+                ZoneInfo("Europe/Paris"))
+    video = s["videos"][0]
+    assert (video["kind_label"], video["seconds"]) == ("Thème : short d'histoire", 109)
+    assert [(r["platform"], r["is_cut"], r["cut"]) for r in video["rows"]] == [
+        ("Facebook", True, 73), ("Instagram", True, 73), ("YouTube", False, None)]
+    assert {(k["kind"], k["platform"]) for k in s["kinds"]} == {
+        ("Thème : short, version courte", "Facebook"), ("Thème : short, version courte", "Instagram"),
+        ("Thème : short d'histoire", "YouTube")}
+    from quran_reels.catalog.page import render_stats
+
+    html = render_stats({"repo": "o/r", "stats": json.loads(json.dumps(s, default=str))})
+    assert html.count("· version courte, 73 s") == 2
 
 
 def test_an_empty_statistics_page_says_when_it_starts():
