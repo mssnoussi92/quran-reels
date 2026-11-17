@@ -424,8 +424,11 @@ Procédures à suivre, pour toute session (le planificateur compris) : `check-pu
 (lire un run, l'état, rapporter), `test-reciter` (découper, vérifier, Facebook d'abord, puis
 Instagram), `republish` (rouvrir un créneau et republier), `add-background` (chercher, vérifier,
 proposer un fond), `propose-series` (proposer une série, validée en PR), `weekly-review`
-(le dimanche : statistiques, deux calendriers, stock des thèmes, 1 à 3 propositions ; ne change rien
-seule), `record-stats` (les captures de statistiques, TikTok surtout, envoyées dans n'importe quelle
+(la revue, le dimanche : statistiques, deux calendriers, stock des thèmes, les points notés pour elle dans
+docs/insights.md, 1 à 3 propositions ; ne change rien seule ; **quand le propriétaire dit « on commence la
+revue », « on fait le point » ou autre chose de ce genre, dans n'importe quelle session** : maintenant avec lui,
+ou dimanche par la revue automatique de 09:23, demandé par une question à choix si ce n'est pas clair ; sa demande
+du 2026-11-17), `record-stats` (les captures de statistiques, TikTok surtout, envoyées dans n'importe quelle
 session : reconnaître la vidéo, lire, montrer, demander, enregistrer, vérifier).
 
 ## Secrets (jamais dans le code ni dans la conversation)
