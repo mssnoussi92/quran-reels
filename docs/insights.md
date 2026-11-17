@@ -169,3 +169,19 @@ chiffres sur l'image, les montre au propriétaire et demande, puis lance `insigh
   reels suivent.
 - **Word of the day en pause** depuis le 2026-11-15 (choix du propriétaire : 4 vues en médiane par publication sur
   Instagram, 21 vues en tout sur Facebook en 9 jours) ; ses relevés restent pour comparer s'il revient.
+
+## À la revue du dimanche 29 novembre : l'essai de la version courte
+
+Décidé avec le propriétaire le 2026-11-17 : « on fait le point dimanche ». Les shorts 1, 2 et 3 de Dhul-Qarnayn sont
+partis en version courte sur Facebook et Instagram les 24, 25 et 26 novembre (73, 73 et 79 s, au lieu de 125, 114 et
+111 s ; TikTok et YouTube en short entier ; docs/themes.md). Leurs relevés à 48 h sont tous faits la nuit du 28 au 29.
+
+- **Ce qu'on compare** : sur la page, « Thème : short, version courte » (n = 3) contre « Thème : short d'histoire »
+  (les shorts entiers des semaines d'avant), Facebook et Instagram à part.
+- **Le piège** : un short plus court a mécaniquement un « % regardé » plus haut. On compare surtout les **secondes
+  regardées**, « passent 3 s » (Instagram), les vues (la plateforme le montre-t-elle davantage ?), les partages et
+  les abonnés. Le pourcentage n'est qu'un indice.
+- **La prudence** : 3 vidéos, des sujets différents des shorts d'avant. Sous 12 points d'écart, aucune différence n'est
+  affirmée ; un écart net est une piste à confirmer sur d'autres coupes, pas une règle.
+- **La question à poser au propriétaire** (choix) : couper le reste du stock pour Facebook et Instagram, refaire
+  l'essai sur trois autres shorts, ou en rester au short entier.
