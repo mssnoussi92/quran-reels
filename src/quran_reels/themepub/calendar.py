@@ -14,6 +14,11 @@ row of « لاحظت الفرق؟ » took the text of the « سنريهم آيا
 they must agree. « Où » gives the platforms (« les quatre »: all). For each platform the video is the one of those texts whose file line lists it:
 the 9:16 film for Facebook, the 16:9 one for YouTube. A row this cannot tie to a video is
 reported and never published.
+
+A day may have several rows, each on platforms of its own (the owner, 2026-11-17: the quiz on
+Instagram on the Mondays of a film, which Instagram does not get): every row goes out, in the
+order of the table (`n`: 1, 2…). A row that names a platform an earlier row of the same day
+already has is reported and never published: one video a day per platform.
 """
 
 from __future__ import annotations
@@ -41,15 +46,18 @@ class Row:
     platforms: list[str]
     published: bool = False         # struck: done by hand
     todo: bool = False              # « à faire »: nothing to publish yet
+    n: int = 1                      # its order among the day's rows (the second video of a day: 2)
     videos: dict[str, Video] = field(default_factory=dict)      # platform → video
     problems: list[str] = field(default_factory=list)
 
 
-def _platforms(where: str) -> list[str]:
+def platforms_of(where: str) -> list[str]:
+    """The platforms a row's « Où » names (« les quatre »: all)."""
     w = where.casefold()
     if "les quatre" in w:
         return list(ALL)
     return [p for p in ALL if p in w]
+
 
 
 def rows(text: str, today: date) -> list[Row]:
@@ -81,12 +89,34 @@ def rows(text: str, today: date) -> list[Row]:
         for d in days:
             row = Row(day=d, label=_clean(cells[1]), where=_clean(cells[2]),
                       docs=list(docs) if part else [], part=part,
-                      platforms=_platforms(cells[2]), published=struck, todo=todo)
+                      platforms=platforms_of(cells[2]), published=struck, todo=todo)
             if clash:
                 row.problems.append("« Texte » (" + ", ".join(named) + ") et « Fichiers » ("
                                     + ", ".join(released) + ") ne nomment pas le même texte")
             out.append(row)
+    same_day(out)
     return out
+
+
+def same_day(rows: list[Row]) -> None:
+    """Number the rows of each day in the table's order, and refuse a row whose platform an
+    earlier row of that day already has (a struck or « à faire » row takes none)."""
+    by_day: dict[date, list[Row]] = {}
+    for row in rows:
+        by_day.setdefault(row.day, []).append(row)
+    for day_rows in by_day.values():
+        taken: dict[str, str] = {}
+        for k, row in enumerate(day_rows, 1):
+            row.n = k
+            if row.published or row.todo:
+                continue
+            clash = [p for p in row.platforms if p in taken]
+            if clash:
+                row.problems.append(f"{', '.join(clash)} : déjà pris ce jour-là par « {taken[clash[0]]} » "
+                                    "(une seule vidéo par plateforme et par jour)")
+                continue
+            for p in row.platforms:
+                taken[p] = row.label
 
 
 def resolve(row: Row, videos: dict[str, Video], wanted: list[str]) -> Row:

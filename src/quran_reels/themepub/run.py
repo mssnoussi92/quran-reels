@@ -13,7 +13,9 @@ pre-release page-<doc> (workflow page-files). Same rule as the reels:
    gives the file and the title).
 
 A platform already done for the day (themes.json, branch `state`) is never sent again; one that
-failed before anything reached it is tried again by the next run of the window. A dry run
+failed before anything reached it is tried again by the next run of the window. A day may have
+several rows on platforms of their own (themepub/calendar.py): each goes out in the same run, and
+the day's entry of themes.json holds every platform's result. A dry run
 uploads, reads the checks, deletes the Facebook copy and records nothing; it never sends
 TikTok a draft (it would land in the owner's inbox).
 """
@@ -151,26 +153,28 @@ def slot(s: dict[str, Any], day: date) -> datetime:
 
 
 def due(s: dict[str, Any], state: dict, src: Sources, now: datetime) -> cal.Row | None:
-    """Today's row if its time has come (from early_minutes before, for window_hours) and a
-    platform of it is still to do; None otherwise."""
+    """Today's first row due (due_rows), or None."""
+    rows = due_rows(s, state, src, now)
+    return rows[0] if rows else None
+
+
+def due_rows(s: dict[str, Any], state: dict, src: Sources, now: datetime) -> list[cal.Row]:
+    """Today's rows if their time has come (from early_minutes before, for window_hours) and a
+    platform of theirs is still to do (or they have a problem to report), in the table's order."""
     if not s.get("enabled", True):
-        return None
+        return []
     today = now.astimezone(PARIS).date()
     first = date.fromisoformat(str(s.get("from"))) if s.get("from") else today
     if today < first:
-        return None
+        return []
     at = slot(s, today)
     start = at - timedelta(minutes=float(s.get("early_minutes", 20)))
     end = at + timedelta(hours=float(s.get("window_hours", 3)))
     if not start <= now.astimezone(PARIS) <= end:
-        return None
-    row = next((r for r in src.rows if r.day == today and not r.published), None)
-    if row is None:
-        return None
+        return []
     results = (state["posts"].get(today.isoformat()) or {}).get("results") or {}
-    if row.problems or any(not done(results.get(p)) for p in row.videos):
-        return row
-    return None
+    return [r for r in src.rows if r.day == today and not r.published
+            and (r.problems or any(not done(results.get(p)) for p in r.videos))]
 
 
 # ------------------------------------------------------------------------------ publishing
@@ -357,12 +361,19 @@ def _item(s: dict[str, Any], row: cal.Row, entry: dict,
                  + (f" · titre : `{title}`" if title else "")
                  + " · description : ta page « Films et shorts à publier »."]
     tiktok = row.videos.get("tiktok")
-    return {"key": f"theme:{row.day.isoformat()}", "day": row.day.isoformat(),
+    results = {p: r for p, r in (entry.get("results") or {}).items() if p in row.platforms}
+    return {"key": item_key(row), "day": row.day.isoformat(),
             "time": s.get("time", "19:00"), "passage": row.label,
-            "label": v.title if v else "", "results": entry.get("results") or {},
+            "label": v.title if v else "", "results": results,
             "caption": tiktok.captions.get("tiktok", "") if tiktok else "",
             "files": {"mp4": asset_url(s, tiktok.doc, tiktok.tiktok)} if tiktok else None,
             "notes": notes, "youtube": youtube_texts(s, yt), "match": match_keys(row)}
+
+
+def item_key(row: cal.Row) -> str:
+    """The day's video in the captions issue and on the page publier.html: « theme:<day> »; the
+    second video of a day « theme:<day>-2 »."""
+    return f"theme:{row.day.isoformat()}" + (f"-{row.n}" if row.n > 1 else "")
 
 
 def youtube_texts(s: dict[str, Any], yt: texts_mod.Video | None) -> dict[str, str] | None:
@@ -408,7 +419,7 @@ def page_files(report_path: Path, hosting: Any = None, now: datetime | None = No
         results = item.get("results") or {}
         if not any((r or {}).get("status") in ("published", "draft") for r in results.values()):
             continue
-        rid = f"theme/{item['day']}"
+        rid = "theme/" + str(item.get("key") or f"theme:{item['day']}").split(":", 1)[1]
         files[f"{rid}/reel.json"] = json.dumps({
             "kind": "theme", "id": rid, "created": created, "key": item["key"],
             "day": item["day"], "time": item.get("time", ""),
@@ -449,43 +460,52 @@ def run(cfg: Config, state_path: Path, now: datetime | None = None, dry_run: boo
     state = load_state(state_path)
     today = (day or now.astimezone(PARIS).date())
     src = src or fetch(s, today)
-    if day is not None:                    # a chosen day (dry run): its row, whatever the time
-        row = next((r for r in src.rows if r.day == day), None)
+    if day is not None:                    # a chosen day (dry run): its rows, whatever the time
+        rows = [r for r in src.rows if r.day == day]
     else:
-        row = due(s, state, src, now)
-    out: dict[str, Any] = {"due": row is not None, "dry_run": dry_run, "items": [], "notes": []}
-    if row is None or check:
-        if row is not None:
+        rows = due_rows(s, state, src, now)
+    out: dict[str, Any] = {"due": bool(rows), "dry_run": dry_run, "items": [], "notes": []}
+    if not rows or check:
+        for row in rows:
             print(f"{row.day}: {row.label} — due", file=sys.stderr)
-        else:
+        if not rows:
             print(f"{now.astimezone(PARIS):%Y-%m-%d %H:%M} Paris: no theme video due",
                   file=sys.stderr)
         return out
-    print(f"{row.day}: {row.label} → " + ", ".join(f"{p} {v.id}" for p, v in row.videos.items()),
-          file=sys.stderr)
-    if row.problems:
-        out["problems"] = row.problems
-        out["notes"].append(f"Vidéo thématique du {row.day:%d/%m} ({row.label}) non publiée : "
-                            + " ; ".join(row.problems))
-    entry = state["posts"].get(row.day.isoformat()) or {}
-    previous = entry.get("results") or {}
-    wanted = [p for p in (platforms or s.get("platforms", ["facebook", "instagram", "tiktok"]))
-              if p in row.videos and (dry_run or not done(previous.get(p)))]
-    if wanted:
-        reels = reels_for(s, row, cfg.out / "themes", download, encode, publish_file)
-        pubs = (make_publishers or publishers_for)(cfg, s, row, wanted)
-        results = publish_row(row, reels, pubs, wanted, dry_run)
-        cut = {p: v.cut for p, v in row.videos.items() if p in CUT_PLATFORMS and v.cut}
-        entry = {"label": row.label, "videos": {p: v.id for p, v in row.videos.items()},
-                 "at": now.isoformat(timespec="seconds"), **({"cut": cut} if cut else {}),
-                 "results": previous | {n: asdict(r) | {"status": r.status.value}
-                                        for n, r in results.items()}}
-        if not dry_run:
-            state["posts"][row.day.isoformat()] = entry
-            save_state(state_path, state)
-    out["items"].append(_item(s, row, entry, youtube_video(row, src.videos)))
-    out["failed"] = [p for p, r in (entry.get("results") or {}).items()
-                     if r.get("status") in ("failed", "blocked")] or bool(row.problems)
+    failed: list[str] = []
+    problems: list[str] = []
+    for row in rows:
+        print(f"{row.day}: {row.label} → " + ", ".join(f"{p} {v.id}" for p, v in row.videos.items()),
+              file=sys.stderr)
+        if row.problems:
+            problems += row.problems
+            out["notes"].append(f"Vidéo thématique du {row.day:%d/%m} ({row.label}) non publiée : "
+                                + " ; ".join(row.problems))
+        entry = state["posts"].get(row.day.isoformat()) or {}
+        previous = entry.get("results") or {}
+        wanted = [p for p in (platforms or s.get("platforms", ["facebook", "instagram", "tiktok"]))
+                  if p in row.videos and (dry_run or not done(previous.get(p)))]
+        if wanted:
+            reels = reels_for(s, row, cfg.out / "themes", download, encode, publish_file)
+            pubs = (make_publishers or publishers_for)(cfg, s, row, wanted)
+            results = publish_row(row, reels, pubs, wanted, dry_run)
+            # The day's entry, every row's platforms together (one video a day per platform).
+            cut = (entry.get("cut") or {}) | {p: v.cut for p, v in row.videos.items()
+                                               if p in CUT_PLATFORMS and v.cut}
+            entry = {"label": entry.get("label") or row.label,
+                     "videos": (entry.get("videos") or {}) | {p: v.id for p, v in row.videos.items()},
+                     "at": now.isoformat(timespec="seconds"), **({"cut": cut} if cut else {}),
+                     "results": previous | {n: asdict(r) | {"status": r.status.value}
+                                            for n, r in results.items()}}
+            if not dry_run:
+                state["posts"][row.day.isoformat()] = entry
+                save_state(state_path, state)
+        out["items"].append(_item(s, row, entry, youtube_video(row, src.videos)))
+        failed += [p for p, r in (entry.get("results") or {}).items()
+                   if p in row.videos and r.get("status") in ("failed", "blocked")]
+    if problems:
+        out["problems"] = problems
+    out["failed"] = failed or bool(problems)
     if report:
         report.parent.mkdir(parents=True, exist_ok=True)
         report.write_text(json.dumps(out, ensure_ascii=False, indent=1, default=str),

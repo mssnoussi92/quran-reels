@@ -373,6 +373,89 @@ def test_a_dry_run_records_nothing_and_sends_tiktok_nothing(setup):
     assert not pubs["tiktok"].calls and not pubs["instagram"].calls     # the film: Facebook only
 
 
+QUIZ = SIGNS.replace("signs-short-2-universe", "quiz-short-1-sayyara").replace(
+    "## Short 2 · Even Einstein got this wrong · حتى أينشتاين غلط فيها",
+    "## Short 1 · A car in Surat Yusuf? · سيارة في سورة يوسف؟").replace("Einstein", "Sayyara")
+QUIZ_ROW = ("| lun. 23 nov. | « معاك 5 ثواني » 1 : سيارة | Instagram | release `quiz-candidate` | "
+            "`publication-quiz.md` : « Short 1 » |\n")
+
+
+@pytest.fixture
+def quiz_monday(monkeypatch):
+    """2026-11-17, the owner's choice: the quiz on Instagram on a Monday whose film Instagram does
+    not get, both published by quran-reels."""
+    film = "| mar. 24 nov. | Du'a, short 1"
+    monkeypatch.setitem(globals(), "CALENDAR", CALENDAR.replace(film, QUIZ_ROW + film, 1))
+    plain = videos
+    monkeypatch.setitem(globals(), "videos", lambda: plain() | T.parse("quiz", QUIZ))
+
+
+def test_two_videos_on_one_day_each_on_its_own_platforms(setup, quiz_monday):
+    rows = [r for r in sources().rows if r.day == date(2026, 11, 23)]
+    assert [(r.n, sorted(r.videos)) for r in rows] == [(1, ["facebook"]), (2, ["instagram"])]
+    assert not any(r.problems for r in rows)
+    assert [r.label for r in R.due_rows(S, {"posts": {}}, sources(), paris("2026-11-23", "18:45"))] \
+        == [rows[0].label, rows[1].label]
+    run, pubs, _fetched, tmp = setup
+    out = run(now=paris("2026-11-23", "18:45"))
+    assert out["due"] and not out["failed"]
+    assert pubs["facebook"].calls[0][1].video.name == "dua-film-9x16.mp4"
+    assert pubs["instagram"].calls[0][1].video.name == "quiz-short-1-sayyara-instagram.mp4"
+    assert pubs["instagram"].calls[0][1].caption.startswith("Sayyara (IG)")
+    assert not pubs["tiktok"].calls                       # neither row has TikTok
+    entry = json.loads((tmp / "themes.json").read_text())["posts"]["2026-11-23"]
+    assert {p: r["status"] for p, r in entry["results"].items()} == {
+        "facebook": "published", "instagram": "published"}
+    assert entry["videos"] == {"facebook": "dua-9x16/film", "instagram": "quiz/short-1"}
+    items = json.loads((tmp / "report.json").read_text())["items"]
+    assert [(i["key"], sorted(i["results"])) for i in items] == [
+        ("theme:2026-11-23", ["facebook"]), ("theme:2026-11-23-2", ["instagram"])]
+
+    class Previews:
+        def publish(self, files, message, derived=None):
+            self.files = files
+
+    previews = Previews()
+    R.page_files(tmp / "report.json", previews)
+    assert sorted(previews.files) == ["theme/2026-11-23-2/reel.json", "theme/2026-11-23/reel.json"]
+    from quran_reels import feed
+
+    second = feed.entry(json.loads(previews.files["theme/2026-11-23-2/reel.json"]))
+    assert (second["key"], second["day"]) == ("theme:2026-11-23-2", "2026-11-23")
+    # done: the next run of the window sends nothing again
+    for p in pubs.values():
+        p.calls.clear()
+    assert not run(now=paris("2026-11-23", "19:40"))["due"]
+    assert not any(p.calls for p in pubs.values())
+
+
+def test_a_second_video_on_a_platform_already_taken_that_day_never_goes_out():
+    text = CALENDAR.replace("| sam. 28 nov. |", "| sam. 28 nov. | doublon | Instagram ; TikTok | "
+                            "release `farq-candidate` | « Short 2 » |\n| sam. 28 nov. |", 1)
+    rows = [r for r in cal.rows(text, date(2026, 11, 20)) if r.day == date(2026, 11, 28)]
+    assert [r.n for r in rows] == [1, 2] and not rows[0].problems
+    assert rows[1].problems and "instagram, tiktok" in rows[1].problems[0]
+    vids = videos()
+    for r in rows:
+        cal.resolve(r, vids, ["facebook", "instagram", "tiktok"])
+    assert rows[0].videos and not rows[1].videos
+
+
+def test_the_catalogue_shows_each_video_of_a_day_with_its_own_platforms():
+    from quran_reels.catalog import stats as stats_mod
+    from quran_reels.insights.themes import ThemeDay
+
+    calendar = [{"date": "2026-11-23"}]
+    stats_mod.merge_calendar(calendar, [
+        ThemeDay(day="2026-11-23", label="film", where="YouTube (16:9) ; Facebook (vertical)"),
+        ThemeDay(day="2026-11-23", label="quiz", where="Instagram")],
+        "19:00", "2026-11-23",
+        {"2026-11-23": {"results": {"facebook": {"status": "published"},
+                                    "instagram": {"status": "published"}}}})
+    assert [(t["label"], t["sent"]) for t in calendar[0]["themes"]] == [
+        ("film", ["facebook"]), ("quiz", ["instagram"])]
+
+
 def test_upcoming_check_names_what_would_stop_a_day(monkeypatch):
     monkeypatch.setattr(R, "settings", lambda cfg: S)
     _lines, problems = R.check_upcoming(load(), days=50, today=date(2026, 11, 20), src=sources(),
