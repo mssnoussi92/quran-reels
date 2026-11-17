@@ -27,7 +27,6 @@ from zoneinfo import ZoneInfo
 
 import yaml
 
-from quran_reels.arabic import arabic_digits
 from quran_reels.config import Config
 from quran_reels.models import parse_passage
 
@@ -153,13 +152,14 @@ class Item:
 
     @property
     def label_ar(self) -> str:
-        """Shown on the first frame, e.g. «آيات الدعاء · ٣ من ٣٠»; empty without a title."""
+        """Shown on the first frame, e.g. «آيات الدعاء · 3 من 30»; empty without a title. Numbers 1 2 3, never ١ ٢ ٣
+        (the owner, 2026-11-17: CLAUDE.md, « Chiffres »)."""
         if not self.series.title_ar:
             return ""
         n = len(self.series.passages)
         if n == 1:
             return self.series.title_ar
-        return f"{self.series.title_ar} · {arabic_digits(self.index)} من {arabic_digits(n)}"
+        return f"{self.series.title_ar} · {self.index} من {n}"
 
     @property
     def label_en(self) -> str:
