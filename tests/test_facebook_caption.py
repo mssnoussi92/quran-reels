@@ -33,7 +33,7 @@ def passage(ayahs=1, chars=60, label="The seven munjiyat verses · 2/7", glossed
                 ayahs=[Ayah(AyahRef(6, 17 + i), "كَلِمَة", f"{i}" + "x" * (chars - 1))
                        for i in range(ayahs)],
                 basmala=Ayah(AyahRef(1, 1), "بِسْمِ", "basmala"),
-                label_ar="السبع آيات المنجيات · ٢ من ٧" if label else "", label_en=label,
+                label_ar="السبع آيات المنجيات · 2 من 7" if label else "", label_en=label,
                 series_tags=("#المنجيات", "#السبع_المنجيات"))
     if glossed:
         p.ayahs[0].glosses = [WordGloss(AyahRef(6, 17), "كَلِمَة", "معنى", "e", positions=(0,))]

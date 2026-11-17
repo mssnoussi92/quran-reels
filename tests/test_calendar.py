@@ -114,7 +114,7 @@ def test_labels_number_the_passage_in_its_series():
     state = State()
     mark_done(state, "themes", item)
     _, item = next_item(schedule(), SERIES, state, "themes")
-    assert item.label_ar == "آيات الدعاء · ١ من ٣"
+    assert item.label_ar == "آيات الدعاء · 1 من 3"         # 1 2 3, never ١ ٢ ٣ (the owner, 2026-11-17)
     assert item.label_en == "Supplications from the Quran · 1/3"
     _, item = next_item(schedule(), SERIES, State(), "reading")
     assert item.label_ar == item.label_en == ""                         # plain reading

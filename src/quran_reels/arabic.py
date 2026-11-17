@@ -146,4 +146,6 @@ _DIGITS = str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")
 
 
 def arabic_digits(n: int) -> str:
+    """The number that closes an ayah inside the Quranic text (﴿١٩﴾), as in the mushaf: the only place numbers are
+    written ١ ٢ ٣ (the owner, 2026-11-17: everything else 1 2 3, CLAUDE.md « Chiffres »)."""
     return str(n).translate(_DIGITS)
