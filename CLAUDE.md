@@ -77,11 +77,33 @@ explicite pour cette action :
 - poster `/publier`, `/essai`, `/mots`, `/youtube` ou toute autre commande sur un ticket ;
 - lancer `publish-test.yml` en `mode: publish` (taper `PUBLIER`), ni rouvrir un créneau
   (`state reopen`), ni enregistrer une publication (`state record`) ;
-- fusionner une PR ou pousser sur `main` : une PR se propose, il la fusionne ;
+- pousser sur `main` (tout passe par une PR), ou fusionner une PR hors de la règle ci-dessous ;
 - supprimer un reel, un ticket, une release.
 
 Lancer `daily.yml`, `images.yml` ou `prepare.yml` sur `main` sans entrées reste permis (ils
 décident seuls de ce qui est dû et ne publient rien deux fois) ; c'est le rôle du planificateur.
+
+**Fusion des PR : la session suit sa PR et la fusionne elle-même** (choix du propriétaire,
+2026-11-17 : « que toutes les sessions suivent la merge et la mergent automatiquement quand les
+checks passent » ; même règle dans quran-themes-demo). Après avoir ouvert une PR, la session :
+
+1. attend la fin de ses checks (ici `tests.yml` : pytest et ruff ; `pull_request_read`,
+   `get_check_runs`, toutes les 30 à 60 s), jamais avant ; aucun check lancé en 10 minutes : ne
+   pas fusionner, le dire ;
+2. **checks verts et PR fusionnable** : la fusionne (`merge_pull_request`, méthode `merge`).
+   Pas fusionnable (`main` a bougé) : fusionner `main` dans la branche, repousser, attendre de
+   nouveau les checks (jamais de force push). **Checks rouges** : corriger et repousser, jamais
+   fusionner, jamais désactiver ni sauter un test ;
+3. **sauf une PR qui porte une décision du propriétaire pas encore donnée** (choix du 2026-11-17) :
+   série proposée, changement de calendrier (`schedule.yaml`, `calendar.md`), texte, accroche ou
+   titre à valider, récitateur ajouté ou retiré, et tout ce que ce fichier dit « validé par le
+   propriétaire en PR » : elle attend son « je valide » dans la conversation (question à choix
+   qui nomme la PR), puis la fusionne de même ;
+4. après la fusion, fait ce que la PR annonçait (relancer un workflow, vérifier la page déployée)
+   et le dit en une ligne avec le lien. Seulement ses propres PR : ni Dependabot, ni celle d'une
+   autre session sans la demande du propriétaire. Un commit poussé après la fusion n'est pas
+   fusionné : il part dans une nouvelle PR (2026-11-17 : le skill de la revue, poussé une
+   minute après la fusion de la #74, n'était pas arrivé sur `main`).
 
 ## Architecture
 
