@@ -26,6 +26,11 @@ deux ; si l'une des vérifications n'est pas propre, **rien ne part, TikTok comp
   - les plateformes viennent de « Où » (« les quatre » : toutes) ; pour chacune, la vidéo du texte qui la prévoit
     (le film en 9:16 pour Facebook, le film 16:9 pour YouTube) ;
   - une ligne barrée est déjà publiée ; une ligne « à faire » n'a rien à publier.
+  - **plusieurs lignes le même jour** (choix du propriétaire, 2026-11-17 : le quiz « معاك 5 ثواني » sur Instagram les
+    lundis d'un film, qu'Instagram ne reçoit pas) : chacune sort, dans l'ordre du tableau, au même créneau de 19:00 ;
+    elles ne partagent aucune plateforme (une ligne qui nomme une plateforme déjà prise ce jour-là est signalée et ne
+    sort pas : une seule vidéo par plateforme et par jour). L'entrée du jour de `themes.json` garde le résultat de
+    chaque plateforme ; la deuxième vidéo du jour a sa clé, `theme:<jour>-2` (ticket des légendes, page « À publier »).
 - **Les textes** : `docs/retention/publication-<doc>.md`, bloc par plateforme (« **Facebook** », « **Instagram** »,
   « **TikTok** », « **Titre YouTube** »), mot pour mot : rien n'est coupé, ajouté ni réécrit ici.
 - **Les fichiers** : la pré-release publique `page-<doc>` (workflow `page-files` de quran-themes-demo, lancé une fois
