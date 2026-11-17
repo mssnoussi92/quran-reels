@@ -1,7 +1,51 @@
 {
- "updated": "2026-11-16T06:23:50+00:00",
+ "updated": "2026-11-17T06:24:07+00:00",
  "days": 14,
  "entries": [
+  {
+   "id": "daily/2026-11-17-morning",
+   "kind": "daily",
+   "key": "2026-11-17/morning",
+   "day": "2026-11-17",
+   "time": "07:30",
+   "created": "2026-11-17T06:24:06+00:00",
+   "title": "105:1-5 · Surah Al-Fil · سورة الفيل",
+   "passage": "105:1-5",
+   "label": "",
+   "reciter": "Tawfiq As-Sayegh",
+   "results": [
+    {
+     "name": "Facebook",
+     "url": "https://www.facebook.com/reel/1693085005759404/",
+     "label": "publié"
+    },
+    {
+     "name": "Instagram",
+     "url": "https://www.instagram.com/reel/Df1RdStknh4/",
+     "label": "publié"
+    },
+    {
+     "name": "TikTok (brouillon)",
+     "url": null,
+     "label": "brouillon, non publié"
+    }
+   ],
+   "tiktok": "Surah Al-Fil (105:1-5) · سورة الفيل\n\nأَلَمْ تَرَ كَيْفَ فَعَلَ رَبُّكَ بِأَصْحَـٰبِ ٱلْفِيلِ ﴿١﴾\nأَلَمْ يَجْعَلْ كَيْدَهُمْ فِى تَضْلِيلٍ ﴿٢﴾\nوَأَرْسَلَ عَلَيْهِمْ طَيْرًا أَبَابِيلَ ﴿٣﴾\nتَرْمِيهِم بِحِجَارَةٍ مِّن سِجِّيلٍ ﴿٤﴾\nفَجَعَلَهُمْ كَعَصْفٍ مَّأْكُولٍۭ ﴿٥﴾\n\nRecitation: Muhammad Siddiq Al-Minshawi · Translation: Sahih International · Word meanings: Tafsir al-Muyassar, King Fahd Complex\n\n@quran.words.daily\n\n#QuranWordsDaily #Quran #JuzAmma #SurahAlFil #سورة_الفيل\n",
+   "video": {
+    "full": "https://github.com/mssnoussi92/quran-reels/releases/download/reels/2026-11-17-morning-105_001-005.mp4",
+    "youtube": "https://github.com/mssnoussi92/quran-reels/releases/download/reels/2026-11-17-morning-105_001-005-youtube.mp4"
+   },
+   "youtube": {
+    "title": "Surah Al-Fil (105:1-5) · سورة الفيل",
+    "description": "Surah Al-Fil (105:1-5) · سورة الفيل\n\nأَلَمْ تَرَ كَيْفَ فَعَلَ رَبُّكَ بِأَصْحَـٰبِ ٱلْفِيلِ ﴿١﴾\n1. Have you not considered, [O Muḥammad], how your Lord dealt with the companions of the elephant?\n\nأَلَمْ يَجْعَلْ كَيْدَهُمْ فِى تَضْلِيلٍ ﴿٢﴾\n2. Did He not make their plan into misguidance?\n\nوَأَرْسَلَ عَلَيْهِمْ طَيْرًا أَبَابِيلَ ﴿٣﴾\n3. And He sent against them birds in flocks,\n\nتَرْمِيهِم بِحِجَارَةٍ مِّن سِجِّيلٍ ﴿٤﴾\n4. Striking them with stones of hard clay,\n\nفَجَعَلَهُمْ كَعَصْفٍ مَّأْكُولٍۭ ﴿٥﴾\n5. And He made them like eaten straw.\n\nRecitation: Tawfiq As-Sayegh\nTranslation: Sahih International\nWord meanings: التفسير الميسر، مجمع الملك فهد\n\n@quran_words_daily\n",
+    "hashtags": "#QuranWordsDaily #Quran #JuzAmma #SurahAlFil #سورة_الفيل #القرآن_الكريم #جزء_عم #TawfiqAsSayegh #توفيق_الصايغ #تفسير_القرآن #التفسير_الميسر",
+    "file": "https://github.com/mssnoussi92/quran-reels/releases/download/reels/2026-11-17-morning-105_001-005-youtube.mp4"
+   },
+   "notes": [],
+   "match": [
+    "slot:2026-11-17/morning"
+   ]
+  },
   {
    "id": "daily/2026-11-16-morning",
    "kind": "daily",
