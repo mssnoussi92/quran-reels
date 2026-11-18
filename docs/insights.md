@@ -164,9 +164,11 @@ chiffres sur l'image, les montre au propriétaire et demande, puis lance `insigh
   données (récitateurs, heures, fonds, publication sans reprise ni erreur), et les captures du propriétaire donnent
   les mêmes chiffres que l'API. « Statut du compte » d'Instagram est au vert pour les recommandations (seule la
   monétisation est en attente : « Présence établie », un compte trop récent). Hypothèse non prouvée : l'audio reconnu
-  après la publication. **À demander au propriétaire** (questions à choix) : le reel 107:1-7 affiche-t-il dans l'app
-  une mention « Audio indisponible » ou « Ce reel est limité » ? Pas encore regardé le 2026-11-15. Et voir si d'autres
-  reels suivent.
+  après la publication. **Un quatrième le 2026-11-16** : 106:1-4 (Tawfiq As-Sayegh : 6 vues sur Instagram en 43 h,
+  295 sur Facebook), soit 4 des 7 reels publiés du 11 au 17 novembre, avec trois récitateurs différents. **Réponse
+  du propriétaire (2026-11-18, question à choix)** : dans l'app, 106:1-4 et 107:1-7 n'affichent **aucune mention**
+  (ni « Audio indisponible » ni « Ce reel est limité »). L'audio reconnu devient moins probable ; la cause reste
+  inconnue. À suivre à chaque revue : combien de reels Instagram restent sous 10 vues.
 - **Word of the day en pause** depuis le 2026-11-15 (choix du propriétaire : 4 vues en médiane par publication sur
   Instagram, 21 vues en tout sur Facebook en 9 jours) ; ses relevés restent pour comparer s'il revient.
 
@@ -177,7 +179,11 @@ partis en version courte sur Facebook et Instagram les 24, 25 et 26 novembre (73
 111 s ; TikTok et YouTube en short entier ; docs/themes.md). Leurs relevés à 48 h sont tous faits la nuit du 28 au 29.
 
 - **Ce qu'on compare** : sur la page, « Thème : short, version courte » (n = 3) contre « Thème : short d'histoire »
-  (les shorts entiers des semaines d'avant), Facebook et Instagram à part.
+  (les shorts entiers des semaines d'avant), Facebook, Instagram et **YouTube** à part. YouTube est dans l'essai depuis
+  le 2026-11-18 (choix du propriétaire) : le propriétaire y met la version courte, celle de la page « À publier » ; la
+  page la reconnaît à sa durée. Sur YouTube, les shorts entiers d'avant faisaient 279 vues en médiane à leur dernier
+  relevé (n = 3, regardés à 47 %), contre 904 pour un reel (n = 18) ; si le propriétaire a mis en ligne le short
+  entier, la page le range avec les shorts entiers, et YouTube ne compte pas dans l'essai.
 - **Le piège** : un short plus court a mécaniquement un « % regardé » plus haut. On compare surtout les **secondes
   regardées**, « passent 3 s » (Instagram), les vues (la plateforme le montre-t-elle davantage ?), les partages et
   les abonnés. Le pourcentage n'est qu'un indice.
@@ -185,3 +191,38 @@ partis en version courte sur Facebook et Instagram les 24, 25 et 26 novembre (73
   affirmée ; un écart net est une piste à confirmer sur d'autres coupes, pas une règle.
 - **La question à poser au propriétaire** (choix) : couper le reste du stock pour Facebook et Instagram, refaire
   l'essai sur trois autres shorts, ou en rester au short entier.
+
+## À la revue du dimanche 6 décembre : une Page ou deux
+
+Question du propriétaire (2026-11-18) : créer de nouveaux comptes pour les vidéos thématiques et ne garder que les reels
+récités sur Quran Words Daily ? **Sa décision, le même jour (question à choix) : une seule Page pour l'instant, la
+décision à cette revue**, avec la règle écrite d'avance.
+
+Les chiffres du 2026-11-18 (vidéos d'au moins 48 h, médianes des vues au dernier relevé) :
+
+| | Reel récité | Short thématique |
+|---|---|---|
+| YouTube | 904 (n = 18), regardé à 105 %, 8 abonnés pour 1 000 vues | 279 (n = 3), regardé à 47 %, 4 pour 1 000 vues |
+| TikTok (capture du 15 nov.) | ≈ 740 (n = 18) | 699 et 732 (n = 2) |
+| Facebook | 299 (n = 14) | 176 (n = 3) ; le film du du'a : 20 partages en 32 h (7 pour les 14 reels réunis) |
+| Instagram | 142 (n = 14) | 132 (n = 3) ; les films : 9 et 2 vues (plus de film sur Instagram depuis le 2026-11-17) |
+
+Abonnés : YouTube 152 (118 le 15 novembre), Facebook 48, Instagram 15. Depuis l'arrivée des vidéos thématiques
+(12 novembre), les reels du matin n'ont pas baissé sur YouTube (996, 1 078, 963, 1 376 vues, contre 702 à 1 309 avant).
+Avis de la session : l'écart n'existe que sur YouTube, et sa cause probable est la durée (un reel de 20 à 60 s est
+revu en boucle, un short de 2 min ne l'est pas), pas le mélange ; une nouvelle chaîne aurait le même problème en
+partant de zéro, pour un prix élevé (quatre comptes, connexions et secrets, publication automatique à refaire,
+mises en ligne à la main doublées).
+
+**La règle** : une deuxième chaîne **YouTube seulement** (Facebook, Instagram et TikTok restent ensemble) si l'une de
+ces trois choses est vraie :
+
+1. sur YouTube, les vidéos thématiques (shorts entiers et version courte de l'essai du 24 novembre) restent **sous le
+   tiers des vues d'un reel** (médianes, au moins 3 vidéos de chaque) ;
+2. les **reels baissent sur YouTube** les jours qui suivent une vidéo thématique (comparer les reels du matin à ceux
+   d'avant le 12 novembre) ;
+3. le **public YouTube des reels ne parle pas arabe** : YouTube Studio → Audience → « Principaux pays » (capture
+   demandée au propriétaire le 2026-11-18 ; la narration en égyptien ne se comprend pas hors du monde arabe).
+
+Sinon : une seule Page, et la question ne revient que si les chiffres changent. La séparation de tout (quatre comptes)
+n'est pas proposée : sur Instagram et TikTok un short thématique fait autant qu'un reel.

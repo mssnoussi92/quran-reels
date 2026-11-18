@@ -323,10 +323,11 @@ def test_the_day_goes_out_with_its_own_texts_files_and_cover(setup):
     assert not any(p.calls for p in pubs.values())
 
 
-def test_facebook_and_instagram_take_the_short_version(setup, monkeypatch):
+def test_facebook_instagram_and_youtube_take_the_short_version(setup, monkeypatch):
     """2026-11-16 (quran-themes-demo, PR #36; the owner's trial on Dhul-Qarnayn's three shorts):
-    a short cut for Facebook and Instagram, named on the line of files after the cover; TikTok
-    and YouTube keep the whole short, and every platform its own text."""
+    a short cut for Facebook and Instagram, named on the line of files after the cover; YouTube
+    too since 2026-11-18 (owner's choice: the page publier.html gives it that file to upload);
+    TikTok keeps the whole short, and every platform its own text."""
     line = "couverture : `dua-short-1-asked-cover.jpg`"
     monkeypatch.setitem(globals(), "SHORTS", SHORTS.replace(
         line, line + " · version courte pour Facebook et Instagram : `dua-short-1-asked-cut.mp4`, 1:13",
@@ -337,7 +338,7 @@ def test_facebook_and_instagram_take_the_short_version(setup, monkeypatch):
     assert v.platforms == ["facebook", "instagram", "tiktok", "youtube"]
     assert [R.file_for(p, v) for p in ("facebook", "instagram", "tiktok", "youtube")] == [
         ("dua-short-1-asked-cut.mp4", 73), ("dua-short-1-asked-cut.mp4", 73),
-        ("dua-short-1-asked-tiktok.mp4", 109), ("dua-short-1-asked.mp4", 109)]
+        ("dua-short-1-asked-tiktok.mp4", 109), ("dua-short-1-asked-cut.mp4", 73)]
     run, pubs, _fetched, tmp = setup
     out = run(now=paris("2026-11-24", "18:45"))
     assert out["due"] and not out["failed"]
@@ -350,7 +351,8 @@ def test_facebook_and_instagram_take_the_short_version(setup, monkeypatch):
     assert state["cut"] == {"facebook": "dua-short-1-asked-cut.mp4",
                             "instagram": "dua-short-1-asked-cut.mp4"}
     item = json.loads((tmp / "report.json").read_text())["items"][0]
-    assert item["youtube"]["file"].endswith("page-dua/dua-short-1-asked.mp4")
+    assert item["youtube"]["file"].endswith("page-dua/dua-short-1-asked-cut.mp4")
+    assert "page-dua/dua-short-1-asked-cut.mp4)" in "\n".join(item["notes"])
 
 
 def test_a_rights_match_stops_every_platform_tiktok_included(setup):

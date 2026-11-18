@@ -293,11 +293,12 @@ def total(rows: list[dict[str, Any]], start: date, end: date) -> dict[str, Any] 
 
 
 def match(title: str, description: str, published: datetime, posts: dict[str, dict],
-          themes: Any = None) -> dict[str, Any]:
+          themes: Any = None, seconds: float | None = None) -> dict[str, Any]:
     """Which video of the Page a YouTube video is (key, kind, label, ref), so that it stands beside
     its Facebook and Instagram twins: a reel by its reference (title, or the description's surah
     line) or by the names in its title; a theme video by its title (the 16:9 film beside its 9:16
-    version). Unknown: on its own, kind « other »."""
+    version; its short version, known by its length `seconds`, of its own kind). Unknown: on its
+    own, kind « other »."""
     key = video_key(title, description)
     twin = None
     if PASSAGE.fullmatch(f"({key})"):
@@ -309,6 +310,9 @@ def match(title: str, description: str, published: datetime, posts: dict[str, di
             info = {"key": f"theme:{video.id}", "kind": video.kind,
                     "label": f"{video.title_en} · {video.title_ar}",
                     "ref": {"theme": video.id, "series": video.series, "part": video.part}}
+            is_cut = getattr(video, "is_cut", None)
+            if is_cut and is_cut(seconds):
+                info["kind"], info["ref"]["cut"] = "theme-short-cut", video.cut
             if video.id.endswith("/film"):
                 tall = f"theme:{video.id[:-len('/film')]}-9x16/film"
                 if any(r.get("key") == tall for r in posts.values()):
@@ -426,7 +430,8 @@ def collect(path: Path, s: dict[str, Any], now: datetime | None = None,
                 "first_line": title[:140]}
         if seconds_:
             rec["seconds"] = seconds_
-        info = match(title, st.get("description") or "", v["published"], data["posts"], themes)
+        info = match(title, st.get("description") or "", v["published"], data["posts"], themes,
+                     seconds_)
         rec |= {"key": info["key"] or uid, "kind": info["kind"], "label": info["label"],
                 "ref": info["ref"]}
         age_h = (now - v["published"]).total_seconds() / 3600

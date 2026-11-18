@@ -423,6 +423,44 @@ def test_the_short_version_is_a_row_of_its_short_and_compared_apart():
     assert html.count("· version courte, 73 s") == 2
 
 
+def test_the_short_version_on_youtube_is_known_by_its_length():
+    """2026-11-18 (owner's choice): YouTube gets the short version too, uploaded by hand with the
+    short's title; nothing in themes.json names it, its length does (73 s, against 109 s for the
+    whole short), on the Meta classifier's pass as on the YouTube reading's."""
+    from types import SimpleNamespace
+
+    from quran_reels.insights import youtube as Y
+    from quran_reels.insights.classify import Classifier
+
+    line = "couverture : `c.jpg`"
+    texts = TEXTS.replace(line, line + " · version courte pour Facebook et Instagram : "
+                          "`dua-short-1-asked-cut.mp4`, 1:13")
+    themes = T.ThemeIndex(T.parse_texts("dua", texts))
+    short = themes.by_id["dua/short-1"]
+    assert (short.cut, short.cut_seconds, short.seconds) == ("dua-short-1-asked-cut.mp4", 73, 109)
+    assert short.is_cut(74) and not short.is_cut(109) and not short.is_cut(None)
+    assert not themes.by_id["dua/film"].is_cut(73)          # no short version: never one
+    snap = {"at": "2026-11-26T02:00:00+00:00", "age_h": 55, "m": {"views": 300}}
+    posts = {f"youtube:{i}": {"platform": "youtube", "id": i, "seconds": sec,
+                              "published": "2026-11-24T20:00:00+00:00",
+                              "first_line": "Patient… and he asked", "snapshots": {"48h": snap}}
+             for i, sec in (("cut", 74), ("whole", 109))}
+    Classifier({}, {}, themes, {}).apply(posts)
+    assert {u: (r["key"], r["kind"], (r["ref"] or {}).get("cut")) for u, r in posts.items()} == {
+        "youtube:cut": ("theme:dua/short-1", "theme-short-cut", "dua-short-1-asked-cut.mp4"),
+        "youtube:whole": ("theme:dua/short-1", "theme-short", None)}
+    assert posts["youtube:cut"]["seconds"] == 74                 # its own length, kept
+    published = datetime(2026, 11, 24, 20, tzinfo=UTC)
+    cut = Y.match("Patient… and he asked · صابر… ودعا!", "", published, {}, themes, 74)
+    whole = Y.match("Patient… and he asked · صابر… ودعا!", "", published, {}, themes, 109)
+    assert (cut["kind"], cut["ref"]["cut"]) == ("theme-short-cut", "dua-short-1-asked-cut.mp4")
+    assert whole["kind"] == "theme-short" and "cut" not in whole["ref"]
+    # a theme index that does not know short versions (a stub) still matches
+    stub = SimpleNamespace(match=lambda title, platform: SimpleNamespace(
+        id="dua/short-1", kind="theme-short", title_en="P", title_ar="ص", series="", part="Short 1"))
+    assert Y.match("P", "", published, {}, stub, 74)["kind"] == "theme-short"
+
+
 def test_an_empty_statistics_page_says_when_it_starts():
     from zoneinfo import ZoneInfo
 

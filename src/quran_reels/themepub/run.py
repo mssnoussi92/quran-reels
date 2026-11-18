@@ -240,12 +240,15 @@ def reels_for(s: dict[str, Any], row: cal.Row, folder: Path,
     return out
 
 
-CUT_PLATFORMS = ("facebook", "instagram")
+# YouTube too since 2026-11-18 (owner's choice, after the first numbers: on YouTube a theme short
+# had 279 views against 904 for a reel, watched to 47 % against 105 %): by hand, from the page
+# publier.html, which gives it this file.
+CUT_PLATFORMS = ("facebook", "instagram", "youtube")
 
 
 def file_for(platform: str, v: texts_mod.Video) -> tuple[str, float | None]:
-    """The file a platform gets, and its length: TikTok its signed version; Facebook and
-    Instagram the short version when there is one; the short itself otherwise."""
+    """The file a platform gets, and its length: TikTok its signed version; Facebook, Instagram
+    and YouTube the short version when there is one; the short itself otherwise."""
     if platform == "tiktok":
         return v.tiktok, v.seconds
     if platform in CUT_PLATFORMS and v.cut:
@@ -357,7 +360,8 @@ def _item(s: dict[str, Any], row: cal.Row, entry: dict,
     notes = []
     if yt and yt.video:
         title = (yt.captions.get("youtube_title") or "").strip()
-        notes = ["", f"**YouTube (à la main)** : [ce MP4]({asset_url(s, yt.doc, yt.video)})"
+        notes = ["", "**YouTube (à la main)** : "
+                 f"[ce MP4]({asset_url(s, yt.doc, file_for('youtube', yt)[0])})"
                  + (f" · titre : `{title}`" if title else "")
                  + " · description : ta page « Films et shorts à publier »."]
     tiktok = row.videos.get("tiktok")
@@ -387,7 +391,7 @@ def youtube_texts(s: dict[str, Any], yt: texts_mod.Video | None) -> dict[str, st
     return {"title": (yt.captions.get("youtube_title") or "").strip(),
             "description": "\n\n".join(desc) if parts
             else (yt.captions.get("youtube_description") or "").strip(),
-            "hashtags": "\n\n".join(tags), "file": asset_url(s, yt.doc, yt.video)}
+            "hashtags": "\n\n".join(tags), "file": asset_url(s, yt.doc, file_for("youtube", yt)[0])}
 
 
 def match_keys(row: cal.Row) -> list[str]:
