@@ -257,11 +257,32 @@ voit comme des copies). **Son choix : l'essai propre, avec les quiz en réserve.
 - **La question à poser au propriétaire** (choix) après la troisième paire : garder une seule Page, ou donner une page
   à part aux vidéos thématiques sur Meta.
 
+**Changé le 2026-11-18 au soir (choix du propriétaire, questions à choix)** : il a publié le quiz 4 **dès le 18
+novembre**, et la page test publie désormais **un quiz par jour** : le quiz 5 le 19, le 6 le 20, puis un lot de 7 quiz
+nouveaux, du 21 au 27 novembre (série `ma3ak` de quran-themes-demo, signée `@ma3ak.5.thawani`, jamais sur la Page ;
+`docs/scripts/quiz.md`), sans numéro d'épisode. Ce que ça change :
+
+- **Le 23 novembre ne fait qu'une paire** : le quiz 1 de la Page (Instagram) contre le quiz 9 de la page test (`dhahib`),
+  publiés à la même heure. Une paire seule ne dit rien.
+- **La vraie lecture** : quand la page test a une semaine de quiz quotidiens (vers le 27 novembre), sa médiane Instagram
+  à 48 h contre celle de la Page : ses quiz (1 le 23, 2 le 30) et ses shorts thématiques. Même seuil : sous 3 vidéos ou
+  12 points d'écart, aucune différence n'est affirmée.
+- **Le biais à garder en tête** : la page test publie chaque jour un quiz, la Page un reel le matin et une vidéo
+  thématique le soir ; l'âge des comptes diffère d'un mois.
+- Les quiz 2 et 3 de la Page (30 novembre, 28 décembre) restent comparés à ceux de la page test du même jour.
+
 | Quiz | Publié le | Page | Vues à 48 h | Passent 3 s | Durée moyenne regardée |
 |---|---|---|---|---|---|
+| 4 `dabba` | 18 nov. | test | | | |
+| 5 `sabr` | 19 nov. | test | | | |
+| 6 `hudhud` | 20 nov. | test | | | |
+| 7 `qitr` | 21 nov. | test | | | |
+| 8 `marah` | 22 nov. | test | | | |
 | 1 `sayyara` | 23 nov. | principale | | | |
-| 4 `dabba` | 23 nov. | test | | | |
+| 9 `dhahib` | 23 nov. | test | | | |
+| 10 `abb` | 24 nov. | test | | | |
+| 11 `khashi` | 25 nov. | test | | | |
+| 12 `faqir` | 26 nov. | test | | | |
+| 13 `yamm` | 27 nov. | test | | | |
 | 2 `khatima` | 30 nov. | principale | | | |
-| 5 `sabr` | 30 nov. | test | | | |
 | 3 `qalaha` | 28 déc. | principale | | | |
-| 6 `hudhud` | 28 déc. | test | | | |
