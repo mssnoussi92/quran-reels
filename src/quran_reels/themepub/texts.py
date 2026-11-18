@@ -19,7 +19,8 @@ Instagram and TikTok the short caption has three (title, hook with the AI-voice 
 Since 2026-11-16 the line of files may end with a short version for Facebook and Instagram, cut
 by quran-themes-demo and validated by the owner (« · version courte pour Facebook et Instagram :
 `qarnayn-short-1-west-cut.mp4`, 1:13 »): `cut` and `cut_seconds`. The first `.mp4` stays the whole
-short, and the duration, format and platforms read are its own.
+short, and the duration, format and platforms read are its own. YouTube gets the short version too
+since 2026-11-18 (owner's choice; uploaded by hand from the page publier.html).
 
 Every text is taken as it is: nothing is cut, added or rewritten here (the owner validated them).
 A text the file's opening paragraph says is not validated yet (« pas encore validé(e)s », as
@@ -52,7 +53,7 @@ class Video:
     title_ar: str
     video: str = ""                 # file names in the release page-<doc>
     tiktok: str = ""
-    cut: str = ""                   # the short version for Facebook and Instagram (« -cut.mp4 »)
+    cut: str = ""                   # the short version for Facebook, Instagram, YouTube (« -cut.mp4 »)
     cut_seconds: float | None = None
     cover: str = ""
     thumbnail: str = ""

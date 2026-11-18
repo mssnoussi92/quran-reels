@@ -63,7 +63,7 @@ qu'Instagram refusait déjà sur les reels, docs/rendu.md), mise dans la release
 des reels, effacée après 30 jours), et le conteneur est fait avec son adresse. Facebook et TikTok reçoivent le fichier
 tel quel. Un seul conteneur, attendu jusqu'à `instagram_processing_seconds` (1 200 s).
 
-## Version courte pour Facebook et Instagram (essai, à partir du 24 novembre)
+## Version courte pour Facebook, Instagram et YouTube (essai, à partir du 24 novembre)
 
 Premières mesures (2026-11-16) : sur Facebook et Instagram, on regarde un short de 2 minutes 4 à 8 secondes. La
 session quran-themes-demo coupe donc un short en version courte (60 à 75 s, même voix, un verset ou une explication
@@ -71,10 +71,15 @@ en moins), validée par le propriétaire, et l'écrit sur la ligne des fichiers 
 version courte pour Facebook et Instagram : `qarnayn-short-1-west-cut.mp4`, 1:13 » (fichier public dans
 `page-<doc>`).
 
-- Facebook et Instagram reçoivent la version courte (`run.file_for`), avec les **mêmes textes** ; TikTok (sa version
-  signée) et YouTube (le MP4 du ticket et de la page « À publier ») gardent le short entier.
+- Facebook et Instagram reçoivent la version courte (`run.file_for`), avec les **mêmes textes** ; TikTok garde le
+  short entier (sa version signée). **YouTube aussi la version courte** depuis le 2026-11-18 (choix du propriétaire,
+  question à choix, après les premiers chiffres : sur YouTube, un short thématique faisait 279 vues en médiane contre
+  904 pour un reel, regardé à 47 % contre 105 %, n = 3 et 18) : le MP4 du ticket et de la page « À publier » est la
+  version courte, mise en ligne à la main avec les mêmes textes.
 - `themes.json` note `cut` pour le jour ; la page « Statistiques » range ces publications sous leur short, avec leur
-  durée (« version courte, 73 s »), et les compare à part (« Thème : short, version courte »).
+  durée (« version courte, 73 s »), et les compare à part (« Thème : short, version courte »). Sur YouTube, rien ne
+  la nomme (mise en ligne à la main, sous le titre du short) : elle se reconnaît à sa durée, plus proche de celle de
+  la version courte que du short entier (`ThemeVideo.is_cut`).
 - **L'essai** (choix du propriétaire, 2026-11-16, question à choix) : les trois shorts de Dhul-Qarnayn, 24, 25 et 26
   novembre. Un seul n'aurait rien montré : sous 3 vidéos, la page n'affirme aucune différence. Les coupes des shorts
   2 et 3 sont à faire par quran-themes-demo ; sans elles, ces jours-là publient le short entier.

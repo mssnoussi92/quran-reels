@@ -25,6 +25,7 @@ MONTHS = {"janv": 1, "jan": 1, "févr": 2, "fev": 2, "fév": 2, "mars": 3, "avr"
 SECTION = re.compile(r"^##\s+(?P<head>[^·]+?)\s+·\s+(?P<en>.+?)\s+·\s+(?P<ar>.+?)\s*$")
 FILE = re.compile(r"^`(?P<file>[^`]+\.mp4)`.*?·\s*(?P<dur>\d+:\d{2})\s*·\s*(?P<aspect>\d+:\d+)"
                   r"\s*·\s*(?P<where>[^·]+)")
+CUT = re.compile(r"`(?P<name>[^`]+-cut\.mp4)`(?:\s*,\s*(?P<dur>\d+:\d{2}))?")
 DAY = re.compile(r"(?P<d>\d{1,2})\s+(?P<m>[a-zéûè]+)\.?", re.IGNORECASE)
 
 
@@ -50,9 +51,18 @@ class ThemeVideo:
     aspect: str = ""
     platforms: list[str] = field(default_factory=list)
     kind: str = "theme-short"    # theme-short | theme-film | theme-episode
+    cut: str = ""                # its short version (« -cut.mp4 », on the line of files)
+    cut_seconds: float | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
+
+    def is_cut(self, seconds: float | None) -> bool:
+        """A copy `seconds` long is the short version: on YouTube, uploaded by hand, it is known by
+        its length only (owner's choice, 2026-11-18: the short version there too), closer to the
+        short version's than to the whole short's."""
+        return bool(self.cut and seconds and self.cut_seconds and self.seconds
+                    and abs(seconds - self.cut_seconds) < abs(seconds - self.seconds))
 
 
 def _seconds(mmss: str) -> float:
@@ -93,6 +103,10 @@ def parse_texts(doc: str, text: str) -> list[ThemeVideo]:
             if f:
                 video.file, video.seconds = f["file"], _seconds(f["dur"])
                 video.aspect, video.platforms = f["aspect"], _platforms(f["where"])
+                c = CUT.search(nxt)
+                if c:
+                    video.cut = c["name"]
+                    video.cut_seconds = _seconds(c["dur"]) if c["dur"] else None
                 break
         out.append(video)
     return out

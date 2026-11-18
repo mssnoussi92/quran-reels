@@ -8,8 +8,9 @@ side by side:
 - Word of the day: images.json (« word:2026-11-15 »);
 - theme video of quran-themes-demo: the first line of its caption is the English title of a
   section of publication-*.md (« theme:dua/short-1 »); its short version on Facebook and
-  Instagram (themes.json `cut`, from 2026-11-24) stands with it, of its own kind
-  (« theme-short-cut »), so that the comparison sets it beside the whole shorts;
+  Instagram (themes.json `cut`, from 2026-11-24), and on YouTube (uploaded by hand, known by its
+  length; owner's choice, 2026-11-18) stands with it, of its own kind (« theme-short-cut »), so
+  that the comparison sets it beside the whole shorts;
 - a reel published by hand (publish-test, before the calendar: 93:1-11 on 2026-11-05): the
   reference in the first line of its caption (« hand:93:1-11 »);
 - anything else: the post alone (« facebook:<id> »), kind « other ».
@@ -113,6 +114,9 @@ class Classifier:
             if cut:          # its own length (Meta's), never the whole short's
                 info |= {"kind": "theme-short-cut", "seconds": None}
                 info["ref"]["cut"] = cut["file"]
+            elif record.get("platform") == "youtube" and video.is_cut(record.get("seconds")):
+                info |= {"kind": "theme-short-cut", "seconds": None}     # by hand: its length
+                info["ref"]["cut"] = video.cut
             return info
         passage = passage_of(record.get("first_line"))
         if passage:
