@@ -1,7 +1,51 @@
 {
- "updated": "2026-11-17T06:24:07+00:00",
+ "updated": "2026-11-18T06:24:22+00:00",
  "days": 14,
  "entries": [
+  {
+   "id": "daily/2026-11-18-morning",
+   "kind": "daily",
+   "key": "2026-11-18/morning",
+   "day": "2026-11-18",
+   "time": "07:30",
+   "created": "2026-11-18T06:24:21+00:00",
+   "title": "104:1-9 · Surah Al-Humazah · سورة الهمزة",
+   "passage": "104:1-9",
+   "label": "",
+   "reciter": "Tawfiq As-Sayegh",
+   "results": [
+    {
+     "name": "Facebook",
+     "url": "https://www.facebook.com/reel/1105444332311288/",
+     "label": "publié"
+    },
+    {
+     "name": "Instagram",
+     "url": "https://www.instagram.com/reel/Df31vmkkdSj/",
+     "label": "publié"
+    },
+    {
+     "name": "TikTok (brouillon)",
+     "url": null,
+     "label": "brouillon, non publié"
+    }
+   ],
+   "tiktok": "Surah Al-Humazah (104:1-9) · سورة الهمزة\n\nوَيْلٌ لِّكُلِّ هُمَزَةٍ لُّمَزَةٍ ﴿١﴾\nٱلَّذِى جَمَعَ مَالًا وَعَدَّدَهُۥ ﴿٢﴾\nيَحْسَبُ أَنَّ مَالَهُۥٓ أَخْلَدَهُۥ ﴿٣﴾\nكَلَّا ۖ لَيُنۢبَذَنَّ فِى ٱلْحُطَمَةِ ﴿٤﴾\nوَمَآ أَدْرَىٰكَ مَا ٱلْحُطَمَةُ ﴿٥﴾\nنَارُ ٱللَّهِ ٱلْمُوقَدَةُ ﴿٦﴾\nٱلَّتِى تَطَّلِعُ عَلَى ٱلْأَفْـِٔدَةِ ﴿٧﴾\nإِنَّهَا عَلَيْهِم مُّؤْصَدَةٌ ﴿٨﴾\nفِى عَمَدٍ مُّمَدَّدَةٍۭ ﴿٩﴾\n\nRecitation: Fares Abbad · Translation: Sahih International · Word meanings: Tafsir al-Muyassar, King Fahd Complex\n\n@quran.words.daily\n\n#QuranWordsDaily #Quran #JuzAmma #SurahAlHumazah #سورة_الهمزة\n",
+   "video": {
+    "full": "https://github.com/mssnoussi92/quran-reels/releases/download/reels/2026-11-18-morning-104_001-009.mp4",
+    "youtube": "https://github.com/mssnoussi92/quran-reels/releases/download/reels/2026-11-18-morning-104_001-009-youtube.mp4"
+   },
+   "youtube": {
+    "title": "Surah Al-Humazah (104:1-9) · سورة الهمزة",
+    "description": "Surah Al-Humazah (104:1-9) · سورة الهمزة\n\nوَيْلٌ لِّكُلِّ هُمَزَةٍ لُّمَزَةٍ ﴿١﴾\n1. Woe to every scorner and mocker\n\nٱلَّذِى جَمَعَ مَالًا وَعَدَّدَهُۥ ﴿٢﴾\n2. Who collects wealth and [continuously] counts it.\n\nيَحْسَبُ أَنَّ مَالَهُۥٓ أَخْلَدَهُۥ ﴿٣﴾\n3. He thinks that his wealth will make him immortal.\n\nكَلَّا ۖ لَيُنۢبَذَنَّ فِى ٱلْحُطَمَةِ ﴿٤﴾\n4. No! He will surely be thrown into the Crusher.\n\nوَمَآ أَدْرَىٰكَ مَا ٱلْحُطَمَةُ ﴿٥﴾\n5. And what can make you know what is the Crusher?\n\nنَارُ ٱللَّهِ ٱلْمُوقَدَةُ ﴿٦﴾\n6. It is the fire of Allāh, [eternally] fueled,\n\nٱلَّتِى تَطَّلِعُ عَلَى ٱلْأَفْـِٔدَةِ ﴿٧﴾\n7. Which mounts directed at the hearts.\n\nإِنَّهَا عَلَيْهِم مُّؤْصَدَةٌ ﴿٨﴾\n8. Indeed, it [i.e., Hellfire] will be closed down upon them\n\nفِى عَمَدٍ مُّمَدَّدَةٍۭ ﴿٩﴾\n9. In extended columns.\n\nRecitation: Tawfiq As-Sayegh\nTranslation: Sahih International\nWord meanings: التفسير الميسر، مجمع الملك فهد\n\n@quran_words_daily\n",
+    "hashtags": "#QuranWordsDaily #Quran #JuzAmma #SurahAlHumazah #سورة_الهمزة #القرآن_الكريم #جزء_عم #TawfiqAsSayegh #توفيق_الصايغ #تفسير_القرآن #التفسير_الميسر",
+    "file": "https://github.com/mssnoussi92/quran-reels/releases/download/reels/2026-11-18-morning-104_001-009-youtube.mp4"
+   },
+   "notes": [],
+   "match": [
+    "slot:2026-11-18/morning"
+   ]
+  },
   {
    "id": "daily/2026-11-17-morning",
    "kind": "daily",
