@@ -226,3 +226,42 @@ ces trois choses est vraie :
 
 Sinon : une seule Page, et la question ne revient que si les chiffres changent. La séparation de tout (quatre comptes)
 n'est pas proposée : sur Instagram et TikTok un short thématique fait autant qu'un reel.
+
+## Essai d'une deuxième page Meta : « معاك 5 ثواني » (quiz 4 à 6)
+
+Décidé avec le propriétaire le 2026-11-18 (questions à choix), après la question « une Page ou deux » ci-dessus : son
+doute porte surtout sur Meta. Avis de la session, donné avant : sur Instagram un short thématique fait déjà autant qu'un
+reel (132 vues contre 142), le point faible de Meta est le même partout (72 % partent avant 3 s) ; mieux valait
+attendre l'essai de la version courte ; jamais les mêmes vidéos sur deux pages (Meta réduit la diffusion de ce qu'il
+voit comme des copies). **Son choix : l'essai propre, avec les quiz en réserve.**
+
+- **La page test** : Facebook et Instagram (Créateur), nommée « معاك 5 ثواني · You Have 5 Seconds » (son choix), faite
+  par le propriétaire ; **publiée à la main**, sans l'app Meta ni les secrets de quran-reels.
+- **Ce qu'elle publie** : les quiz 4, 5 et 6 de quran-themes-demo (`dabba` 0:58, `sabr` 0:58, `hudhud` 1:01), qui ne
+  sortent nulle part ailleurs ; ses textes validés (`publication-quiz.md`, « Short 4 » à « Short 6 », légende courte
+  d'Instagram et de Facebook). **Rendus de nouveau, signés du nom de la page test** (son choix : signés
+  `@quran_words_daily`, ils ressembleraient à une vidéo reprise et la page test partirait désavantagée) ; le @ exact
+  est attendu du propriétaire, le rendu se fait dans quran-themes-demo (`handles` de content/publish.yaml).
+- **Le calendrier** : chaque quiz de la page test le même jour, à la même heure (19:00, Paris) que son pendant sur
+  Instagram de la page principale : quiz 4 et quiz 1 le lundi 23 novembre, quiz 5 et quiz 2 le 30 novembre, quiz 6 et
+  quiz 3 le 28 décembre.
+- **Ce qu'on compare** : Instagram, à 48 h, vues, « passent 3 s » (100 − taux de saut) et durée moyenne regardée, la
+  page test contre la page principale, paire par paire. Les chiffres de la page principale sont relevés seuls chaque
+  nuit ; ceux de la page test viennent des **captures du propriétaire** (statistiques de chaque reel dans l'app
+  Instagram, à 48 h), rangés dans le tableau ci-dessous, **jamais dans `insights.json`** (la page « Statistiques » ne
+  montre que la Page principale). Facebook de la page test : noté s'il est publié, comparé aux shorts thématiques de la
+  page principale seulement à titre d'indice.
+- **La prudence** : trois paires, des épisodes différents, et un compte neuf, souvent moins montré au début. Sous 12
+  points d'écart, ou si la page test fait moins bien, rien n'est affirmé. Premier regard à la revue du 6 décembre (deux
+  paires), conclusion vers le 30 décembre.
+- **La question à poser au propriétaire** (choix) après la troisième paire : garder une seule Page, ou donner une page
+  à part aux vidéos thématiques sur Meta.
+
+| Quiz | Publié le | Page | Vues à 48 h | Passent 3 s | Durée moyenne regardée |
+|---|---|---|---|---|---|
+| 1 `sayyara` | 23 nov. | principale | | | |
+| 4 `dabba` | 23 nov. | test | | | |
+| 2 `khatima` | 30 nov. | principale | | | |
+| 5 `sabr` | 30 nov. | test | | | |
+| 3 `qalaha` | 28 déc. | principale | | | |
+| 6 `hudhud` | 28 déc. | test | | | |
