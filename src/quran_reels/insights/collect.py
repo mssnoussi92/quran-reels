@@ -285,15 +285,18 @@ def _json(path: Path) -> dict:
 
 def run(cfg: Config, state_dir: Path, graph: Graph, page_id: str, ig_id: str | None,
         themes: ThemeIndex | None = None, now: datetime | None = None,
-        dry_run: bool = False, notes: list[str] | None = None) -> dict[str, Any]:
+        dry_run: bool = False, notes: list[str] | None = None,
+        file: str = "insights.json", themes_state: str = "themes.json") -> dict[str, Any]:
+    """`file` and `themes_state`: the Page's (insights.json, themes.json), or another page's own
+    (the test page « معاك 5 ثواني », 2026-11-19: insights-ma3ak.json, themes-ma3ak.json)."""
     s = settings(cfg)
     now = now or datetime.now(UTC)
-    path = state_dir / "insights.json"
+    path = state_dir / file
     data = load(path)
     published = _json(state_dir / "published.json")
     images = _json(state_dir / "images.json")
     classifier = Classifier(published, images, themes or ThemeIndex([]),
-                            _json(state_dir / "themes.json"))
+                            _json(state_dir / themes_state))
     budget = Budget(graph, float(s.get("max_usage", 75)), int(s.get("max_calls", 150)))
     since = now - timedelta(days=int(s.get("days", 35)))
     errors: list[str] = []
@@ -423,7 +426,8 @@ def add_manual(path: Path, entries: list[dict[str, Any]], now: datetime | None =
     return len(entries)
 
 
-def main_collect(cfg: Config, state_dir: Path, dry_run: bool = False) -> int:
+def main_collect(cfg: Config, state_dir: Path, dry_run: bool = False,
+                 file: str = "insights.json", themes_state: str = "themes.json") -> int:
     """CLI: token check, the themes of quran-themes-demo, the run, a short summary."""
     from quran_reels import publish as publish_mod
     from quran_reels.insights import themes as themes_mod
@@ -445,7 +449,7 @@ def main_collect(cfg: Config, state_dir: Path, dry_run: bool = False) -> int:
         index = None
         notes.append(f"vidéos thématiques non lues ({type(e).__name__}) : non reconnues ce soir")
     out = run(cfg, state_dir, graph, env.page_id, env.ig_user_id, index,
-              dry_run=dry_run, notes=notes)
+              dry_run=dry_run, notes=notes, file=file, themes_state=themes_state)
     print(f"insights: {out['read']} posts read, {out['calls']} calls, Meta budget "
           f"{out['usage']} %, {out['posts']} posts known"
           + (f" · stopped: {out['stopped']}" if out["stopped"] else "")

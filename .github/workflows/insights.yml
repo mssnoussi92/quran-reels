@@ -64,6 +64,21 @@ jobs:
           MANUAL: ${{ inputs.manual }}
         run: quran-reels insights add --state state-branch --json "$MANUAL"
 
+      # The test page « معاك 5 ثواني » (owner, 2026-11-19: « avec ce token tu peux suivre les stats »): its
+      # own token only, its own file. Before the Page: both share the Meta app's hourly budget, which the
+      # Page's reading may use up to 75 %; the test page needs a few calls (one post a day).
+      - name: Read the test page
+        if: inputs.manual == ''
+        continue-on-error: true
+        env:                   # this secret only, for this step only
+          META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN_5 }}
+          META_IDS_FROM_TOKEN: "1"
+          GITHUB_TOKEN: ${{ github.token }}     # only to list quran-themes-demo's texts (public)
+        run: |
+          args=(--state state-branch --file insights-ma3ak.json --themes-state themes-ma3ak.json)
+          if [ "${{ inputs.dry_run }}" = "true" ]; then args+=(--dry-run); fi
+          quran-reels insights collect "${args[@]}"
+
       - name: Read Facebook and Instagram
         if: inputs.manual == ''
         env:                   # secrets for this step only
@@ -101,4 +116,4 @@ jobs:
         env:
           SAVE_STATE_LEVEL: warning    # not saved: the next night reads again
         run: |
-          bash "$GITHUB_WORKSPACE/.github/scripts/save-state.sh" "Insights" insights.json
+          bash "$GITHUB_WORKSPACE/.github/scripts/save-state.sh" "Insights" insights.json insights-ma3ak.json

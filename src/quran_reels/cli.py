@@ -168,6 +168,10 @@ def main(argv: list[str] | None = None) -> int:
     ic = ins_sub.add_parser("collect", help="read Facebook and Instagram numbers → insights.json")
     ic.add_argument("--state", default="state", help="checkout of the state branch")
     ic.add_argument("--dry-run", action="store_true", help="read, print, save nothing")
+    ic.add_argument("--file", default="insights.json",
+                    help="where the numbers go in the state branch (insights-ma3ak.json: the test page)")
+    ic.add_argument("--themes-state", default="themes.json",
+                    help="the state of the theme videos of that page (themes-ma3ak.json: the test page)")
     iy = ins_sub.add_parser("youtube", help="read the channel's YouTube numbers → insights.json")
     iy.add_argument("--state", default="state", help="checkout of the state branch")
     iy.add_argument("--dry-run", action="store_true", help="read, print, save nothing")
@@ -189,8 +193,11 @@ def main(argv: list[str] | None = None) -> int:
     tr.add_argument("--platform", action="append", choices=("facebook", "instagram", "tiktok"))
     tr.add_argument("--check", action="store_true", help="only say whether one is due")
     tr.add_argument("--now", help="pretend it is this time (ISO), for --check")
+    tr.add_argument("--settings", help="another page's settings (config/themes-ma3ak.yaml: the test "
+                                       "page); default config/themes.yaml, the Page")
     tc = th_sub.add_parser("check", help="the next days: each row tied to a video, files public")
     tc.add_argument("--days", type=int, default=14)
+    tc.add_argument("--settings", help="another page's settings (config/themes-ma3ak.yaml)")
     tf = th_sub.add_parser("files", help="the day's video on the page publier.html (feed.py)")
     tf.add_argument("--report", default="out/themes-report.json")
 
@@ -205,7 +212,7 @@ def main(argv: list[str] | None = None) -> int:
     note.add_argument("--report", help="default: out/daily-report.json")
     note.add_argument("--missed", default="",
                       help="slots no run took (output `missed` of `quran-reels daily --check`)")
-    note.add_argument("--alert", choices=("daily", "images", "themes"), default="daily",
+    note.add_argument("--alert", choices=("daily", "images", "themes", "ma3ak"), default="daily",
                       help="which failure issue this workflow opens and closes")
 
     args = parser.parse_args(argv)
@@ -617,7 +624,8 @@ def main(argv: list[str] | None = None) -> int:
         if args.themes_command == "files":
             return themes.page_files(Path(args.report))
         if args.themes_command == "check":
-            lines, problems = themes.check_upcoming(cfg, days=args.days)
+            lines, problems = themes.check_upcoming(
+                cfg, days=args.days, settings_path=Path(args.settings) if args.settings else None)
             print("\n".join(lines))
             for p in problems:
                 print(f"PROBLÈME {p}", file=sys.stderr)
@@ -628,7 +636,8 @@ def main(argv: list[str] | None = None) -> int:
                          now=datetime.fromisoformat(args.now) if args.now else None,
                          day=date.fromisoformat(args.day) if args.day else None,
                          platforms=args.platform, check=args.check,
-                         report=cfg.out / "themes-report.json")
+                         report=cfg.out / "themes-report.json",
+                         settings_path=Path(args.settings) if args.settings else None)
         if args.check:
             import os
 
@@ -648,7 +657,8 @@ def main(argv: list[str] | None = None) -> int:
         if args.insights_command == "collect":
             if not state.is_dir():
                 raise SystemExit(f"--state {state}: no such folder (a checkout of the state branch)")
-            return insights.main_collect(cfg, state, dry_run=args.dry_run)
+            return insights.main_collect(cfg, state, dry_run=args.dry_run, file=args.file,
+                                         themes_state=args.themes_state)
         if args.insights_command == "youtube":
             from quran_reels.insights import youtube
 

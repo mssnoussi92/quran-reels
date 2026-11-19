@@ -31,7 +31,9 @@ CAPTIONS_TITLE = "📋 Légendes à copier (TikTok, YouTube)"
 # the morning reel that had not gone out (2026-11-15, the Meta token cut by a password change).
 IMAGES_FAILURE_TITLE = "⚠️ Image du jour en échec"
 THEMES_FAILURE_TITLE = "⚠️ Vidéo thématique en échec"
-ALERTS = {"daily": FAILURE_TITLE, "images": IMAGES_FAILURE_TITLE, "themes": THEMES_FAILURE_TITLE}
+MA3AK_FAILURE_TITLE = "⚠️ Page test « معاك 5 ثواني » en échec"     # its own issue (2026-11-19)
+ALERTS = {"daily": FAILURE_TITLE, "images": IMAGES_FAILURE_TITLE, "themes": THEMES_FAILURE_TITLE,
+          "ma3ak": MA3AK_FAILURE_TITLE}
 KEEP_CAPTIONS = 4               # the last two days
 
 _DAYS = ["lun.", "mar.", "mer.", "jeu.", "ven.", "sam.", "dim."]

@@ -106,6 +106,30 @@ quran-reels themes run --dry-run --day 2026-11-24   # essai à blanc d'un jour :
 - `themes check` sert à la revue du dimanche : un jour sans vidéo (« à faire »), une ligne non reliée ou un fichier
   absent de `page-<doc>` y apparaissent avant le jour.
 
+## La page test « معاك 5 ثواني » (depuis le 2026-11-19)
+
+Demande du propriétaire, 2026-11-19 : « commence la publication automatique chaque jour à 18h », sur la page test
+Meta (`@ma3ak.5.thawani`, protocole : docs/insights.md), avec son propre jeton. Le même code, d'autres réglages :
+
+| Pièce | Où |
+|---|---|
+| Réglages | `config/themes-ma3ak.yaml` : 18:00 chaque jour, Facebook et Instagram, à partir du 2026-11-19 |
+| Calendrier et textes | `docs/retention/calendar-ma3ak.md` de quran-themes-demo ; `publication-quiz-ma3ak.md` (quiz 4 à 6, signés pour elle), `publication-ma3ak.md` (quiz 7 à 13) |
+| Fichiers | pré-releases `page-quiz-ma3ak` et `page-ma3ak` (workflow `page-files`, `quiz-ma3ak:quiz ma3ak`) |
+| Workflow | `themes.yml` avec `page: ma3ak` : une étape à part, qui n'a que le secret `META_PAGE_TOKEN_5` (la Page et son compte Instagram lus depuis le jeton, `META_IDS_FROM_TOKEN`) ; lancé par le planificateur à 17:41, chaque jour |
+| État | `themes-ma3ak.json` sur la branche `state` |
+| Alerte | ticket « ⚠️ Page test « معاك 5 ثواني » en échec » (`notify --alert ma3ak`) |
+| Statistiques | `insights-ma3ak.json` (workflow `insights`, chaque nuit, avant la Page) |
+
+```bash
+quran-reels themes check --settings config/themes-ma3ak.yaml --days 14
+quran-reels themes run --settings config/themes-ma3ak.yaml --dry-run --day 2026-11-21
+```
+
+- L'étape de la Page n'a jamais ce jeton, celle de la page test jamais ceux de la Page : un secret absent fait échouer
+  le run, il ne publie jamais la vidéo de l'une sur l'autre.
+- Ni TikTok, ni YouTube, ni la page « À publier », ni le ticket des légendes : la page test n'est que sur Meta.
+
 ## À savoir
 
 - **Légendes courtes** (choix du propriétaire, 2026-11-15 : « un petit texte attirant, 3 à 5 hashtags ») : Facebook,
