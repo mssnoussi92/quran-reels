@@ -99,6 +99,8 @@ def meta_check(cfg: Config, platforms: list[str]) -> tuple[Graph, MetaEnv, Token
     env = MetaEnv.from_environ(platforms)
     graph = Graph(env.token, _meta(cfg).get("graph_version", "v24.0"))
     try:
+        if not env.page_id:                    # META_IDS_FROM_TOKEN: the token's own Page
+            env = env.ids_from_token(graph)
         report = check_token(graph, env.page_id, env.ig_user_id, platforms,
                              float(_meta(cfg).get("min_days_left", 14)))
     except (TokenProblem, GraphError) as e:

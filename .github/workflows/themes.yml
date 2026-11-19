@@ -10,9 +10,21 @@ name: themes
 # Started by the scheduler session at 18:41 Paris, Monday to Saturday, not by GitHub's cron.
 # By hand: a dry run of a given day (dry_run + day): upload, Meta's checks, the Facebook copy
 # deleted, nothing public, no TikTok draft, nothing recorded.
+#
+# `page: ma3ak`: the test page « معاك 5 ثواني » instead (owner's request, 2026-11-19: every day at
+# 18:00, started by the scheduler session at 17:41 Paris): config/themes-ma3ak.yaml, its own state
+# (themes-ma3ak.json), its own failure issue, Facebook and Instagram only, with the secret
+# META_PAGE_TOKEN_5 and nothing else (its Page and Instagram account are read from the token). That
+# step never sees the Page's secrets, and the Page's step never sees this one: a missing token
+# fails the run, it can never post the test page's video on the Page.
 on:
   workflow_dispatch:
     inputs:
+      page:
+        description: "main: the Page (calendar.md, 19:00); ma3ak: the test page (calendar-ma3ak.md, 18:00)"
+        type: choice
+        options: [main, ma3ak]
+        default: main
       dry_run:
         description: "Dry run (nothing public, state unchanged)"
         type: boolean
@@ -40,7 +52,8 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 60    # a 9:16 film is sent twice to Facebook (unpublished, then published)
     env:
-      STATE: state-branch/themes.json
+      STATE_FILE: ${{ inputs.page == 'ma3ak' && 'themes-ma3ak.json' || 'themes.json' }}
+      SETTINGS: ${{ inputs.page == 'ma3ak' && 'config/themes-ma3ak.yaml' || 'config/themes.yaml' }}
       GITHUB_TOKEN: ${{ github.token }}      # only to list quran-themes-demo's texts (public)
     steps:
       - uses: actions/checkout@v7
@@ -72,11 +85,11 @@ jobs:
       - name: What is due
         id: due
         if: inputs.dry_run != true
-        run: quran-reels themes run --state "$STATE" --check
+        run: quran-reels themes run --settings "$SETTINGS" --state "state-branch/$STATE_FILE" --check
 
       - name: Post
         id: post
-        if: inputs.dry_run == true || steps.due.outputs.due == 'true'
+        if: inputs.page != 'ma3ak' && (inputs.dry_run == true || steps.due.outputs.due == 'true')
         env:                   # secrets for this step only
           META_PAGE_ID: ${{ secrets.META_PAGE_ID }}
           META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN }}
@@ -94,18 +107,36 @@ jobs:
             [ -n "$DAY" ] && args+=(--day "$DAY")
             for p in ${PLATFORMS//,/ }; do args+=(--platform "$p"); done
           fi
-          quran-reels themes run --state "$STATE" "${args[@]}"
+          quran-reels themes run --settings "$SETTINGS" --state "state-branch/$STATE_FILE" "${args[@]}"
+
+      # The test page: its own token only. Facebook and Instagram (config/themes-ma3ak.yaml).
+      - name: Post on the test page
+        id: post_ma3ak
+        if: inputs.page == 'ma3ak' && (inputs.dry_run == true || steps.due.outputs.due == 'true')
+        env:                   # this secret only, for this step only
+          META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN_5 }}
+          META_IDS_FROM_TOKEN: "1"
+          DAY: ${{ inputs.day }}
+          PLATFORMS: ${{ inputs.platforms }}
+        run: |
+          args=()
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            args+=(--dry-run)
+            [ -n "$DAY" ] && args+=(--day "$DAY")
+            for p in ${PLATFORMS//,/ }; do args+=(--platform "$p"); done
+          fi
+          quran-reels themes run --settings "$SETTINGS" --state "state-branch/$STATE_FILE" "${args[@]}"
 
       - name: Save the state
         if: always() && inputs.dry_run != true && steps.due.outputs.due == 'true'
         working-directory: state-branch
         run: |
-          bash "$GITHUB_WORKSPACE/.github/scripts/save-state.sh" "Themes" themes.json
+          bash "$GITHUB_WORKSPACE/.github/scripts/save-state.sh" "Themes ($STATE_FILE)" "$STATE_FILE"
 
       # The page publier.html (src/quran_reels/feed.py): the TikTok text of the draft and what
       # YouTube gets by hand, on a fixed link. Never fails the run.
       - name: The page « À publier »
-        if: always() && inputs.dry_run != true && steps.due.outputs.due == 'true'
+        if: always() && inputs.page != 'ma3ak' && inputs.dry_run != true && steps.due.outputs.due == 'true'
         continue-on-error: true
         timeout-minutes: 5
         run: quran-reels themes files --report out/themes-report.json
@@ -117,4 +148,5 @@ jobs:
           OUTCOME: ${{ job.status }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           OWNER: ${{ github.repository_owner }}
-        run: quran-reels notify --alert themes --outcome "$OUTCOME" --run-url "$RUN_URL" --owner "$OWNER" --report out/themes-report.json
+          ALERT: ${{ inputs.page == 'ma3ak' && 'ma3ak' || 'themes' }}
+        run: quran-reels notify --alert "$ALERT" --outcome "$OUTCOME" --run-url "$RUN_URL" --owner "$OWNER" --report out/themes-report.json

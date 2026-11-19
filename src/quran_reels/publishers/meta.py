@@ -226,11 +226,24 @@ class MetaEnv:
 
     @classmethod
     def from_environ(cls, platforms: list[str]) -> MetaEnv:
-        names = ["META_PAGE_ID", "META_PAGE_TOKEN"] + (["IG_USER_ID"] if "instagram" in platforms
-                                                       else [])
+        # META_IDS_FROM_TOKEN=1: only the token is given, its Page and that Page's Instagram account
+        # are read from it (ids_from_token): the test page « معاك 5 ثواني », 2026-11-19, whose owner
+        # added its token alone (META_PAGE_TOKEN_5).
+        from_token = os.environ.get("META_IDS_FROM_TOKEN") == "1"
+        names = ["META_PAGE_TOKEN"] if from_token else ["META_PAGE_ID", "META_PAGE_TOKEN"] + (
+            ["IG_USER_ID"] if "instagram" in platforms else [])
         missing = [n for n in names if not os.environ.get(n)]
         if missing:
             raise SystemExit(f"missing environment variables: {', '.join(missing)} "
                              "(GitHub Actions secrets, see docs/plateformes.md)")
-        return cls(page_id=os.environ["META_PAGE_ID"], token=os.environ["META_PAGE_TOKEN"],
-                   ig_user_id=os.environ.get("IG_USER_ID"))
+        return cls(page_id="" if from_token else os.environ["META_PAGE_ID"],
+                   token=os.environ["META_PAGE_TOKEN"],
+                   ig_user_id=None if from_token else os.environ.get("IG_USER_ID"))
+
+    def ids_from_token(self, graph: Graph) -> MetaEnv:
+        """The Page a Page token belongs to (`me`), and the Instagram account linked to it. Never
+        printed: the logs of a public repository show nothing that identifies the accounts."""
+        page_id = str(graph.get("me", fields="id")["id"])
+        page = graph.get(page_id, fields="instagram_business_account")
+        ig = (page.get("instagram_business_account") or {}).get("id")
+        return MetaEnv(page_id=page_id, token=self.token, ig_user_id=str(ig) if ig else None)

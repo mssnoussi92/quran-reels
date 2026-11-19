@@ -1,0 +1,23 @@
+# The test page « معاك 5 ثواني » (Facebook and Instagram, @ma3ak.5.thawani), published by the workflow
+# `themes` with its input `page: ma3ak` (docs/themes.md, « La page test »). Owner's request, 2026-11-19:
+# « commence la publication automatique chaque jour à 18h », with the page's own token (secret
+# META_PAGE_TOKEN_5; its Page and Instagram account are read from it). Same rules as the Page: Meta's
+# copyright check first, nothing goes out unless it is clear. Never on the Page.
+#
+# What and when: docs/retention/calendar-ma3ak.md of quran-themes-demo, as written; the texts: its
+# publication-quiz-ma3ak.md and publication-ma3ak.md; the files: page-quiz-ma3ak and page-ma3ak.
+# State: themes-ma3ak.json on the branch `state`.
+
+enabled: true
+from: 2026-11-19           # quiz 5; quiz 4 was published by hand on the 18th
+repo: mssnoussi92/quran-themes-demo
+ref: main
+calendar: docs/retention/calendar-ma3ak.md
+texts: docs/retention
+release_prefix: page-
+time: "18:00"              # Paris, every day (owner, 2026-11-19)
+early_minutes: 20
+window_hours: 3
+platforms: [facebook, instagram]
+reels_max_seconds: 900
+instagram_processing_seconds: 1200

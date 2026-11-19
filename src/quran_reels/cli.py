@@ -189,8 +189,11 @@ def main(argv: list[str] | None = None) -> int:
     tr.add_argument("--platform", action="append", choices=("facebook", "instagram", "tiktok"))
     tr.add_argument("--check", action="store_true", help="only say whether one is due")
     tr.add_argument("--now", help="pretend it is this time (ISO), for --check")
+    tr.add_argument("--settings", help="another page's settings (config/themes-ma3ak.yaml: the test "
+                                       "page); default config/themes.yaml, the Page")
     tc = th_sub.add_parser("check", help="the next days: each row tied to a video, files public")
     tc.add_argument("--days", type=int, default=14)
+    tc.add_argument("--settings", help="another page's settings (config/themes-ma3ak.yaml)")
     tf = th_sub.add_parser("files", help="the day's video on the page publier.html (feed.py)")
     tf.add_argument("--report", default="out/themes-report.json")
 
@@ -205,7 +208,7 @@ def main(argv: list[str] | None = None) -> int:
     note.add_argument("--report", help="default: out/daily-report.json")
     note.add_argument("--missed", default="",
                       help="slots no run took (output `missed` of `quran-reels daily --check`)")
-    note.add_argument("--alert", choices=("daily", "images", "themes"), default="daily",
+    note.add_argument("--alert", choices=("daily", "images", "themes", "ma3ak"), default="daily",
                       help="which failure issue this workflow opens and closes")
 
     args = parser.parse_args(argv)
@@ -617,7 +620,8 @@ def main(argv: list[str] | None = None) -> int:
         if args.themes_command == "files":
             return themes.page_files(Path(args.report))
         if args.themes_command == "check":
-            lines, problems = themes.check_upcoming(cfg, days=args.days)
+            lines, problems = themes.check_upcoming(
+                cfg, days=args.days, settings_path=Path(args.settings) if args.settings else None)
             print("\n".join(lines))
             for p in problems:
                 print(f"PROBLÈME {p}", file=sys.stderr)
@@ -628,7 +632,8 @@ def main(argv: list[str] | None = None) -> int:
                          now=datetime.fromisoformat(args.now) if args.now else None,
                          day=date.fromisoformat(args.day) if args.day else None,
                          platforms=args.platform, check=args.check,
-                         report=cfg.out / "themes-report.json")
+                         report=cfg.out / "themes-report.json",
+                         settings_path=Path(args.settings) if args.settings else None)
         if args.check:
             import os
 

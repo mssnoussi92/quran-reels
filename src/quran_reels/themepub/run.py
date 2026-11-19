@@ -46,8 +46,10 @@ META = ("facebook", "instagram")
 DONE = {"published", "draft", "blocked", "removed", "ready"}
 
 
-def settings(cfg: Config) -> dict[str, Any]:
-    path = cfg.root / "config" / "themes.yaml"
+def settings(cfg: Config, path: Path | None = None) -> dict[str, Any]:
+    """config/themes.yaml, the Page's; or another page's own (`--settings`: config/themes-ma3ak.yaml,
+    the test page « معاك 5 ثواني », its calendar, its time, its platforms; 2026-11-19)."""
+    path = path or cfg.root / "config" / "themes.yaml"
     return yaml.safe_load(path.read_text(encoding="utf-8")) if path.is_file() else {}
 
 
@@ -458,8 +460,9 @@ def run(cfg: Config, state_path: Path, now: datetime | None = None, dry_run: boo
         src: Sources | None = None, make_publishers: Callable | None = None,
         download: Callable[..., Path] = _download, report: Path | None = None,
         encode: Callable[[Path], Path] = for_instagram,
-        publish_file: Callable[[Path], str] = host) -> dict[str, Any]:
-    s = settings(cfg)
+        publish_file: Callable[[Path], str] = host,
+        settings_path: Path | None = None) -> dict[str, Any]:
+    s = settings(cfg, settings_path) if settings_path else settings(cfg)
     now = now or datetime.now(UTC)
     state = load_state(state_path)
     today = (day or now.astimezone(PARIS).date())
@@ -518,11 +521,11 @@ def run(cfg: Config, state_path: Path, now: datetime | None = None, dry_run: boo
 
 
 def check_upcoming(cfg: Config, days: int = 14, today: date | None = None,
-                   src: Sources | None = None, exists: Callable[[str], bool] | None = None
-                   ) -> tuple[list[str], list[str]]:
+                   src: Sources | None = None, exists: Callable[[str], bool] | None = None,
+                   settings_path: Path | None = None) -> tuple[list[str], list[str]]:
     """The next days' theme videos, and what would stop one: a row not tied to a video, a file
     page-<doc> does not hold. (lines to print, problems)"""
-    s = settings(cfg)
+    s = settings(cfg, settings_path) if settings_path else settings(cfg)
     today = today or datetime.now(PARIS).date()
     src = src or fetch(s, today)
     if exists is None:
