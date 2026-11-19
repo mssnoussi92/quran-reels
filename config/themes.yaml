@@ -7,7 +7,8 @@
 # page-files, run once the owner has validated). Nothing is generated here.
 
 enabled: true
-from: 2026-11-23           # first day published automatically (the film of Dhul-Qarnayn);
+from: 2026-11-19           # first day published automatically (owner's choice, 2026-11-19: today, the third
+                           # short of the du'a, rather than 2026-11-23, the film of Dhul-Qarnayn);
                            # before it the owner publishes by hand, and the run never touches it
 repo: mssnoussi92/quran-themes-demo
 ref: main

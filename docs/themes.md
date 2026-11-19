@@ -2,7 +2,8 @@
 
 Décidé avec le propriétaire le 2026-11-15 (« je valide ») : les vidéos de quran-themes-demo (films, shorts
 d'histoire, épisodes de séries) sortent sur la Page à **18:00, heure de France** (19:00 jusqu'au 2026-11-19, sa demande), du lundi au samedi, sans geste de sa
-part, à partir du **lundi 23 novembre** (le film de Dhul-Qarnayn). Avant, il les publie à la main.
+part, à partir du **jeudi 19 novembre** (le short 3 du du'a ; son choix du 2026-11-19, au lieu du lundi 23,
+le film de Dhul-Qarnayn). Avant, il les publie à la main.
 
 | Plateforme | Ce qui part |
 |---|---|
