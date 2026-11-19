@@ -286,3 +286,19 @@ nouveaux, du 21 au 27 novembre (série `ma3ak` de quran-themes-demo, signée `@m
 | 13 `yamm` | 27 nov. | test | | | |
 | 2 `khatima` | 30 nov. | principale | | | |
 | 3 `qalaha` | 28 déc. | principale | | | |
+
+**Changé le 2026-11-19 (demande du propriétaire)** : la page test est **publiée par quran-reels, chaque jour à 18 h**
+(Paris), à partir du quiz 5 le 19 novembre, et **relevée seule chaque nuit** avec son jeton (`META_PAGE_TOKEN_5`). Ce que
+ça change :
+
+- **Publication** : le workflow `themes` avec `page: ma3ak` (`config/themes-ma3ak.yaml`, le calendrier
+  `docs/retention/calendar-ma3ak.md` de quran-themes-demo, l'état `themes-ma3ak.json`, son ticket d'échec « ⚠️ Page test
+  « معاك 5 ثواني » en échec »), Facebook et Instagram après la vérification des droits de Meta, comme sur la Page ; lancé
+  par la session planificateur à 17:41. Le stock finit le 27 novembre (quiz 13).
+- **Chiffres** : le workflow `insights` lit la page test avant la Page (elles partagent le budget d'appels de l'app
+  Meta) et range ses chiffres dans **`insights-ma3ak.json`** (branche `state`), jamais dans `insights.json` : la page
+  « Statistiques » ne montre toujours que la Page. Les relevés à 48 h, 7 et 28 jours sont les mêmes. Le tableau
+  ci-dessus se remplit depuis ce fichier ; plus besoin de captures, sauf pour le quiz 4 (publié le 18, avant le jeton :
+  relevé lui aussi s'il a moins de 35 jours).
+- **L'heure** : 18 h sur la page test, 19 h pour le quiz 1 de la Page le 23 novembre. Une heure d'écart le même soir
+  ne compte guère pour des chiffres à 48 h, mais elle est notée.

@@ -584,3 +584,15 @@ def test_a_facebook_video_nobody_saw_is_not_shown(state):
         "first_line": "", "snapshots": {"latest": {"at": "", "age_h": 72, "m": {"views": 0}}}}
     s = S.build(data, C.settings(load()), NOW, ZoneInfo("Europe/Paris"), index())
     assert "facebook:404" not in [v["key"] for v in s["videos"]]
+
+
+def test_the_test_page_numbers_go_to_their_own_file(state):
+    """The test page « معاك 5 ثواني » (2026-11-19): read with its own token, kept in insights-ma3ak.json,
+    the Page's insights.json untouched."""
+    before = (state / "insights.json").read_text() if (state / "insights.json").exists() else None
+    out = C.run(load(), state, graph(FakeGraph(routes())), PAGE, IG, index(), now=NOW,
+                file="insights-ma3ak.json", themes_state="themes-ma3ak.json")
+    assert out["errors"] == []
+    assert json.loads((state / "insights-ma3ak.json").read_text())["posts"]
+    after = (state / "insights.json").read_text() if (state / "insights.json").exists() else None
+    assert after == before

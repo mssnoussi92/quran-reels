@@ -168,6 +168,10 @@ def main(argv: list[str] | None = None) -> int:
     ic = ins_sub.add_parser("collect", help="read Facebook and Instagram numbers → insights.json")
     ic.add_argument("--state", default="state", help="checkout of the state branch")
     ic.add_argument("--dry-run", action="store_true", help="read, print, save nothing")
+    ic.add_argument("--file", default="insights.json",
+                    help="where the numbers go in the state branch (insights-ma3ak.json: the test page)")
+    ic.add_argument("--themes-state", default="themes.json",
+                    help="the state of the theme videos of that page (themes-ma3ak.json: the test page)")
     iy = ins_sub.add_parser("youtube", help="read the channel's YouTube numbers → insights.json")
     iy.add_argument("--state", default="state", help="checkout of the state branch")
     iy.add_argument("--dry-run", action="store_true", help="read, print, save nothing")
@@ -653,7 +657,8 @@ def main(argv: list[str] | None = None) -> int:
         if args.insights_command == "collect":
             if not state.is_dir():
                 raise SystemExit(f"--state {state}: no such folder (a checkout of the state branch)")
-            return insights.main_collect(cfg, state, dry_run=args.dry_run)
+            return insights.main_collect(cfg, state, dry_run=args.dry_run, file=args.file,
+                                         themes_state=args.themes_state)
         if args.insights_command == "youtube":
             from quran_reels.insights import youtube
 
