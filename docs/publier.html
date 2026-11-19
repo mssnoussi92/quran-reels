@@ -211,9 +211,11 @@
     }
     const texts = el("div");
     texts.append(el("a", { class: "btn big", href: y.file }, "⬇️ Télécharger le MP4"));
-    texts.append(el("p", { class: "muted small" }, "Il va dans Téléchargements. App YouTube → ➕ → choisis la vidéo, puis colle :"));
+    if (y.thumbnail) texts.append(el("a", { class: "btn big ghost", href: y.thumbnail }, "🖼️ Télécharger la miniature"));
+    texts.append(el("p", { class: "muted small" }, "Ils vont dans Téléchargements. App YouTube → ➕ → choisis la vidéo, puis colle :"));
     if (y.title) texts.append(copyBox("Titre", y.title, `${[...y.title].length}/100`));
     if (y.description) texts.append(copyBox("Description", y.description));
+    if (y.credits) texts.append(copyBox("Crédits (à coller sous la description)", y.credits));
     if (y.hashtags) texts.append(copyBox("Hashtags", y.hashtags));
     if (ytUrl) {
       const done = el("p", { class: "done-line" }, "✓ Sur YouTube : ");

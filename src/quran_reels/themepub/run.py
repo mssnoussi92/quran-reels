@@ -383,17 +383,23 @@ def item_key(row: cal.Row) -> str:
 
 
 def youtube_texts(s: dict[str, Any], yt: texts_mod.Video | None) -> dict[str, str] | None:
-    """What the page publier.html gives for YouTube: the file, then its title, description
-    (description and credits cards) and hashtags, word for word."""
+    """What the page publier.html gives for YouTube: the file and its thumbnail (a film's, or a
+    short's cover), then its title, description, credits and hashtags, word for word, each with
+    its own Copy button (owner's request, 2026-11-19: the credits apart from the description)."""
     if not yt or not yt.video:
         return None
     parts = yt.cards.get("youtube") or []
-    tags = [t for kind, t in parts if kind == "hashtags" and t]
-    desc = [t for kind, t in parts if kind not in ("titre", "hashtags") and t]
+
+    def joined(*kinds: str) -> str:
+        return "\n\n".join(t for kind, t in parts if kind in kinds and t)
+
+    image = yt.thumbnail or yt.cover
     return {"title": (yt.captions.get("youtube_title") or "").strip(),
-            "description": "\n\n".join(desc) if parts
+            "description": joined("description") if parts
             else (yt.captions.get("youtube_description") or "").strip(),
-            "hashtags": "\n\n".join(tags), "file": asset_url(s, yt.doc, file_for("youtube", yt)[0])}
+            "credits": joined("crédits"), "hashtags": joined("hashtags"),
+            "file": asset_url(s, yt.doc, file_for("youtube", yt)[0]),
+            "thumbnail": asset_url(s, yt.doc, image) if image else ""}
 
 
 def match_keys(row: cal.Row) -> list[str]:

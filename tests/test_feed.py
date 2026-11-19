@@ -39,7 +39,8 @@ def previews(root: Path) -> None:
         "kind": "theme", "id": "theme/2026-11-24", "created": "2026-11-24T18:50:00+00:00",
         "key": "theme:2026-11-24", "day": "2026-11-24", "time": "19:00", "tiktok": "Theme TT",
         "title": "Patient… and he asked", "youtube": {"title": "YT", "description": "", "hashtags": "",
-                                                      "file": "https://dl/short.mp4"},
+                                                      "credits": "Quoted: …", "file": "https://dl/short.mp4",
+                                                      "thumbnail": "https://dl/short-cover.jpg"},
         "match": ["theme:dua/short-1"]})
     write(root, "daily/2026-11-23-evening-essai", {"id": "daily/2026-11-23-evening-essai", "dry_run": True,
                                              "created": "2026-11-23T18:40:00+00:00"})
@@ -57,12 +58,15 @@ def test_the_page_lists_the_last_two_weeks_latest_first(tmp_path):
     theme, morning, old = data["entries"]
     assert (theme["kind"], theme["tiktok"], theme["youtube"]["file"]) == (
         "theme", "Theme TT", "https://dl/short.mp4")
+    # 2026-11-19: a theme video's thumbnail, and its credits apart from the description
+    assert (theme["youtube"]["thumbnail"], theme["youtube"]["credits"]) == (
+        "https://dl/short-cover.jpg", "Quoted: …")
     assert morning["youtube"] is None and morning["notes"] == ["YouTube : rien pour ce créneau"]
     # a reel.json from before: its slot from its folder, TikTok's text from the shared caption
     assert (old["key"], old["day"], old["time"], old["tiktok"], old["match"]) == (
         "2026-11-14/morning", "2026-11-14", "07:30", "IG", ["slot:2026-11-14/morning"])
-    assert old["youtube"] == {"title": "T", "description": "D", "hashtags": "#h",
-                              "file": "https://dl/y.mp4"}
+    assert old["youtube"] == {"title": "T", "description": "D", "credits": "", "hashtags": "#h",
+                              "file": "https://dl/y.mp4", "thumbnail": ""}
 
 
 def git(*args, cwd):

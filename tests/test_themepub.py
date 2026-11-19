@@ -297,8 +297,9 @@ def test_the_day_goes_out_with_its_own_texts_files_and_cover(setup):
     # the page publier.html (feed.py): the TikTok text of the draft, the YouTube file and title
     assert item["match"] == ["theme:dua/short-1"]
     assert item["youtube"] == {
-        "title": "Patient… and he asked · صابر… ودعا!", "description": "", "hashtags": "",
-        "file": "https://github.com/o/themes/releases/download/page-dua/dua-short-1-asked.mp4"}
+        "title": "Patient… and he asked · صابر… ودعا!", "description": "", "credits": "", "hashtags": "",
+        "file": "https://github.com/o/themes/releases/download/page-dua/dua-short-1-asked.mp4",
+        "thumbnail": "https://github.com/o/themes/releases/download/page-dua/dua-short-1-asked-cover.jpg"}
 
     class Previews:
         def publish(self, files, message, derived=None):
@@ -636,10 +637,13 @@ def test_the_cards_of_a_platform_make_its_caption_in_their_order():
     assert v.captions["youtube_description"] == ("The long description\n\nQuoted:\n• a source\n\n"
                                                  "#a #b #c #d #e\n")
     # on the page publier.html, the hashtags have their own Copy button
+    # ... and the credits apart from the description, with the cover as the thumbnail (2026-11-19)
     assert R.youtube_texts({"repo": "o/themes"}, v) == {
         "title": "Patient… and he asked · صابر… ودعا!",
-        "description": "The long description\n\nQuoted:\n• a source", "hashtags": "#a #b #c #d #e",
-        "file": "https://github.com/o/themes/releases/download/page-dua/dua-short-1-asked.mp4"}
+        "description": "The long description", "credits": "Quoted:\n• a source",
+        "hashtags": "#a #b #c #d #e",
+        "file": "https://github.com/o/themes/releases/download/page-dua/dua-short-1-asked.mp4",
+        "thumbnail": "https://github.com/o/themes/releases/download/page-dua/dua-short-1-asked-cover.jpg"}
     assert (v.video, v.tiktok, v.seconds) == ("dua-short-1-asked.mp4", "dua-short-1-asked-tiktok.mp4", 109)
 
 
