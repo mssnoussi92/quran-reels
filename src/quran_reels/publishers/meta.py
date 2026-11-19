@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -198,7 +199,15 @@ def check_token(graph: Graph, page_id: str, ig_user_id: str | None, platforms: l
 
     page = graph.get(str(page_id), fields="name,instagram_business_account")
     instagram_id = (page.get("instagram_business_account") or {}).get("id")
-    if "instagram" in platforms and str(instagram_id) != str(ig_user_id):
+    if "instagram" in platforms and not ig_user_id:
+        problems.append(
+            "Aucun compte Instagram relié à la Page n'est visible avec ce jeton. Relier le compte "
+            "Instagram (professionnel) à la Page : Meta Business Suite → Paramètres → Comptes → "
+            "Instagram ; puis refaire le jeton en cochant ce compte Instagram.")
+    elif "instagram" in platforms and str(instagram_id) != str(ig_user_id) and not (
+            instagram_id is None and os.environ.get("META_IDS_FROM_TOKEN") == "1"):
+        # (from the token alone, the account may come from connected_instagram_account or the
+        # token's granular scopes, the Page's instagram_business_account being empty)
         problems.append(
             f"IG_USER_ID ({ig_user_id}) n'est pas le compte Instagram relié à la Page "
             f"({instagram_id}). Relier depuis la Page : Paramètres → Comptes liés.")
@@ -241,9 +250,28 @@ class MetaEnv:
                    ig_user_id=None if from_token else os.environ.get("IG_USER_ID"))
 
     def ids_from_token(self, graph: Graph) -> MetaEnv:
-        """The Page a Page token belongs to (`me`), and the Instagram account linked to it. Never
-        printed: the logs of a public repository show nothing that identifies the accounts."""
+        """The Page a Page token belongs to (`me`), and the Instagram account linked to it: the
+        Page's `instagram_business_account`, else its `connected_instagram_account`, else the one
+        Instagram account the token was granted (debug_token, granular scopes). The first dry run
+        of the test page (2026-11-19) found no `instagram_business_account`. Never printed: the
+        logs of a public repository show nothing that identifies the accounts; only where the
+        account was found."""
         page_id = str(graph.get("me", fields="id")["id"])
-        page = graph.get(page_id, fields="instagram_business_account")
-        ig = (page.get("instagram_business_account") or {}).get("id")
-        return MetaEnv(page_id=page_id, token=self.token, ig_user_id=str(ig) if ig else None)
+        page = graph.get(page_id, fields="instagram_business_account,connected_instagram_account")
+        found, where = None, ""
+        for name in ("instagram_business_account", "connected_instagram_account"):
+            found = (page.get(name) or {}).get("id")
+            if found:
+                where = name
+                break
+        if not found:
+            d = graph.get("debug_token", input_token=graph.token).get("data") or {}
+            targets = {str(t) for g in d.get("granular_scopes") or []
+                       if g.get("scope") in ("instagram_content_publish", "instagram_basic")
+                       for t in g.get("target_ids") or []}
+            if len(targets) == 1:
+                found, where = targets.pop(), "granular_scopes"
+            else:
+                where = f"aucun ({len(targets)} compte(s) Instagram dans les permissions du jeton)"
+        print(f"Instagram de la Page : {where}", file=sys.stderr)
+        return MetaEnv(page_id=page_id, token=self.token, ig_user_id=str(found) if found else None)

@@ -118,3 +118,29 @@ def test_the_test_page_step_never_sees_the_page_secrets():
     assert not any("secrets." in str(v) for k, v in ma3ak.items() if k != "META_PAGE_TOKEN")
     assert "META_PAGE_TOKEN_5" not in str(page)
     assert "inputs.page != 'ma3ak'" in steps["post"]["if"] and "inputs.page == 'ma3ak'" in steps["post_ma3ak"]["if"]
+
+
+def test_the_instagram_account_found_where_meta_gives_it(monkeypatch):
+    """First dry run of the test page (2026-11-19): no instagram_business_account on the Page."""
+    monkeypatch.setenv("META_PAGE_TOKEN", "tok")
+    monkeypatch.setenv("META_IDS_FROM_TOKEN", "1")
+    env = MetaEnv.from_environ(["instagram"])
+
+    class Graph:
+        token = "tok"
+
+        def __init__(self, page, granted):
+            self.page, self.granted = page, granted
+
+        def get(self, path, **params):
+            if path == "me":
+                return {"id": "555"}
+            if path == "debug_token":
+                return {"data": {"granular_scopes": [
+                    {"scope": "instagram_content_publish", "target_ids": self.granted}]}}
+            return self.page
+
+    assert env.ids_from_token(Graph({"connected_instagram_account": {"id": "88"}}, [])).ig_user_id == "88"
+    assert env.ids_from_token(Graph({}, ["99"])).ig_user_id == "99"
+    assert env.ids_from_token(Graph({}, [])).ig_user_id is None
+    assert env.ids_from_token(Graph({}, ["98", "99"])).ig_user_id is None      # which one? none
