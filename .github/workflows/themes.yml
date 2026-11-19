@@ -1,18 +1,18 @@
 name: themes
 
 # The theme videos of quran-themes-demo on the Page (docs/themes.md; owner's decision 2026-11-15):
-# the day's video of docs/retention/calendar.md at 19:00 Paris, from the public pre-release
+# the day's video of docs/retention/calendar.md at 18:00 Paris (19:00 until 2026-11-19), from the public pre-release
 # page-<doc>, its texts word for word from publication-<doc>.md. Facebook and Instagram only
 # after Meta's copyright check (anything but clear: nothing goes out, TikTok included); TikTok
 # its own version as a draft in the inbox; YouTube by hand (the captions issue gives the file).
 # Nothing before config/themes.yaml `from` (the owner publishes those by hand).
 #
-# Started by the scheduler session at 18:41 Paris, Monday to Saturday, not by GitHub's cron.
+# Started by the scheduler session at 17:40 Paris, Monday to Saturday, not by GitHub's cron.
 # By hand: a dry run of a given day (dry_run + day): upload, Meta's checks, the Facebook copy
 # deleted, nothing public, no TikTok draft, nothing recorded.
 #
 # `page: ma3ak`: the test page « معاك 5 ثواني » instead (owner's request, 2026-11-19: every day at
-# 18:00, started by the scheduler session at 17:41 Paris): config/themes-ma3ak.yaml, its own state
+# 18:00, started by the scheduler session at 17:42 Paris, after the Page's run): config/themes-ma3ak.yaml, its own state
 # (themes-ma3ak.json), its own failure issue, Facebook and Instagram only, with the secret
 # META_PAGE_TOKEN_5 and nothing else (its Page and Instagram account are read from the token). That
 # step never sees the Page's secrets, and the Page's step never sees this one: a missing token
@@ -21,7 +21,7 @@ on:
   workflow_dispatch:
     inputs:
       page:
-        description: "main: the Page (calendar.md, 19:00); ma3ak: the test page (calendar-ma3ak.md, 18:00)"
+        description: "main: the Page (calendar.md, 18:00); ma3ak: the test page (calendar-ma3ak.md, 18:00)"
         type: choice
         options: [main, ma3ak]
         default: main

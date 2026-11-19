@@ -1,4 +1,4 @@
-"""quran-reels themes run|check: the day's theme video on the Page at 19:00 (docs/themes.md).
+"""quran-reels themes run|check: the day's theme video on the Page at 18:00 (docs/themes.md).
 
 The video of the day is the row of docs/retention/calendar.md (quran-themes-demo) for today; its
 texts are those of publication-<doc>.md, word for word; its files those of the public

@@ -48,7 +48,7 @@ due »: normal, say so in one line, never as a failure.
    - « (#4) Application request limit reached » (often at « Meta token check failed »): the
      Meta app used its hourly call budget (2026-11-13: stuck Instagram containers polled for
      35 min). Dispatching again at once fails the same way: wait about an hour (the window
-     rolls), then one daily run inside the slot window (07:30 or 19:30 + 3 h), or tell the owner
+     rolls), then one daily run inside the slot window (07:30 or 18:00 + 3 h; the evening slot is on Sundays), or tell the owner
      the slot is over. Or « stopped waiting, Meta's app call budget at N % »: the run stopped
      itself before that point; same advice.
    - « save-state: … not saved » on the step that saves the state: the slot is not on the
@@ -83,7 +83,7 @@ due »: normal, say so in one line, never as a failure.
    - "does not exist" (code 100, subcode 33) right after a Facebook publish: the reel may be
      live; check `facebook.com/plugins/video.php?href=…/reel/<id>/` logged out (hd_src present).
 5. **Nothing ran for a due slot** (scheduler down): dispatch `daily.yml` on `main`, no inputs,
-   while the window is open (3 h after 07:30 / 19:30 Paris). Publish nothing else on your own.
+   while the window is open (3 h after 07:30 / 18:00 Paris). Publish nothing else on your own.
 6. **Report in French, short:** passage, reciter, link per platform, the TikTok draft waiting
    in the inbox (caption on the page « À publier »,
    https://mssnoussi92.github.io/quran-reels/publier.html, and in the pinned issue

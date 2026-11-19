@@ -20,7 +20,7 @@
 ## Calendrier (`selector/calendar.py`, `daily.py`)
 
 - `config/schedule.yaml` : fuseau `Europe/Paris`, créneaux `morning` 07:30 (file `reading`) et
-  `evening` 19:30 (file `themes`, le dimanche seulement depuis le 2026-11-14), vendredi : une
+  `evening` 18:00 (19:30 jusqu'au 2026-11-19 ; file `themes`, le dimanche seulement depuis le 2026-11-14), vendredi : une
   file par créneau (`fridays: {morning: kahf, evening: kahf}` depuis le 2026-11-20, avant
   `morning: kahf-first-ten` ; `queue:` en donne une pour tous), `fallback` (une file
   finie passe à une autre). `enabled: false` tant que la première publication réelle n'est pas
@@ -93,7 +93,7 @@
   `images` : 16 sur 94 ; `prepare` chaque jour, vers 08:00 UTC). `workflow_dispatch` marche.
   Les workflows sont donc lancés par des **tâches planifiées Claude** (choix du propriétaire,
   2026-11-05) qui réveillent la session « Quran Words Daily – planificateur » (Sonnet, dépôt
-  attaché, outils GitHub) : `prepare.yml` 02:41 Paris, `daily.yml` 07:12 et 19:12 Paris
+  attaché, outils GitHub) : `prepare.yml` 02:41 Paris, `daily.yml` 07:12 Paris et le dimanche 17:40 (19:12 chaque jour jusqu'au 2026-11-19)
   (`CRON_TZ=Europe/Paris`), `images.yml` 11:36 UTC ; chacune lance le workflow sur `main`,
   attend la fin, relance une fois en cas d'échec (sauf prepare) et résume. Une tâche lancée
   dans une session neuve n'a pas accès au dépôt (essai du 2026-11-05) : elles visent toutes

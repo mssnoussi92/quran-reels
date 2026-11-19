@@ -10,7 +10,8 @@ on:
     # Changed from :13 on 2026-11-05: GitHub never fired the first schedule (05:13, 06:13 and
     # 07:13 UTC skipped); editing the cron line registers it again.
     - cron: "17 5,6,7 * * *"      # morning slot: 07:17 Paris + two retries, winter or summer
-    - cron: "17 17,18,19 * * *"   # evening slot: 19:17 Paris + two retries
+    - cron: "17 17,18,19 * * *"   # evening slot (18:00 Paris since 2026-11-19, window 17:40-21:00):
+                                  # 18:17 Paris + two retries in winter, a witness only
   workflow_dispatch:
     inputs:
       passage:
