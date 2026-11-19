@@ -4,7 +4,8 @@ Owner's request, 2026-11-15: the issue « 📋 Légendes à copier » is hard to
 (open it, scroll, copy a code block). The page https://mssnoussi92.github.io/quran-reels/publier.html
 reads `feed.json` on the branch `previews` when it opens: the last FEED_DAYS days of videos, the
 latest first, each with the TikTok text to paste on its draft, the YouTube MP4 to download, its
-title, description and hashtags, and the links of what is already out.
+thumbnail (theme videos), title, description, credits (theme videos: apart from the description,
+owner's request of 2026-11-19) and hashtags, and the links of what is already out.
 
 `feed.json` is derived, never written by hand: every time a publishing run writes the `reel.json`
 of a video on `previews` (daily: `on-demand daily-files`; theme videos: `themes files`),
@@ -48,7 +49,8 @@ def entry(meta: dict[str, Any]) -> dict[str, Any] | None:
         "label": meta.get("label", ""), "reciter": meta.get("reciter", ""),
         "results": meta.get("results") or [], "tiktok": tiktok,
         "video": meta.get("video") or {},
-        "youtube": {k: yt.get(k, "") for k in ("title", "description", "hashtags", "file")}
+        "youtube": {k: yt.get(k, "") for k in ("title", "description", "credits", "hashtags", "file",
+                                               "thumbnail")}
         if yt and yt.get("file") else None,
         "notes": meta.get("notes") or [],
         "match": meta.get("match") or ([f"slot:{key}"] if kind == "daily" else []),
