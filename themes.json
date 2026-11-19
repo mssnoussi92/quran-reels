@@ -1,0 +1,60 @@
+{
+ "posts": {
+  "2026-11-19": {
+   "label": "Du'a, short 3 : Zakariya",
+   "videos": {
+    "facebook": "dua/short-3",
+    "instagram": "dua/short-3",
+    "tiktok": "dua/short-3"
+   },
+   "at": "2026-11-19T16:41:35+00:00",
+   "results": {
+    "facebook": {
+     "platform": "facebook",
+     "status": "published",
+     "remote_id": "1505282704750265",
+     "url": "https://www.facebook.com/reel/1505282704750265/",
+     "error": null,
+     "rights": {
+      "platform": "facebook",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 0.2046508939999967,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    },
+    "instagram": {
+     "platform": "instagram",
+     "status": "published",
+     "remote_id": "18190636504418408",
+     "url": "https://www.instagram.com/reel/Df7ieJZErKP/",
+     "error": null,
+     "rights": {
+      "platform": "instagram",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 92.97026405600002,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    },
+    "tiktok": {
+     "platform": "tiktok",
+     "status": "draft",
+     "remote_id": "v_inbox_file~v2.7709925145917458454",
+     "url": null,
+     "error": null,
+     "rights": null,
+     "rights_after": null
+    }
+   }
+  }
+ }
+}
