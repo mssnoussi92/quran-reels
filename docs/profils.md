@@ -170,7 +170,20 @@ YouTube → Vous → Votre chaîne → Modifier (ou l'app YouTube Studio) :
 - E-mail de contact : `quranwordsdaily@gmail.com` (champ à part, pas dans la description).
 - Filigrane `youtube-watermark-150.png` (Personnalisation → Branding ; sur ordinateur ou en
   « version pour ordinateur ») : il ne s'affiche que sur les vidéos longues, donc sur les
-  épisodes 16:9.
+  épisodes 16:9. **Affiché à partir de 0:30** (choix du propriétaire, 2026-11-19 : l'accroche
+  reste propre, comme le rappel d'abonnement des films, jamais dans les 30 premières secondes ;
+  « fin de la vidéo » tomberait sous l'écran de fin, qui a son propre bouton S'abonner).
+- **Écran de fin de chaque film 16:9** (choix du propriétaire, 2026-11-19) : sur les **12 dernières
+  secondes**, l'image calme que le montage garde pour lui (`outro` des films de quran-themes-demo :
+  « اشترك… عشان القصة الجاية » au début, puis l'image seule) ; pas 20 s, il couvrirait la
+  conclusion. Deux éléments : une vidéo **« la plus adaptée au spectateur »** (Best for viewer :
+  YouTube choisit dans la chaîne, rien à changer d'un film à l'autre) et **S'abonner** ; la vidéo
+  à gauche sous le texte arabe, l'abonnement en bas à droite, rien sur la phrase ni le sous-titre.
+  Fait une fois en « version pour ordinateur », puis « Importer depuis une vidéo » sur chaque
+  film. Les Shorts n'en ont pas (YouTube ne le permet pas) : leur fin est la boucle (10 reels sur
+  19 au-dessus de 100 % regardés au 2026-11-19), sans carte ajoutée, et leur seul lien est la
+  « Vidéo associée » (point 6 plus bas). Levier modeste : 24 % du film de Moussa et al-Khadir
+  regardés en moyenne, peu de spectateurs voient la fin ; le début décide.
 - Bande-annonce de la chaîne (pour les non-abonnés), quand le premier épisode est en ligne :
   son premier reel (l'accroche), pas une récitation : c'est ce qui dit le mieux ce qu'est
   devenue la page.
