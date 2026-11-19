@@ -3733,14 +3733,14 @@
   "youtube:qgzlSzWjjT8": {
    "snapshots": {
     "latest": {
-     "at": "2026-11-18T01:51:19+00:00",
-     "age_h": 57.2,
+     "at": "2026-11-19T01:52:24+00:00",
+     "age_h": 81.2,
      "m": {
-      "views": 279,
+      "views": 282,
       "likes": 14,
       "comments": 0,
       "avg_watch": 58.0,
-      "watch_pct": 47.3,
+      "watch_pct": 47.4,
       "shares": 0,
       "follows": 1
      }
@@ -3748,7 +3748,7 @@
    },
    "platform": "youtube",
    "id": "qgzlSzWjjT8",
-   "seen": "2026-11-18T01:51:19+00:00",
+   "seen": "2026-11-19T01:52:24+00:00",
    "url": "https://www.youtube.com/shorts/qgzlSzWjjT8",
    "published": "2026-11-15T16:40:26+00:00",
    "kind_meta": "youtube-short",
@@ -3766,22 +3766,39 @@
   "youtube:FUg5tLOqPME": {
    "snapshots": {
     "latest": {
-     "at": "2026-11-18T01:51:19+00:00",
-     "age_h": 80.4,
+     "at": "2026-11-19T01:52:24+00:00",
+     "age_h": 104.4,
      "m": {
-      "views": 656,
-      "likes": 39,
+      "views": 660,
+      "likes": 44,
       "comments": 2,
       "avg_watch": 67.0,
-      "watch_pct": 62.4,
+      "watch_pct": 62.3,
       "shares": 4,
       "follows": 3
      }
+    },
+    "48h": {
+     "at": "2026-11-19T01:52:24+00:00",
+     "days": [
+      "2026-11-14",
+      "2026-11-16"
+     ],
+     "m": {
+      "views": 652,
+      "likes": 37,
+      "comments": 2,
+      "shares": 4,
+      "follows": 3,
+      "avg_watch": 66.7,
+      "watch_pct": 62.5
+     },
+     "age_h": 62.6
     }
    },
    "platform": "youtube",
    "id": "FUg5tLOqPME",
-   "seen": "2026-11-18T01:51:19+00:00",
+   "seen": "2026-11-19T01:52:24+00:00",
    "url": "https://www.youtube.com/shorts/FUg5tLOqPME",
    "published": "2026-11-14T17:26:02+00:00",
    "kind_meta": "youtube-short",
@@ -3799,39 +3816,39 @@
   "youtube:EpYgEoIU6XE": {
    "snapshots": {
     "latest": {
-     "at": "2026-11-18T01:51:19+00:00",
-     "age_h": 90.0,
+     "at": "2026-11-19T01:52:24+00:00",
+     "age_h": 114.1,
      "m": {
-      "views": 1078,
-      "likes": 62,
+      "views": 1091,
+      "likes": 63,
       "comments": 0,
       "avg_watch": 29.0,
-      "watch_pct": 87.3,
+      "watch_pct": 85.6,
       "shares": 2,
-      "follows": 7
+      "follows": 9
      }
     },
     "48h": {
-     "at": "2026-11-18T01:51:19+00:00",
+     "at": "2026-11-19T01:52:24+00:00",
      "days": [
       "2026-11-13",
       "2026-11-15"
      ],
      "m": {
-      "views": 1001,
+      "views": 999,
       "likes": 45,
       "comments": 0,
       "shares": 2,
       "follows": 7,
       "avg_watch": 28.3,
-      "watch_pct": 86.1
+      "watch_pct": 86.2
      },
      "age_h": 48.2
     }
    },
    "platform": "youtube",
    "id": "EpYgEoIU6XE",
-   "seen": "2026-11-18T01:51:19+00:00",
+   "seen": "2026-11-19T01:52:24+00:00",
    "url": "https://www.youtube.com/shorts/EpYgEoIU6XE",
    "published": "2026-11-14T07:48:44+00:00",
    "kind_meta": "youtube-short",
@@ -3851,26 +3868,26 @@
   "youtube:MZsGPtZxSt4": {
    "snapshots": {
     "latest": {
-     "at": "2026-11-18T01:51:19+00:00",
-     "age_h": 102.6,
+     "at": "2026-11-19T01:52:24+00:00",
+     "age_h": 126.6,
      "m": {
       "views": 911,
       "likes": 58,
       "comments": 0,
-      "avg_watch": 43.0,
-      "watch_pct": 90.0,
+      "avg_watch": 41.0,
+      "watch_pct": 87.3,
       "shares": 1,
       "follows": 1
      }
     },
     "48h": {
-     "at": "2026-11-18T01:51:19+00:00",
+     "at": "2026-11-19T01:52:24+00:00",
      "days": [
       "2026-11-13",
       "2026-11-15"
      ],
      "m": {
-      "views": 859,
+      "views": 849,
       "likes": 42,
       "comments": 0,
       "shares": 1,
@@ -3883,7 +3900,7 @@
    },
    "platform": "youtube",
    "id": "MZsGPtZxSt4",
-   "seen": "2026-11-18T01:51:19+00:00",
+   "seen": "2026-11-19T01:52:24+00:00",
    "url": "https://www.youtube.com/shorts/MZsGPtZxSt4",
    "published": "2026-11-13T19:15:33+00:00",
    "kind_meta": "youtube-short",
@@ -3903,8 +3920,8 @@
   "youtube:75zO0MtWtVo": {
    "snapshots": {
     "latest": {
-     "at": "2026-11-18T01:51:19+00:00",
-     "age_h": 114.0,
+     "at": "2026-11-19T01:52:24+00:00",
+     "age_h": 138.0,
      "m": {
       "views": 223,
       "likes": 8,
@@ -3916,7 +3933,7 @@
      }
     },
     "48h": {
-     "at": "2026-11-18T01:51:19+00:00",
+     "at": "2026-11-19T01:52:24+00:00",
      "days": [
       "2026-11-12",
       "2026-11-14"
@@ -3935,7 +3952,7 @@
    },
    "platform": "youtube",
    "id": "75zO0MtWtVo",
-   "seen": "2026-11-18T01:51:19+00:00",
+   "seen": "2026-11-19T01:52:24+00:00",
    "url": "https://www.youtube.com/shorts/75zO0MtWtVo",
    "published": "2026-11-13T07:53:57+00:00",
    "kind_meta": "youtube-short",
@@ -3953,39 +3970,39 @@
   "youtube:EDBBTWrhAqc": {
    "snapshots": {
     "latest": {
-     "at": "2026-11-18T01:51:19+00:00",
-     "age_h": 127.8,
+     "at": "2026-11-19T01:52:24+00:00",
+     "age_h": 151.8,
      "m": {
-      "views": 258,
+      "views": 259,
       "likes": 5,
       "comments": 1,
-      "avg_watch": 113.0,
-      "watch_pct": 24.3,
+      "avg_watch": 112.0,
+      "watch_pct": 24.1,
       "shares": 2,
-      "follows": 1
+      "follows": 0
      }
     },
     "48h": {
-     "at": "2026-11-18T01:51:19+00:00",
+     "at": "2026-11-19T01:52:24+00:00",
      "days": [
       "2026-11-12",
       "2026-11-14"
      ],
      "m": {
-      "views": 211,
+      "views": 208,
       "likes": 5,
       "comments": 1,
       "shares": 0,
-      "follows": 1,
-      "avg_watch": 108.2,
-      "watch_pct": 23.3
+      "follows": 0,
+      "avg_watch": 108.1,
+      "watch_pct": 23.2
      },
      "age_h": 61.9
     }
    },
    "platform": "youtube",
    "id": "EDBBTWrhAqc",
-   "seen": "2026-11-18T01:51:19+00:00",
+   "seen": "2026-11-19T01:52:24+00:00",
    "url": "https://www.youtube.com/watch?v=EDBBTWrhAqc",
    "published": "2026-11-12T18:04:39+00:00",
    "kind_meta": "youtube-video",
@@ -4003,8 +4020,8 @@
   "youtube:gBSX0dmKRpw": {
    "snapshots": {
     "latest": {
-     "at": "2026-11-18T01:51:19+00:00",
-     "age_h": 136.6,
+     "at": "2026-11-19T01:52:24+00:00",
+     "age_h": 160.6,
      "m": {
       "views": 996,
       "likes": 99,
@@ -4016,13 +4033,13 @@
      }
     },
     "48h": {
-     "at": "2026-11-18T01:51:19+00:00",
+     "at": "2026-11-19T01:52:24+00:00",
      "days": [
       "2026-11-12",
       "2026-11-14"
      ],
      "m": {
-      "views": 985,
+      "views": 983,
       "likes": 97,
       "comments": 0,
       "shares": 4,
@@ -4035,7 +4052,7 @@
    },
    "platform": "youtube",
    "id": "gBSX0dmKRpw",
-   "seen": "2026-11-18T01:51:19+00:00",
+   "seen": "2026-11-19T01:52:24+00:00",
    "url": "https://www.youtube.com/shorts/gBSX0dmKRpw",
    "published": "2026-11-12T09:15:30+00:00",
    "kind_meta": "youtube-short",
@@ -4055,10 +4072,10 @@
   "youtube:3cQqJSBPhbE": {
    "snapshots": {
     "latest": {
-     "at": "2026-11-18T01:51:19+00:00",
-     "age_h": 148.0,
+     "at": "2026-11-19T01:52:24+00:00",
+     "age_h": 172.0,
      "m": {
-      "views": 493,
+      "views": 502,
       "likes": 43,
       "comments": 0,
       "avg_watch": 19.0,
@@ -4068,13 +4085,13 @@
      }
     },
     "48h": {
-     "at": "2026-11-18T01:51:19+00:00",
+     "at": "2026-11-19T01:52:24+00:00",
      "days": [
       "2026-11-11",
       "2026-11-13"
      ],
      "m": {
-      "views": 471,
+      "views": 469,
       "likes": 41,
       "comments": 0,
       "shares": 0,
@@ -4087,7 +4104,7 @@
    },
    "platform": "youtube",
    "id": "3cQqJSBPhbE",
-   "seen": "2026-11-18T01:51:19+00:00",
+   "seen": "2026-11-19T01:52:24+00:00",
    "url": "https://www.youtube.com/shorts/3cQqJSBPhbE",
    "published": "2026-11-11T21:54:19+00:00",
    "kind_meta": "youtube-short",
@@ -4107,8 +4124,8 @@
   "youtube:6fdi-bxqotU": {
    "snapshots": {
     "latest": {
-     "at": "2026-11-18T01:51:19+00:00",
-     "age_h": 158.9,
+     "at": "2026-11-19T01:52:24+00:00",
+     "age_h": 182.9,
      "m": {
       "views": 1106,
       "likes": 47,
@@ -4120,13 +4137,13 @@
      }
     },
     "48h": {
-     "at": "2026-11-18T01:51:19+00:00",
+     "at": "2026-11-19T01:52:24+00:00",
      "days": [
       "2026-11-11",
       "2026-11-13"
      ],
      "m": {
-      "views": 1098,
+      "views": 1094,
       "likes": 45,
       "comments": 0,
       "shares": 1,
@@ -4139,7 +4156,7 @@
    },
    "platform": "youtube",
    "id": "6fdi-bxqotU",
-   "seen": "2026-11-18T01:51:19+00:00",
+   "seen": "2026-11-19T01:52:24+00:00",
    "url": "https://www.youtube.com/shorts/6fdi-bxqotU",
    "published": "2026-11-11T10:59:29+00:00",
    "kind_meta": "youtube-short",
@@ -4159,10 +4176,10 @@
   "youtube:q8wQ7_1MYFc": {
    "snapshots": {
     "latest": {
-     "at": "2026-11-18T01:51:19+00:00",
-     "age_h": 173.7,
+     "at": "2026-11-19T01:52:24+00:00",
+     "age_h": 197.7,
      "m": {
-      "views": 419,
+      "views": 425,
       "likes": 62,
       "comments": 1,
       "avg_watch": 40.0,
@@ -4172,26 +4189,26 @@
      }
     },
     "48h": {
-     "at": "2026-11-18T01:51:19+00:00",
+     "at": "2026-11-19T01:52:24+00:00",
      "days": [
       "2026-11-10",
       "2026-11-12"
      ],
      "m": {
-      "views": 405,
+      "views": 397,
       "likes": 54,
       "comments": 1,
       "shares": 1,
       "follows": 4,
-      "avg_watch": 46.5,
-      "watch_pct": 174.1
+      "avg_watch": 46.2,
+      "watch_pct": 173.2
      },
      "age_h": 59.8
     }
    },
    "platform": "youtube",
    "id": "q8wQ7_1MYFc",
-   "seen": "2026-11-18T01:51:19+00:00",
+   "seen": "2026-11-19T01:52:24+00:00",
    "url": "https://www.youtube.com/shorts/q8wQ7_1MYFc",
    "published": "2026-11-10T20:10:22+00:00",
    "kind_meta": "youtube-short",
@@ -4211,8 +4228,8 @@
   "youtube:bmaxEghCjpw": {
    "snapshots": {
     "latest": {
-     "at": "2026-11-18T01:51:19+00:00",
-     "age_h": 183.8,
+     "at": "2026-11-19T01:52:24+00:00",
+     "age_h": 207.8,
      "m": {
       "views": 702,
       "likes": 97,
@@ -4224,26 +4241,26 @@
      }
     },
     "48h": {
-     "at": "2026-11-18T01:51:19+00:00",
+     "at": "2026-11-19T01:52:24+00:00",
      "days": [
       "2026-11-10",
       "2026-11-12"
      ],
      "m": {
-      "views": 692,
+      "views": 685,
       "likes": 93,
       "comments": 1,
       "shares": 3,
       "follows": 12,
-      "avg_watch": 60.4,
-      "watch_pct": 218.2
+      "avg_watch": 60.8,
+      "watch_pct": 219.6
      },
      "age_h": 69.9
     }
    },
    "platform": "youtube",
    "id": "bmaxEghCjpw",
-   "seen": "2026-11-18T01:51:19+00:00",
+   "seen": "2026-11-19T01:52:24+00:00",
    "url": "https://www.youtube.com/shorts/bmaxEghCjpw",
    "published": "2026-11-10T10:03:04+00:00",
    "kind_meta": "youtube-short",
@@ -4263,10 +4280,10 @@
   "youtube:6SNzpwHRxww": {
    "snapshots": {
     "latest": {
-     "at": "2026-11-18T01:51:19+00:00",
-     "age_h": 198.3,
+     "at": "2026-11-19T01:52:24+00:00",
+     "age_h": 222.3,
      "m": {
-      "views": 339,
+      "views": 340,
       "likes": 38,
       "comments": 3,
       "avg_watch": 171.0,
@@ -4276,26 +4293,43 @@
      }
     },
     "48h": {
-     "at": "2026-11-18T01:51:19+00:00",
+     "at": "2026-11-19T01:52:24+00:00",
      "days": [
       "2026-11-09",
       "2026-11-11"
      ],
      "m": {
-      "views": 313,
+      "views": 311,
       "likes": 38,
       "comments": 3,
       "shares": 0,
       "follows": 3,
-      "avg_watch": 204.4,
-      "watch_pct": 707.3
+      "avg_watch": 204.5,
+      "watch_pct": 707.6
      },
      "age_h": 60.4
+    },
+    "7d": {
+     "at": "2026-11-19T01:52:24+00:00",
+     "days": [
+      "2026-11-09",
+      "2026-11-16"
+     ],
+     "m": {
+      "views": 338,
+      "likes": 38,
+      "comments": 3,
+      "shares": 0,
+      "follows": 3,
+      "avg_watch": 190.3,
+      "watch_pct": 658.5
+     },
+     "age_h": 180.4
     }
    },
    "platform": "youtube",
    "id": "6SNzpwHRxww",
-   "seen": "2026-11-18T01:51:19+00:00",
+   "seen": "2026-11-19T01:52:24+00:00",
    "url": "https://www.youtube.com/shorts/6SNzpwHRxww",
    "published": "2026-11-09T19:35:32+00:00",
    "kind_meta": "youtube-short",
@@ -4315,8 +4349,8 @@
   "youtube:hq8N-H_WKTI": {
    "snapshots": {
     "latest": {
-     "at": "2026-11-18T01:51:19+00:00",
-     "age_h": 208.7,
+     "at": "2026-11-19T01:52:24+00:00",
+     "age_h": 232.8,
      "m": {
       "views": 1309,
       "likes": 126,
@@ -4328,26 +4362,43 @@
      }
     },
     "48h": {
-     "at": "2026-11-18T01:51:19+00:00",
+     "at": "2026-11-19T01:52:24+00:00",
      "days": [
       "2026-11-09",
       "2026-11-11"
      ],
      "m": {
-      "views": 1287,
+      "views": 1282,
       "likes": 122,
       "comments": 3,
       "shares": 2,
       "follows": 12,
-      "avg_watch": 63.0,
-      "watch_pct": 213.2
+      "avg_watch": 63.1,
+      "watch_pct": 213.5
      },
      "age_h": 70.9
+    },
+    "7d": {
+     "at": "2026-11-19T01:52:24+00:00",
+     "days": [
+      "2026-11-09",
+      "2026-11-16"
+     ],
+     "m": {
+      "views": 1311,
+      "likes": 126,
+      "comments": 3,
+      "shares": 2,
+      "follows": 12,
+      "avg_watch": 62.6,
+      "watch_pct": 211.8
+     },
+     "age_h": 190.9
     }
    },
    "platform": "youtube",
    "id": "hq8N-H_WKTI",
-   "seen": "2026-11-18T01:51:19+00:00",
+   "seen": "2026-11-19T01:52:24+00:00",
    "url": "https://www.youtube.com/shorts/hq8N-H_WKTI",
    "published": "2026-11-09T09:06:22+00:00",
    "kind_meta": "youtube-short",
@@ -4367,26 +4418,26 @@
   "youtube:UtO1QUCdIs4": {
    "snapshots": {
     "latest": {
-     "at": "2026-11-18T01:51:19+00:00",
-     "age_h": 223.1,
+     "at": "2026-11-19T01:52:24+00:00",
+     "age_h": 247.1,
      "m": {
-      "views": 840,
+      "views": 841,
       "likes": 89,
       "comments": 2,
       "avg_watch": 23.0,
-      "watch_pct": 97.7,
+      "watch_pct": 96.8,
       "shares": 2,
       "follows": 4
      }
     },
     "48h": {
-     "at": "2026-11-18T01:51:19+00:00",
+     "at": "2026-11-19T01:52:24+00:00",
      "days": [
       "2026-11-08",
       "2026-11-10"
      ],
      "m": {
-      "views": 803,
+      "views": 798,
       "likes": 81,
       "comments": 2,
       "shares": 2,
@@ -4397,13 +4448,13 @@
      "age_h": 61.2
     },
     "7d": {
-     "at": "2026-11-18T01:51:19+00:00",
+     "at": "2026-11-19T01:52:24+00:00",
      "days": [
       "2026-11-08",
       "2026-11-15"
      ],
      "m": {
-      "views": 837,
+      "views": 832,
       "likes": 89,
       "comments": 2,
       "shares": 2,
@@ -4416,7 +4467,7 @@
    },
    "platform": "youtube",
    "id": "UtO1QUCdIs4",
-   "seen": "2026-11-18T01:51:19+00:00",
+   "seen": "2026-11-19T01:52:24+00:00",
    "url": "https://www.youtube.com/shorts/UtO1QUCdIs4",
    "published": "2026-11-08T18:46:40+00:00",
    "kind_meta": "youtube-short",
@@ -4436,8 +4487,8 @@
   "youtube:JONE82FSqd4": {
    "snapshots": {
     "latest": {
-     "at": "2026-11-18T01:51:19+00:00",
-     "age_h": 231.0,
+     "at": "2026-11-19T01:52:24+00:00",
+     "age_h": 255.0,
      "m": {
       "views": 1251,
       "likes": 192,
@@ -4449,43 +4500,43 @@
      }
     },
     "48h": {
-     "at": "2026-11-18T01:51:19+00:00",
+     "at": "2026-11-19T01:52:24+00:00",
      "days": [
       "2026-11-08",
       "2026-11-10"
      ],
      "m": {
-      "views": 1218,
-      "likes": 185,
+      "views": 1215,
+      "likes": 186,
       "comments": 1,
       "shares": 4,
       "follows": 17,
-      "avg_watch": 32.1,
-      "watch_pct": 154.3
+      "avg_watch": 32.0,
+      "watch_pct": 154.2
      },
      "age_h": 69.2
     },
     "7d": {
-     "at": "2026-11-18T01:51:19+00:00",
+     "at": "2026-11-19T01:52:24+00:00",
      "days": [
       "2026-11-08",
       "2026-11-15"
      ],
      "m": {
-      "views": 1255,
-      "likes": 192,
+      "views": 1252,
+      "likes": 193,
       "comments": 1,
       "shares": 4,
       "follows": 17,
       "avg_watch": 31.6,
-      "watch_pct": 152.1
+      "watch_pct": 152.0
      },
      "age_h": 189.2
     }
    },
    "platform": "youtube",
    "id": "JONE82FSqd4",
-   "seen": "2026-11-18T01:51:19+00:00",
+   "seen": "2026-11-19T01:52:24+00:00",
    "url": "https://www.youtube.com/shorts/JONE82FSqd4",
    "published": "2026-11-08T10:49:51+00:00",
    "kind_meta": "youtube-short",
@@ -4505,8 +4556,8 @@
   "youtube:4LJ8ON5g850": {
    "snapshots": {
     "latest": {
-     "at": "2026-11-18T01:51:19+00:00",
-     "age_h": 246.3,
+     "at": "2026-11-19T01:52:24+00:00",
+     "age_h": 270.3,
      "m": {
       "views": 720,
       "likes": 129,
@@ -4518,43 +4569,43 @@
      }
     },
     "48h": {
-     "at": "2026-11-18T01:51:19+00:00",
+     "at": "2026-11-19T01:52:24+00:00",
      "days": [
       "2026-11-07",
       "2026-11-09"
      ],
      "m": {
-      "views": 689,
+      "views": 685,
       "likes": 121,
       "comments": 0,
       "shares": 1,
       "follows": 14,
-      "avg_watch": 16.4,
-      "watch_pct": 100.2
+      "avg_watch": 16.5,
+      "watch_pct": 100.3
      },
      "age_h": 60.4
     },
     "7d": {
-     "at": "2026-11-18T01:51:19+00:00",
+     "at": "2026-11-19T01:52:24+00:00",
      "days": [
       "2026-11-07",
       "2026-11-14"
      ],
      "m": {
-      "views": 724,
+      "views": 719,
       "likes": 129,
       "comments": 0,
       "shares": 1,
       "follows": 14,
-      "avg_watch": 16.2,
-      "watch_pct": 99.1
+      "avg_watch": 16.3,
+      "watch_pct": 99.3
      },
      "age_h": 180.4
     }
    },
    "platform": "youtube",
    "id": "4LJ8ON5g850",
-   "seen": "2026-11-18T01:51:19+00:00",
+   "seen": "2026-11-19T01:52:24+00:00",
    "url": "https://www.youtube.com/shorts/4LJ8ON5g850",
    "published": "2026-11-07T19:36:14+00:00",
    "kind_meta": "youtube-short",
@@ -4574,8 +4625,8 @@
   "youtube:WjS3EYGjFl0": {
    "snapshots": {
     "latest": {
-     "at": "2026-11-18T01:51:19+00:00",
-     "age_h": 254.3,
+     "at": "2026-11-19T01:52:24+00:00",
+     "age_h": 278.3,
      "m": {
       "views": 1153,
       "likes": 101,
@@ -4587,43 +4638,43 @@
      }
     },
     "48h": {
-     "at": "2026-11-18T01:51:19+00:00",
+     "at": "2026-11-19T01:52:24+00:00",
      "days": [
       "2026-11-07",
       "2026-11-09"
      ],
      "m": {
-      "views": 1142,
+      "views": 1136,
       "likes": 97,
       "comments": 0,
       "shares": 0,
       "follows": 9,
       "avg_watch": 34.9,
-      "watch_pct": 125.2
+      "watch_pct": 125.3
      },
      "age_h": 68.4
     },
     "7d": {
-     "at": "2026-11-18T01:51:19+00:00",
+     "at": "2026-11-19T01:52:24+00:00",
      "days": [
       "2026-11-07",
       "2026-11-14"
      ],
      "m": {
-      "views": 1156,
+      "views": 1150,
       "likes": 101,
       "comments": 0,
       "shares": 0,
       "follows": 9,
       "avg_watch": 34.6,
-      "watch_pct": 124.2
+      "watch_pct": 124.3
      },
      "age_h": 188.4
     }
    },
    "platform": "youtube",
    "id": "WjS3EYGjFl0",
-   "seen": "2026-11-18T01:51:19+00:00",
+   "seen": "2026-11-19T01:52:24+00:00",
    "url": "https://www.youtube.com/shorts/WjS3EYGjFl0",
    "published": "2026-11-07T11:36:12+00:00",
    "kind_meta": "youtube-short",
@@ -4643,8 +4694,8 @@
   "youtube:J0xEUBk3Lb4": {
    "snapshots": {
     "latest": {
-     "at": "2026-11-18T01:51:19+00:00",
-     "age_h": 271.1,
+     "at": "2026-11-19T01:52:24+00:00",
+     "age_h": 295.1,
      "m": {
       "views": 295,
       "likes": 38,
@@ -4656,43 +4707,43 @@
      }
     },
     "48h": {
-     "at": "2026-11-18T01:51:19+00:00",
+     "at": "2026-11-19T01:52:24+00:00",
      "days": [
       "2026-11-06",
       "2026-11-08"
      ],
      "m": {
-      "views": 292,
+      "views": 290,
       "likes": 38,
       "comments": 2,
       "shares": 0,
       "follows": 5,
-      "avg_watch": 60.2,
-      "watch_pct": 99.2
+      "avg_watch": 60.4,
+      "watch_pct": 99.5
      },
      "age_h": 61.2
     },
     "7d": {
-     "at": "2026-11-18T01:51:19+00:00",
+     "at": "2026-11-19T01:52:24+00:00",
      "days": [
       "2026-11-06",
       "2026-11-13"
      ],
      "m": {
-      "views": 297,
+      "views": 295,
       "likes": 38,
       "comments": 2,
       "shares": 0,
       "follows": 5,
-      "avg_watch": 59.8,
-      "watch_pct": 98.6
+      "avg_watch": 60.0,
+      "watch_pct": 98.9
      },
      "age_h": 181.2
     }
    },
    "platform": "youtube",
    "id": "J0xEUBk3Lb4",
-   "seen": "2026-11-18T01:51:19+00:00",
+   "seen": "2026-11-19T01:52:24+00:00",
    "url": "https://www.youtube.com/shorts/J0xEUBk3Lb4",
    "published": "2026-11-06T18:47:12+00:00",
    "kind_meta": "youtube-short",
@@ -4712,8 +4763,8 @@
   "youtube:ThVLRJTCFpA": {
    "snapshots": {
     "latest": {
-     "at": "2026-11-18T01:51:19+00:00",
-     "age_h": 280.4,
+     "at": "2026-11-19T01:52:24+00:00",
+     "age_h": 304.4,
      "m": {
       "views": 666,
       "likes": 55,
@@ -4725,7 +4776,7 @@
      }
     },
     "48h": {
-     "at": "2026-11-18T01:51:19+00:00",
+     "at": "2026-11-19T01:52:24+00:00",
      "days": [
       "2026-11-06",
       "2026-11-08"
@@ -4742,7 +4793,7 @@
      "age_h": 70.5
     },
     "7d": {
-     "at": "2026-11-18T01:51:19+00:00",
+     "at": "2026-11-19T01:52:24+00:00",
      "days": [
       "2026-11-06",
       "2026-11-13"
@@ -4761,7 +4812,7 @@
    },
    "platform": "youtube",
    "id": "ThVLRJTCFpA",
-   "seen": "2026-11-18T01:51:19+00:00",
+   "seen": "2026-11-19T01:52:24+00:00",
    "url": "https://www.youtube.com/shorts/ThVLRJTCFpA",
    "published": "2026-11-06T09:29:32+00:00",
    "kind_meta": "youtube-short",
@@ -4781,8 +4832,8 @@
   "youtube:RqWw_-m7TkY": {
    "snapshots": {
     "latest": {
-     "at": "2026-11-18T01:51:19+00:00",
-     "age_h": 293.0,
+     "at": "2026-11-19T01:52:24+00:00",
+     "age_h": 317.0,
      "m": {
       "views": 1015,
       "likes": 60,
@@ -4794,7 +4845,7 @@
      }
     },
     "48h": {
-     "at": "2026-11-18T01:51:19+00:00",
+     "at": "2026-11-19T01:52:24+00:00",
      "days": [
       "2026-11-05",
       "2026-11-07"
@@ -4811,7 +4862,7 @@
      "age_h": 59.1
     },
     "7d": {
-     "at": "2026-11-18T01:51:19+00:00",
+     "at": "2026-11-19T01:52:24+00:00",
      "days": [
       "2026-11-05",
       "2026-11-12"
@@ -4830,7 +4881,7 @@
    },
    "platform": "youtube",
    "id": "RqWw_-m7TkY",
-   "seen": "2026-11-18T01:51:19+00:00",
+   "seen": "2026-11-19T01:52:24+00:00",
    "url": "https://www.youtube.com/shorts/RqWw_-m7TkY",
    "published": "2026-11-05T20:53:34+00:00",
    "kind_meta": "youtube-short",
@@ -4850,8 +4901,8 @@
   "youtube:x0Najsxhdr4": {
    "snapshots": {
     "latest": {
-     "at": "2026-11-18T01:51:19+00:00",
-     "age_h": 304.9,
+     "at": "2026-11-19T01:52:24+00:00",
+     "age_h": 328.9,
      "m": {
       "views": 896,
       "likes": 47,
@@ -4863,7 +4914,7 @@
      }
     },
     "48h": {
-     "at": "2026-11-18T01:51:19+00:00",
+     "at": "2026-11-19T01:52:24+00:00",
      "days": [
       "2026-11-05",
       "2026-11-07"
@@ -4880,7 +4931,7 @@
      "age_h": 71.1
     },
     "7d": {
-     "at": "2026-11-18T01:51:19+00:00",
+     "at": "2026-11-19T01:52:24+00:00",
      "days": [
       "2026-11-05",
       "2026-11-12"
@@ -4899,7 +4950,7 @@
    },
    "platform": "youtube",
    "id": "x0Najsxhdr4",
-   "seen": "2026-11-18T01:51:19+00:00",
+   "seen": "2026-11-19T01:52:24+00:00",
    "url": "https://www.youtube.com/shorts/x0Najsxhdr4",
    "published": "2026-11-05T08:56:01+00:00",
    "kind_meta": "youtube-short",
@@ -4919,8 +4970,8 @@
   "youtube:325DnoDA6L4": {
    "snapshots": {
     "latest": {
-     "at": "2026-11-18T01:51:19+00:00",
-     "age_h": 314.0,
+     "at": "2026-11-19T01:52:24+00:00",
+     "age_h": 338.0,
      "m": {
       "views": 1365,
       "likes": 119,
@@ -4932,7 +4983,7 @@
      }
     },
     "48h": {
-     "at": "2026-11-18T01:51:19+00:00",
+     "at": "2026-11-19T01:52:24+00:00",
      "days": [
       "2026-11-04",
       "2026-11-06"
@@ -4949,26 +5000,26 @@
      "age_h": 56.1
     },
     "7d": {
-     "at": "2026-11-18T01:51:19+00:00",
+     "at": "2026-11-19T01:52:24+00:00",
      "days": [
       "2026-11-04",
       "2026-11-11"
      ],
      "m": {
-      "views": 1367,
+      "views": 1363,
       "likes": 119,
       "comments": 2,
       "shares": 4,
       "follows": 1,
       "avg_watch": 55.2,
-      "watch_pct": 98.6
+      "watch_pct": 98.7
      },
      "age_h": 176.1
     }
    },
    "platform": "youtube",
    "id": "325DnoDA6L4",
-   "seen": "2026-11-18T01:51:19+00:00",
+   "seen": "2026-11-19T01:52:24+00:00",
    "url": "https://www.youtube.com/shorts/325DnoDA6L4",
    "published": "2026-11-04T23:51:52+00:00",
    "kind_meta": "youtube-short",
@@ -5237,18 +5288,22 @@
   "youtube:_4QKfXw0TU0": {
    "snapshots": {
     "latest": {
-     "at": "2026-11-18T01:51:19+00:00",
-     "age_h": 33.0,
+     "at": "2026-11-19T01:52:24+00:00",
+     "age_h": 57.0,
      "m": {
-      "views": 21,
+      "views": 22,
       "likes": 3,
-      "comments": 2
+      "comments": 2,
+      "avg_watch": 274.0,
+      "watch_pct": 60.1,
+      "shares": 0,
+      "follows": 0
      }
     }
    },
    "platform": "youtube",
    "id": "_4QKfXw0TU0",
-   "seen": "2026-11-18T01:51:19+00:00",
+   "seen": "2026-11-19T01:52:24+00:00",
    "url": "https://www.youtube.com/watch?v=_4QKfXw0TU0",
    "published": "2026-11-16T16:49:27+00:00",
    "kind_meta": "youtube-video",
@@ -5266,18 +5321,22 @@
   "youtube:kn2zm3dvAeE": {
    "snapshots": {
     "latest": {
-     "at": "2026-11-18T01:51:19+00:00",
-     "age_h": 40.9,
+     "at": "2026-11-19T01:52:24+00:00",
+     "age_h": 64.9,
      "m": {
-      "views": 963,
-      "likes": 81,
-      "comments": 0
+      "views": 1015,
+      "likes": 85,
+      "comments": 0,
+      "avg_watch": 13.0,
+      "watch_pct": 57.9,
+      "shares": 1,
+      "follows": 7
      }
     }
    },
    "platform": "youtube",
    "id": "kn2zm3dvAeE",
-   "seen": "2026-11-18T01:51:19+00:00",
+   "seen": "2026-11-19T01:52:24+00:00",
    "url": "https://www.youtube.com/shorts/kn2zm3dvAeE",
    "published": "2026-11-16T08:55:54+00:00",
    "kind_meta": "youtube-short",
@@ -5530,18 +5589,18 @@
   "youtube:EwBoMmKzQT8": {
    "snapshots": {
     "latest": {
-     "at": "2026-11-18T01:51:19+00:00",
-     "age_h": 8.4,
+     "at": "2026-11-19T01:52:24+00:00",
+     "age_h": 32.4,
      "m": {
-      "views": 137,
-      "likes": 14,
+      "views": 170,
+      "likes": 17,
       "comments": 1
      }
     }
    },
    "platform": "youtube",
    "id": "EwBoMmKzQT8",
-   "seen": "2026-11-18T01:51:19+00:00",
+   "seen": "2026-11-19T01:52:24+00:00",
    "url": "https://www.youtube.com/shorts/EwBoMmKzQT8",
    "published": "2026-11-17T17:25:25+00:00",
    "kind_meta": "youtube-short",
@@ -5559,18 +5618,18 @@
   "youtube:S_zEwqB7Uk0": {
    "snapshots": {
     "latest": {
-     "at": "2026-11-18T01:51:19+00:00",
-     "age_h": 17.7,
+     "at": "2026-11-19T01:52:24+00:00",
+     "age_h": 41.7,
      "m": {
-      "views": 1376,
-      "likes": 92,
+      "views": 1559,
+      "likes": 107,
       "comments": 1
      }
     }
    },
    "platform": "youtube",
    "id": "S_zEwqB7Uk0",
-   "seen": "2026-11-18T01:51:19+00:00",
+   "seen": "2026-11-19T01:52:24+00:00",
    "url": "https://www.youtube.com/shorts/S_zEwqB7Uk0",
    "published": "2026-11-17T08:10:12+00:00",
    "kind_meta": "youtube-short",
@@ -5586,6 +5645,60 @@
     "passage": "105:1-5",
     "reciter": "minshawi"
    }
+  },
+  "youtube:VN_4lAJCefU": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-19T01:52:24+00:00",
+     "age_h": 9.3,
+     "m": {
+      "views": 363,
+      "likes": 27,
+      "comments": 1
+     }
+    }
+   },
+   "platform": "youtube",
+   "id": "VN_4lAJCefU",
+   "seen": "2026-11-19T01:52:24+00:00",
+   "url": "https://www.youtube.com/shorts/VN_4lAJCefU",
+   "published": "2026-11-18T16:37:10+00:00",
+   "kind_meta": "youtube-short",
+   "first_line": "Inside the whale: who heard him? · في بطن الحوت… مين سمعه؟",
+   "seconds": 125.0,
+   "key": "theme:dua/short-2",
+   "kind": "theme-short",
+   "label": "Inside the whale: who heard him? · في بطن الحوت… مين سمعه؟",
+   "ref": {
+    "theme": "dua/short-2",
+    "series": "Du'a · الدعاء",
+    "part": "Short 2"
+   }
+  },
+  "youtube:6fQrjfIOm4E": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-19T01:52:24+00:00",
+     "age_h": 18.0,
+     "m": {
+      "views": 1066,
+      "likes": 70,
+      "comments": 1
+     }
+    }
+   },
+   "platform": "youtube",
+   "id": "6fQrjfIOm4E",
+   "seen": "2026-11-19T01:52:24+00:00",
+   "url": "https://www.youtube.com/shorts/6fQrjfIOm4E",
+   "published": "2026-11-18T07:51:30+00:00",
+   "kind_meta": "youtube-short",
+   "first_line": "Surah Al-Humazah (104:1-9) · سورة الهمزة",
+   "seconds": 41.0,
+   "key": "youtube:6fQrjfIOm4E",
+   "kind": "other",
+   "label": "Surah Al-Humazah (104:1-9) · سورة الهمزة",
+   "ref": {}
   }
  },
  "accounts": {
@@ -5641,6 +5754,10 @@
    "2026-11-18": {
     "followers_count": 152,
     "media_count": 26
+   },
+   "2026-11-19": {
+    "followers_count": 161,
+    "media_count": 28
    }
   }
  },
@@ -6185,5 +6302,5 @@
  ],
  "updated": "2026-11-18T01:50:52+00:00",
  "listed": "2026-11-18T01:50:52+00:00",
- "listed_youtube": "2026-11-18T01:51:19+00:00"
+ "listed_youtube": "2026-11-19T01:52:24+00:00"
 }
