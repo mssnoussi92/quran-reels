@@ -21,7 +21,8 @@ slots:
     days:
       - from: 2026-11-14   # its 2026-11-13 slot was still paused (back with that evening's)
   evening:
-    time: "19:30"          # after work, the busiest hours on Reels; 21:30 in Mecca
+    time: "18:00"          # owner's request, 2026-11-19 (with the theme videos, like the test page);
+                           # before: 19:30, after work, the busiest hours on Reels; 20:00 in Mecca
     queue: themes
     days:
       - until: 2026-11-13  # every evening until then (that Friday: Al-Kahf 18:15-16)

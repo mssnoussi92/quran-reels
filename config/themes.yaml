@@ -14,7 +14,8 @@ ref: main
 calendar: docs/retention/calendar.md
 texts: docs/retention
 release_prefix: page-      # https://github.com/<repo>/releases/download/page-<doc>/<file>
-time: "19:00"              # Paris (owner's decision, 2026-11-13)
+time: "18:00"              # Paris (owner's request, 2026-11-19: 18:00 like the test page; before: 19:00,
+                           # his decision of 2026-11-13)
 early_minutes: 20          # a run up to 20 min before takes the day's video
 window_hours: 3            # after that, the day's video is missed (an alert says so)
 platforms: [facebook, instagram, tiktok]

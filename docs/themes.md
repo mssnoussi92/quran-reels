@@ -1,7 +1,7 @@
 # Vidéos thématiques sur la Page (publication automatique)
 
 Décidé avec le propriétaire le 2026-11-15 (« je valide ») : les vidéos de quran-themes-demo (films, shorts
-d'histoire, épisodes de séries) sortent sur la Page à **19:00, heure de France**, du lundi au samedi, sans geste de sa
+d'histoire, épisodes de séries) sortent sur la Page à **18:00, heure de France** (19:00 jusqu'au 2026-11-19, sa demande), du lundi au samedi, sans geste de sa
 part, à partir du **lundi 23 novembre** (le film de Dhul-Qarnayn). Avant, il les publie à la main.
 
 | Plateforme | Ce qui part |
@@ -27,7 +27,7 @@ deux ; si l'une des vérifications n'est pas propre, **rien ne part, TikTok comp
     (le film en 9:16 pour Facebook, le film 16:9 pour YouTube) ;
   - une ligne barrée est déjà publiée ; une ligne « à faire » n'a rien à publier.
   - **plusieurs lignes le même jour** (choix du propriétaire, 2026-11-17 : le quiz « معاك 5 ثواني » sur Instagram les
-    lundis d'un film, qu'Instagram ne reçoit pas) : chacune sort, dans l'ordre du tableau, au même créneau de 19:00 ;
+    lundis d'un film, qu'Instagram ne reçoit pas) : chacune sort, dans l'ordre du tableau, au même créneau de 18:00 ;
     elles ne partagent aucune plateforme (une ligne qui nomme une plateforme déjà prise ce jour-là est signalée et ne
     sort pas : une seule vidéo par plateforme et par jour). L'entrée du jour de `themes.json` garde le résultat de
     chaque plateforme ; la deuxième vidéo du jour a sa clé, `theme:<jour>-2` (ticket des légendes, page « À publier »).
@@ -90,7 +90,7 @@ version courte pour Facebook et Instagram : `qarnayn-short-1-west-cut.mp4`, 1:13
 |---|---|
 | Réglages | `config/themes.yaml` (`from`, heure, fenêtre, plateformes, `reels_max_seconds`) |
 | Code | `src/quran_reels/themepub/` : `texts.py` (les textes), `calendar.py` (le jour → la vidéo), `run.py` (dû, téléchargement, publication, état, rapport) |
-| Workflow | `.github/workflows/themes.yml`, groupe `accounts` ; lancé par le planificateur à 18:41 (lundi à samedi) |
+| Workflow | `.github/workflows/themes.yml`, groupe `accounts` ; lancé par le planificateur à 17:40 (lundi à samedi) |
 | État | `themes.json` sur la branche `state` : une entrée par jour, un résultat par plateforme |
 | Alerte | ticket « ⚠️ Vidéo thématique en échec » (`notify --alert themes`), le sien |
 
@@ -101,7 +101,7 @@ quran-reels themes run --dry-run --day 2026-11-24   # essai à blanc d'un jour :
 ```
 
 - Une plateforme déjà faite pour le jour n'est jamais renvoyée ; une qui a échoué avant que rien ne lui parvienne
-  est réessayée au run suivant de la fenêtre (19:00 − 20 min à 22:00).
+  est réessayée au run suivant de la fenêtre (18:00 − 20 min à 21:00).
 - L'essai à blanc ne publie rien, n'enregistre rien et n'envoie aucun brouillon TikTok (il arriverait dans la boîte).
 - `themes check` sert à la revue du dimanche : un jour sans vidéo (« à faire »), une ligne non reliée ou un fichier
   absent de `page-<doc>` y apparaissent avant le jour.
@@ -116,7 +116,7 @@ Meta (`@ma3ak.5.thawani`, protocole : docs/insights.md), avec son propre jeton. 
 | Réglages | `config/themes-ma3ak.yaml` : 18:00 chaque jour, Facebook et Instagram, à partir du 2026-11-19 |
 | Calendrier et textes | `docs/retention/calendar-ma3ak.md` de quran-themes-demo ; `publication-quiz-ma3ak.md` (quiz 4 à 6, signés pour elle), `publication-ma3ak.md` (quiz 7 à 13) |
 | Fichiers | pré-releases `page-quiz-ma3ak` et `page-ma3ak` (workflow `page-files`, `quiz-ma3ak:quiz ma3ak`) |
-| Workflow | `themes.yml` avec `page: ma3ak` : une étape à part, qui n'a que le secret `META_PAGE_TOKEN_5` (la Page et son compte Instagram lus depuis le jeton, `META_IDS_FROM_TOKEN`) ; lancé par le planificateur à 17:41, chaque jour |
+| Workflow | `themes.yml` avec `page: ma3ak` : une étape à part, qui n'a que le secret `META_PAGE_TOKEN_5` (la Page et son compte Instagram lus depuis le jeton, `META_IDS_FROM_TOKEN`) ; lancé par le planificateur à 17:42, chaque jour, après celui de la Page |
 | État | `themes-ma3ak.json` sur la branche `state` |
 | Alerte | ticket « ⚠️ Page test « معاك 5 ثواني » en échec » (`notify --alert ma3ak`) |
 | Statistiques | `insights-ma3ak.json` (workflow `insights`, chaque nuit, avant la Page) |
