@@ -1,7 +1,50 @@
 {
- "updated": "2026-11-19T09:24:08+00:00",
+ "updated": "2026-11-19T16:48:37+00:00",
  "days": 14,
  "entries": [
+  {
+   "id": "theme/2026-11-19",
+   "kind": "theme",
+   "key": "theme:2026-11-19",
+   "day": "2026-11-19",
+   "time": "18:00",
+   "created": "2026-11-19T16:48:35+00:00",
+   "title": "His hair turned white… and he never stopped asking · راسه شابت… وما بطّلش يدعي",
+   "passage": "Du'a, short 3 : Zakariya",
+   "label": "His hair turned white… and he never stopped asking · راسه شابت… وما بطّلش يدعي",
+   "reciter": "",
+   "results": [
+    {
+     "name": "Facebook",
+     "url": "https://www.facebook.com/reel/1505282704750265/",
+     "label": "publié"
+    },
+    {
+     "name": "Instagram",
+     "url": "https://www.instagram.com/reel/Df7ieJZErKP/",
+     "label": "publié"
+    },
+    {
+     "name": "TikTok",
+     "url": null,
+     "label": "brouillon, non publié"
+    }
+   ],
+   "tiktok": "His hair turned white… and he never stopped asking\nراسه شابت… وما بطّلش يدعي\n\nدعيت… وما حصلش حاجة. اللي بيضيّع الدعاء مش التأخير… الاستعجال.\nI asked and nothing happened. What loses a du'a is not the delay, it is the hurry.\n\n🎙️ AI-generated voice · صوت مولَّد بالذكاء الاصطناعي\n\n#سيدنا_زكريا #القرآن_الكريم #الدعاء #Quran #الذرية\n",
+   "video": {
+    "tiktok": "https://github.com/mssnoussi92/quran-themes-demo/releases/download/page-dua/dua-short-3-waited-tiktok.mp4"
+   },
+   "youtube": {
+    "title": "His hair turned white… and he never stopped asking · راسه شابت… وما بطّلش يدعي",
+    "description": "I asked and nothing happened. Zechariah, peace be upon him, was old, his hair white, and still asking: never, he said, had he been disappointed in calling on his Lord. What loses a du'a is not the delay, it is the hurry.\n\nدعيت… وما حصلش حاجة. سيدنا زكريا عليه السلام كان كبير، راسه شابت، ولسه بيدعي… وقال إنه عمره ما رجع من دعاء ربنا خايب. اللي بيضيّع الدعاء مش التأخير… الاستعجال.\n\nDu'a · part 3/3 · الدعاء · الجزء ٣ من ٣\n\nAI-generated voice (Gemini TTS, Egyptian Arabic) · صوت الراوي مولَّد بالذكاء الاصطناعي\n\n@quran_words_daily\n\nQuoted:\n• Surah Maryam (19:4) · Recitation: Tawfiq As-Sayegh · Translation: Saheeh International · https://quran.com/19/4\n• Surah Al-Anbya (21:89-90) · Recitation: Tawfiq As-Sayegh · Translation: Saheeh International · https://quran.com/21/89-90\n• Sahih al-Bukhari 6340 · Reading: Abu Malik Ibn Abd'Azeez as-Salafi al-Asqalane · https://sunnah.com/bukhari:6340\n\nFootage: Pixabay (adege) · Ambience: BigSoundBank (Joseph Sardin)",
+    "hashtags": "#سيدنا_زكريا #القرآن_الكريم #الدعاء #Quran #الذرية",
+    "file": "https://github.com/mssnoussi92/quran-themes-demo/releases/download/page-dua/dua-short-3-waited.mp4"
+   },
+   "notes": [],
+   "match": [
+    "theme:dua/short-3"
+   ]
+  },
   {
    "id": "daily/2026-11-19-morning",
    "kind": "daily",
