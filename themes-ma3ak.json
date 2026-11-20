@@ -45,6 +45,52 @@
      "rights_after": null
     }
    }
+  },
+  "2026-11-20": {
+   "label": "Quiz 6 : «أحطت بما لم تحط به»",
+   "videos": {
+    "facebook": "quiz-ma3ak/short-6",
+    "instagram": "quiz-ma3ak/short-6"
+   },
+   "at": "2026-11-20T16:48:21+00:00",
+   "results": {
+    "facebook": {
+     "platform": "facebook",
+     "status": "published",
+     "remote_id": "1153480673829898",
+     "url": "https://www.facebook.com/reel/1153480673829898/",
+     "error": null,
+     "rights": {
+      "platform": "facebook",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 0.10520103900000777,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    },
+    "instagram": {
+     "platform": "instagram",
+     "status": "published",
+     "remote_id": "18023724101941774",
+     "url": "https://www.instagram.com/reel/Df-H5WqAhCK/",
+     "error": null,
+     "rights": {
+      "platform": "instagram",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 62.003461000000016,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    }
+   }
   }
  }
 }
