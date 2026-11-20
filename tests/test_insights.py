@@ -596,3 +596,18 @@ def test_the_test_page_numbers_go_to_their_own_file(state):
     assert json.loads((state / "insights-ma3ak.json").read_text())["posts"]
     after = (state / "insights.json").read_text() if (state / "insights.json").exists() else None
     assert after == before
+
+
+def test_the_test_page_never_reads_the_page_word_of_the_day(state):
+    """2026-11-20: the test page's first night tried to read the Page's Word of the day posts, known by
+    images.json, with its own token (« not enough permission »). Another page reads neither images.json
+    nor published.json, and a Facebook post of another Page is taken out of its file."""
+    (state / "insights-ma3ak.json").write_text(json.dumps({"posts": {
+        "facebook:999_5": {"platform": "facebook", "id": "999_5", "snapshots": {}},
+        "facebook:7001": {"platform": "facebook", "id": "7001", "snapshots": {}}}}))
+    C.run(load(), state, graph(FakeGraph(routes())), PAGE, IG, index(), now=NOW,
+          file="insights-ma3ak.json", themes_state="themes-ma3ak.json")
+    posts = json.loads((state / "insights-ma3ak.json").read_text())["posts"]
+    assert f"facebook:{PAGE}_9" not in posts                         # the Page's Word of the day (images.json)
+    assert "facebook:999_5" not in posts and "facebook:7001" in posts   # another Page's post out; a reel's id kept
+    assert posts["facebook:111"]["kind"] == "other"                     # published.json not read: not the Page's reel

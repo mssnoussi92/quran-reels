@@ -283,6 +283,13 @@ def _json(path: Path) -> dict:
 # ------------------------------------------------------------------------------ run
 
 
+def _ours(rec: dict, page_id: str) -> bool:
+    """False for a Facebook post whose id names another Page (« <page>_<post> »); a reel's id
+    (a video id, no « _ ») and an Instagram media are kept."""
+    pid = str(rec.get("id") or "")
+    return rec.get("platform") != "facebook" or "_" not in pid or pid.split("_", 1)[0] == str(page_id)
+
+
 def run(cfg: Config, state_dir: Path, graph: Graph, page_id: str, ig_id: str | None,
         themes: ThemeIndex | None = None, now: datetime | None = None,
         dry_run: bool = False, notes: list[str] | None = None,
@@ -293,8 +300,14 @@ def run(cfg: Config, state_dir: Path, graph: Graph, page_id: str, ig_id: str | N
     now = now or datetime.now(UTC)
     path = state_dir / file
     data = load(path)
-    published = _json(state_dir / "published.json")
-    images = _json(state_dir / "images.json")
+    # The reels and the Word of the day are the Page's alone: another page reads neither
+    # published.json nor images.json. The first night of the test page (2026-11-20) tried to read
+    # the Page's ten Word of the day posts, known by images.json, with the test page's token.
+    own = file == "insights.json"
+    published = _json(state_dir / "published.json") if own else {}
+    images = _json(state_dir / "images.json") if own else {}
+    for uid in [u for u, rec in data["posts"].items() if not _ours(rec, page_id)]:
+        del data["posts"][uid]              # a Facebook post of another Page: never ours
     classifier = Classifier(published, images, themes or ThemeIndex([]),
                             _json(state_dir / themes_state))
     budget = Budget(graph, float(s.get("max_usage", 75)), int(s.get("max_calls", 150)))
