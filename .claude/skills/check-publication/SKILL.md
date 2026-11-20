@@ -55,6 +55,11 @@ due »: normal, say so in one line, never as a failure.
      state branch. Do not dispatch `daily.yml` again (it would post the passage twice): tell
      the owner, with the run link.
    - status `blocked`: Meta's check refused the reel; not retried, change the reciter.
+     But `vérification en error` (no match: Meta could not run the check) is not a refusal:
+     the run already uploaded it once more (`publish.check_rights`). On 2026-11-20 Instagram
+     answered so twice on 18:17-18, Facebook clean both times; the owner had it published on
+     the others: on his word only, `state reopen` the slot, then dispatch `daily.yml` with the
+     input `without: instagram` inside the window (Facebook's check still runs).
    - Meta token: follow docs/plateformes.md (renew `META_PAGE_TOKEN`).
    - conclusion `cancelled` with no job: a newer pending run of the `accounts` group replaced
      it (daily, images, publish-test, tiktok-auth, on-demand's publication share

@@ -121,14 +121,19 @@ def _output(name: str, value: str) -> None:
 
 def run(cfg: Config, state_path: Path, now: datetime | None = None, dry_run: bool = False,
         check: bool = False, force: bool = False, report: Path | None = None,
-        sleep: Callable[[float], None] = time.sleep, watch: bool | None = None) -> int:
+        sleep: Callable[[float], None] = time.sleep, watch: bool | None = None,
+        without: tuple[str, ...] = ()) -> int:
     """check: only say whether something is due (output `due`), for the workflow to skip
     installing ffmpeg and Chromium. force: run even if schedule.enabled is false or the day is
     one of the pause (schedule.yaml `pause`).
     report: JSON of what this run published, for `quran-reels notify` (written even when the
     run fails half way, with the error). sleep: the wait before another try (tests).
     watch: look for slots nobody tried (output `missed`, state `missed`); by default on a real
-    run only, at the real time (not a dry run, not a forced or simulated one)."""
+    run only, at the real time (not a dry run, not a forced or simulated one).
+    without: platforms this run leaves out (input `without` of daily.yml, by hand): on
+    2026-11-20 Instagram's rights check ended in «error» twice on 18:17-18 while Facebook's was
+    clean, and the owner had the reel published on the others. Meta's check still runs on the
+    Meta platforms that remain; a later run in the window would try the one left out."""
     if watch is None:
         watch = now is None and not dry_run and not force
     now = now or datetime.now(UTC)
@@ -149,6 +154,13 @@ def run(cfg: Config, state_path: Path, now: datetime | None = None, dry_run: boo
         state.save(state_path)
     _output("missed", ",".join(missed))
     platforms = publish_mod.platforms_for(cfg, None)
+    if without:
+        unknown = sorted(set(without) - set(publish_mod.PLATFORMS))
+        if unknown:
+            raise SystemExit(f"--without {', '.join(unknown)}: not a platform "
+                             f"({', '.join(publish_mod.PLATFORMS)})")
+        platforms = [x for x in platforms if x not in without]
+        print(f"left out by hand for this run: {', '.join(without)}", file=sys.stderr)
     if dry_run:     # TikTok's only test mode is a real draft in the owner's inbox
         platforms = [x for x in platforms if x != "tiktok"]
     todo = pending(sched, series, state, now, platforms)
