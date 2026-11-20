@@ -38,7 +38,8 @@
    "round": 1,
    "done": [
     "al-kahf/18:11-14",
-    "al-kahf/18:15-16"
+    "al-kahf/18:15-16",
+    "al-kahf/18:17-18"
    ]
   }
  },
@@ -683,6 +684,28 @@
     "reciter": "sayegh",
     "video": "youtube/103_001-003.mp4"
    }
+  },
+  "2026-11-20/morning": {
+   "queue": "kahf",
+   "item": "al-kahf/18:17-18",
+   "passage": "18:17-18",
+   "results": {
+    "facebook": {
+     "status": "published",
+     "id": "4517784508536868",
+     "url": "https://www.facebook.com/reel/4517784508536868/",
+     "error": null,
+     "at": "2026-11-20T06:48:59+00:00"
+    },
+    "tiktok": {
+     "status": "draft",
+     "id": "v_inbox_file~v2.7710141448380844054",
+     "url": null,
+     "error": null,
+     "at": "2026-11-20T06:48:59+00:00"
+    }
+   },
+   "reciter": "sayegh"
   }
  },
  "removed": [
