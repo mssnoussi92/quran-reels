@@ -1,0 +1,44 @@
+{
+ "kind": "theme",
+ "id": "theme/2026-11-20",
+ "created": "2026-11-20T16:47:15+00:00",
+ "key": "theme:2026-11-20",
+ "day": "2026-11-20",
+ "time": "18:00",
+ "title": "They walked out of the Friday sermon… why? · سابوا خطبة الجمعة… ليه؟",
+ "passage": "« آية وحكايتها » 1 : la caravane",
+ "label": "They walked out of the Friday sermon… why? · سابوا خطبة الجمعة… ليه؟",
+ "results": [
+  {
+   "name": "Facebook",
+   "url": "https://www.facebook.com/reel/1528251659357068/",
+   "label": "publié"
+  },
+  {
+   "name": "Instagram",
+   "url": "https://www.instagram.com/reel/Df-HNHEjFPZ/",
+   "label": "publié"
+  },
+  {
+   "name": "TikTok",
+   "url": null,
+   "label": "brouillon, non publié"
+  }
+ ],
+ "tiktok": "They walked out of the Friday sermon… why?\nسابوا خطبة الجمعة… ليه؟\n\nيوم جمعة، والنبي ﷺ بيخطب، جت قافلة… وما فضلش معاه غير اتناشر راجل.\nOne Friday, during the sermon, a caravan arrived, and only twelve men stayed with the Prophet ﷺ.\n\n🎙️ AI-generated voice · صوت مولَّد بالذكاء الاصطناعي\n\n#يوم_الجمعة #القرآن_الكريم #آية_وحكايتها #Quran #سورة_الجمعة\n",
+ "video": {
+  "tiktok": "https://github.com/mssnoussi92/quran-themes-demo/releases/download/page-ayah/ayah-short-1-caravan-tiktok.mp4"
+ },
+ "youtube": {
+  "title": "They walked out of the Friday sermon… why? · سابوا خطبة الجمعة… ليه؟",
+  "description": "One Friday, while the Prophet ﷺ stood giving the sermon, a caravan loaded with food arrived, and only twelve men stayed with him. A verse came down then, and it answers a fear inside every one of us: that our provision will slip away if we stop for God.\n\nيوم جمعة، والنبي ﷺ واقف بيخطب، جت قافلة محمّلة أكل… وما فضلش معاه غير اتناشر راجل. ساعتها نزلت آية بترد على خوف جوّه كل واحد فينا: إن الرزق يفوتنا لو وقفنا قدام ربنا.\n\nA Verse and Its Story · 1 · آية وحكايتها · ١\n\nAI-generated voice (Gemini TTS, Egyptian Arabic) · صوت الراوي مولَّد بالذكاء الاصطناعي\n\n@quran_words_daily",
+  "credits": "Quoted:\n• Sahih Muslim 863a (told in the narration's own words) · https://sunnah.com/muslim:863a\n• Sahih al-Bukhari 936 (told in the narration's own words) · https://sunnah.com/bukhari:936\n• Surah Al-Jumu'ah (62:11) · Recitation: Tawfiq As-Sayegh · Translation: Saheeh International · https://quran.com/62/11\n• Meaning after Al-Tafsir al-Muyassar (62:11) · https://quran.com/62:11/tafsirs/ar-tafsir-muyassar\n• Meaning after Tafsir as-Sa'di (62:11) · https://quran.com/62:11/tafsirs/ar-tafseer-al-saddi\n\nFootage: Pixabay (AcornStudioSpain) · Ambience: BigSoundBank (Joseph Sardin)",
+  "hashtags": "#يوم_الجمعة #القرآن_الكريم #آية_وحكايتها #Quran #سورة_الجمعة",
+  "file": "https://github.com/mssnoussi92/quran-themes-demo/releases/download/page-ayah/ayah-short-1-caravan.mp4",
+  "thumbnail": "https://github.com/mssnoussi92/quran-themes-demo/releases/download/page-ayah/ayah-short-1-caravan-cover.jpg"
+ },
+ "match": [
+  "theme:ayah/short-1"
+ ],
+ "notes": []
+}
