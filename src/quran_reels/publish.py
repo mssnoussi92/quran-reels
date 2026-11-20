@@ -48,6 +48,7 @@ from quran_reels.publishers.meta import (
     TokenReport,
     check_token,
 )
+from quran_reels.publishers.rights import RightsCheck
 from quran_reels.publishers.tiktok import (
     REFRESH_SECRET,
     TikTok,
@@ -271,6 +272,26 @@ def retry_settings(cfg: Config | None) -> tuple[int, float]:
     return (times, float(conf.get("wait", 180))) if times > 0 else (0, 0.0)
 
 
+def check_rights(publisher, name: str, object_id: str, reel) -> tuple[str, RightsCheck]:
+    """Meta's copyright check of what `prepare` uploaded, and the id it is about. When Meta could
+    not run the check (status «error» without any match: RightsCheck.failed), the reel is
+    uploaded again to a new draft or container, once, and that one is checked: on 2026-11-20 such
+    an error on Instagram alone (Facebook clean) held the whole slot back. A match, a timeout,
+    an unknown field or a second error still block: nothing is published until Meta answers
+    complete without a match (owner's choice, 2026-11-20)."""
+    check = publisher.rights(object_id)
+    if not check.failed:
+        return object_id, check
+    print(f"warning: {name}: rights check {check.describe()} on {object_id} (Meta could not "
+          "check it, no match): uploading the reel again to a new one, once", file=sys.stderr)
+    try:
+        again = publisher.prepare(reel)
+    except (PublisherError, KeyError) as e:
+        print(f"{name}: second upload failed {e}", file=sys.stderr)
+        return object_id, check
+    return again, publisher.rights(again)
+
+
 def to_retry(results: list[PublishResult]) -> list[str]:
     """The platforms worth another try in the same run: those that did not get the reel at all
     (`failed` without an id: Instagram refusing the upload, TikTok's upload failing). The reel
@@ -326,8 +347,8 @@ def publish_reel(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
             results[name] = PublishResult(name, PublishStatus.FAILED, error=str(e))
             print(f"{name}: failed {e}", file=sys.stderr)
     checks = {}
-    for name, object_id in prepared.items():
-        checks[name] = publishers[name].rights(object_id)
+    for name, object_id in list(prepared.items()):
+        prepared[name], checks[name] = check_rights(publishers[name], name, object_id, reel)
         print(f"{name}: rights check {checks[name].status} after {checks[name].seconds:.0f} s: "
               f"{checks[name].describe()}", file=sys.stderr)
     blocked = {n: c for n, c in checks.items() if not c.clear}

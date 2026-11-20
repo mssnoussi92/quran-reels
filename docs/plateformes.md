@@ -170,6 +170,13 @@ publier, sur la vidéo non publiée :
   segment audio/vidéo ; Instagram ne donne le détail qu'après publication). Le créneau n'est pas
   réessayé (le même enregistrement serait refusé) et le passage reste en tête de sa file :
   changer de récitateur.
+- **`error` sans correspondance : un nouvel envoi, une fois** (choix du propriétaire,
+  2026-11-20). Meta n'a pas pu faire la vérification, ce n'est pas un ayant droit trouvé : le
+  2026-11-20, 18:17-18 (Tawfiq As-Sayegh) a été bloqué pour un `error` d'Instagram, juste après
+  un envoi en `ProcessingFailedError`, alors que Facebook ne trouvait rien sur le même fichier.
+  Le reel est renvoyé dans un nouveau brouillon ou conteneur et vérifié de nouveau, dans le même
+  run (`publish.check_rights`, reels du calendrier, à la demande et vidéos thématiques) ; un
+  second `error`, une correspondance ou un délai dépassé bloquent comme avant.
 - Le brouillon Facebook d'un passage bloqué reste dans Meta Business Suite (Contenu →
   Brouillons) ; le conteneur Instagram expire seul après 24 h.
 - Documentation : Meta documente ces champs pour Instagram ([Copyright Detection](https://developers.facebook.com/docs/instagram-platform/instagram-api-with-facebook-login/copyright-detection),

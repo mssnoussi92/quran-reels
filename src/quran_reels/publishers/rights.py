@@ -47,6 +47,13 @@ class RightsCheck:
     def clear(self) -> bool:
         return self.status in DONE and self.matches_found is False
 
+    @property
+    def failed(self) -> bool:
+        """Meta could not run the check («error») and found nothing: not a match. 2026-11-20,
+        18:17-18: Instagram's check of a container ended so, right after a ProcessingFailedError
+        upload, while Facebook's check of the same file was clean."""
+        return self.status == "error" and not self.matches_found and not self.matches
+
     def owners(self) -> str:
         """Who claims the content, as Meta names them."""
         out = []

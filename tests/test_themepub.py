@@ -231,6 +231,9 @@ class FakePub:
         return f"{self.name}-draft"
 
     def rights(self, object_id):
+        if self.clear == "error once":       # Meta could not check the first upload
+            self.clear = True
+            return RightsCheck(self.name, "error")
         return RightsCheck(self.name, "complete", matches_found=not self.clear)
 
     def commit(self, draft_id, reel):
@@ -365,6 +368,17 @@ def test_a_rights_match_stops_every_platform_tiktok_included(setup):
         "facebook": "blocked", "instagram": "blocked", "tiktok": "blocked"}
     assert not [c for c in pubs["facebook"].calls if c[0] == "commit"]
     assert not pubs["tiktok"].calls and out["failed"]
+
+
+def test_a_check_meta_could_not_run_is_tried_once_on_a_new_upload(setup):
+    run, pubs, _, tmp = setup
+    pubs["instagram"].clear = "error once"
+    out = run(now=paris("2026-11-24", "18:45"))
+    results = json.loads((tmp / "themes.json").read_text())["posts"]["2026-11-24"]["results"]
+    assert {p: r["status"] for p, r in results.items()} == {
+        "facebook": "published", "instagram": "published", "tiktok": "draft"}
+    assert [c[0] for c in pubs["instagram"].calls] == ["prepare", "prepare", "commit"]
+    assert not out["failed"]
 
 
 def test_a_dry_run_records_nothing_and_sends_tiktok_nothing(setup):
