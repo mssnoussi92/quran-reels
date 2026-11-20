@@ -118,6 +118,9 @@ def main(argv: list[str] | None = None) -> int:
         d.add_argument("--dry-run", action="store_true", help="drafts only, state unchanged")
         d.add_argument("--check", action="store_true", help="only say whether a slot is due")
         d.add_argument("--force", action="store_true", help="even if schedule.enabled is false")
+        d.add_argument("--without", action="append", default=[],
+                       choices=("facebook", "instagram", "tiktok"),
+                       help="leave this platform out, this run only (repeatable)")
 
     img = sub.add_parser("images", help="daily image posts (docs/images.md)")
     img_sub = img.add_subparsers(dest="images_command", required=True)
@@ -549,7 +552,7 @@ def main(argv: list[str] | None = None) -> int:
         now = datetime.fromisoformat(args.now) if args.now else None
         return daily.run(cfg, Path(args.state), now=now, dry_run=args.dry_run,
                          check=args.check, force=args.force,
-                         report=cfg.out / "daily-report.json")
+                         report=cfg.out / "daily-report.json", without=tuple(args.without))
 
     if args.command == "images":
         return _images(cfg, args)

@@ -194,6 +194,18 @@ def test_a_slot_that_failed_everywhere_keeps_its_passage_for_the_next_day(world)
     assert [c[0] for c in calls["publish"]] == ["114:1-6", "114:1-6"]
 
 
+def test_a_platform_left_out_by_hand_is_not_sent(world):
+    # 2026-11-20: Instagram's rights check in «error» twice, the owner had it published elsewhere
+    calls, _, path = world
+    assert daily.run(None, path, now=paris(2026, 11, 5, 7, 20), without=("instagram",)) == 0
+    assert calls["publish"] == [("114:1-6", ("facebook",))]
+    state = State.load(path)
+    assert set(state.slot(date(2026, 11, 5), "morning")["results"]) == {"facebook"}
+    assert state.queue("reading")["done"] == ["juz-amma/114:1-6"]
+    with pytest.raises(SystemExit, match="not a platform"):
+        daily.run(None, path, now=paris(2026, 11, 5, 7, 20), without=("youtube",))
+
+
 def test_check_and_dry_run_change_nothing(world):
     calls, _, path = world
     assert daily.run(None, path, now=paris(2026, 11, 5, 7, 20), check=True) == 0

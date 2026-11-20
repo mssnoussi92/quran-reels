@@ -176,7 +176,10 @@ publier, sur la vidéo non publiée :
   un envoi en `ProcessingFailedError`, alors que Facebook ne trouvait rien sur le même fichier.
   Le reel est renvoyé dans un nouveau brouillon ou conteneur et vérifié de nouveau, dans le même
   run (`publish.check_rights`, reels du calendrier, à la demande et vidéos thématiques) ; un
-  second `error`, une correspondance ou un délai dépassé bloquent comme avant.
+  second `error`, une correspondance ou un délai dépassé bloquent comme avant. Ce jour-là,
+  le second conteneur a eu le même `error` : à la demande du propriétaire, le reel est parti
+  sur Facebook et TikTok sans Instagram (créneau rouvert, puis `daily.yml` avec l'entrée
+  `without: instagram`, pour ce run seulement ; la vérification de Facebook a lieu quand même).
 - Le brouillon Facebook d'un passage bloqué reste dans Meta Business Suite (Contenu →
   Brouillons) ; le conteneur Instagram expire seul après 24 h.
 - Documentation : Meta documente ces champs pour Instagram ([Copyright Detection](https://developers.facebook.com/docs/instagram-platform/instagram-api-with-facebook-login/copyright-detection),

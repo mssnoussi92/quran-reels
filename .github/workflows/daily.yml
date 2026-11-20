@@ -24,6 +24,11 @@ on:
       now:
         description: "Dry run only: pretend it is this time, e.g. 2026-11-05T07:20+01:00"
         required: false
+      without:
+        description: "Leave this platform out, this run only (Instagram's rights check in error, 2026-11-20)"
+        type: choice
+        options: [none, instagram, tiktok, facebook]
+        default: none
 
 permissions:
   contents: write          # the state branch (what was published where)
@@ -119,12 +124,15 @@ jobs:
           TIKTOK_REFRESH_TOKEN: ${{ secrets.TIKTOK_REFRESH_TOKEN }}
           GH_SECRETS_TOKEN: ${{ secrets.GH_SECRETS_TOKEN }}
           NOW: ${{ inputs.now }}
+          WITHOUT: ${{ inputs.without }}
           PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}    # an approved Pixabay clip, first use
         run: |
+          set --                # the scheduler gives no input: every platform
+          if [ -n "$WITHOUT" ] && [ "$WITHOUT" != "none" ]; then set -- --without "$WITHOUT"; fi
           if [ "${{ inputs.dry_run }}" = "true" ]; then
-            quran-reels daily --state "$STATE" --dry-run --force ${NOW:+--now "$NOW"}
+            quran-reels daily --state "$STATE" --dry-run --force ${NOW:+--now "$NOW"} "$@"
           else
-            quran-reels daily --state "$STATE"
+            quran-reels daily --state "$STATE" "$@"
           fi
 
       # Pushed even when another run pushed to the state branch meanwhile (the on-demand preview
