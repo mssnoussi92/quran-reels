@@ -29,6 +29,7 @@ from pathlib import Path
 from quran_reels.config import Config
 from quran_reels.gh_secrets import save_secret
 from quran_reels.models import (
+    ASIDE,
     SOCIAL,
     Passage,
     PublishResult,
@@ -292,6 +293,15 @@ def check_rights(publisher, name: str, object_id: str, reel) -> tuple[str, Right
     return again, publisher.rights(again)
 
 
+def set_aside(checks: dict[str, RightsCheck]) -> set[str]:
+    """Instagram left out while the others are published: its check failed («error» without a
+    match, on the second upload too: check_rights) and Facebook's check of the same reel is
+    clean. Owner's choice, 2026-11-20 (18:17-18: Instagram «error» twice, Facebook clean three
+    times). A match anywhere, or Facebook not clean, still blocks everything."""
+    fb, ig = checks.get("facebook"), checks.get("instagram")
+    return {"instagram"} if fb and ig and fb.clear and ig.failed else set()
+
+
 def to_retry(results: list[PublishResult]) -> list[str]:
     """The platforms worth another try in the same run: those that did not get the reel at all
     (`failed` without an id: Instagram refusing the upload, TikTok's upload failing). The reel
@@ -302,7 +312,9 @@ def to_retry(results: list[PublishResult]) -> list[str]:
     and never a failure with an id: the platform has the video, the failure came while
     publishing or processing it, and the reel may be live all the same (Facebook's «does not
     exist» right after a publication): another try could post it twice."""
-    if any(r.status in (PublishStatus.BLOCKED, PublishStatus.REMOVED) for r in results):
+    if any(r.status == PublishStatus.REMOVED or (
+            r.status == PublishStatus.BLOCKED and ASIDE not in (r.error or ""))
+            for r in results):
         return []
     return [r.platform for r in results
             if r.status == PublishStatus.FAILED and not r.remote_id]
@@ -351,10 +363,14 @@ def publish_reel(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
         prepared[name], checks[name] = check_rights(publishers[name], name, object_id, reel)
         print(f"{name}: rights check {checks[name].status} after {checks[name].seconds:.0f} s: "
               f"{checks[name].describe()}", file=sys.stderr)
-    blocked = {n: c for n, c in checks.items() if not c.clear}
+    aside = set_aside(checks)
+    if aside:
+        print(f"warning: {', '.join(sorted(aside))}: Meta could not check it twice, no match, "
+              "Facebook clean: left out, the reel goes to the others", file=sys.stderr)
+    blocked = {n: c for n, c in checks.items() if not c.clear and n not in aside}
     reason = "; ".join(f"{n} : {c.describe()}" for n, c in blocked.items())
 
-    # 2. Publish only if no platform found a problem.
+    # 2. Publish only if no platform found a problem (but Instagram set aside, above).
     for name in platforms:
         if name in results:
             continue
@@ -367,6 +383,11 @@ def publish_reel(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
                 results[name] = PublishResult(
                     name, PublishStatus.BLOCKED, remote_id=prepared[name],
                     error=f"droits : {reason} — {reel.passage.key} non publié")
+            elif name in aside:
+                results[name] = PublishResult(
+                    name, PublishStatus.BLOCKED, remote_id=prepared[name],
+                    error=f"droits : {check.describe()} deux fois, aucune correspondance, "
+                          f"Facebook propre — {ASIDE}, publié sur les autres")
             else:
                 results[name] = publishers[name].commit(prepared[name], reel)
             results[name].rights = check.as_dict()

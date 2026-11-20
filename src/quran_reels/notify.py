@@ -24,6 +24,7 @@ from datetime import date
 from pathlib import Path
 
 from quran_reels.feed import PAGE
+from quran_reels.models import ASIDE
 
 FAILURE_TITLE = "⚠️ Publication quotidienne en échec"
 CAPTIONS_TITLE = "📋 Légendes à copier (TikTok, YouTube)"
@@ -73,8 +74,10 @@ def failure_text(report: dict | None, run_url: str) -> str:
         lines.append(f"- **{_when(item)} · {item['passage']}** — {_results(item, errors=True)}")
     for e in (report or {}).get("errors", []):
         lines += ["", "```text", e.strip(), "```"]
-    blocked = any(r.get("status") == "blocked" for i in (report or {}).get("items", [])
-                  for r in i["results"].values())
+    aside = any(r.get("status") == "blocked" and ASIDE in (r.get("error") or "")
+                for i in (report or {}).get("items", []) for r in i["results"].values())
+    blocked = any(r.get("status") == "blocked" and ASIDE not in (r.get("error") or "")
+                  for i in (report or {}).get("items", []) for r in i["results"].values())
     themes = any(str(i.get("key", "")).startswith("theme:") for i in (report or {}).get("items", []))
     if blocked and themes:
         lines += ["", ("⛔ Meta a reconnu un contenu protégé dans la vidéo thématique (ou n'a pas pu "
@@ -87,6 +90,11 @@ def failure_text(report: dict | None, run_url: str) -> str:
                        "publié, sur aucune plateforme, et le créneau n'est pas réessayé. Le passage "
                        "reste en tête de sa file : changer de récitateur (config/project.yaml → "
                        "content.reciter) avant la prochaine publication.")]
+    if aside:
+        lines += ["", ("⚠️ Instagram : Meta n'a pas pu faire la vérification des droits (« error », "
+                       "deux envois, aucune correspondance) et Facebook ne trouvait rien sur le "
+                       "même reel : il est publié sur les autres plateformes, pas sur Instagram "
+                       "(ton choix du 2026-11-20). Rien à faire ; le créneau n'est pas réessayé.")]
     claimed = any(r.get("status") == "removed" or "À RETIRER À LA MAIN" in (r.get("error") or "")
                   for i in (report or {}).get("items", []) for r in i["results"].values())
     if claimed:
