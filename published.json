@@ -683,35 +683,6 @@
     "reciter": "sayegh",
     "video": "youtube/103_001-003.mp4"
    }
-  },
-  "2026-11-20/morning": {
-   "queue": "kahf",
-   "item": "al-kahf/18:17-18",
-   "passage": "18:17-18",
-   "results": {
-    "facebook": {
-     "status": "blocked",
-     "id": "2926653504381181",
-     "url": null,
-     "error": "droits : instagram : vérification en error — 18:17-18 non publié",
-     "at": "2026-11-20T06:38:40+00:00"
-    },
-    "instagram": {
-     "status": "blocked",
-     "id": "17897418138503710",
-     "url": null,
-     "error": "droits : instagram : vérification en error — 18:17-18 non publié",
-     "at": "2026-11-20T06:38:40+00:00"
-    },
-    "tiktok": {
-     "status": "blocked",
-     "id": null,
-     "url": null,
-     "error": "non envoyé, droits : instagram : vérification en error",
-     "at": "2026-11-20T06:38:40+00:00"
-    }
-   },
-   "reciter": "sayegh"
   }
  },
  "removed": [
@@ -813,6 +784,39 @@
     "reciter": "sayegh"
    },
    "why": "Instagram : vérification des droits en « error » (pas une correspondance ; Facebook propre), rien publié ; republié à la demande du propriétaire"
+  },
+  {
+   "slot": "2026-11-20/morning",
+   "record": {
+    "queue": "kahf",
+    "item": "al-kahf/18:17-18",
+    "passage": "18:17-18",
+    "results": {
+     "facebook": {
+      "status": "blocked",
+      "id": "2926653504381181",
+      "url": null,
+      "error": "droits : instagram : vérification en error — 18:17-18 non publié",
+      "at": "2026-11-20T06:38:40+00:00"
+     },
+     "instagram": {
+      "status": "blocked",
+      "id": "17897418138503710",
+      "url": null,
+      "error": "droits : instagram : vérification en error — 18:17-18 non publié",
+      "at": "2026-11-20T06:38:40+00:00"
+     },
+     "tiktok": {
+      "status": "blocked",
+      "id": null,
+      "url": null,
+      "error": "non envoyé, droits : instagram : vérification en error",
+      "at": "2026-11-20T06:38:40+00:00"
+     }
+    },
+    "reciter": "sayegh"
+   },
+   "why": "Instagram : vérification des droits en « error » une 2e fois (run #80, Facebook propre) ; republié sans Instagram à la demande du propriétaire"
   }
  ],
  "on_demand": {
