@@ -170,6 +170,11 @@ class PublishStatus(str, Enum):
     FAILED = "failed"
 
 
+# In the error of a platform the rights check left out while the others were published
+# (publish.set_aside); notify.py and publish.to_retry read it.
+ASIDE = "laissé de côté"
+
+
 @dataclass
 class PublishResult:
     platform: str

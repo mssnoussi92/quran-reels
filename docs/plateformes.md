@@ -180,6 +180,13 @@ publier, sur la vidéo non publiée :
   le second conteneur a eu le même `error` : à la demande du propriétaire, le reel est parti
   sur Facebook et TikTok sans Instagram (créneau rouvert, puis `daily.yml` avec l'entrée
   `without: instagram`, pour ce run seulement ; la vérification de Facebook a lieu quand même).
+- **Instagram laissé de côté, automatiquement** (choix du propriétaire, 2026-11-20, après ce
+  cas) : quand Instagram répond `error` sans correspondance aux deux envois et que Facebook ne
+  trouve rien sur le même reel, le reel est publié sur Facebook et TikTok, pas sur Instagram
+  (`publish.set_aside` ; statut `blocked` d'Instagram, « laissé de côté » dans son erreur) ; le
+  run échoue et le ticket d'alerte le dit. Une correspondance où que ce soit, ou Facebook qui
+  n'est pas propre, bloque tout comme avant. Reels du calendrier et à la demande ; pas les
+  vidéos thématiques (rien n'a été demandé pour elles).
 - Le brouillon Facebook d'un passage bloqué reste dans Meta Business Suite (Contenu →
   Brouillons) ; le conteneur Instagram expire seul après 24 h.
 - Documentation : Meta documente ces champs pour Instagram ([Copyright Detection](https://developers.facebook.com/docs/instagram-platform/instagram-api-with-facebook-login/copyright-detection),

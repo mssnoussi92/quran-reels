@@ -274,12 +274,13 @@ def test_a_check_that_errors_is_tried_again_on_a_new_upload(world):
     assert results["instagram"].rights["clear"]
 
 
-def test_a_second_error_still_blocks_everything(world):
+def test_a_second_error_still_blocks_everything_when_facebook_is_not_clean(world):
     go, log, checks = world
-    checks["instagram"] = [ERROR, ERROR]
+    checks["instagram"], checks["facebook"] = [ERROR, ERROR], [ERROR, ERROR]
     results = go()
     assert {r.status for r in results.values()} == {PublishStatus.BLOCKED}
     assert log.count(("prepare", "instagram")) == 2        # once again, never more
+    assert log.count(("prepare", "facebook")) == 2
     assert not [c for c in log if c[0] in ("commit", "publish")]
     assert "vérification en error" in results["facebook"].error
 
@@ -299,3 +300,41 @@ def test_a_failed_second_upload_keeps_the_first_answer():
 
     name, check = publish_mod.check_rights(Broken("instagram", ERROR, []), "instagram", "c1", None)
     assert (name, check) == ("c1", ERROR)
+
+
+# ---- Instagram set aside: «error» twice, no match, Facebook clean (owner, 2026-11-20) ----------
+
+def test_instagram_unchecked_twice_is_set_aside_and_the_others_go_out(world):
+    go, log, checks = world
+    checks["instagram"] = [ERROR, ERROR]            # 18:17-18, runs #78 and #80
+    results = go()
+    assert results["facebook"].status == PublishStatus.PUBLISHED
+    assert results["tiktok"].status == PublishStatus.DRAFT
+    assert results["instagram"].status == PublishStatus.BLOCKED
+    assert publish_mod.ASIDE in results["instagram"].error
+    assert ("commit", "instagram") not in log and log.count(("prepare", "instagram")) == 2
+
+
+def test_nothing_is_set_aside_when_facebook_is_not_clean(world):
+    go, log, checks = world
+    checks["instagram"], checks["facebook"] = [ERROR, ERROR], MATCH
+    results = go()
+    assert {r.status for r in results.values()} == {PublishStatus.BLOCKED}
+    assert not [c for c in log if c[0] in ("commit", "publish")]
+    assert not any(publish_mod.ASIDE in (r.error or "") for r in results.values())
+
+
+def test_a_match_on_instagram_is_never_set_aside(world):
+    go, _, checks = world
+    checks["instagram"] = MATCH
+    assert {r.status for r in go().values()} == {PublishStatus.BLOCKED}
+
+
+def test_a_platform_set_aside_does_not_stop_the_retry_of_another():
+    aside = PublishResult("instagram", PublishStatus.BLOCKED, remote_id="c",
+                          error=f"droits : … — {publish_mod.ASIDE}, publié sur les autres")
+    tiktok = PublishResult("tiktok", PublishStatus.FAILED, error="HTTP 500")
+    fb = PublishResult("facebook", PublishStatus.PUBLISHED, remote_id="1")
+    assert publish_mod.to_retry([fb, aside, tiktok]) == ["tiktok"]
+    refused = PublishResult("instagram", PublishStatus.BLOCKED, error="droits : contenu protégé")
+    assert publish_mod.to_retry([fb, refused, tiktok]) == []

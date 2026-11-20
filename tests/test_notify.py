@@ -130,6 +130,21 @@ def test_a_rights_block_says_what_to_change(tmp_path):
     assert not [i for i in gh.issues if i["title"] == notify.CAPTIONS_TITLE]   # nothing to copy
 
 
+def test_instagram_set_aside_says_the_reel_went_out_elsewhere(tmp_path):
+    gh = FakeGh()
+    aside = item(status={
+        "facebook": {"status": "published", "url": "https://fb/1", "error": None},
+        "instagram": {"status": "blocked", "url": None, "error": (
+            "droits : vérification en error deux fois, aucune correspondance, Facebook propre "
+            "— laissé de côté, publié sur les autres")},
+        "tiktok": {"status": "draft", "url": None, "error": None}})
+    notify.run(write(tmp_path, [aside]), "failure", "https://run/1", "owner",
+               notify.Issues("o/r", runner=gh))
+    [alert] = [i for i in gh.issues if i["title"] == notify.FAILURE_TITLE]
+    assert "pas sur Instagram" in alert["body"]
+    assert "content.reciter" not in alert["body"]       # nothing refused: no reciter to change
+
+
 def test_a_reel_taken_down_after_publication_warns_about_the_tiktok_draft(tmp_path):
     gh = FakeGh()
     reason = "facebook : contenu protégé reconnu : Recitations Ltd — MUTE dans 24 territoires"

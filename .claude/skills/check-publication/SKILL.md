@@ -58,8 +58,10 @@ due »: normal, say so in one line, never as a failure.
      But `vérification en error` (no match: Meta could not run the check) is not a refusal:
      the run already uploaded it once more (`publish.check_rights`). On 2026-11-20 Instagram
      answered so twice on 18:17-18, Facebook clean both times; the owner had it published on
-     the others: on his word only, `state reopen` the slot, then dispatch `daily.yml` with the
-     input `without: instagram` inside the window (Facebook's check still runs).
+     the others, and since then the run does it by itself (`publish.set_aside`): Instagram
+     `blocked` with « laissé de côté », Facebook and TikTok out, the alert issue says so;
+     nothing to do. A whole slot still blocked by such errors (Facebook not clean too): on
+     the owner's word only, `state reopen` it, then `daily.yml` with the input `without`.
    - Meta token: follow docs/plateformes.md (renew `META_PAGE_TOKEN`).
    - conclusion `cancelled` with no job: a newer pending run of the `accounts` group replaced
      it (daily, images, publish-test, tiktok-auth, on-demand's publication share
