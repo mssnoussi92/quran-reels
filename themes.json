@@ -55,6 +55,62 @@
      "rights_after": null
     }
    }
+  },
+  "2026-11-20": {
+   "label": "« آية وحكايتها » 1 : la caravane",
+   "videos": {
+    "facebook": "ayah/short-1",
+    "instagram": "ayah/short-1",
+    "tiktok": "ayah/short-1"
+   },
+   "at": "2026-11-20T16:41:50+00:00",
+   "results": {
+    "facebook": {
+     "platform": "facebook",
+     "status": "published",
+     "remote_id": "1528251659357068",
+     "url": "https://www.facebook.com/reel/1528251659357068/",
+     "error": null,
+     "rights": {
+      "platform": "facebook",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 0.10755279900001824,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    },
+    "instagram": {
+     "platform": "instagram",
+     "status": "published",
+     "remote_id": "18100159556653501",
+     "url": "https://www.instagram.com/reel/Df-HNHEjFPZ/",
+     "error": null,
+     "rights": {
+      "platform": "instagram",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 31.720902857999988,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    },
+    "tiktok": {
+     "platform": "tiktok",
+     "status": "draft",
+     "remote_id": "v_inbox_file~v2.7710295967777490966",
+     "url": null,
+     "error": null,
+     "rights": null,
+     "rights_after": null
+    }
+   }
   }
  }
 }
