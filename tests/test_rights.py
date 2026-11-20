@@ -89,6 +89,8 @@ class FakeMeta:
         return f"{self.name}-id"
 
     def rights(self, object_id):
+        if isinstance(self.check, list):         # one answer per upload, in turn
+            return self.check.pop(0)
         return self.check
 
     def commit(self, object_id, reel):
@@ -108,6 +110,7 @@ TRACKED = rights.RightsCheck("facebook", "complete", True, [{
                                "actions": [{"action": "TRACK", "geos": GEOS}]}}])
 MATCH = rights.RightsCheck("x", "complete", True, [{"author": "Rights Holder Ltd",
                                                     "content_title": "Surah Ad-Duha"}])
+ERROR = rights.RightsCheck("instagram", "error")      # 2026-11-20, 18:17-18: Meta did not check
 
 
 @pytest.fixture
@@ -248,3 +251,51 @@ def test_a_dry_run_deletes_its_facebook_draft(world):
     results = go(dry_run=True)
     assert results["facebook"].status is PublishStatus.DRAFT
     assert ("remove", "facebook") in log and ("commit", "facebook") not in log
+
+
+# ---- Meta could not run the check («error», no match): one new upload ------------------------
+
+def test_failed_is_an_error_without_a_match():
+    assert ERROR.failed and not ERROR.clear
+    assert not MATCH.failed and not CLEAR.failed
+    assert not rights.RightsCheck("instagram", "error", True).failed
+    assert not rights.RightsCheck("instagram", "error", None, [{"author": "X"}]).failed
+    assert not rights.RightsCheck("instagram", "timeout").failed
+
+
+def test_a_check_that_errors_is_tried_again_on_a_new_upload(world):
+    go, log, checks = world
+    checks["instagram"] = [ERROR, CLEAR]          # 2026-11-20: Facebook clean, Instagram «error»
+    results = go()
+    assert [r.status for r in results.values()] == [PublishStatus.PUBLISHED,
+                                                     PublishStatus.PUBLISHED, PublishStatus.DRAFT]
+    assert log[:4] == [("prepare", "facebook"), ("prepare", "instagram"),
+                       ("prepare", "instagram"), ("commit", "facebook")]
+    assert results["instagram"].rights["clear"]
+
+
+def test_a_second_error_still_blocks_everything(world):
+    go, log, checks = world
+    checks["instagram"] = [ERROR, ERROR]
+    results = go()
+    assert {r.status for r in results.values()} == {PublishStatus.BLOCKED}
+    assert log.count(("prepare", "instagram")) == 2        # once again, never more
+    assert not [c for c in log if c[0] in ("commit", "publish")]
+    assert "vérification en error" in results["facebook"].error
+
+
+def test_a_match_is_never_uploaded_again(world):
+    go, log, checks = world
+    checks["instagram"] = MATCH
+    results = go()
+    assert {r.status for r in results.values()} == {PublishStatus.BLOCKED}
+    assert log.count(("prepare", "instagram")) == 1
+
+
+def test_a_failed_second_upload_keeps_the_first_answer():
+    class Broken(FakeMeta):
+        def prepare(self, reel):
+            raise publish_mod.PublisherError("upload refused")
+
+    name, check = publish_mod.check_rights(Broken("instagram", ERROR, []), "instagram", "c1", None)
+    assert (name, check) == ("c1", ERROR)

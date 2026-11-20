@@ -285,6 +285,8 @@ def publishers_for(cfg: Config, s: dict[str, Any], row: cal.Row, platforms: list
 
 def publish_row(row: cal.Row, reels: dict[str, ThemeReel], publishers: dict, platforms: list[str],
                 dry_run: bool) -> dict[str, PublishResult]:
+    from quran_reels.publish import check_rights  # imported here, as in publishers_for
+
     results: dict[str, PublishResult] = {}
     prepared: dict[str, str] = {}
     for name in (p for p in platforms if p in META):
@@ -295,7 +297,9 @@ def publish_row(row: cal.Row, reels: dict[str, ThemeReel], publishers: dict, pla
         except (PublisherError, KeyError) as e:
             results[name] = PublishResult(name, PublishStatus.FAILED, error=str(e))
             print(f"{name}: failed {e}", file=sys.stderr)
-    checks = {n: publishers[n].rights(i) for n, i in prepared.items()}
+    checks = {}
+    for n, i in list(prepared.items()):
+        prepared[n], checks[n] = check_rights(publishers[n], n, i, reels[n])
     for n, c in checks.items():
         print(f"{n}: rights check {c.status} after {c.seconds:.0f} s: {c.describe()}",
               file=sys.stderr)
