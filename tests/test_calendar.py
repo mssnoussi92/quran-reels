@@ -1156,3 +1156,25 @@ def test_nothing_goes_up_while_the_reel_is_not_out(world, on_channel):
     assert sent == []
     assert daily.run(cfg, path, now=paris(2026, 11, 5, 8, 20)) == 0           # now it is out
     assert len(sent) == 1 and len(calls["publish"]) == 2
+
+
+def test_the_subtitles_of_what_went_up_wait_for_the_night(world, on_channel, monkeypatch, tmp_path):
+    """platforms.youtube.upload.captions: the exact tracks of the uploaded file, from its
+    manifest, in youtube-captions/ of the state (sent by the nightly step, captions.py)."""
+    from quran_reels import reciters
+    from quran_reels.reciters import Option
+
+    _, _, path = world
+    cfg, sent, _, _ = on_channel({"reciter": "ghamdi"})
+    cfg.project["platforms"]["youtube"]["upload"]["captions"] = ["ar", "en"]
+    monkeypatch.setattr(reciters, "passage_seconds", lambda cfg, key: Option("ghamdi", 50.0))
+    work = tmp_path / "out" / "youtube" / "114_001-006"
+    work.mkdir(parents=True)
+    (work / "manifest.json").write_text(json.dumps({"passage": "114:1-6", "ayahs": [
+        {"ref": "114:1", "text": "قُلْ أَعُوذُ بِرَبِّ ٱلنَّاسِ", "translation": "Say, I seek refuge",
+         "start": 0.0, "seconds": 3.0}]}, ensure_ascii=False), encoding="utf-8")
+    assert daily.run(cfg, path, now=paris(2026, 11, 5, 7, 20)) == 0
+    waiting = json.loads((path.parent / "youtube-captions" / "v1.json").read_text(encoding="utf-8"))
+    assert waiting["key"] == "2026-11-05/morning" and set(waiting["tracks"]) == {"ar", "en"}
+    assert "قُلْ أَعُوذُ" in waiting["tracks"]["ar"] and waiting["done"] == {}
+    assert [v.parent.name for v in sent] == ["youtube"]          # the file that went up

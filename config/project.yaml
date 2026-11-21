@@ -227,6 +227,8 @@ platforms:
       privacy: public
       made_for_kids: false
       synthetic_media: false         # a real reciter, filmed or drawn nature: nothing realistic made up
+      language: ar                   # the recitation and the texts, Arabic first (owner, 2026-11-21)
+      captions: [ar, en]             # exact subtitles: the mushaf's text, Sahih International (captions.py)
       # category: "27"               # unset: YouTube's default, as for the uploads by hand
     # YouTube has its own claims (Content ID), not Meta's: Salah Budair's Al-Kahf (al-Haram,
     # 1426-1427 H) is registered there; the Short 18:1-10 (1:28) was blocked worldwide

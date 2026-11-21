@@ -236,3 +236,11 @@ def test_a_film_has_a_watch_address_not_a_shorts_one(video):
     video.long = True
     result = uploader(Google()).upload(video)
     assert result.url == "https://www.youtube.com/watch?v=vid1"
+
+
+def test_the_language_is_declared_as_studio_asks_it():
+    from pathlib import Path as _P
+
+    body = U.Video(path=_P("x.mp4"), title="t", description="d", language="ar").body()
+    assert body["snippet"]["defaultLanguage"] == body["snippet"]["defaultAudioLanguage"] == "ar"
+    assert "defaultLanguage" not in U.Video(path=_P("x.mp4"), title="t", description="d").body()["snippet"]

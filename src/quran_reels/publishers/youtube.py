@@ -77,6 +77,7 @@ class Video:
     made_for_kids: bool = False
     synthetic_media: bool = False
     long: bool = False                  # a film (16:9): its address is not a Short's
+    language: str | None = None         # the video's and its texts' language (owner, 2026-11-21: ar)
 
     def body(self) -> dict[str, Any]:
         snippet: dict[str, Any] = {"title": clean(self.title)[:TITLE_MAX],
@@ -86,6 +87,8 @@ class Video:
             snippet["tags"] = self.tags
         if self.category:
             snippet["categoryId"] = str(self.category)
+        if self.language:       # what Studio asks of an upload by hand: the audio, the texts
+            snippet["defaultLanguage"] = snippet["defaultAudioLanguage"] = self.language
         return {"snippet": snippet,
                 "status": {"privacyStatus": self.privacy,
                            "selfDeclaredMadeForKids": self.made_for_kids,
@@ -139,7 +142,8 @@ def video_for(reel: Any, conf: dict[str, Any], max_tags: int | None = None) -> V
                  tags=tags_of(reel.hashtags if max_tags is None else reel.hashtags[:max_tags]),
                  category=conf.get("category"), privacy=str(conf.get("privacy", "public")),
                  made_for_kids=bool(conf.get("made_for_kids", False)),
-                 synthetic_media=bool(conf.get("synthetic_media", False)))
+                 synthetic_media=bool(conf.get("synthetic_media", False)),
+                 language=conf.get("language"))
 
 
 def short_url(video_id: str) -> str:

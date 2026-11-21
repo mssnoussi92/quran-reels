@@ -154,8 +154,12 @@ def build(cfg: Config, out: Path, state_dir: Path | None = None, previous: str |
             from quran_reels.themepub.run import settings as themes_settings
 
             auto = themes_settings(cfg)
-            stats_mod.merge_calendar(
-                calendar, theme_days, ins_cfg["themes"].get("time", ""),
+            from quran_reels.themepub.run import time_for
+
+            hour = ins_cfg["themes"].get("time", "")
+            stats_mod.merge_calendar(       # the hour of each day (13:00 from 2026-11-27)
+                calendar, theme_days,
+                (lambda day: time_for(auto, day)) if auto.get("times") else hour,
                 str(auto.get("from", "")) if auto.get("enabled") else "",
                 (_json(state_dir / "themes.json") or {}).get("posts") if state_dir else None)
         except Exception as e:     # noqa: BLE001  (the reels' calendar stands alone)

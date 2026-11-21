@@ -17,10 +17,13 @@ The owner had made the six playlists of docs/profils.md by hand and kept them up
 - the six titles were written English first: each is turned around once, Arabic first (owner's
   choice, 2026-11-21), its description kept as he wrote it; a title he changes later is left alone.
 
+The same step sends the subtitles the daily run left for the videos it uploaded (captions.py:
+youtube-captions/ on the state branch), with the same token: only it holds the scope captions need.
+
 Access: its own token, YOUTUBE_PLAYLISTS_REFRESH_TOKEN (scope youtube.force-ssl: the only one that
 lets playlists be written, and it could also change or delete videos; owner's choice, 2026-11-21),
 saved by the workflow youtube-auth from youtube-login.html → Playlists. Only this step reads it,
-and it only calls playlists and playlistItems. Without it, nothing is done (by hand, as before).
+and it only calls playlists, playlistItems and captions. Without it, nothing is done (by hand, as before).
 """
 
 from __future__ import annotations
@@ -39,6 +42,7 @@ import yaml
 from quran_reels.insights.youtube import DATA, YouTube, YouTubeError
 
 SCOPES = ("https://www.googleapis.com/auth/youtube.force-ssl",)
+CAPTIONS = "https://www.googleapis.com/upload/youtube/v3/captions"
 SECRET = "YOUTUBE_PLAYLISTS_REFRESH_TOKEN"
 STATE = "youtube-playlists.json"
 SEP = " · "
@@ -193,6 +197,30 @@ class Channel:
         self._send("PUT", f"{DATA}/playlists", "snippet", {
             "id": playlist, "snippet": {"title": title, **keep}})
 
+    def caption(self, video: str, lang: str, name: str, text: str) -> str:
+        """A subtitle track (captions.insert, multipart: its snippet, then the SRT file); its id."""
+        boundary = "quran-reels-captions"
+        meta = json.dumps({"snippet": {"videoId": video, "language": lang, "name": name,
+                                       "isDraft": False}}, ensure_ascii=False)
+        body = (f"--{boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n{meta}\r\n"
+                f"--{boundary}\r\nContent-Type: application/octet-stream\r\n\r\n{text}\r\n"
+                f"--{boundary}--\r\n").encode()
+        r = self.http.request("POST", CAPTIONS, params={"part": "snippet",
+                                                        "uploadType": "multipart"},
+                              data=body, headers={
+                                  "Authorization": f"Bearer {self.token}",
+                                  "Content-Type": f"multipart/related; boundary={boundary}"},
+                              timeout=self.client.timeout)
+        try:
+            answer = r.json()
+        except ValueError:
+            answer = {}
+        if r.status_code != 200 or "id" not in answer:
+            err = answer.get("error") or {}
+            raise YouTubeError(f"POST captions: HTTP {r.status_code} "
+                               f"{err.get('message', '') if isinstance(err, dict) else err}".strip())
+        return answer["id"]
+
     def add(self, playlist: str, video: str) -> None:
         """At the end (a position is refused by a playlist sorted by date)."""
         self._send("POST", f"{DATA}/playlistItems", "snippet", {"snippet": {
@@ -302,6 +330,9 @@ def run(root: Path, state_dir: Path, dry_run: bool = False, channel: Any = None,
                                           themes.get("texts", "docs/retention")))
     lines = sync(conf, read("insights.json"), read("published.json"), state, channel, names,
                  dry_run)
+    from quran_reels import captions  # the reels' subtitles, written by the daily run
+
+    lines += captions.upload_pending(state_dir / captions.DIR, channel, dry_run)
     for line in lines or ["playlists: nothing to do"]:
         print(line)
     if not dry_run:

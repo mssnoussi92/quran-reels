@@ -877,3 +877,17 @@ def test_youtube_waits_without_a_token_or_a_validated_text(on_youtube, monkeypat
     row = next(r for r in sources().rows if r.day == date(2026, 11, 24))
     assert "youtube" not in row.videos
     assert any("titre ou de description YouTube" in p for p in row.problems)
+
+
+def test_from_the_27th_the_theme_video_goes_out_at_13_00():
+    """Owner's choice, 2026-11-21: 13:00 from Friday 27 November (his YouTube viewers' peak is
+    14:00-16:00); 18:00 before, the short versions of Dhul-Qarnayn (24-26) included."""
+    s = R.settings(load())
+    assert R.time_for(s, date(2026, 11, 26)) == "18:00"
+    assert R.time_for(s, date(2026, 11, 27)) == "13:00"
+    assert R.slot(s, date(2026, 11, 27)).strftime("%H:%M") == "13:00"
+    src = sources()
+    assert R.due_rows(S | {"time": "18:00", "times": [{"from": "2026-11-24", "time": "13:00"}]},
+                      {"posts": {}}, src, paris("2026-11-24", "12:45"))       # 15 min before
+    assert not R.due_rows(S | {"time": "18:00", "times": [{"from": "2026-11-24", "time": "13:00"}]},
+                          {"posts": {}}, src, paris("2026-11-24", "17:45"))   # the old hour: gone

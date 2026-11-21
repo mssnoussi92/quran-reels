@@ -149,7 +149,7 @@ jobs:
         if: always() && inputs.passage == '' && (steps.due.outputs.due == 'true' || steps.due.outputs.missed != '')
         working-directory: state-branch
         run: |
-          bash "$GITHUB_WORKSPACE/.github/scripts/save-state.sh" "État" published.json
+          bash "$GITHUB_WORKSPACE/.github/scripts/save-state.sh" "État" published.json youtube-captions
 
       # Direct downloads for the phone (docs/on-demand.md): each reel that went out is put in
       # the release `reels` (not zipped, no sign-in), with a page giving the YouTube title,
