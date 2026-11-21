@@ -1,7 +1,53 @@
 {
- "updated": "2026-11-20T16:47:18+00:00",
+ "updated": "2026-11-21T06:47:37+00:00",
  "days": 14,
  "entries": [
+  {
+   "id": "daily/2026-11-21-morning",
+   "kind": "daily",
+   "key": "2026-11-21/morning",
+   "day": "2026-11-21",
+   "time": "07:30",
+   "created": "2026-11-21T06:47:36+00:00",
+   "title": "102:1-8 · Surah At-Takathur · سورة التكاثر",
+   "passage": "102:1-8",
+   "label": "",
+   "reciter": "Tawfiq As-Sayegh",
+   "results": [
+    {
+     "name": "Facebook",
+     "url": "https://www.facebook.com/reel/2218891558841194/",
+     "label": "publié"
+    },
+    {
+     "name": "Instagram",
+     "url": "https://www.instagram.com/reel/Df_nah8Ahd5/",
+     "label": "publié"
+    },
+    {
+     "name": "TikTok (brouillon)",
+     "url": null,
+     "label": "brouillon, non publié"
+    }
+   ],
+   "tiktok": "Surah At-Takathur (102:1-8) · سورة التكاثر\n\nأَلْهَىٰكُمُ ٱلتَّكَاثُرُ ﴿١﴾\nحَتَّىٰ زُرْتُمُ ٱلْمَقَابِرَ ﴿٢﴾\nكَلَّا سَوْفَ تَعْلَمُونَ ﴿٣﴾\nثُمَّ كَلَّا سَوْفَ تَعْلَمُونَ ﴿٤﴾\nكَلَّا لَوْ تَعْلَمُونَ عِلْمَ ٱلْيَقِينِ ﴿٥﴾\nلَتَرَوُنَّ ٱلْجَحِيمَ ﴿٦﴾\nثُمَّ لَتَرَوُنَّهَا عَيْنَ ٱلْيَقِينِ ﴿٧﴾\nثُمَّ لَتُسْـَٔلُنَّ يَوْمَئِذٍ عَنِ ٱلنَّعِيمِ ﴿٨﴾\n\nRecitation: Muhammad Siddiq Al-Minshawi · Translation: Sahih International · Word meanings: Tafsir al-Muyassar, King Fahd Complex\n\n@quran.words.daily\n\n#QuranWordsDaily #Quran #JuzAmma #SurahAtTakathur #سورة_التكاثر\n",
+   "video": {
+    "full": "https://github.com/mssnoussi92/quran-reels/releases/download/reels/2026-11-21-morning-102_001-008.mp4",
+    "youtube": "https://github.com/mssnoussi92/quran-reels/releases/download/reels/2026-11-21-morning-102_001-008-youtube.mp4"
+   },
+   "youtube": {
+    "title": "سورة التكاثر · Surah At-Takathur (102:1-8)",
+    "description": "Surah At-Takathur (102:1-8) · سورة التكاثر\n\nأَلْهَىٰكُمُ ٱلتَّكَاثُرُ ﴿١﴾\n1. Competition in [worldly] increase diverts you\n\nحَتَّىٰ زُرْتُمُ ٱلْمَقَابِرَ ﴿٢﴾\n2. Until you visit the graveyards.\n\nكَلَّا سَوْفَ تَعْلَمُونَ ﴿٣﴾\n3. No! You are going to know.\n\nثُمَّ كَلَّا سَوْفَ تَعْلَمُونَ ﴿٤﴾\n4. Then, no! You are going to know.\n\nكَلَّا لَوْ تَعْلَمُونَ عِلْمَ ٱلْيَقِينِ ﴿٥﴾\n5. No! If you only knew with knowledge of certainty...\n\nلَتَرَوُنَّ ٱلْجَحِيمَ ﴿٦﴾\n6. You will surely see the Hellfire.\n\nثُمَّ لَتَرَوُنَّهَا عَيْنَ ٱلْيَقِينِ ﴿٧﴾\n7. Then you will surely see it with the eye of certainty.\n\nثُمَّ لَتُسْـَٔلُنَّ يَوْمَئِذٍ عَنِ ٱلنَّعِيمِ ﴿٨﴾\n8. Then you will surely be asked that Day about pleasure.\n\nRecitation: Tawfiq As-Sayegh\nTranslation: Sahih International\nWord meanings: التفسير الميسر، مجمع الملك فهد\n\n@quran_words_daily\n",
+    "credits": "",
+    "hashtags": "#QuranWordsDaily #Quran #JuzAmma #SurahAtTakathur #سورة_التكاثر #القرآن_الكريم #جزء_عم #TawfiqAsSayegh #توفيق_الصايغ #تفسير_القرآن #التفسير_الميسر",
+    "file": "https://github.com/mssnoussi92/quran-reels/releases/download/reels/2026-11-21-morning-102_001-008-youtube.mp4",
+    "thumbnail": ""
+   },
+   "notes": [],
+   "match": [
+    "slot:2026-11-21/morning"
+   ]
+  },
   {
    "id": "theme/2026-11-20",
    "kind": "theme",
@@ -893,42 +939,6 @@
    "notes": [],
    "match": [
     "slot:2026-11-07/morning"
-   ]
-  },
-  {
-   "id": "daily/2026-11-06-evening",
-   "kind": "daily",
-   "key": "2026-11-06/evening",
-   "day": "2026-11-06",
-   "time": "19:30",
-   "created": "2026-11-06T18:37:34+00:00",
-   "title": "18:11-14 · Surah Al-Kahf · سورة الكهف",
-   "passage": "18:11-14",
-   "label": "",
-   "reciter": "Tawfiq As-Sayegh",
-   "results": [
-    {
-     "name": "Instagram",
-     "url": "https://www.instagram.com/reel/DfaQ9bWEcqR/",
-     "label": "publié"
-    }
-   ],
-   "tiktok": "Surah Al-Kahf on Friday · 1/36\nSurah Al-Kahf (18:11-14) · سورة الكهف\n\nبِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ\n\nفَضَرَبْنَا عَلَىٰٓ ءَاذَانِهِمْ فِى ٱلْكَهْفِ سِنِينَ عَدَدًا ﴿١١﴾\n11. So We cast [a cover of sleep] over their ears within the cave for a number of years.\n\nثُمَّ بَعَثْنَـٰهُمْ لِنَعْلَمَ أَىُّ ٱلْحِزْبَيْنِ أَحْصَىٰ لِمَا لَبِثُوٓا۟ أَمَدًا ﴿١٢﴾\n12. Then We awakened them that We might show which of the two factions was most precise in calculating what [extent] they had remained in time.\n\nنَّحْنُ نَقُصُّ عَلَيْكَ نَبَأَهُم بِٱلْحَقِّ ۚ إِنَّهُمْ فِتْيَةٌ ءَامَنُوا۟ بِرَبِّهِمْ وَزِدْنَـٰهُمْ هُدًى ﴿١٣﴾\n13. It is We who relate to you, [O Muḥammad], their story in truth. Indeed, they were youths who believed in their Lord, and We increased them in guidance.\n\nوَرَبَطْنَا عَلَىٰ قُلُوبِهِمْ إِذْ قَامُوا۟ فَقَالُوا۟ رَبُّنَا رَبُّ ٱلسَّمَـٰوَٰتِ وَٱلْأَرْضِ لَن نَّدْعُوَا۟ مِن دُونِهِۦٓ إِلَـٰهًا ۖ لَّقَدْ قُلْنَآ إِذًا شَطَطًا ﴿١٤﴾\n14. And We bound [i.e., made firm] their hearts when they stood up and said, \"Our Lord is the Lord of the heavens and the earth. Never will we invoke besides Him any deity. We would have certainly spoken, then, an excessive transgression.\n\nRecitation: Tawfiq As-Sayegh\nTranslation: Sahih International\nWord meanings: التفسير الميسر، مجمع الملك فهد\n\n@quran_words_daily\n\n#QuranWordsDaily #Quran #Jumuah #SurahAlKahf #سورة_الكهف\n",
-   "video": {
-    "full": "https://github.com/mssnoussi92/quran-reels/releases/download/reels/2026-11-06-evening-018_011-014.mp4",
-    "youtube": "https://github.com/mssnoussi92/quran-reels/releases/download/reels/2026-11-06-evening-018_011-014.mp4"
-   },
-   "youtube": {
-    "title": "Surah Al-Kahf on Friday · 1/36 · Surah Al-Kahf (18:11-14) · سورة الكهف",
-    "description": "Surah Al-Kahf on Friday · 1/36\nSurah Al-Kahf (18:11-14) · سورة الكهف\n\nبِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ\n\nفَضَرَبْنَا عَلَىٰٓ ءَاذَانِهِمْ فِى ٱلْكَهْفِ سِنِينَ عَدَدًا ﴿١١﴾\n11. So We cast [a cover of sleep] over their ears within the cave for a number of years.\n\nثُمَّ بَعَثْنَـٰهُمْ لِنَعْلَمَ أَىُّ ٱلْحِزْبَيْنِ أَحْصَىٰ لِمَا لَبِثُوٓا۟ أَمَدًا ﴿١٢﴾\n12. Then We awakened them that We might show which of the two factions was most precise in calculating what [extent] they had remained in time.\n\nنَّحْنُ نَقُصُّ عَلَيْكَ نَبَأَهُم بِٱلْحَقِّ ۚ إِنَّهُمْ فِتْيَةٌ ءَامَنُوا۟ بِرَبِّهِمْ وَزِدْنَـٰهُمْ هُدًى ﴿١٣﴾\n13. It is We who relate to you, [O Muḥammad], their story in truth. Indeed, they were youths who believed in their Lord, and We increased them in guidance.\n\nوَرَبَطْنَا عَلَىٰ قُلُوبِهِمْ إِذْ قَامُوا۟ فَقَالُوا۟ رَبُّنَا رَبُّ ٱلسَّمَـٰوَٰتِ وَٱلْأَرْضِ لَن نَّدْعُوَا۟ مِن دُونِهِۦٓ إِلَـٰهًا ۖ لَّقَدْ قُلْنَآ إِذًا شَطَطًا ﴿١٤﴾\n14. And We bound [i.e., made firm] their hearts when they stood up and said, \"Our Lord is the Lord of the heavens and the earth. Never will we invoke besides Him any deity. We would have certainly spoken, then, an excessive transgression.\n\nRecitation: Tawfiq As-Sayegh\nTranslation: Sahih International\nWord meanings: التفسير الميسر، مجمع الملك فهد\n\n@quran_words_daily\n",
-    "credits": "",
-    "hashtags": "#QuranWordsDaily #Quran #Jumuah #SurahAlKahf #سورة_الكهف #القرآن_الكريم #يوم_الجمعة #TawfiqAsSayegh #توفيق_الصايغ #تفسير_القرآن #التفسير_الميسر",
-    "file": "https://github.com/mssnoussi92/quran-reels/releases/download/reels/2026-11-06-evening-018_011-014.mp4",
-    "thumbnail": ""
-   },
-   "notes": [],
-   "match": [
-    "slot:2026-11-06/evening"
    ]
   }
  ]
