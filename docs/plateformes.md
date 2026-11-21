@@ -474,6 +474,30 @@ vidéo. Même projet, même client, même page ; depuis le téléphone, une fois
 Le jeton se perd comme l'autre (mot de passe Google changé, accès retiré) : le run le dit (« connexion YouTube
 perdue »), le Short du jour reste à mettre à la main, refaire les étapes 1 et 2.
 
+### Playlists (choix du propriétaire, 2026-11-21)
+
+Il avait créé à la main les six playlists de docs/profils.md et les tenait à jour (14, 8, 6, 4, 4 et 1 vidéos le
+2026-11-21). Sa réponse : « reprends les miennes et ajoute s'il n'existe pas ». Le workflow `playlists`, chaque nuit à
+la fin de `insights` (`playlists.py`, config/playlists.yaml) :
+
+- reprend **ses** playlists par leur identifiant, jamais recréées ; leurs titres passent une fois en arabe d'abord (son
+  choix du même jour), leurs descriptions restent les siennes ; un titre qu'il change ensuite n'est plus touché ;
+- range chaque vidéo **publiée à partir du 2026-11-21** que les statistiques reconnaissent (reel, vidéo thématique) dans
+  ses playlists, **à la fin** : un reel selon la série de son passage, une vidéo thématique selon son document ; un
+  film à part de ses shorts comme il l'a fait (Moussa et al-Khadir : le film dans « حكايات من القرآن » seulement, les
+  shorts aussi dans « سورة الكهف ») ; ce qu'il avait rangé avant ne bouge pas ;
+- une série ou un document sans playlist (« سنريهم آياتنا », « آيات الرزق »…) a la sienne, publique, créée avec sa
+  première vidéo, titrée de ses noms validés, l'arabe d'abord, sans description (il peut en écrire une) ; son
+  identifiant est gardé dans `youtube-playlists.json` (branche `state`). Le Coran dans l'ordre (`mushaf`) et le quiz
+  n'en ont pas.
+
+**Son propre jeton**, `YOUTUBE_PLAYLISTS_REFRESH_TOKEN` : Google n'a pas d'autorisation plus étroite que
+`youtube.force-ssl` pour écrire une playlist, et celle-ci permet aussi de modifier ou de supprimer des vidéos (accepté par
+lui, question à choix du 2026-11-21) ; seul ce workflow le lit, et le code n'appelle que `playlists` et `playlistItems`.
+Connexion : youtube-login.html → **« Playlists: continue to Google »**, cocher, puis le workflow **youtube-auth** avec le
+code (même marche que ci-dessus). Sans lui, rien n'est fait. À la main : Actions → **playlists** → `dry_run` coché, il
+dit ce qu'il ferait.
+
 ## Format vidéo commun
 
 MP4 H.264 + AAC, 1080×1920, 30 i/s, 20–90 s. Zone sûre : haut 250 px, bas 420 px, côtés 90 px.

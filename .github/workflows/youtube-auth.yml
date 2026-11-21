@@ -5,7 +5,10 @@ name: youtube-auth
 # - Statistics (youtube-login.html → Statistics): YOUTUBE_REFRESH_TOKEN, read only
 #   (insights/youtube.py);
 # - Uploads (youtube-login.html → Uploads): YOUTUBE_UPLOAD_REFRESH_TOKEN, upload and read, never
-#   change nor delete (publishers/youtube.py: the daily run uploads the calendar's Short).
+#   change nor delete (publishers/youtube.py: the daily and themes runs upload the videos);
+# - Playlists (youtube-login.html → Playlists): YOUTUBE_PLAYLISTS_REFRESH_TOKEN, youtube.force-ssl,
+#   the only scope that writes playlists (it could also change or delete videos), read by the
+#   workflow playlists alone (playlists.py).
 # 1. https://mssnoussi92.github.io/quran-reels/youtube-login.html → Google → copy the code.
 # 2. Run this workflow within a few minutes with that code.
 # The code is exchanged here with YOUTUBE_CLIENT_SECRET; the refresh token is saved into its
