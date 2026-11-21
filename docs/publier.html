@@ -155,7 +155,7 @@
     if (!entries.length) return fail("Aucune vidéo ces derniers jours.");
     let todo = 0;
     entries.forEach((e, i) => {
-      const yt = (e.match || []).map((k) => youtube[k]).find(Boolean);
+      const yt = (e.youtube && e.youtube.url) || (e.match || []).map((k) => youtube[k]).find(Boolean);
       if (e.youtube && !yt) todo += 1;
       $("list").append(card(e, yt, i === 0));
     });
@@ -216,7 +216,7 @@
     texts.append(el("p", { class: "muted small" }, "Ils vont dans Téléchargements. App YouTube → ➕ → choisis la vidéo, puis colle :"));
     if (y.title) texts.append(copyBox("Titre", y.title, `${[...y.title].length}/100`));
     if (y.description) texts.append(copyBox("Description", y.description));
-    if (y.credits) texts.append(copyBox("Crédits (à coller sous la description)", y.credits));
+    if (y.credits) texts.append(copyBox("Crédits (pas dans la description)", y.credits));
     if (y.hashtags) texts.append(copyBox("Hashtags", y.hashtags));
     if (ytUrl) {
       const done = el("p", { class: "done-line" }, "✓ Sur YouTube : ");

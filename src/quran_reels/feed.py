@@ -10,8 +10,9 @@ owner's request of 2026-11-19) and hashtags, and the links of what is already ou
 `feed.json` is derived, never written by hand: every time a publishing run writes the `reel.json`
 of a video on `previews` (daily: `on-demand daily-files`; theme videos: `themes files`),
 `Hosting.publish` rebuilds it from all the `reel.json` there (`files`), in the same commit. A
-video's YouTube state is not in it: the page reads it from the state branch (the nightly reading
-of the channel, insights.json; a `/youtube` command, published.json).
+video's YouTube state is mostly not in it: the page reads it from the state branch (the nightly
+reading of the channel, insights.json; the run's upload or a `/youtube` command, published.json);
+a theme video the run put on YouTube carries its address (`youtube.url`).
 """
 
 from __future__ import annotations
@@ -50,7 +51,7 @@ def entry(meta: dict[str, Any]) -> dict[str, Any] | None:
         "results": meta.get("results") or [], "tiktok": tiktok,
         "video": meta.get("video") or {},
         "youtube": {k: yt.get(k, "") for k in ("title", "description", "credits", "hashtags", "file",
-                                               "thumbnail")}
+                                               "thumbnail")} | ({"url": yt["url"]} if yt.get("url") else {})
         if yt and yt.get("file") else None,
         "notes": meta.get("notes") or [],
         "match": meta.get("match") or ([f"slot:{key}"] if kind == "daily" else []),

@@ -342,8 +342,10 @@ github.com → photo de profil → Settings → Developer settings → Personal 
   que les règles de l'API demandent à toute application est fait : la page Confidentialité dit
   qu'on utilise les « YouTube API Services » et donne la politique de confidentialité de Google et
   la page où retirer l'accès, les Conditions renvoient aux conditions d'utilisation de YouTube.
+- **Les vidéos thématiques aussi, par le run `themes`** (choix du propriétaire, 2026-11-21 : shorts et
+  films, miniatures comprises ; docs/themes.md, « YouTube »). Seules les demandes restent à la main.
 - **Les Shorts du calendrier sont mis en ligne par le run `daily`** (choix du propriétaire,
-  2026-11-21 : les reels d'abord, les vidéos thématiques et les demandes restent à la main) :
+  2026-11-21 : les reels d'abord) :
   `platforms.youtube.upload` de config/project.yaml, `publishers/youtube.py`, `daily.to_youtube`.
   - **Quoi** : la version YouTube du créneau (par Tawfiq As-Sayegh, ci-dessous), en **public**,
     avec les textes de la page « À publier » : titre (la tête de la légende, l'arabe d'abord),

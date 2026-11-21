@@ -17,6 +17,9 @@ file and checks Meta's rights on it first).
 - Then the video is read (videos.list) until YouTube has processed it, PROCESS_TIMEOUT at most:
   a rejection, a failed processing or a video that came out private is a failure that keeps
   the video's id, so that no later run uploads it a second time.
+- A theme video gets its thumbnail (the film's drawn one, a short's cover: thumbnails.set, which
+  takes Shorts since 2026-11-03, once processed) and is first looked for among the channel's
+  latest uploads by its title (`dedupe`): one the owner put there by hand is not put again.
 
 Content ID (YouTube's claims) cannot be read through the API by a channel like this one. What
 goes up is by Tawfiq As-Sayegh (platforms.youtube.reciter), never claimed so far.
@@ -38,6 +41,8 @@ from quran_reels.insights.youtube import DATA, YouTube, YouTubeError
 from quran_reels.models import PublishResult, PublishStatus
 
 UPLOAD = "https://www.googleapis.com/upload/youtube/v3/videos"
+THUMBNAIL = "https://www.googleapis.com/upload/youtube/v3/thumbnails/set"
+THUMBNAIL_MAX = 2 * 2**20   # bytes: YouTube refuses a bigger image
 UPLOAD_SCOPES = ("https://www.googleapis.com/auth/youtube.upload",
                  "https://www.googleapis.com/auth/youtube.readonly")
 UPLOAD_SECRET = "YOUTUBE_UPLOAD_REFRESH_TOKEN"
@@ -71,6 +76,7 @@ class Video:
     privacy: str = "public"
     made_for_kids: bool = False
     synthetic_media: bool = False
+    long: bool = False                  # a film (16:9): its address is not a Short's
 
     def body(self) -> dict[str, Any]:
         snippet: dict[str, Any] = {"title": clean(self.title)[:TITLE_MAX],
@@ -140,6 +146,13 @@ def short_url(video_id: str) -> str:
     return f"https://youtube.com/shorts/{video_id}"
 
 
+def video_url(video_id: str, video: Video | None = None) -> str:
+    """A Short's address, or a film's (`long`: a 16:9 video, never a Short)."""
+    if video is not None and video.long:
+        return f"https://www.youtube.com/watch?v={video_id}"
+    return short_url(video_id)
+
+
 class Uploader:
     def __init__(self, client: YouTube, refresh_token: str,
                  sleep: Callable[[float], None] = time.sleep,
@@ -159,13 +172,29 @@ class Uploader:
         return cls(YouTube(cid, secret), refresh, **kw)
 
     # ---- one upload -----------------------------------------------------------------------
-    def upload(self, video: Video) -> PublishResult:
+    def upload(self, video: Video, thumbnail: Path | None = None,
+               dedupe: bool = False) -> PublishResult:
         """The video on YouTube: PUBLISHED with its Short's address, or FAILED (with the id when
-        YouTube has the video: never to be uploaded again)."""
+        YouTube has the video: never to be uploaded again). thumbnail: set once it is processed
+        (a failure there is said in `error`, the video stays published). dedupe: a video of the
+        same title among the channel's latest uploads is taken as this one."""
         try:
             token = self.client.access(self.refresh)
         except YouTubeError as e:
             return PublishResult("youtube", PublishStatus.FAILED, error=_signin(str(e)))
+        if dedupe:
+            try:
+                found = self.find(clean(video.title)[:TITLE_MAX], token)
+            except YouTubeError as e:
+                print(f"warning: youtube: the channel's uploads not read ({e})", file=sys.stderr)
+                found = None
+            if found:
+                print(f"youtube: « {video.title} » is on the channel already ({found}), not "
+                      "uploaded again", file=sys.stderr)
+                return PublishResult("youtube", PublishStatus.PUBLISHED, remote_id=found,
+                                     url=video_url(found, video),
+                                     error="déjà sur la chaîne (mise en ligne à la main ?), "
+                                           "pas remise")
         try:
             session = self._start(video, token)
             answer = self._send(session, video.path, token)
@@ -175,7 +204,7 @@ class Uploader:
         if not vid:
             return PublishResult("youtube", PublishStatus.FAILED,
                                  error="YouTube a reçu le fichier sans donner d'identifiant")
-        url = short_url(vid)
+        url = video_url(vid, video)
         print(f"youtube: uploaded {vid}, waiting for YouTube's processing", file=sys.stderr)
         status = answer.get("status") or {}
         try:
@@ -197,7 +226,44 @@ class Uploader:
         if upload not in DONE:
             print(f"youtube: {vid} still « {upload} » after {self.process_timeout:.0f} s: "
                   "YouTube goes on processing it", file=sys.stderr)
-        return PublishResult("youtube", PublishStatus.PUBLISHED, remote_id=vid, url=url)
+        note = self.thumbnail(vid, thumbnail, token) if thumbnail else None
+        return PublishResult("youtube", PublishStatus.PUBLISHED, remote_id=vid, url=url,
+                             error=note)
+
+    def find(self, title: str, token: str, latest: int = 50) -> str | None:
+        """The id of a video of exactly this title among the channel's `latest` uploads."""
+        items = self.client.get(f"{DATA}/channels", token, part="contentDetails",
+                                mine="true").get("items") or []
+        if not items:
+            return None
+        uploads = items[0]["contentDetails"]["relatedPlaylists"]["uploads"]
+        page = self.client.get(f"{DATA}/playlistItems", token, part="snippet",
+                               playlistId=uploads, maxResults=str(latest))
+        for i in page.get("items") or []:
+            sn = i.get("snippet") or {}
+            if sn.get("title", "").strip() == title.strip():
+                return (sn.get("resourceId") or {}).get("videoId")
+        return None
+
+    def thumbnail(self, vid: str, image: Path, token: str) -> str | None:
+        """The video's custom thumbnail; None when set, else what went wrong (never raises)."""
+        try:
+            data = image.read_bytes()
+        except OSError as e:
+            return f"miniature non posée ({type(e).__name__})"
+        if len(data) > THUMBNAIL_MAX:
+            return f"miniature non posée : {len(data) / 2**20:.1f} Mo, plus que 2 Mo"
+        kind = "image/png" if image.suffix.lower() == ".png" else "image/jpeg"
+        try:
+            r = self.http.post(THUMBNAIL, params={"videoId": vid}, data=data,
+                               headers={"Authorization": f"Bearer {token}",
+                                        "Content-Type": kind}, timeout=self.client.timeout)
+        except Exception as e:      # noqa: BLE001
+            return f"miniature non posée : erreur réseau ({type(e).__name__})"
+        if r.status_code != 200:
+            return "miniature non posée : " + _error(r)
+        print(f"youtube: thumbnail of {vid} set ({image.name})", file=sys.stderr)
+        return None
 
     def _start(self, video: Video, token: str) -> str:
         """The resumable session for this file (its address is never printed)."""

@@ -10,11 +10,28 @@ le film de Dhul-Qarnayn). Avant, il les publie à la main.
 | Facebook | la vidéo (le film en 9:16, ou le short), son texte Facebook validé, sa couverture |
 | Instagram | le short, son texte Instagram validé, sa couverture (pas les films : leur texte ne prévoit pas Instagram) |
 | TikTok | la version signée `@quran.words.daily`, en **brouillon** dans la boîte : le propriétaire la publie, le texte est sur la page « À publier » (publier.html ; aussi dans le ticket « 📋 Légendes à copier ») |
-| YouTube | **à la main** : la page « À publier » donne le MP4 (le short, ou le film 16:9), sa miniature (la vignette du film, la couverture du short), son titre, sa description, ses crédits à part (demande du propriétaire, 2026-11-19) et ses hashtags (`themes files` après la publication : `theme/<jour>/reel.json` sur `previews`) |
+| YouTube | **mis en ligne par le run depuis le 2026-11-21** (choix du propriétaire : shorts et films ; à la main avant) : le short (ou sa version courte) ou le film 16:9, **public**, avec son titre et sa description validés, suivie de ses hashtags (aussi en tags), **jamais les crédits** (son choix, 2026-11-21) et sa miniature (la vignette du film, la couverture du short), après la vérification de Meta (ci-dessous). La page « À publier » montre « YouTube ✓ » et le lien ; quand la mise en ligne n'a pas abouti, elle donne comme avant le MP4, la miniature et les textes à copier (`themes files` : `theme/<jour>/reel.json` sur `previews`) |
 
 **Comme les reels** : Facebook et Instagram reçoivent d'abord la vidéo non publiée, Meta vérifie les droits sur les
-deux ; si l'une des vérifications n'est pas propre, **rien ne part, TikTok compris**, et le ticket
+deux ; si l'une des vérifications n'est pas propre, **rien ne part, TikTok et YouTube compris**, et le ticket
 « ⚠️ Vidéo thématique en échec » le dit.
+
+**YouTube** (choix du propriétaire, 2026-11-21, `publishers/youtube.py`, `themepub/run.py`, `to_youtube`) :
+
+- **après** Facebook, Instagram et TikTok, seulement si Meta a vu la vidéo propre : le même fichier pour un short (ou
+  sa version courte, comme Facebook) ; pour un **film 16:9**, la vérification de son jumeau 9:16 publié sur Facebook,
+  même voix, même récitation, même ambiance (sa décision : Meta ne vérifie que les reels, verticaux). Une ligne qui ne
+  prévoit ni Facebook ni Instagram n'a pas de vérification : YouTube y reste à la main.
+- **réglages** (`youtube` de config/themes.yaml) : public, « pas conçue pour les enfants », **« contenu modifié ou
+  synthétique » : non** (son choix : un narrateur de synthèse qui n'imite personne n'est pas le contenu réaliste que
+  YouTube vise, et chaque description dit déjà que la voix est générée par IA) ; catégorie par défaut de YouTube.
+- **jamais deux fois** : une vidéo de même titre parmi les 50 dernières de la chaîne (mise en ligne à la main) n'est
+  pas remise ; un envoi qui n'a rien donné à YouTube est refait par le run suivant de la fenêtre, seul ; un envoi qui a
+  un identifiant ne l'est jamais. Pas de titre ou de description YouTube dans le texte validé : rien n'est envoyé, le
+  ticket le dit (la description déclare la voix IA).
+- **à la main** : la « vidéo associée » d'un Short (le film), que l'API n'offre pas (dans Studio, 20 secondes).
+- **le droit d'auteur de YouTube** (Content ID) ne se lit pas par l'API : à la main, l'étape « Vérifications » de Studio
+  le montrait avant de publier ; maintenant, une revendication se voit après, dans les notifications de Studio.
 
 ## D'où vient chaque chose (quran-themes-demo, branche `main`, lue à chaque run)
 
