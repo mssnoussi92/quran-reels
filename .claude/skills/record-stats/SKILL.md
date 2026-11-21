@@ -55,12 +55,36 @@ Not recorded: total play time (it is views × average), traffic sources, the ret
 (unless a value is written on it, e.g. « 45 % à 0:03 » → `hook` when it is at 3 s).
 
 YouTube is read by the API (views, likes, comments, average watched, shares, follows): from a
-YouTube Studio screenshot record only what the API lacks: « Ont choisi de regarder » against
-« Balayées » of a Short → `hook`; « Introduction » of a film's retention (still there at 0:30) →
-`kept_30s`. Facebook and Instagram: nothing to record (read every night); say so.
+YouTube Studio screenshot or export record only what the API lacks:
+
+| YouTube Studio (fr / en) | `metrics` |
+| --- | --- |
+| Impressions de miniatures · Impressions | `impressions` |
+| Taux de clics sur la miniature (%) · Impressions click-through rate (%) | `ctr` |
+| Ont choisi de regarder (%) · Viewed (vs. swiped away) (%) (a Short) | `viewed_pct` |
+| « Introduction » of a film's retention (still there at 0:30) | `kept_30s` |
+
+Facebook reels from a Meta Business Suite export: « Portée » · Reach → `reach` (the API does not give
+it for reels); the rest is read every night. Instagram: nothing to record; say so.
 
 The list « Contenu » of TikTok Studio (all videos at once) usually shows views, likes and
 comments; a video's own page adds the average, the full views, the followers. Both are fine.
+
+## 2b. The YouTube Studio export (a zip, weekly)
+
+The owner may send the zip YouTube Studio exports (Analytics → Advanced mode → export; French
+names: « Totaux.csv », « Données de graphique.csv », « Informations relatives aux tableaux.csv »).
+Instead of reading images:
+
+1. Check out the `state` branch of quran-reels (a worktree or `git clone --branch state`), save the
+   zip in a new empty folder outside the repository.
+2. `quran-reels insights import-youtube --zip FILE.zip --state <state checkout> --seen YYYY-MM-DD`
+   (today, or the export's day; `--csv` for the table alone). It prints ONE line of JSON, the list
+   of entries (platform `youtube`, `video` = the page key of the video, `impressions`, `ctr`,
+   `viewed_pct` if the export has the column, source « export YouTube Studio »); ids not in
+   `insights.json` are listed on stderr and left out: tell the owner.
+3. Show the owner the table (video, impressions, CTR, viewed %), French, short; ask as in § 3.
+4. After the yes, dispatch `insights.yml` with that exact line as `manual` (§ 4) and check (§ 5).
 
 ## 3. Show, then ask
 

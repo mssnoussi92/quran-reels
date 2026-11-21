@@ -81,15 +81,22 @@ def signatures(cfg: Config) -> dict[str, str]:
 
 
 def series_line(passage: Passage) -> str:
-    """The series in both languages, one counter: «Supplications from the Quran · آيات الدعاء ·
-    3/38». Titles are always given in Arabic and English (owner, 2026-11-09). The Arabic title is
-    label_ar without its Arabic counter, the English one label_en without its counter (series
-    titles never contain « · », tests/test_basmala.py)."""
+    """The series in both languages, the Arabic first, one counter last: «آيات الدعاء ·
+    Supplications from the Quran · 3/38». Titles are always given in Arabic and English (owner,
+    2026-11-09), the Arabic first since 2026-11-21 (owner: most viewers are in Arabic-speaking
+    countries and search in Arabic; as the YouTube titles). The Arabic title is label_ar without
+    its Arabic counter, the English one label_en without its counter (series titles never contain
+    « · », tests/test_basmala.py)."""
     if not passage.label_en:
         return ""
     en, _, count = passage.label_en.partition(" · ")
     ar = passage.label_ar.partition(" · ")[0]
-    return " · ".join(x for x in (en, ar, count) if x)
+    return " · ".join(x for x in (ar, en, count) if x)
+
+
+def surah_line(passage: Passage) -> str:
+    """« سورة الضحى · Surah Ad-Duhaa (93:1-11) »: the Arabic first (owner, 2026-11-21)."""
+    return f"سورة {passage.surah_name_ar} · Surah {passage.surah_name_en} ({passage.reference})"
 
 
 def caption(cfg: Config, passage: Passage, limit: int = CAPTION_LIMIT) -> str:
@@ -98,8 +105,7 @@ def caption(cfg: Config, passage: Passage, limit: int = CAPTION_LIMIT) -> str:
     Too long for Instagram: the Arabic goes first, then the translation. Credits always stay.
     """
     c = cfg.content
-    head = [f"Surah {passage.surah_name_en} ({passage.reference}) · سورة {passage.surah_name_ar}",
-            ""]
+    head = [surah_line(passage), ""]
     if passage.label_en:
         head = [series_line(passage), *head]
     tail = [
@@ -135,9 +141,9 @@ def _credits(cfg: Config, passage: Passage) -> list[str]:
 
 
 def _reference(passage: Passage, label: bool = True) -> str:
-    """The series line (when the passage has one) over the surah and its reference."""
-    return (series_line(passage) + "\n" if passage.label_en and label else "") + \
-        f"Surah {passage.surah_name_en} ({passage.reference}) · سورة {passage.surah_name_ar}"
+    """The series line (when the passage has one) over the surah and its reference, each in
+    Arabic first (owner, 2026-11-21)."""
+    return (series_line(passage) + "\n" if passage.label_en and label else "") + surah_line(passage)
 
 
 def social_caption(cfg: Config, passage: Passage, limit: int = CAPTION_LIMIT,

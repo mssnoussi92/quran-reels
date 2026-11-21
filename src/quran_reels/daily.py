@@ -268,8 +268,24 @@ def copy_text(cfg: Config, video: Path) -> str:
     return reel.for_platform("tiktok").text(publish_mod.max_hashtags(cfg, "tiktok"))
 
 
+def render_facts(video: Path) -> dict:
+    """What the render says about itself in its manifest.json: the background it used (its id)
+    and the reel's length in seconds, for later audits. Nothing when the manifest is absent."""
+    try:
+        manifest = json.loads((video.with_suffix("") / "manifest.json").read_text("utf-8"))
+    except (OSError, ValueError):
+        return {}
+    facts: dict = {}
+    bg = manifest.get("background")
+    if isinstance(bg, dict) and bg.get("id"):
+        facts["background"] = bg["id"]
+    if isinstance(manifest.get("seconds"), (int, float)):
+        facts["seconds"] = round(float(manifest["seconds"]), 1)
+    return facts
+
+
 def record_slot(state: State, p: Pending, results: list[PublishResult],
-                reciter: str | None) -> dict:
+                reciter: str | None, facts: dict | None = None) -> dict:
     """Write what the platforms answered for a slot in the state, and what follows from it: a
     reel taken down is claimed (passage back at the head of its queue), a reel that one
     platform has moves its queue on. Called again with the answers of another try."""
@@ -277,6 +293,8 @@ def record_slot(state: State, p: Pending, results: list[PublishResult],
         "queue": p.queue, "item": p.item.id, "passage": p.item.key, "results": {}}
     if reciter:
         slot["reciter"] = reciter
+    if facts:
+        slot |= facts
     for r in results:
         slot["results"][r.platform] = {
             "status": r.status.value, "id": r.remote_id, "url": r.url, "error": r.error,
@@ -309,7 +327,7 @@ def again(cfg: Config, state: State, state_path: Path, p: Pending, video: Path,
         new = {r.platform: r
                for r in publish_mod.publish_reel(cfg, video, todo, False, checked)}
         results = [new.get(r.platform, r) for r in results]
-        record_slot(state, p, list(new.values()), reciter)
+        record_slot(state, p, list(new.values()), reciter, render_facts(video))
         state.save(state_path)
     return results
 
@@ -432,7 +450,7 @@ def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
         if not dry_run:
             # Written at once: a run stopped after this (cancelled, timed out, a crash in the
             # YouTube version) has still told the state what is out.
-            record_slot(state, p, results, reciter)
+            record_slot(state, p, results, reciter, render_facts(video))
             state.save(state_path)
             results = again(pcfg, state, state_path, p, video, results, reciter, checked, sleep)
         failed |= any(r.status in (PublishStatus.FAILED, PublishStatus.BLOCKED,

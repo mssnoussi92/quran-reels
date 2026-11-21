@@ -265,16 +265,19 @@ def seconds(iso: str) -> float | None:
     return d * 86400 + h * 3600 + mi * 60 + s
 
 
+SURAH_LINE = re.compile(r"^(?:Surah |سورة [^·]+ · Surah )")
+
+
 def video_key(title: str, description: str = "") -> str:
     """What the statistics page matches a YouTube video with: a reel's passage, written as the
     calendar writes it (« 106:1-4 », a single ayah « 9:51-51 »), from its title or, titled by
     hand, from its description's surah line (the reel's caption.txt: « Surah At-Tawbah (9:51) ·
-    سورة التوبة » in its first lines); otherwise the title itself (a theme video, matched by its
-    title; its description quotes verses too, never on a line of its own that starts with
-    « Surah »)."""
+    سورة التوبة » in its first lines, « سورة التوبة · Surah At-Tawbah (9:51) » since 2026-11-21);
+    otherwise the title itself (a theme video, matched by its title; its description quotes
+    verses too, never on a line of its own that starts with « Surah » or « سورة … · Surah »)."""
     found = passage_of(title)
     for line in (description or "").splitlines()[:4] if not found else ():
-        if line.strip().startswith("Surah ") and (found := passage_of(line)):
+        if SURAH_LINE.match(line.strip()) and (found := passage_of(line)):
             break
     return found or (title or "").strip()
 

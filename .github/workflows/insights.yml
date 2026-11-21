@@ -115,6 +115,10 @@ jobs:
             quran-reels insights youtube --state state-branch --dry-run
           else
             quran-reels insights youtube --state state-branch
+            # The detail (sources, countries, retention, search terms) for the dashboard: kept on
+            # `state`; its failure loses nothing else (owner's choice, 2026-11-21).
+            quran-reels insights youtube-detail --out state-branch/youtube-detail.json --days 35 \
+              || echo "::warning::détail YouTube non lu (youtube-detail.json inchangé)"
           fi
 
       - name: YouTube in detail
@@ -139,4 +143,4 @@ jobs:
         env:
           SAVE_STATE_LEVEL: warning    # not saved: the next night reads again
         run: |
-          bash "$GITHUB_WORKSPACE/.github/scripts/save-state.sh" "Insights" insights.json insights-ma3ak.json
+          bash "$GITHUB_WORKSPACE/.github/scripts/save-state.sh" "Insights" insights.json insights-ma3ak.json youtube-detail.json

@@ -156,7 +156,8 @@ def summary(detail: dict[str, Any]) -> str:
 
 
 def main(out: Path, days: int = 30, now: datetime | None = None,
-         client: YouTube | None = None, env: YouTubeEnv | None = None) -> str:
+         client: YouTube | None = None, env: YouTubeEnv | None = None,
+         compact: bool = True) -> str:
     env = env or YouTubeEnv.from_environ()
     if env is None or not env.refresh_token:
         raise YouTubeError("YouTube secrets not set (YOUTUBE_CLIENT_ID, YOUTUBE_CLIENT_SECRET, "
@@ -164,5 +165,8 @@ def main(out: Path, days: int = 30, now: datetime | None = None,
     yt = client or YouTube(env.client_id, env.client_secret)
     token = yt.access(env.refresh_token)
     detail = read(yt, token, now or datetime.now(UTC), days)
-    out.write_text(json.dumps(detail, ensure_ascii=False, indent=1), encoding="utf-8")
+    # Compact (no indent): the file lives on the state branch and is rewritten every night.
+    out.write_text(json.dumps(detail, ensure_ascii=False,
+                              **({"separators": (",", ":")} if compact else {"indent": 1})),
+                   encoding="utf-8")
     return summary(detail)

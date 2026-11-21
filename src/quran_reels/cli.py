@@ -183,6 +183,13 @@ def main(argv: list[str] | None = None) -> int:
                                   "file (read only, nothing saved on the state branch)")
     iyd.add_argument("--out", default="youtube-detail.json")
     iyd.add_argument("--days", type=int, default=30, help="videos published in the last N days")
+    ii = ins_sub.add_parser("import-youtube",
+                            help="a YouTube Studio export (zip or its per-video CSV) → the JSON "
+                                 "line for insights.yml's `manual` (impressions, ctr, viewed_pct)")
+    ii.add_argument("--zip", help="the zip YouTube Studio exports")
+    ii.add_argument("--csv", help="the per-video table alone")
+    ii.add_argument("--state", default="state", help="checkout of the state branch")
+    ii.add_argument("--seen", help="YYYY-MM-DD, the day of the export (default: today)")
     ia = ins_sub.add_parser("add", help="numbers read on a screenshot (YouTube, TikTok)")
     ia.add_argument("--state", default="state", help="checkout of the state branch")
     ia.add_argument("--json", required=True,
@@ -674,6 +681,14 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"::error::YouTube non lu : {e}")
                 return 1
             return 0
+        if args.insights_command == "import-youtube":
+            from quran_reels.insights import youtube_import
+
+            if bool(args.zip) == bool(args.csv):
+                raise SystemExit("insights import-youtube: give --zip or --csv (one of them)")
+            return youtube_import.main(Path(args.zip) if args.zip else None,
+                                       Path(args.csv) if args.csv else None,
+                                       Path(args.state), args.seen)
         state = Path(args.state)
         if args.insights_command == "collect":
             if not state.is_dir():

@@ -144,6 +144,11 @@ donne, ses vues « engagées » ; pour la chaîne, ses sources, ses pays, les re
 Le résultat est un artefact du run (`youtube-detail`, 3 jours) qu'une session lit ; rien n'est écrit sur `state`,
 et le journal ne montre ni les recherches ni rien d'autre que nos titres et des chiffres.
 
+**Maintenant chaque nuit** (choix du propriétaire, 2026-11-21, pour le tableau de bord de la page « Statistiques ») : le
+relevé de nuit (étape « Read YouTube ») lance aussi `quran-reels insights youtube-detail --days 35` et garde le
+résultat dans `youtube-detail.json` sur la branche `state` (compact, sans indentation) ; s'il échoue, un avertissement,
+le fichier d'avant reste et rien d'autre n'est perdu. Le mode à la demande (artefact) ne change pas.
+
 ## Captures TikTok (et ce que l'API YouTube ne donne pas)
 
 TikTok n'a pas d'API pour nous : ses chiffres n'existent que par les captures du propriétaire, envoyées **dans
@@ -160,9 +165,19 @@ chiffres sur l'image, les montre au propriétaire et demande, puis lance `insigh
 
 - `video` : l'identifiant d'une vidéo thématique (`<publication>/<short-N|film>`, voir la page), le passage d'un
   reel (`106:1-4`) ou un titre ; une entrée non reconnue est listée à part (« Captures sans vidéo reconnue »).
-- `metrics` : `views`, `hook` (% qui passent 3 s ; YouTube : « regardées » ; TikTok : 100 − « taux de saut » s'il
-  est affiché), `avg_watch` (s), `watch_pct`, `kept_30s`, `finished` (% qui ont regardé jusqu'au bout ; TikTok :
-  « A regardé la vidéo en entier »), `shares`, `saves`, `comments`, `likes`, `follows`, `reach`.
+- `metrics` : `views`, `hook` (% qui passent 3 s ; TikTok : 100 − « taux de saut » s'il est affiché ; YouTube :
+  « Ont choisi de regarder » va dans `viewed_pct` depuis le 2026-11-21, une entrée plus ancienne garde `hook`), `avg_watch` (s), `watch_pct`, `kept_30s`, `finished` (% qui ont regardé jusqu'au bout ; TikTok :
+  « A regardé la vidéo en entier »), `shares`, `saves`, `comments`, `likes`, `follows`, `reach` (Facebook : une
+  exportation de Meta Business Suite, l'API ne le donne pas pour les reels), et trois chiffres des exportations de
+  YouTube Studio, que l'API n'a pas : `impressions` (impressions de miniatures), `ctr` (taux de clics sur la miniature,
+  en %), `viewed_pct` (Shorts : « Ont choisi de regarder » / « Viewed (vs. swiped away) », en %).
+- **Exportation « Contenu » de YouTube Studio** (Analytics → Mode avancé → exporter, un zip de CSV) : le propriétaire
+  envoie le zip, `quran-reels insights import-youtube --zip FICHIER.zip --state <branche state> --seen AAAA-MM-JJ`
+  (ou `--csv` pour le seul tableau « Informations relatives aux tableaux ») lit une ligne par vidéo, ne garde que
+  `impressions`, `ctr` et, si la colonne existe, `viewed_pct`, et imprime **une ligne de JSON** : la liste à donner à
+  `insights.yml` (`manual`). `video` y est la clé de la vidéo dans `insights.json` (`slot:…`, `theme:…`) ; un
+  identifiant que l'état ne connaît pas est listé sur stderr et laissé de côté ; la ligne « Total » est ignorée.
+  En-têtes français ou anglais, virgule décimale comprise.
 - La même plateforme, la même vidéo et le même jour de capture remplacent l'entrée d'avant ; avec
   `"remove": true` (sans `metrics`), l'entrée de ce jour est retirée (une capture rangée sous une mauvaise vidéo).
 - Aucun chiffre deviné : ce qui n'est pas sur la capture n'est pas écrit.
