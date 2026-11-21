@@ -40,6 +40,31 @@ def load_history() -> dict:
     return yaml.safe_load((HERE / "history.yaml").read_text(encoding="utf-8")) or {}
 
 
+DATASET_ABOUT = (
+    "One row per video and platform (catalog/dashboard.py). video: the page's key of the video "
+    "(slot:<day>/<slot> a reel of the calendar, theme:<doc>/<part> a theme video, hand:<passage> "
+    "a reel published by hand); kind, group, series, passage, reciter, background (id, theme, "
+    "kind), seconds and length, weekday (0 = Monday) and hour (Paris), cut (a short version); "
+    "m48, m7d, m28d: the numbers at 48 hours, 7 and 28 days (docs/insights.md), latest: the last "
+    "reading; studio: YouTube Studio's export (impressions, ctr, viewed_pct); yt: the night's "
+    "YouTube detail (traffic sources and countries, % of the views). TikTok rows come from the "
+    "owner's screenshots (latest). Compare at the same age, as medians; fewer than 3 videos or "
+    "under 12 points apart is no difference.")
+
+
+def _with_kind(cfg: Config, backgrounds: dict[str, dict]) -> dict[str, dict]:
+    """Each slot's background with its theme in French and its kind (a generated scene or a
+    filmed clip), for the statistics page's audit by background."""
+    from quran_reels.catalog.page import theme
+
+    scenes = {b["id"] for b in (cfg.backgrounds.get("backgrounds") or [])
+              if isinstance(b, dict) and b.get("scene")}
+    return {k: {"id": b.get("id", ""), "theme": theme(b.get("theme") or "default"),
+                "kind": "scène générée" if b.get("id") in scenes else (
+                    "provisoire" if str(b.get("id", "")).startswith("provisional") else "clip")}
+            for k, b in backgrounds.items() if b}
+
+
 def _json(path: Path | None) -> dict:
     if path and path.is_file() and path.read_text(encoding="utf-8").strip():
         return json.loads(path.read_text(encoding="utf-8"))
@@ -186,8 +211,14 @@ def build(cfg: Config, out: Path, state_dir: Path | None = None, previous: str |
         "stats": stats_mod.build(_json(state_dir / "insights.json") if state_dir else None,
                                  ins_cfg, now, sched.tz, theme_index,
                                  {n: r.get("label", n) for n, r in
-                                  (cfg.content.get("reciters") or {}).items()}),
+                                  (cfg.content.get("reciters") or {}).items()},
+                                 _json(state_dir / "youtube-detail.json") if state_dir else None,
+                                 _with_kind(cfg, posts["backgrounds"]),
+                                 {sid: s.title_en or sid for sid, s in series.items()}),
     }
+    # One row per video and platform, for the sessions' audits (catalog/dashboard.py): beside
+    # the page, not in data.json.
+    dataset = data["stats"].pop("dataset", None)
     out.mkdir(parents=True, exist_ok=True)
     try:                        # the on-demand form: sentence ends and meanings per surah
         loaded = od_mod.surah_files(cfg, src, out / "surahs", od_mod.MEANINGS_BUDGET
@@ -201,6 +232,10 @@ def build(cfg: Config, out: Path, state_dir: Path | None = None, previous: str |
         print(f"warning: on-demand surah files: {type(e).__name__}: {e}", file=sys.stderr)
     (out / "data.json").write_text(json.dumps(data, ensure_ascii=False, indent=1),
                                    encoding="utf-8")
+    if dataset is not None:
+        (out / "dataset.json").write_text(json.dumps(
+            {"built": data["built"], "about": DATASET_ABOUT, "rows": dataset},
+            ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     from quran_reels.catalog.page import render, render_stats
 
     (out / "index.html").write_text(render(data), encoding="utf-8")

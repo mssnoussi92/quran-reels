@@ -58,6 +58,11 @@ def collect(cfg: Config, sched: Schedule, series: dict[str, Series], state: dict
     labels = {n: r.get("label", n) for n, r in (cfg.content.get("reciters") or {}).items()}
 
     def background(ident: str, record: dict, removed: bool) -> dict | None:
+        if record.get("background"):          # recorded by the run that published it
+            known = next((b for b in (cfg.backgrounds.get("backgrounds") or [])
+                          if b.get("id") == record["background"]), {})
+            return {"id": record["background"], "theme": (known.get("tags") or [""])[0],
+                    "from": "état"}
         found = manifest_bgs.get((record.get("passage", ""), record.get("reciter") or ""))
         if found:
             return {"id": found.get("id"), "theme": found.get("theme", ""), "from": "manifeste"}
@@ -100,7 +105,11 @@ def collect(cfg: Config, sched: Schedule, series: dict[str, Series], state: dict
     removed = [item(x.get("slot", ""), x.get("record") or {}, x.get("why", ""), removed=True)
                for x in state.get("removed") or [] if x.get("slot")]
     return {"slots": slots[:KEEP], "total": len(slots), "removed": removed,
-            "by_hand": sorted(sched.published_by_hand)}
+            "by_hand": sorted(sched.published_by_hand),
+            # every slot's background (the statistics page audits them), the one the state
+            # recorded first (daily.record_slot, since 2026-11-22)
+            "backgrounds": {f"slot:{x['date']}/{x['slot']}": x["background"] for x in slots
+                            if x.get("background")}}
 
 
 def _order(slot_key: str, sched: Schedule) -> tuple[str, str]:

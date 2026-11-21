@@ -38,8 +38,10 @@ rien** et **ne modifie rien** : il lit la configuration et l'état.
    qu'écrites : publiées, prévues, à faire) : un seul calendrier pour tout ce que la Page publie.
 4. **Publications** : derniers créneaux de `published.json`, liens Facebook/Instagram, statut
    TikTok, récitateur, fond, éléments retirés (`removed`).
-5. **Statistiques** (`stats.html`, 2026-11-15, docs/insights.md) : abonnés, chaque type de vidéo
-   comparé à 48 h, chaque vidéo sur Facebook et Instagram, captures YouTube et TikTok.
+5. **Statistiques** (`stats.html`, 2026-11-15, docs/insights.md) : le tableau de bord (2026-11-21 : abonnés,
+   chaque type de vidéo à 48 h, audits, avant / après, YouTube en détail, rétention Facebook, TikTok,
+   essais, données manquantes), puis chaque vidéo sur chaque plateforme ; à côté, `dataset.json`, une
+   ligne par vidéo et par plateforme pour les audits des sessions.
 
 ## Agir depuis le téléphone
 

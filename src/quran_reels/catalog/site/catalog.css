@@ -208,3 +208,31 @@ table.stats-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 .nums b { color: var(--text); }
 .slot.theme time { color: #b9c8ff; }
 .slot.theme .what b { font-weight: 600; }
+
+/* The dashboard of the « Statistiques » page (catalog/dashboard.py, catalog/charts.py). */
+.stats .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.stats .tile { padding: 10px 12px; }
+.stats .tile .big-num { font-size: 28px; margin: 4px 0 2px; }
+.stats .tile .pf, .stats .tile .meta { margin: 0; font-size: 13px; }
+.stats .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+.stats h3 .dot { width: 10px; height: 10px; }
+.stats .figure { padding: 8px 6px; }
+.stats svg.chart { display: block; width: 100%; height: auto; overflow: visible;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans Arabic', sans-serif; }
+.stats svg.chart .tick { fill: #aab0cf; font-size: 11px; }
+.stats svg.chart .lab { fill: #eef0fa; font-size: 12px; }
+.stats svg.chart .lab2 { fill: #c9cde6; font-size: 12px; }
+.stats svg.chart .in { font-size: 11px; }
+.stats svg.chart .hit { fill: transparent; cursor: pointer; }
+.stats svg.chart [data-tip] { cursor: pointer; }
+.stats .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; color: var(--muted); margin: 4px 0 8px; }
+.stats .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; }
+.stats-table td.few { opacity: .5; }
+.stats-table.audit td { text-align: right; }
+.stats-table.audit td:first-child { text-align: left; }
+.stats-table.audit th { white-space: nowrap; }
+.stats-table .sub { display: block; color: var(--muted); font-size: 12px; font-weight: 400; }
+.tip { position: absolute; z-index: 20; max-width: 280px; padding: 6px 9px; border-radius: 8px;
+  background: #eef0fa; color: #0d1330; font-size: 12.5px; line-height: 1.35; pointer-events: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,.35); }
+@media (max-width: 420px) { .stats .tile .big-num { font-size: 22px; } }

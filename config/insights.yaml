@@ -31,3 +31,70 @@ youtube:                   # the channel's numbers, read only (insights/youtube.
 compare:                   # the dashboard's rule (docs/retention.md of quran-themes-demo,
   min_videos: 3            # « Mesurer »): fewer videos, or a smaller gap in points, and no
   min_points: 12           # difference is claimed between two kinds of video
+
+# The dashboard (catalog/dashboard.py, owner's choice 2026-11-21). Both lists are meant to change:
+# a session adds a trial the day a change ships, and a source the day one is found
+# (continuous improvement, CLAUDE.md).
+trials:                    # « Essais en cours »; with `platforms`, a before / after of the 48 h
+                           # `metric` (default views) over `days` (default 14) each side, for the
+                           # videos of `kinds` (a kind, or a group: Reels, Shorts thématiques, Films)
+  - what: Titres YouTube en arabe d'abord
+    since: 2026-11-21
+    where: YouTube (nouveaux titres ; les anciens renommés à la main)
+    judge: part des vues venues de la recherche, puis le taux de clics des exports de Studio
+    platforms: [youtube]
+    kinds: [Reels, Shorts thématiques]
+    metric: search_pct
+  - what: Légende Instagram sans les versets
+    since: 2026-11-22
+    where: Instagram (reels)
+    judge: vues à 48 h des reels, avant / après ; le même jour, la tête de légende passe à l'arabe
+      d'abord (les deux changements ne se séparent pas)
+    platforms: [instagram]
+    kinds: [Reels]
+  - what: Légendes des reels en arabe d'abord
+    since: 2026-11-22
+    where: Facebook, Instagram, TikTok
+    judge: vues à 48 h des reels sur Facebook, avant / après
+    platforms: [facebook]
+    kinds: [Reels]
+  - what: Omar Hisham d'abord quand sa découpe est vérifiée
+    since: 2026-11-22
+    where: toutes les plateformes sauf YouTube
+    judge: l'audit par récitateur
+  - what: Miniatures dessinées des films
+    since: 2026-11-23
+    where: YouTube (Moussa et al-Khadir, à changer dans Studio ; Dhul-Qarnayn le 23, la caverne le 30)
+    judge: taux de clics des films (exports de Studio), avant / après
+    platforms: [youtube]
+    kinds: [Films]
+  - what: Version courte des shorts de Dhul-Qarnayn
+    since: 2026-11-24
+    where: Facebook, Instagram, YouTube (24 au 26 novembre)
+    judge: l'audit « version courte contre short entier », à la revue du 29 novembre
+  - what: Page test « معاك 5 ثواني » (un seul type de vidéo)
+    since: 2026-11-19
+    where: sa propre page Facebook et Instagram
+    judge: ses quiz contre le quiz de la Page, à partir du 23 novembre (insights-ma3ak.json)
+
+missing:                   # « Données manquantes »: what the page lacks and how it comes; `look`
+                           # finds the last manual entry that brought it (none: not done yet)
+  - what: Impressions et taux de clics des miniatures (YouTube)
+    how: export « Contenu » de YouTube Studio (le zip), envoyé dans n'importe quelle session
+    often: une fois par semaine
+    look: {platform: youtube, metric: ctr}
+  - what: « Ont choisi de regarder » contre « balayées » (Shorts YouTube)
+    how: le même export, avec cette colonne ajoutée dans le mode avancé de Studio
+    often: une fois par semaine
+    look: {platform: youtube, metric: viewed_pct}
+  - what: TikTok (vues, durée moyenne, vues complètes, abonnés)
+    how: captures de TikTok Studio, la liste « Contenu » et deux ou trois vidéos
+    often: une fois par semaine
+    look: {platform: tiktok}
+  - what: Portée des reels Facebook
+    how: export « Contenu » de Meta Business Suite (l'API la refuse pour les reels)
+    often: une fois par semaine
+    look: {platform: facebook, metric: reach}
+  - what: Âge, sexe et pays des abonnés Facebook et Instagram
+    how: l'API Meta les donne (Instagram à partir de 100 abonnés) ; pas encore lus
+    often: chaque nuit, à ajouter au relevé
