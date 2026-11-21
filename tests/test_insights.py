@@ -93,6 +93,27 @@ def test_a_post_is_recognised_by_the_first_line_of_its_caption():
     assert idx.match("", "facebook") is None
 
 
+def test_a_title_in_either_order_and_either_digits_finds_its_video():
+    """YouTube titles of theme videos are « Arabic · English » from 2026-11-21, the older ones
+    stay « English · Arabic »; ٣ and 3 compare equal (owner's rule: numbers are 123)."""
+    idx = index()
+    old = "Du'a: 3 wrong ideas that keep you from asking · الدعاء: ٣ أفكار غلط بتبعدك عنه"
+    new = "الدعاء: ٣ أفكار غلط بتبعدك عنه · Du'a: 3 wrong ideas that keep you from asking"
+    assert idx.match(old, "youtube").id == "dua/film"
+    assert idx.match(new, "youtube").id == "dua/film"
+    assert idx.match(new, "facebook").id == "dua-9x16/film"        # the platform still decides
+    assert idx.match("الدعاء: 3 أفكار غلط بتبعدك عنه · Du'a", "youtube").id == "dua/film"
+    assert T.norm("٣ و۴") == T.norm("3 و4") == "3 و4"
+    assert idx.match("سابوا خطبة الجمعة… ليه؟ · They walked out", "youtube").id == "ayah/short-1"
+    assert idx.match("صابر… ودعا! · Patient… and he asked", "youtube").id == "dua/short-1"
+    # a short Arabic title is not enough by its start alone: a line that merely begins with it
+    short = T.ThemeIndex([T.ThemeVideo(id="x/short-1", doc="x", series="", part="Short 1",
+                                       title_en="A long English title of its own",
+                                       title_ar="قصير", platforms=["youtube"])])
+    assert short.match("قصير وبعده كلام آخر كثير", "youtube") is None
+    assert short.match("A long English title of its own · قصير", "youtube").id == "x/short-1"
+
+
 def test_calendar_rows_become_days():
     days = T.parse_calendar(CALENDAR, date(2026, 11, 15))
     assert [d.day for d in days] == ["2026-11-12", "2026-11-16", "2026-11-30", "2026-12-01",

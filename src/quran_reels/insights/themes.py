@@ -29,9 +29,14 @@ CUT = re.compile(r"`(?P<name>[^`]+-cut\.mp4)`(?:\s*,\s*(?P<dur>\d+:\d{2}))?")
 DAY = re.compile(r"(?P<d>\d{1,2})\s+(?P<m>[a-zéûè]+)\.?", re.IGNORECASE)
 
 
+_DIGITS = str.maketrans("٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹", "01234567890123456789")
+ARABIC_MIN = 8       # an Arabic title shorter than this is never matched by its start alone
+
+
 def norm(text: str) -> str:
-    """A title as compared: case, quotes, ellipses, dashes and spaces made alike."""
-    t = unicodedata.normalize("NFKC", text or "").casefold()
+    """A title as compared: case, quotes, ellipses, dashes and spaces made alike, Arabic-Indic
+    digits written 0-9 (owner's rule: numbers are 123; a validated title may still have ٣)."""
+    t = unicodedata.normalize("NFKC", text or "").casefold().translate(_DIGITS)
     t = (t.replace("’", "'").replace("‘", "'").replace("“", '"').replace("”", '"')
          .replace("…", "...").replace("–", "-").replace("—", "-"))
     t = re.sub(r"\s+", " ", t).strip()
@@ -112,6 +117,10 @@ def parse_texts(doc: str, text: str) -> list[ThemeVideo]:
     return out
 
 
+def _starts(line: str, title: str) -> bool:
+    return bool(title) and (line == title or line.startswith(title))
+
+
 class ThemeIndex:
     """Every theme video, found by the first line of a caption."""
 
@@ -124,8 +133,10 @@ class ThemeIndex:
         line = norm(first)
         if len(line) < 8:
             return None
-        found = [v for v in self.videos if norm(v.title_en) and (
-            line == norm(v.title_en) or line.startswith(norm(v.title_en)))]
+        # A theme video's YouTube title is « <English> · <Arabic> » (published until 2026-11-21) or
+        # « <Arabic> · <English> » (from then on): either title starts the line.
+        found = [v for v in self.videos if _starts(line, norm(v.title_en)) or (
+            len(norm(v.title_ar)) >= ARABIC_MIN and _starts(line, norm(v.title_ar)))]
         if not found:
             return None
         # The 16:9 film (YouTube) and its 9:16 version (Facebook) share a title.
