@@ -501,10 +501,33 @@ la fin de `insights` (`playlists.py`, config/playlists.yaml) :
 
 **Son propre jeton**, `YOUTUBE_PLAYLISTS_REFRESH_TOKEN` : Google n'a pas d'autorisation plus étroite que
 `youtube.force-ssl` pour écrire une playlist, et celle-ci permet aussi de modifier ou de supprimer des vidéos (accepté par
-lui, question à choix du 2026-11-21) ; seul ce workflow le lit, et le code n'appelle que `playlists` et `playlistItems`.
+lui, question à choix du 2026-11-21) ; seuls ce workflow et `youtube-channel` le lisent, et le code n'appelle que `playlists`,
+`playlistItems`, `captions` et `channels` (mots-clés et description de la chaîne).
 Connexion : youtube-login.html → **« Playlists: continue to Google »**, cocher, puis le workflow **youtube-auth** avec le
 code (même marche que ci-dessus). Sans lui, rien n'est fait. À la main : Actions → **playlists** → `dry_run` coché, il
 dit ce qu'il ferait.
+
+### Description et mots-clés de la chaîne (choix du propriétaire, 2026-11-21)
+
+Les mots-clés de la chaîne étaient vides et sa description disait « twice a day », en anglais d'abord. Les deux textes
+sont dans `config/channel.yaml`, **validés par lui** (`validated: true` sur sa seule parole), et s'appliquent **une
+fois, à la main** : Actions → **youtube-channel** ; décoché, il imprime les deux champs tels qu'ils sont et tels
+qu'ils seront ; coché (`apply`), il les change et renvoie tout le reste des réglages de la chaîne tel quel
+(`channels.update` efface ce qu'on ne lui renvoie pas), puis relit la chaîne pour vérifier. Jamais par le
+planificateur : ce qu'il écrit ensuite dans Studio n'est pas écrasé. Il refuse un texte non validé ou au-delà des
+limites de YouTube (description 1 000 caractères, mots-clés 500 ; les marques comptées).
+
+- **Le sens de chaque ligne** : la description mêle des lignes arabes et anglaises ; une marque invisible (RLE ou
+  LRE) au début de chaque ligne qui en a besoin fixe son sens, quel que soit l'affichage (`bidi.py`, aucun mot
+  changé ; sa demande : « être sûr que l'affichage de l'arabe sera bon »). Essayé dans Chromium dans les trois
+  affichages possibles : chaque ligne son sens (téléphone), tout de droite à gauche, tout forcé de gauche à droite ;
+  sans marques, deux des trois cassaient le texte.
+- **Le nom d'une série, à sa première vidéo** (son choix, même soir : « à leur première vidéo, par le run ») : la
+  nuit, après les playlists, le workflow `playlists` ajoute à la fin des mots-clés le nom arabe de chaque série
+  (reels) ou document (vidéos thématiques) qui a une vidéo sur YouTube, sans voyelles ni ponctuation, ou celui de
+  `series_keywords` ; jamais un mot retiré, jamais la description touchée ; à 500 caractères, il le dit
+  (« keywords are full ») et le propriétaire choisit quoi retirer. Même jeton que les playlists (`channels.update`
+  demande `youtube.force-ssl`).
 
 ## Format vidéo commun
 

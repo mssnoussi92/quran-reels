@@ -80,6 +80,9 @@ def main(argv: list[str] | None = None) -> int:
                       help="the uploads' sign-in (YOUTUBE_UPLOAD_REFRESH_TOKEN), not the statistics'")
     yurl.add_argument("--playlists", action="store_true",
                       help="the playlists' sign-in (YOUTUBE_PLAYLISTS_REFRESH_TOKEN)")
+    ych = sub.add_parser("youtube-channel",
+                         help="the channel's keywords and description (config/channel.yaml)")
+    ych.add_argument("--apply", action="store_true", help="change them (default: dry run)")
     ypl = sub.add_parser("youtube-playlists",
                          help="put the channel's videos in their playlists (config/playlists.yaml)")
     ypl.add_argument("--state", default="state-branch",
@@ -442,6 +445,11 @@ def main(argv: list[str] | None = None) -> int:
         conf = cfg.project["platforms"]["tiktok"]
         print(auth_url(os.environ["TIKTOK_CLIENT_KEY"], conf["redirect_uri"], args.state))
         return 0
+
+    if args.command == "youtube-channel":
+        from quran_reels import channel
+
+        return channel.run(cfg.root, dry_run=not args.apply)
 
     if args.command == "youtube-playlists":
         from pathlib import Path
