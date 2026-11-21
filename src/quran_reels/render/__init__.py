@@ -80,28 +80,25 @@ def signatures(cfg: Config) -> dict[str, str]:
     return out
 
 
-def series_line(passage: Passage, arabic_first: bool = False) -> str:
-    """The series in both languages, one counter last. Titles are always given in Arabic and
-    English (owner, 2026-11-09). Facebook, Instagram and TikTok: the English first, always
-    (owner, 2026-11-21: « pour les titres Facebook, Instagram et TikTok je veux toujours l'anglais
-    d'abord »): «Supplications from the Quran · آيات الدعاء · 3/38». YouTube (`caption.txt`, its
-    title): the Arabic first (`arabic_first`, owner, 2026-11-21: most of the channel's viewers are
-    in Arabic-speaking countries and search in Arabic): «آيات الدعاء · Supplications from the
-    Quran · 3/38». The Arabic title is label_ar without its Arabic counter, the English one
-    label_en without its counter (series titles never contain « · », tests/test_basmala.py)."""
+def series_line(passage: Passage) -> str:
+    """The series in both languages, the Arabic first, one counter last: «آيات الدعاء ·
+    Supplications from the Quran · 3/38». Titles are always given in Arabic and English (owner,
+    2026-11-09), **the Arabic first everywhere**, titles and descriptions, on every platform
+    (owner, 2026-11-21: « je veux l'arabe d'abord partout titres et description », correcting a
+    session that had put the English first back on Facebook, Instagram and TikTok; 74 % of the
+    channel's views come from Arabic-speaking countries). The Arabic title is label_ar without its
+    Arabic counter, the English one label_en without its counter (series titles never contain
+    « · », tests/test_basmala.py)."""
     if not passage.label_en:
         return ""
     en, _, count = passage.label_en.partition(" · ")
     ar = passage.label_ar.partition(" · ")[0]
-    return " · ".join(x for x in ((ar, en) if arabic_first else (en, ar)) + (count,) if x)
+    return " · ".join(x for x in (ar, en, count) if x)
 
 
-def surah_line(passage: Passage, arabic_first: bool = False) -> str:
-    """« Surah Ad-Duhaa (93:1-11) · سورة الضحى » on Facebook, Instagram and TikTok (the English
-    first, owner, 2026-11-21); « سورة الضحى · Surah Ad-Duhaa (93:1-11) » for YouTube
-    (`arabic_first`, same day)."""
-    en, ar = f"Surah {passage.surah_name_en} ({passage.reference})", f"سورة {passage.surah_name_ar}"
-    return f"{ar} · {en}" if arabic_first else f"{en} · {ar}"
+def surah_line(passage: Passage) -> str:
+    """« سورة الضحى · Surah Ad-Duhaa (93:1-11) »: the Arabic first, everywhere (owner, 2026-11-21)."""
+    return f"سورة {passage.surah_name_ar} · Surah {passage.surah_name_en} ({passage.reference})"
 
 
 def caption(cfg: Config, passage: Passage, limit: int = CAPTION_LIMIT) -> str:
@@ -110,10 +107,9 @@ def caption(cfg: Config, passage: Passage, limit: int = CAPTION_LIMIT) -> str:
     Too long for Instagram: the Arabic goes first, then the translation. Credits always stay.
     """
     c = cfg.content
-    # caption.txt is YouTube's description, and its head makes the YouTube title: the Arabic first
-    head = [surah_line(passage, arabic_first=True), ""]
+    head = [surah_line(passage), ""]
     if passage.label_en:
-        head = [series_line(passage, arabic_first=True), *head]
+        head = [series_line(passage), *head]
     tail = [
         _recitation(cfg),
         f"Translation: {c['translation']['label']}",
@@ -147,8 +143,8 @@ def _credits(cfg: Config, passage: Passage) -> list[str]:
 
 
 def _reference(passage: Passage, label: bool = True) -> str:
-    """The series line (when the passage has one) over the surah and its reference, at the head of
-    the Facebook, Instagram and TikTok captions: the English first (owner, 2026-11-21)."""
+    """The series line (when the passage has one) over the surah and its reference, each in
+    Arabic first (owner, 2026-11-21: everywhere)."""
     return (series_line(passage) + "\n" if passage.label_en and label else "") + surah_line(passage)
 
 

@@ -70,8 +70,8 @@ def test_series_title_on_the_first_frame_and_first_caption_line():
                "glosses": {"label": "G"}}
     c = Config(root=Path("."), project={"content": content, "video": {"handle": "@h"}},
                backgrounds=[], gloss_headwords={})
-    # titles in Arabic and English (owner, 2026-11-09), one counter; caption.txt is YouTube's:
-    # the Arabic first (2026-11-21)
+    # titles in Arabic and English (owner, 2026-11-09), the Arabic first everywhere (2026-11-21),
+    # one counter
     assert caption(c, passage).splitlines()[0] == \
         "آيات الدعاء · Supplications from the Quran · 4/38"
     # one ayah: «(2:201)», never «(2:201-201)» (seen on 6:17 and 2:255, 2026-11-09)
@@ -93,9 +93,8 @@ def test_series_line_without_a_counter():
 
     p = Passage(2, 255, 255, "البقرة", "Al-Baqarah", label_ar="آية الكرسي",
                 label_en="Ayat al-Kursi")
-    # Facebook, Instagram, TikTok: the English first (owner, 2026-11-21); YouTube: the Arabic first
-    assert series_line(p) == "Ayat al-Kursi · آية الكرسي"
-    assert series_line(p, arabic_first=True) == "آية الكرسي · Ayat al-Kursi"
+    # the Arabic first on every platform, titles and descriptions (owner, 2026-11-21)
+    assert series_line(p) == "آية الكرسي · Ayat al-Kursi"
     assert series_line(Passage(93, 1, 11, "الضحى", "Ad-Duhaa")) == ""
 
 

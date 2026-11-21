@@ -153,10 +153,9 @@ _COUNTER = re.compile(r"\d+/\d+")
 
 def _arabic_first(line: str) -> str:
     """One head line with its parts (split on « · ») in the order of the YouTube title (owner,
-    2026-11-21): the Arabic ones first, then the others, a counter (« 4/7 ») last. caption.txt is
-    rendered in that order since the same day (render.series_line, render.surah_line with
-    `arabic_first`); the other platforms keep the English first (owner, same day). This keeps the
-    title right for a reel rendered before."""
+    2026-11-21): the Arabic ones first, then the others, a counter (« 4/7 ») last. Every caption is
+    rendered in that order since the same day (render.series_line, render.surah_line: the Arabic
+    first everywhere); this keeps the title right for a reel rendered before."""
     parts = [p.strip() for p in line.split(" · ") if p.strip()]
     counter = [p for p in parts if _COUNTER.fullmatch(p)]
     rest = [p for p in parts if p not in counter]
