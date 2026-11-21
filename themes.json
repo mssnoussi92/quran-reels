@@ -111,6 +111,72 @@
      "rights_after": null
     }
    }
+  },
+  "2026-11-21": {
+   "label": "« سنريهم آياتنا » 1 : Abou Lahab",
+   "videos": {
+    "facebook": "signs/short-1",
+    "instagram": "signs/short-1",
+    "tiktok": "signs/short-1",
+    "youtube": "signs/short-1"
+   },
+   "at": "2026-11-21T16:41:05+00:00",
+   "results": {
+    "facebook": {
+     "platform": "facebook",
+     "status": "published",
+     "remote_id": "1161476146337376",
+     "url": "https://www.facebook.com/reel/1161476146337376/",
+     "error": null,
+     "rights": {
+      "platform": "facebook",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 0.11514723799996318,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    },
+    "instagram": {
+     "platform": "instagram",
+     "status": "published",
+     "remote_id": "18036106520880428",
+     "url": "https://www.instagram.com/reel/DgAr5-oAk3I/",
+     "error": null,
+     "rights": {
+      "platform": "instagram",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 31.20701301400004,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    },
+    "tiktok": {
+     "platform": "tiktok",
+     "status": "draft",
+     "remote_id": "v_inbox_file~v2.7710666804946962454",
+     "url": null,
+     "error": null,
+     "rights": null,
+     "rights_after": null
+    },
+    "youtube": {
+     "platform": "youtube",
+     "status": "published",
+     "remote_id": "TslMGOee8Mo",
+     "url": "https://youtube.com/shorts/TslMGOee8Mo",
+     "error": null,
+     "rights": null,
+     "rights_after": null
+    }
+   }
   }
  }
 }
