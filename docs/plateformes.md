@@ -336,7 +336,12 @@ github.com → photo de profil → Settings → Developer settings → Personal 
   2026-11-02 ([historique de l'API](https://developers.google.com/youtube/v3/revision_history),
   [videos.insert](https://developers.google.com/youtube/v3/docs/videos/insert) : « Videos uploaded
   from unverified API projects are not restricted to private viewing mode »). L'audit n'est plus
-  nécessaire ; il ne servirait qu'à dépasser les quotas.
+  nécessaire ; il ne servirait qu'à dépasser les quotas. **Pas demandé** (choix du propriétaire,
+  2026-11-21 : 1 à 2 mises en ligne par jour sur 100, des semaines d'échanges et un examen de tout
+  le projet pour rien) ; à reprendre si YouTube remet le verrouillage ou si le quota manque. Ce
+  que les règles de l'API demandent à toute application est fait : la page Confidentialité dit
+  qu'on utilise les « YouTube API Services » et donne la politique de confidentialité de Google et
+  la page où retirer l'accès, les Conditions renvoient aux conditions d'utilisation de YouTube.
 - **Les Shorts du calendrier sont mis en ligne par le run `daily`** (choix du propriétaire,
   2026-11-21 : les reels d'abord, les vidéos thématiques et les demandes restent à la main) :
   `platforms.youtube.upload` de config/project.yaml, `publishers/youtube.py`, `daily.to_youtube`.
