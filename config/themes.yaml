@@ -19,6 +19,11 @@ texts: docs/retention
 release_prefix: page-      # https://github.com/<repo>/releases/download/page-<doc>/<file>
 time: "18:00"              # Paris (owner's request, 2026-11-19: 18:00 like the test page; before: 19:00,
                            # his decision of 2026-11-13)
+times:                     # from a day on, another hour (themepub/run.py, time_for)
+  - from: 2026-11-27       # owner's choice, 2026-11-21: 13:00, an hour before his YouTube viewers' peak
+    time: "13:00"          # (14:00-16:00 Paris on weekdays, Studio « Quand vos spectateurs sont sur
+                           # YouTube »); after the short versions of Dhul-Qarnayn (24-26) so the two
+                           # trials do not mix; every platform, the run publishes them at once
 early_minutes: 20          # a run up to 20 min before takes the day's video
 window_hours: 3            # after that, the day's video is missed (an alert says so)
 platforms: [facebook, instagram, tiktok, youtube]
@@ -28,6 +33,7 @@ youtube:                   # publishers/youtube.py: its own token, YOUTUBE_UPLOA
   synthetic_media: false   # owner's choice, 2026-11-21: « Non »: a narrator's synthetic voice that
                            # imitates no one is not the realistic content YouTube asks about; every
                            # description already says the voice is AI-generated
+  language: ar             # Egyptian Arabic narration, Arabic recitation (owner, 2026-11-21)
   # category: "27"         # unset: YouTube's default, as for the uploads by hand
 reels_max_seconds: 900     # Facebook: up to 15 min through the Reels API, with Meta's rights check on the
                            # unpublished reel. Dry runs of 2026-11-15: a 2:05 short and the 8:24 film taken

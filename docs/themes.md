@@ -1,7 +1,7 @@
 # Vidéos thématiques sur la Page (publication automatique)
 
 Décidé avec le propriétaire le 2026-11-15 (« je valide ») : les vidéos de quran-themes-demo (films, shorts
-d'histoire, épisodes de séries) sortent sur la Page à **18:00, heure de France** (19:00 jusqu'au 2026-11-19, sa demande), du lundi au samedi, sans geste de sa
+d'histoire, épisodes de séries) sortent sur la Page à **18:00, heure de France** (19:00 jusqu'au 2026-11-19, sa demande), **13:00 à partir du vendredi 27 novembre** (son choix du 2026-11-21 : ses spectateurs YouTube sont là surtout de 14 h à 16 h en semaine, d'après Studio ; après les versions courtes de Dhul-Qarnayn, 24-26, pour ne pas mélanger les deux essais ; toutes les plateformes, le run publie d'un coup ; `times` de config/themes.yaml), du lundi au samedi, sans geste de sa
 part, à partir du **jeudi 19 novembre** (le short 3 du du'a ; son choix du 2026-11-19, au lieu du lundi 23,
 le film de Dhul-Qarnayn). Avant, il les publie à la main.
 
@@ -108,7 +108,7 @@ version courte pour Facebook et Instagram : `qarnayn-short-1-west-cut.mp4`, 1:13
 |---|---|
 | Réglages | `config/themes.yaml` (`from`, heure, fenêtre, plateformes, `reels_max_seconds`) |
 | Code | `src/quran_reels/themepub/` : `texts.py` (les textes), `calendar.py` (le jour → la vidéo), `run.py` (dû, téléchargement, publication, état, rapport) |
-| Workflow | `.github/workflows/themes.yml`, groupe `accounts` ; lancé par le planificateur à 17:40 (lundi à samedi) |
+| Workflow | `.github/workflows/themes.yml`, groupe `accounts` ; lancé par le planificateur à 17:40 (lundi à samedi), à 12:40 à partir du 27 novembre (les deux heures pendant le changement : le run décide seul de ce qui est dû) |
 | État | `themes.json` sur la branche `state` : une entrée par jour, un résultat par plateforme |
 | Alerte | ticket « ⚠️ Vidéo thématique en échec » (`notify --alert themes`), le sien |
 
@@ -119,7 +119,7 @@ quran-reels themes run --dry-run --day 2026-11-24   # essai à blanc d'un jour :
 ```
 
 - Une plateforme déjà faite pour le jour n'est jamais renvoyée ; une qui a échoué avant que rien ne lui parvienne
-  est réessayée au run suivant de la fenêtre (18:00 − 20 min à 21:00).
+  est réessayée au run suivant de la fenêtre (18:00 − 20 min à 21:00 ; 12:40 à 16:00 à partir du 27 novembre).
 - L'essai à blanc ne publie rien, n'enregistre rien et n'envoie aucun brouillon TikTok (il arriverait dans la boîte).
 - `themes check` sert à la revue du dimanche : un jour sans vidéo (« à faire »), une ligne non reliée ou un fichier
   absent de `page-<doc>` y apparaissent avant le jour.

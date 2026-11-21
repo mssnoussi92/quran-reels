@@ -347,6 +347,14 @@ github.com → photo de profil → Settings → Developer settings → Personal 
 - **Les Shorts du calendrier sont mis en ligne par le run `daily`** (choix du propriétaire,
   2026-11-21 : les reels d'abord) :
   `platforms.youtube.upload` de config/project.yaml, `publishers/youtube.py`, `daily.to_youtube`.
+  - **Langue et sous-titres** (choix du propriétaire, 2026-11-21) : chaque envoi déclare la langue
+    de la vidéo et de ses textes, **arabe** (`language`), comme Studio le demande à la main ; chaque reel
+    reçoit **deux pistes de sous-titres exactes**, tirées de son manifest.json mot pour mot et à son
+    minutage : le texte du mushaf (`نص المصحف`) et Sahih International (`captions.py`). Le run du matin
+    les écrit dans `youtube-captions/<vidéo>.json` (branche `state`) ; le workflow `playlists` les envoie
+    la nuit avec son jeton (`captions.insert` demande `youtube.force-ssl`, que lui seul a), une seule fois.
+    YouTube le dit : les tags jouent un rôle minime, et une vidéo d'abord non répertoriée ne gagne rien
+    (sa FAQ « performance ») : ni l'un ni l'autre n'est fait.
   - **Quoi** : la version YouTube du créneau (par Tawfiq As-Sayegh, ci-dessous), en **public**,
     avec les textes de la page « À publier » : titre (la tête de la légende, l'arabe d'abord),
     description (`caption.txt`) suivie de tous les hashtags, hashtags aussi en tags ; « pas

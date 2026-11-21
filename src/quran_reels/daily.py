@@ -429,7 +429,7 @@ def on_youtube(state: State, passage: str, key: str) -> dict | None:
 
 
 def to_youtube(cfg: Config, state: State, p: Pending, video: Path, youtube: dict | None,
-               checked: tuple | None) -> PublishResult | None:
+               checked: tuple | None, captions_dir: Path | None = None) -> PublishResult | None:
     """The slot's Short uploaded by the run (platforms.youtube.upload): the reel itself, or its
     version by YouTube's own reciter (youtube_version). None: nothing to do now (the reel is
     not out, or nothing goes to YouTube for this slot). Never raises: the reel is out."""
@@ -474,6 +474,13 @@ def to_youtube(cfg: Config, state: State, p: Pending, video: Path, youtube: dict
               file=sys.stderr)
         result = uploader.upload(youtube_mod.video_for(reel, conf,
                                                        publish_mod.max_hashtags(cfg, "youtube")))
+        if captions_dir and conf.get("captions") and result.remote_id \
+                and result.status == PublishStatus.PUBLISHED:
+            from quran_reels import captions
+
+            # The exact subtitles of what went up, sent by the nightly step (captions.py).
+            captions.queue(captions_dir, result.remote_id, path.with_suffix("") / "manifest.json",
+                           key, list(conf["captions"]))
     except Exception as e:      # noqa: BLE001  (the reel is out; a later run tries again)
         result = PublishResult("youtube", PublishStatus.FAILED, error=f"{type(e).__name__}: {e}")
     print(f"youtube: {result.status.value} {result.remote_id or ''} {result.url or ''} "
@@ -574,7 +581,10 @@ def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
         shown = {r.platform: {"status": r.status.value, "url": r.url, "error": r.error}
                  for r in results}
         if "youtube" in p.platforms and not dry_run:
-            uploaded = to_youtube(dcfg, state, p, video, youtube, checked)
+            from quran_reels import captions
+
+            uploaded = to_youtube(dcfg, state, p, video, youtube, checked,
+                                  captions_dir=state_path.parent / captions.DIR)
             if uploaded:
                 record_slot(state, p, [uploaded], reciter)
                 state.save(state_path)

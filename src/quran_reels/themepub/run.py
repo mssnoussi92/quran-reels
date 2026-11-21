@@ -157,8 +157,18 @@ def done(result: dict | None) -> bool:
     return bool(result) and (result.get("status") in DONE or bool(result.get("remote_id")))
 
 
+def time_for(s: dict[str, Any], day: date) -> str:
+    """The theme video's hour that day, Paris time: `time`, or the last of `times` whose `from`
+    has come (owner's choice, 2026-11-21: 13:00 from 2026-11-27, 18:00 before)."""
+    at = str(s.get("time", "19:00"))
+    for change in sorted(s.get("times") or [], key=lambda c: str(c["from"])):
+        if date.fromisoformat(str(change["from"])) <= day:
+            at = str(change["time"])
+    return at
+
+
 def slot(s: dict[str, Any], day: date) -> datetime:
-    hh, mm = (int(x) for x in str(s.get("time", "19:00")).split(":"))
+    hh, mm = (int(x) for x in time_for(s, day).split(":"))
     return datetime.combine(day, time(hh, mm), PARIS)
 
 
@@ -351,7 +361,8 @@ def to_youtube(s: dict[str, Any], uploader: Any, reel: ThemeReel, checks: dict, 
         tags=youtube_mod.tags_of(reel.hashtags), category=conf.get("category"),
         privacy=str(conf.get("privacy", "public")),
         made_for_kids=bool(conf.get("made_for_kids", False)),
-        synthetic_media=bool(conf.get("synthetic_media", False)), long=film)
+        synthetic_media=bool(conf.get("synthetic_media", False)), long=film,
+        language=conf.get("language"))
     print(f"youtube: uploading {reel.video.name} ({video.privacy})", file=sys.stderr)
     try:
         return uploader.upload(video, thumbnail=reel.cover_image, dedupe=True)
@@ -475,7 +486,7 @@ def _item(s: dict[str, Any], row: cal.Row, entry: dict,
                  + " · description : la page « À publier »."]
     tiktok = row.videos.get("tiktok")
     return {"key": item_key(row), "day": row.day.isoformat(),
-            "time": s.get("time", "19:00"), "passage": row.label,
+            "time": time_for(s, row.day), "passage": row.label,
             "label": v.title if v else "", "results": results,
             "caption": tiktok.captions.get("tiktok", "") if tiktok else "",
             "files": {"mp4": asset_url(s, tiktok.doc, tiktok.tiktok)} if tiktok else None,

@@ -59,14 +59,21 @@ trials:                    # « Essais en cours »; with `platforms`, a before /
       changements ne se séparent pas)
     platforms: [facebook, instagram]
     kinds: [Reels, Shorts thématiques]
-  - what: Shorts du calendrier mis en ligne par le run
+  - what: Shorts du calendrier mis en ligne par le run, langue arabe et sous-titres exacts
     since: 2026-11-22
-    where: YouTube (les reels ; la date est celle du premier Short mis en ligne ainsi, à corriger
-      si la connexion vient plus tard)
-    judge: vues à 48 h des Shorts, avant / après (titre et description ne changent pas ; ce qui
-      change, c'est l'heure, vers 07:40 juste après Facebook et Instagram, chaque jour)
+    where: "YouTube (les reels) ; trois changements le même jour, qui ne se séparent pas"
+    judge: "vues à 48 h et part de la recherche, avant / après (titre et description ne changent pas ;
+      ce qui change : l'heure, vers 07:40 au lieu de 9 h à 12 h 30 à la main, la langue déclarée, les
+      sous-titres du mushaf et de Sahih International)"
     platforms: [youtube]
     kinds: [Reels]
+  - what: Vidéos thématiques à 13:00 au lieu de 18:00
+    since: 2026-11-27
+    where: "toutes les plateformes (le run publie d'un coup) ; choix du propriétaire, 2026-11-21, d'après
+      les heures de ses spectateurs YouTube (Studio, 14 h à 16 h en semaine)"
+    judge: vues à 48 h des vidéos thématiques, avant / après, sur chaque plateforme
+    platforms: [youtube, facebook, instagram]
+    kinds: [Shorts thématiques]
   - what: Omar Hisham d'abord quand sa découpe est vérifiée
     since: 2026-11-22
     where: toutes les plateformes sauf YouTube

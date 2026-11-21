@@ -1,6 +1,7 @@
 name: playlists
 
-# The channel's YouTube playlists (src/quran_reels/playlists.py, config/playlists.yaml): each night,
+# The channel's YouTube playlists (src/quran_reels/playlists.py, config/playlists.yaml) and the
+# reels' exact subtitles the daily run left (captions.py, youtube-captions/): each night,
 # when the statistics have read the channel (insights), every video published since the owner handed
 # his playlists over (2026-11-21) goes into its playlists, at the end; a series without a playlist gets
 # its own with its first video; his six titles are turned Arabic first once. Owner's choice,
@@ -8,7 +9,7 @@ name: playlists
 #
 # Its own token, YOUTUBE_PLAYLISTS_REFRESH_TOKEN (youtube-login.html → Playlists, workflow
 # youtube-auth): Google's only scope that writes playlists, which could also change or delete videos;
-# this step alone reads it, and the code calls playlists and playlistItems only. Without it, nothing
+# this step alone reads it, and the code calls playlists, playlistItems and captions only. Without it, nothing
 # is done. By hand: Actions → playlists → Run workflow (dry_run: print what would be done).
 on:
   workflow_run:
@@ -69,5 +70,4 @@ jobs:
         if: inputs.dry_run != true
         working-directory: state-branch
         run: |
-          [ -f youtube-playlists.json ] || exit 0
-          bash "$GITHUB_WORKSPACE/.github/scripts/save-state.sh" "Playlists" youtube-playlists.json
+          bash "$GITHUB_WORKSPACE/.github/scripts/save-state.sh" "Playlists" youtube-playlists.json youtube-captions
