@@ -419,6 +419,12 @@ def test_an_arabic_first_title_finds_its_reel_as_the_english_first_one_did():
     assert Y.video_key("سورة الماعون · Surah Al-Ma'un (107:1-7)") == "107:1-7"
     assert Y.video_key("سورة التوبة · Surah At-Tawbah (9:51)") == "9:51-51"
     assert Y.video_key("آيات الدعاء · Supplications · 3/38 · سورة غافر · Surah Ghafir (40:60)") == "40:60-60"
+    # titled by hand, a caption rendered since 2026-11-21: its surah line starts in Arabic
+    assert Y.video_key("سورة التوبة",
+                       "السبع آيات المنجيات · The seven munjiyat verses · 1/7\n"
+                       "سورة التوبة · Surah At-Tawbah (9:51)\n\nبِسْمِ") == "9:51-51"
+    # a theme video's line « سورة الكهف (18:10) » is not a reel's surah line
+    assert Y.video_key("Light", "سورة الكهف (18:10)\nx") == "Light"
     published = datetime(2026, 11, 9, 8, 0, tzinfo=UTC)
     posts = {
         "facebook:a": {"platform": "facebook", "key": "slot:2026-11-09/morning", "kind": "reel-morning",
