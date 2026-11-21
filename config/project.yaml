@@ -199,7 +199,8 @@ platforms:
   # quality checklist asks for 10 to 400 characters (6:17 flagged, 2026-11-09). Neither Arabic
   # nor translation (owner's choice); too long: hashtags from the end. Unset: the full caption.
   facebook:  { enabled: true,  mode: auto, max_hashtags: 8, max_caption_chars: 400 }
-  instagram: { enabled: true,  mode: auto, max_hashtags: 5 }   # Instagram's cap since 12/2025
+  instagram: { enabled: true,  mode: auto, max_hashtags: 5,    # Instagram's cap since 12/2025
+               caption_verses: false }   # owner, 2026-11-21: its caption without the Arabic of the ayahs (TikTok keeps it)
   tiktok:
     enabled: true                     # tiktok-auth saved TIKTOK_REFRESH_TOKEN (2026-11-04)
     mode: draft                       # inbox upload, posted by hand from the TikTok app

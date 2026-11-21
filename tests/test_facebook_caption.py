@@ -188,3 +188,27 @@ def test_the_rendered_reel_gives_instagram_and_tiktok_their_short_caption(cfg, t
     assert reel.for_platform("tiktok").video.name == "tiktok.mp4"
     assert reel.text() == full                     # caption.txt, YouTube: everything
     assert reel.text_for("facebook") == "FB"
+
+
+def test_instagram_gets_its_caption_without_the_verses_tiktok_keeps_them(cfg, tmp_path):
+    """The owner, 2026-11-21: « Instagram coupe parfois la couverture à cause des mots dans les versets »: its
+    caption without the Arabic of the ayahs (platforms.instagram.caption_verses: false); TikTok's unchanged."""
+    from quran_reels.render import social_caption
+
+    assert cfg.project["platforms"]["instagram"]["caption_verses"] is False
+    p = passage(ayahs=3, glossed=True)
+    social, insta = social_caption(cfg, p), social_caption(cfg, p, verses=False)
+    assert "كَلِمَة ﴿١٧﴾" in social and "كَلِمَة" not in insta and "بِسْمِ" not in insta
+    blocks = insta.rstrip("\n").split("\n\n")
+    assert blocks[0] == social.split("\n\n")[0]                       # series and reference kept
+    assert blocks[1] == f"{RECITATION} · {TRANSLATION} · {MEANINGS}" and blocks[2] == cfg.video["handle"]
+    work = tmp_path / "006_017-019"
+    (work / "preview").mkdir(parents=True)
+    (work / "caption.txt").write_text("Full\n", encoding="utf-8")
+    (work / "manifest.json").write_text(json.dumps({
+        "passage": "6:17-19", "surah": {"name_ar": "الأنعام", "name_en": "Al-An'am"}, "hashtags": ["#Quran"],
+        "captions": {"social": social, "instagram": insta},
+        "ayahs": [{"ref": "6:17", "glosses": [], "start": 0.4, "seconds": 3.0}]}), encoding="utf-8")
+    reel = load_reel(tmp_path / "006_017-019.mp4")
+    assert reel.text_for("instagram", 5) == insta + "\n#Quran\n"
+    assert reel.text_for("tiktok", 5) == social + "\n#Quran\n"
