@@ -14,8 +14,9 @@ la liste du moment ; un nouveau sujet n'oblige à refaire ni la bannière ni les
 
 **Titres : toujours en arabe et en anglais** (le propriétaire, 2026-11-09). Noms des comptes,
 accroches des images, bios, titres de playlists, et dans les publications : la série et la
-sourate en tête de chaque légende (« آيات الدعاء · Supplications from the Quran · 3/38 »,
-« سورة البقرة · Surah Al-Baqarah (2:201) », l'arabe d'abord depuis le 2026-11-21), le titre YouTube qui en est tiré, le Word of the
+sourate en tête de chaque légende (Facebook, Instagram et TikTok : l'anglais d'abord, toujours, choix du propriétaire du
+2026-11-21 : « Supplications from the Quran · آيات الدعاء · 3/38 », « Surah Al-Baqarah (2:201) · سورة البقرة » ; YouTube :
+l'arabe d'abord depuis le même jour, `caption.txt` et son titre), le titre YouTube qui en est tiré, le Word of the
 day (« Word of the day · كلمة اليوم »). Un titre YouTube trop long perd le numéro, puis la
 série, jamais une des deux langues : « The first ten verses of Surah Al-Kahf » et « Repentance
 and forgiveness in the Quran » ne tiennent pas avec leur titre arabe et la sourate (plus de
