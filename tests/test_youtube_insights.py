@@ -516,7 +516,8 @@ def test_the_page_shows_engaged_views_and_the_search_share_for_youtube():
     data["posts"]["youtube:v1"]["snapshots"]["latest"]["m"] = {"views": 120}
     out = St.build(data, {"days": 35}, datetime(2026, 11, 16, 8, tzinfo=UTC), ZoneInfo("Europe/Paris"))
     html = render_stats({"repo": "o/r", "stats": json.loads(json.dumps(out, default=str))})
-    assert "vues engagées" not in html and "par la recherche" not in html
+    videos = html[html.index('<section id="videos">'):]          # the video's own lines
+    assert "vues engagées" not in videos and "par la recherche" not in videos
 
 
 # ------------------------------------------------------------------ Studio export (import-youtube)

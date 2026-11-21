@@ -31,33 +31,57 @@
   {% if s.errors %}<p class="notice">{{ s.errors }} lecture{{ 's' if s.errors > 1 }} en erreur au dernier relevé (journal du workflow).</p>{% endif %}
 
   <nav class="tabs" aria-label="Sections">
-    <a href="#followers">Abonnés</a><a href="#compare">Comparer</a><a href="#videos">Chaque vidéo</a>{% if s.manual %}<a href="#captures">Captures</a>{% endif %}
+    <a href="#overview">Vue d'ensemble</a><a href="#works">Ce qui marche</a><a href="#audits">Audits</a><a href="#youtube">YouTube</a><a href="#facebook">Facebook</a><a href="#tiktok">TikTok</a><a href="#trials">Essais</a><a href="#missing">Manquant</a><a href="#sessions">Pour les sessions</a><a href="#videos">Chaque vidéo</a>{% if s.manual %}<a href="#captures">Captures</a>{% endif %}
   </nav>
+  {% set dash = s.dash %}
 
-  <section id="followers">
-    <h2>Abonnés</h2>
-    <div class="grid two">
-      {% for f in s.followers %}
-      <article class="card">
-        <div class="head"><h4>{{ f.platform }}</h4>{% if f.delta is not none %}<span class="badge {{ 'rot' if f.delta > 0 else 'out' }}">{{ '+' if f.delta > 0 }}{{ f.delta }} en 7 jours</span>{% endif %}</div>
-        <p class="big-num">{{ f.now }}</p>
-        {% if f.series|length > 1 %}<p class="spark" aria-hidden="true">{% set top = f.series|map(attribute=1)|max %}{% set low = f.series|map(attribute=1)|min %}{% for d, n in f.series %}<i title="{{ d }} : {{ n }}" style="height: {{ (8 + 32 * ((n - low) / (top - low) if top > low else 1))|round(0) }}px"></i>{% endfor %}</p>{% endif %}
-        <p class="meta">au {{ f.day }}</p>
+  <section id="overview">
+    <h2>Vue d'ensemble</h2>
+    <div class="tiles">
+      {% for t in dash.followers.tiles %}
+      <article class="card tile">
+        <p class="pf"><i class="dot" style="background:{{ colours[t.platform] }}"></i>{{ t.name }}</p>
+        <p class="big-num">{{ t.now }}</p>
+        <p class="meta">abonnés{% if t.week is not none %} · {{ '+' if t.week > 0 }}{{ t.week }} en 7 jours{% elif t.since %} · {{ '+' if t.since > 0 }}{{ t.since }} depuis le {{ t.first[8:] }}/{{ t.first[5:7] }}{% endif %}</p>
       </article>
       {% else %}
       <p class="muted">Pas encore relevé.</p>
       {% endfor %}
     </div>
+    <h3>Abonnés, jour par jour</h3>
+    <div class="card figure">{{ g.followers }}</div>
+    <p class="muted small">TikTok n'a pas de courbe : ses abonnés viennent des captures du propriétaire.</p>
   </section>
 
-  <section id="compare">
-    <h2>Comparer les types de vidéos</h2>
-    <p class="muted">Chaque type au même âge, <b>48 heures</b> après sa publication : la médiane de ses vidéos. « Passent 3 s » est l'accroche,
-      « % regardé » la durée moyenne regardée sur la durée de la vidéo. Sur YouTube, un Short qui repart en boucle compte encore :
-      son « % regardé » dépasse souvent 100 % et ne se compare qu'entre vidéos YouTube. Ses 48 heures sont comptées par YouTube
-      jour par jour (heure du Pacifique), de 49 à 72 heures après la publication, comme le relevé de nuit de Facebook et d'Instagram.</p>
+  <section id="works">
+    <h2>Ce qui marche : les types de vidéos</h2>
+    <p class="muted">Un point par vidéo, <b>48 heures</b> après sa publication ; le trait blanc est la médiane, le nombre de vidéos
+      entre parenthèses. Les vues sont sur une échelle logarithmique (de quelques-unes à des milliers). Touchez un point pour voir la vidéo.</p>
+    {% for p in ('facebook', 'instagram', 'youtube') %}
+    <h3><i class="dot" style="background:{{ colours[p] }}"></i>{{ names[p] }} · vues à 48 h</h3>
+    <div class="card figure">{{ g.views[p] }}</div>
+    {% endfor %}
+    <h3><i class="dot" style="background:{{ colours.youtube }}"></i>YouTube · vues engagées à 48 h</h3>
+    <p class="muted small">Les vues au-delà des premières secondes, sans les boucles d'un Short : la mesure à comparer avec les autres plateformes.</p>
+    <div class="card figure">{{ g.engaged }}</div>
+    {% for p in ('facebook', 'instagram', 'youtube') %}
+    <h3><i class="dot" style="background:{{ colours[p] }}"></i>{{ names[p] }} · part de la vidéo regardée</h3>
+    <div class="card figure">{{ g.watch[p] }}</div>
+    {% endfor %}
+    <p class="muted small">Sur YouTube, un Short court qui repart en boucle dépasse 100 % : ne se compare qu'entre vidéos YouTube.</p>
+    <h3><i class="dot" style="background:{{ colours.youtube }}"></i>YouTube · taux de clics des miniatures</h3>
+    {% if dash.ctr.rows %}
+    <p class="muted small">Export de YouTube Studio du {{ dash.ctr.seen }} (depuis la publication de chaque vidéo).</p>
+    <div class="card figure">{{ g.ctr }}</div>
+    {% else %}
+    <p class="muted">Pas encore d'export de YouTube Studio enregistré (voir « Manquant »).</p>
+    {% endif %}
     <p class="notice small">Moins de {{ s.min_videos }} vidéos, ou moins de {{ s.min_points }} points d'écart : ce n'est pas une différence
       (à une centaine de vues, le hasard suffit). On regarde les tendances sur plusieurs semaines.</p>
+    <details class="cands">
+      <summary><h3>Les médianes en chiffres</h3></summary>
+      <p class="muted small">Chaque type au même âge, 48 heures : « passent 3 s » est l'accroche, « % regardé » la durée moyenne regardée
+        sur la durée de la vidéo. Les 48 heures de YouTube sont comptées par YouTube jour par jour (heure du Pacifique).</p>
     {% if s.kinds %}
     <div class="scroll">
     <table class="stats-table">
@@ -77,6 +101,124 @@
     {% else %}
     <p class="muted">Aucune vidéo n'a encore 48 heures depuis la mise en service.</p>
     {% endif %}
+    </details>
+  </section>
+
+  <section id="audits">
+    <h2>Audits</h2>
+    <p class="muted">Pour chaque groupe, la médiane à 48 h : les vues en gras, puis la part regardée et le nombre de vidéos.
+      Grisé : moins de {{ s.min_videos }} vidéos, rien à conclure.</p>
+    {% for a in dash.audits if a.rows %}
+    <h3>{{ a.title }}</h3>
+    <p class="muted small">{{ a.note }}</p>
+    <div class="scroll">
+    <table class="stats-table audit">
+      <thead><tr><th></th>{% for p in a.platforms %}<th><i class="dot" style="background:{{ colours[p] }}"></i>{{ names[p] }}</th>{% endfor %}</tr></thead>
+      <tbody>
+        {% for r in a.rows %}
+        <tr><td><bdi>{{ r.name }}</bdi></td>
+          {% for p in a.platforms %}{% set c = r.cells[p] %}
+          <td class="{{ 'few' if c.few }}">{% if c.n %}<b>{{ c.views|number }}</b><span class="sub">{{ c.watch|number(' %') }} · {{ c.n }}</span>{% else %}—{% endif %}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% endfor %}
+    {% if dash.before_after %}
+    <h3>Avant / après chaque changement</h3>
+    <p class="muted small">Les vidéos publiées dans les jours qui précèdent le changement, puis celles d'après, à 48 h (médianes, nombre de vidéos).
+      La liste est dans <code>config/insights.yaml</code> (<code>trials</code>).</p>
+    <div class="scroll">
+    <table class="stats-table audit">
+      <thead><tr><th>Changement</th><th>avant</th><th>après</th></tr></thead>
+      <tbody>
+        {% for b in dash.before_after %}{% for l in b.lines %}
+        <tr><td>{{ b.what }}<span class="sub">{{ l.name }} · {{ {'views': 'vues', 'search_pct': '% venu de la recherche', 'watch_pct': '% regardé', 'ctr': 'taux de clics'}.get(b.metric, b.metric) }} · depuis le {{ b.since }}</span></td>
+          <td class="{{ 'few' if l.n_before < s.min_videos }}"><b>{{ l.before|number }}</b><span class="sub">{{ l.n_before }} vidéo{{ 's' if l.n_before != 1 }}</span></td>
+          <td class="{{ 'few' if l.n_after < s.min_videos }}"><b>{{ l.after|number }}</b><span class="sub">{{ l.n_after }} vidéo{{ 's' if l.n_after != 1 }}</span></td></tr>
+        {% endfor %}{% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% endif %}
+  </section>
+
+  <section id="youtube">
+    <h2>YouTube en détail</h2>
+    {% if dash.youtube %}
+    <p class="muted small">Relevé de la nuit (API YouTube Analytics, lecture seule), vidéos publiées du {{ dash.youtube.from }} au {{ dash.youtube.to }}.</p>
+    <h3>D'où viennent les vues</h3>
+    {{ g.sources_legend }}
+    <div class="card figure">{{ g.sources }}</div>
+    <h3>Qui regarde (pays, toute la chaîne)</h3>
+    <div class="card figure">{{ g.countries }}</div>
+    <h3>Combien restent (rétention médiane, part de la vidéo)</h3>
+    <p class="muted small">100 % : tous ceux qui ont commencé ; au-dessus, un Short revu en boucle.</p>
+    <div class="card figure">{{ g.yt_retention }}</div>
+    {% if dash.youtube.search %}
+    <h3>Ce qu'on tape pour nous trouver</h3>
+    <div class="scroll"><table class="stats-table">
+      <thead><tr><th>Recherche</th><th>vues</th></tr></thead>
+      <tbody>{% for t in dash.youtube.search %}<tr><td dir="auto"><bdi>{{ t.term }}</bdi></td><td>{{ t.views }}</td></tr>{% endfor %}</tbody>
+    </table></div>
+    {% endif %}
+    {% else %}
+    <p class="muted">Le détail de YouTube (sources des vues, pays, rétention, recherches) est relevé chaque nuit à partir du 22 novembre.</p>
+    {% endif %}
+  </section>
+
+  <section id="facebook">
+    <h2>Facebook : combien restent, seconde par seconde</h2>
+    {% if g.fb_retention %}
+    <p class="muted small">La courbe de rétention que Facebook donne pour chaque vidéo : la médiane de chaque groupe, sur la première minute.
+      Le début compte le plus : c'est là qu'on part.</p>
+    <div class="card figure">{{ g.fb_retention }}</div>
+    {% else %}
+    <p class="muted">Pas encore de courbe.</p>
+    {% endif %}
+  </section>
+
+  <section id="tiktok">
+    <h2>TikTok</h2>
+    {% if dash.tiktok %}
+    <p class="muted small">Recopié des captures du propriétaire (la dernière de chaque vidéo, à l'âge qu'elle avait ce jour-là).</p>
+    <div class="scroll"><table class="stats-table">
+      <thead><tr><th>Vidéo</th><th>vues</th><th>durée moy.</th><th>en entier</th><th>capture</th></tr></thead>
+      <tbody>{% for t in dash.tiktok %}<tr><td><bdi>{{ t.label }}</bdi><span class="sub">{{ t.kind }}</span></td><td>{{ t.m.views|number }}</td><td>{{ t.m.avg_watch|number(' s') }}</td><td>{{ t.m.finished|number(' %') }}</td><td>{{ t.seen }}</td></tr>{% endfor %}</tbody>
+    </table></div>
+    {% else %}
+    <p class="muted">Pas encore de capture TikTok : envoyez-les dans n'importe quelle session (une fois par semaine suffit).</p>
+    {% endif %}
+  </section>
+
+  <section id="trials">
+    <h2>Essais en cours</h2>
+    <p class="muted small">Chaque changement s'inscrit dans <code>config/insights.yaml</code> (<code>trials</code>) le jour où il part, avec la façon de le juger.</p>
+    <div class="grid compact">
+      {% for t in dash.trials %}
+      <article class="card"><h4>{{ t.what }}</h4><p class="meta">depuis le {{ t.since }} · {{ t.where }}</p><p class="small">{{ t.judge }}</p></article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section id="missing">
+    <h2>Données manquantes</h2>
+    <div class="grid compact">
+      {% for m in dash.missing %}
+      <article class="card"><div class="head"><h4>{{ m.what }}</h4><span class="badge {{ 'out' if not m.last else 'rot' }}">{% if m.last is none %}à faire{% elif m.last %}reçu le {{ m.last }}{% else %}jamais reçu{% endif %}</span></div>
+        <p class="small">{{ m.how }}</p><p class="meta">{{ m.often }}</p></article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section id="sessions">
+    <h2>Pour les sessions</h2>
+    <p class="muted"><a href="dataset.json">dataset.json</a> : une ligne par vidéo et par plateforme, avec tout ce qu'on sait d'elle (type, série,
+      passage, récitateur, fond, durée, jour et heure, version courte, titre) et ses chiffres à 48 h, 7 jours, 28 jours et au dernier relevé,
+      plus les exports de YouTube Studio et le détail YouTube de la nuit. La revue du dimanche et toute session font leurs audits sur ce
+      fichier, avec la même règle de prudence (même âge, médianes, au moins {{ s.min_videos }} vidéos, {{ s.min_points }} points d'écart).</p>
   </section>
 
   <section id="videos">
@@ -155,5 +297,30 @@
   <footer>Quran Words Daily · statistiques en lecture seule · <a href="data.json">data.json</a> ·
     <a href="https://github.com/{{ d.repo }}" rel="noopener">code</a> · <a href="../privacy.html">Privacy</a></footer>
 </main>
+<div id="tip" class="tip" role="status" hidden></div>
+<script>
+// The charts' tooltips: on hover with a mouse, on tap on a phone (each mark's data-tip).
+(() => {
+  const tip = document.getElementById('tip');
+  let cur = null;
+  const place = (x, y) => {
+    const w = tip.offsetWidth, h = tip.offsetHeight;
+    tip.style.left = Math.min(window.scrollX + document.documentElement.clientWidth - w - 8,
+                              Math.max(window.scrollX + 8, x - w / 2)) + 'px';
+    tip.style.top = (y - h - 14 < window.scrollY ? y + 18 : y - h - 14) + 'px';
+  };
+  const show = (el, e) => { cur = el; tip.textContent = el.dataset.tip; tip.hidden = false; place(e.pageX, e.pageY); };
+  const hide = () => { cur = null; tip.hidden = true; };
+  document.addEventListener('pointerover', e => {
+    const el = e.target.closest('[data-tip]');
+    if (e.pointerType === 'mouse') { if (el) show(el, e); else if (cur) hide(); }
+  });
+  document.addEventListener('pointermove', e => { if (cur && e.pointerType === 'mouse') place(e.pageX, e.pageY); });
+  document.addEventListener('click', e => {
+    const el = e.target.closest('[data-tip]');
+    if (el) show(el, e); else hide();
+  });
+})();
+</script>
 </body>
 </html>

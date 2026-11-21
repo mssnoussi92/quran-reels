@@ -391,7 +391,7 @@ def test_the_statistics_page(state):
     fb = s["followers"][0]
     assert (fb["platform"], fb["now"], fb["delta"]) == ("Facebook", 70, None)   # 1 day: no change
     html = render_stats({"repo": "o/r", "stats": json.loads(json.dumps(s, default=str))})
-    assert "Comparer les types de vidéos" in html and "Patient… and he asked" in html
+    assert "Les médianes en chiffres" in html and "Patient… and he asked" in html
     assert "&lt;b&gt;unknown&lt;/b&gt;" in html and "<b>unknown</b>" not in html
     assert "trop peu" in html and "60 %" in html                # Instagram reel: 100 − 40
     assert "0 vues" not in html                                  # nothing invented
