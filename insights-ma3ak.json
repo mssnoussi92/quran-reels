@@ -1,190 +1,22 @@
 {
  "posts": {
-  "facebook:1494879297031390_122095909239545959": {
-   "snapshots": {},
-   "seen": "2026-11-20T01:51:10+00:00",
-   "platform": "facebook",
-   "id": "1494879297031390_122095909239545959",
-   "url": "https://www.facebook.com/122095909263545959/posts/122095909239545959",
-   "published": "2026-11-06T11:30:00+00:00",
-   "kind_meta": "facebook-photo",
-   "first_line": "",
-   "key": "word:2026-11-06",
-   "kind": "word",
-   "label": "بِٱلْحَقِّ · 42:17",
-   "ref": {
-    "day": "2026-11-06",
-    "ayah": "42:17",
-    "word": "بِٱلْحَقِّ"
-   }
-  },
-  "facebook:1494879297031390_122096647437545959": {
-   "snapshots": {},
-   "seen": "2026-11-20T01:51:10+00:00",
-   "platform": "facebook",
-   "id": "1494879297031390_122096647437545959",
-   "url": "https://www.facebook.com/122095909263545959/posts/122096647437545959",
-   "published": "2026-11-07T11:30:00+00:00",
-   "kind_meta": "facebook-photo",
-   "first_line": "",
-   "key": "word:2026-11-07",
-   "kind": "word",
-   "label": "غُدُوُّهَا شَهْرٌ · 34:12",
-   "ref": {
-    "day": "2026-11-07",
-    "ayah": "34:12",
-    "word": "غُدُوُّهَا شَهْرٌ"
-   }
-  },
-  "facebook:1494879297031390_122097414027545959": {
-   "snapshots": {},
-   "seen": "2026-11-20T01:51:10+00:00",
-   "platform": "facebook",
-   "id": "1494879297031390_122097414027545959",
-   "url": "https://www.facebook.com/122095909263545959/posts/122097414027545959",
-   "published": "2026-11-08T11:30:00+00:00",
-   "kind_meta": "facebook-photo",
-   "first_line": "",
-   "key": "word:2026-11-08",
-   "kind": "word",
-   "label": "ذِكْرُ · 21:24",
-   "ref": {
-    "day": "2026-11-08",
-    "ayah": "21:24",
-    "word": "ذِكْرُ"
-   }
-  },
-  "facebook:1494879297031390_122098129527545959": {
-   "snapshots": {},
-   "seen": "2026-11-20T01:51:10+00:00",
-   "platform": "facebook",
-   "id": "1494879297031390_122098129527545959",
-   "url": "https://www.facebook.com/122095909263545959/posts/122098129527545959",
-   "published": "2026-11-09T11:30:00+00:00",
-   "kind_meta": "facebook-photo",
-   "first_line": "",
-   "key": "word:2026-11-09",
-   "kind": "word",
-   "label": "يَبْسُطُ · 34:39",
-   "ref": {
-    "day": "2026-11-09",
-    "ayah": "34:39",
-    "word": "يَبْسُطُ"
-   }
-  },
-  "facebook:1494879297031390_122099004717545959": {
-   "snapshots": {},
-   "seen": "2026-11-20T01:51:10+00:00",
-   "platform": "facebook",
-   "id": "1494879297031390_122099004717545959",
-   "url": "https://www.facebook.com/122095909263545959/posts/122099004717545959",
-   "published": "2026-11-10T11:30:00+00:00",
-   "kind_meta": "facebook-photo",
-   "first_line": "",
-   "key": "word:2026-11-10",
-   "kind": "word",
-   "label": "حَاصِبًا · 29:40",
-   "ref": {
-    "day": "2026-11-10",
-    "ayah": "29:40",
-    "word": "حَاصِبًا"
-   }
-  },
-  "facebook:1494879297031390_122099876025545959": {
-   "snapshots": {},
-   "seen": "2026-11-20T01:51:10+00:00",
-   "platform": "facebook",
-   "id": "1494879297031390_122099876025545959",
-   "url": "https://www.facebook.com/122095909263545959/posts/122099876025545959",
-   "published": "2026-11-11T11:30:00+00:00",
-   "kind_meta": "facebook-photo",
-   "first_line": "",
-   "key": "word:2026-11-11",
-   "kind": "word",
-   "label": "وَمَلَإِي۟هِۦٓ · 28:32",
-   "ref": {
-    "day": "2026-11-11",
-    "ayah": "28:32",
-    "word": "وَمَلَإِي۟هِۦٓ"
-   }
-  },
-  "facebook:1494879297031390_122100746361545959": {
-   "snapshots": {},
-   "seen": "2026-11-20T01:51:10+00:00",
-   "platform": "facebook",
-   "id": "1494879297031390_122100746361545959",
-   "url": "https://www.facebook.com/122095909263545959/posts/122100746361545959",
-   "published": "2026-11-12T11:30:00+00:00",
-   "kind_meta": "facebook-photo",
-   "first_line": "",
-   "key": "word:2026-11-12",
-   "kind": "word",
-   "label": "مَكِينٌ · 12:54",
-   "ref": {
-    "day": "2026-11-12",
-    "ayah": "12:54",
-    "word": "مَكِينٌ"
-   }
-  },
-  "facebook:1494879297031390_122101601961545959": {
-   "snapshots": {},
-   "seen": "2026-11-20T01:51:10+00:00",
-   "platform": "facebook",
-   "id": "1494879297031390_122101601961545959",
-   "url": "https://www.facebook.com/122095909263545959/posts/122101601961545959",
-   "published": "2026-11-13T11:30:00+00:00",
-   "kind_meta": "facebook-photo",
-   "first_line": "",
-   "key": "word:2026-11-13",
-   "kind": "word",
-   "label": "وَءَاتَيْنَـٰهُ · 28:76",
-   "ref": {
-    "day": "2026-11-13",
-    "ayah": "28:76",
-    "word": "وَءَاتَيْنَـٰهُ"
-   }
-  },
-  "facebook:1494879297031390_122102394375545959": {
-   "snapshots": {},
-   "seen": "2026-11-20T01:51:10+00:00",
-   "platform": "facebook",
-   "id": "1494879297031390_122102394375545959",
-   "url": "https://www.facebook.com/122095909263545959/posts/122102394375545959",
-   "published": "2026-11-14T11:30:00+00:00",
-   "kind_meta": "facebook-photo",
-   "first_line": "",
-   "key": "word:2026-11-14",
-   "kind": "word",
-   "label": "تُؤْثِرُونَ · 87:16",
-   "ref": {
-    "day": "2026-11-14",
-    "ayah": "87:16",
-    "word": "تُؤْثِرُونَ"
-   }
-  },
-  "facebook:1494879297031390_122103342705545959": {
-   "snapshots": {},
-   "seen": "2026-11-20T01:51:10+00:00",
-   "platform": "facebook",
-   "id": "1494879297031390_122103342705545959",
-   "url": "https://www.facebook.com/122095909263545959/posts/122103342705545959",
-   "published": "2026-11-15T11:30:00+00:00",
-   "kind_meta": "facebook-photo",
-   "first_line": "",
-   "key": "word:2026-11-15",
-   "kind": "word",
-   "label": "ٱلتَّابُوتُ · 2:248",
-   "ref": {
-    "day": "2026-11-15",
-    "ayah": "2:248",
-    "word": "ٱلتَّابُوتُ"
-   }
-  },
   "facebook:4442846315858775": {
    "snapshots": {
     "latest": {
-     "at": "2026-11-20T01:51:10+00:00",
-     "age_h": 30.4,
+     "at": "2026-11-21T01:49:01+00:00",
+     "age_h": 54.4,
+     "m": {
+      "views": 202,
+      "replays": 26,
+      "follows": 3,
+      "likes": 3,
+      "avg_watch": 4.5,
+      "watch_pct": 7.6
+     }
+    },
+    "48h": {
+     "at": "2026-11-21T01:49:01+00:00",
+     "age_h": 54.4,
      "m": {
       "views": 202,
       "replays": 26,
@@ -195,7 +27,7 @@
      }
     }
    },
-   "seen": "2026-11-20T01:51:10+00:00",
+   "seen": "2026-11-21T01:49:01+00:00",
    "platform": "facebook",
    "id": "4442846315858775",
    "url": "https://www.facebook.com/reel/4442846315858775/",
@@ -264,8 +96,23 @@
   "instagram:18127182089293941": {
    "snapshots": {
     "latest": {
-     "at": "2026-11-20T01:51:10+00:00",
-     "age_h": 30.4,
+     "at": "2026-11-21T01:49:01+00:00",
+     "age_h": 54.3,
+     "m": {
+      "views": 130,
+      "reach": 121,
+      "likes": 19,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "hook": 19.5,
+      "avg_watch": 4.6,
+      "watch_pct": 7.9
+     }
+    },
+    "48h": {
+     "at": "2026-11-21T01:49:01+00:00",
+     "age_h": 54.3,
      "m": {
       "views": 130,
       "reach": 121,
@@ -279,7 +126,7 @@
      }
     }
    },
-   "seen": "2026-11-20T01:51:10+00:00",
+   "seen": "2026-11-21T01:49:01+00:00",
    "platform": "instagram",
    "id": "18127182089293941",
    "url": "https://www.instagram.com/reel/Df5QeoGOrhw/",
@@ -299,11 +146,11 @@
   "facebook:4712090779046980": {
    "snapshots": {
     "latest": {
-     "at": "2026-11-20T01:51:10+00:00",
-     "age_h": 9.0,
+     "at": "2026-11-21T01:49:01+00:00",
+     "age_h": 32.9,
      "m": {
-      "views": 194,
-      "replays": 15,
+      "views": 198,
+      "replays": 16,
       "follows": 0,
       "likes": 4,
       "avg_watch": 2.9,
@@ -311,7 +158,7 @@
      }
     }
    },
-   "seen": "2026-11-20T01:51:10+00:00",
+   "seen": "2026-11-21T01:49:01+00:00",
    "platform": "facebook",
    "id": "4712090779046980",
    "url": "https://www.facebook.com/reel/4712090779046980/",
@@ -380,22 +227,22 @@
   "instagram:18082353995549097": {
    "snapshots": {
     "latest": {
-     "at": "2026-11-20T01:51:10+00:00",
-     "age_h": 9.0,
+     "at": "2026-11-21T01:49:01+00:00",
+     "age_h": 32.9,
      "m": {
-      "views": 47,
-      "reach": 44,
-      "likes": 2,
+      "views": 108,
+      "reach": 100,
+      "likes": 14,
       "comments": 0,
       "shares": 0,
       "saves": 0,
-      "hook": 15.9,
-      "avg_watch": 4.4,
-      "watch_pct": 7.6
+      "hook": 11.2,
+      "avg_watch": 3.0,
+      "watch_pct": 5.2
      }
     }
    },
-   "seen": "2026-11-20T01:51:10+00:00",
+   "seen": "2026-11-21T01:49:01+00:00",
    "platform": "instagram",
    "id": "18082353995549097",
    "url": "https://www.instagram.com/reel/Df7jMkREkst/",
@@ -411,6 +258,122 @@
     "part": "Short 5"
    },
    "seconds": 58
+  },
+  "facebook:1153480673829898": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-21T01:49:01+00:00",
+     "age_h": 9.0,
+     "m": {
+      "views": 257,
+      "replays": 19,
+      "follows": 2,
+      "likes": 4,
+      "avg_watch": 4.8,
+      "watch_pct": 7.8
+     }
+    }
+   },
+   "seen": "2026-11-21T01:49:01+00:00",
+   "platform": "facebook",
+   "id": "1153480673829898",
+   "url": "https://www.facebook.com/reel/1153480673829898/",
+   "published": "2026-11-20T16:51:41+00:00",
+   "kind_meta": "facebook-reel",
+   "first_line": "Who said this… and to whom?",
+   "seconds": 61.3,
+   "fb_status": {
+    "published": true,
+    "phase": "complete",
+    "publish_status": "published",
+    "video_status": "ready"
+   },
+   "key": "theme:quiz-ma3ak/short-6",
+   "kind": "theme-episode",
+   "label": "Who said this… and to whom? · مين قال الجملة دي… ولمين؟",
+   "ref": {
+    "theme": "quiz-ma3ak/short-6",
+    "series": "You Have 5 Seconds · معاك 5 ثواني",
+    "part": "Short 6"
+   },
+   "retention": {
+    "0": 1,
+    "1": 1,
+    "2": 0.9863,
+    "3": 0.7123,
+    "4": 0.6575,
+    "5": 0.4932,
+    "6": 0.3836,
+    "7": 0.2329,
+    "8": 0.2055,
+    "9": 0.1918,
+    "10": 0.1781,
+    "11": 0.1644,
+    "12": 0.1507,
+    "13": 0.137,
+    "14": 0.137,
+    "15": 0.1096,
+    "16": 0.1096,
+    "17": 0.1096,
+    "18": 0.1096,
+    "19": 0.0822,
+    "20": 0.0822,
+    "21": 0.0685,
+    "22": 0.0822,
+    "23": 0.0822,
+    "24": 0.0822,
+    "25": 0.0822,
+    "26": 0.0685,
+    "27": 0.0685,
+    "28": 0.0685,
+    "29": 0.0548,
+    "30": 0.0548,
+    "31": 0.0548,
+    "32": 0.0548,
+    "33": 0.0548,
+    "34": 0.0548,
+    "35": 0.0548,
+    "36": 0.0548,
+    "37": 0.0548,
+    "38": 0.0548,
+    "39": 0.0411,
+    "40": 0.0274
+   }
+  },
+  "instagram:18023724101941774": {
+   "snapshots": {
+    "latest": {
+     "at": "2026-11-21T01:49:01+00:00",
+     "age_h": 8.9,
+     "m": {
+      "views": 123,
+      "reach": 110,
+      "likes": 3,
+      "comments": 0,
+      "shares": 2,
+      "saves": 1,
+      "hook": 25.9,
+      "avg_watch": 6.1,
+      "watch_pct": 10.0
+     }
+    }
+   },
+   "seen": "2026-11-21T01:49:01+00:00",
+   "platform": "instagram",
+   "id": "18023724101941774",
+   "url": "https://www.instagram.com/reel/Df-H5WqAhCK/",
+   "published": "2026-11-20T16:52:29+00:00",
+   "kind_meta": "instagram-reel",
+   "first_line": "Who said this… and to whom?",
+   "key": "theme:quiz-ma3ak/short-6",
+   "kind": "theme-episode",
+   "label": "Who said this… and to whom? · مين قال الجملة دي… ولمين؟",
+   "ref": {
+    "theme": "quiz-ma3ak/short-6",
+    "series": "You Have 5 Seconds · معاك 5 ثواني",
+    "part": "Short 6"
+   },
+   "seconds": 61
   }
  },
  "accounts": {
@@ -418,12 +381,20 @@
    "2026-11-20": {
     "followers_count": 2,
     "fan_count": 2
+   },
+   "2026-11-21": {
+    "followers_count": 4,
+    "fan_count": 4
    }
   },
   "instagram": {
    "2026-11-20": {
     "followers_count": 2,
     "media_count": 2
+   },
+   "2026-11-21": {
+    "followers_count": 2,
+    "media_count": 3
    }
   }
  },
@@ -448,9 +419,18 @@
     "facebook:1494879297031390_122101601961545959: GET 1494879297031390_122101601961545959/insights: You do not have enough permission to view the metric. (HTTP 400, code 200, error_subcode 1504029, fbtrace_id AHOfmjtcQKtJ0pszzhllIi5)"
    ],
    "notes": []
+  },
+  {
+   "at": "2026-11-21T01:49:01+00:00",
+   "calls": 11,
+   "usage": 0,
+   "read": 6,
+   "stopped": "",
+   "errors": [],
+   "notes": []
   }
  ],
  "version": 2,
- "listed": "2026-11-20T01:51:10+00:00",
- "updated": "2026-11-20T01:51:10+00:00"
+ "listed": "2026-11-21T01:49:01+00:00",
+ "updated": "2026-11-21T01:49:01+00:00"
 }
