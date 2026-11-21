@@ -26,6 +26,7 @@ needs it, the upload token cannot.
 from __future__ import annotations
 
 import re
+import time
 import unicodedata
 from pathlib import Path
 from typing import Any
@@ -67,7 +68,12 @@ def wanted(branding: dict[str, Any], conf: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
-def run(root: Path, dry_run: bool = True, ch: Any = None) -> int:
+READS, WAIT = 6, 10       # the check after a change: YouTube serves the old settings for a while
+                          # (2026-11-21: read at once, both fields seemed refused; a minute later,
+                          # both were there, marks included)
+
+
+def run(root: Path, dry_run: bool = True, ch: Any = None, sleep: Any = time.sleep) -> int:
     from quran_reels.playlists import Channel
 
     conf = settings(root)
@@ -102,11 +108,18 @@ def run(root: Path, dry_run: bool = True, ch: Any = None) -> int:
         print(f"youtube-channel: dry run, would change {', '.join(changed)}")
         return 0
     ch._send("PUT", f"{DATA}/channels", "brandingSettings", {"id": cid, "brandingSettings": new})
-    _, after = read(ch)
-    left = [f for f in changed if ((after.get("channel") or {}).get(f) or "").strip()
-            != new["channel"][f]]
+    for attempt in range(READS):
+        if attempt:
+            sleep(WAIT)
+        _, after = read(ch)
+        left = [f for f in changed if ((after.get("channel") or {}).get(f) or "").strip()
+                != new["channel"][f]]
+        if not left:
+            break
     if left:
-        raise SystemExit(f"youtube-channel: YouTube did not keep {', '.join(left)}")
+        raise SystemExit(f"youtube-channel: YouTube did not keep {', '.join(left)} "
+                         f"({READS} reads, {(READS - 1) * WAIT} s): run it again without apply "
+                         "in a few minutes to see what the channel has")
     others = [k for k in (before.keys() | (after.get("channel") or {}).keys())
               if k not in FIELDS and before.get(k) != (after.get("channel") or {}).get(k)]
     print(f"youtube-channel: {', '.join(changed)} changed"

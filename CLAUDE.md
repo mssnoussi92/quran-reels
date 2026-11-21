@@ -545,7 +545,9 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-30.
       « Uploads » par le propriétaire (2026-11-21) · [x] vidéos thématiques aussi (2026-11-21) ·
       [ ] premier Short mis en ligne par le run, regardé dans Studio · [ ] premier film mis en
       ligne par le run (Dhul-Qarnayn, lundi 23), miniature regardée · [x] playlists rangées par le
-      run (2026-11-21) · [ ] connexion « Playlists » par le propriétaire · [ ] première nuit
+      run (2026-11-21) · [x] connexion « Playlists » par le propriétaire · [ ] première nuit ·
+      [x] description et mots-clés de la chaîne appliqués par le run (2026-11-21, `youtube-channel` ;
+      marques de sens gardées par YouTube, relu une minute après) · [ ] premier nom de série ajouté la nuit
 - [x] **Reels en pause** du 2026-11-12 au soir au 2026-11-13 au matin (`pause` de
       `config/schedule.yaml`, demande du propriétaire : les épisodes thématiques démarrent) ·
       [x] reprise le 2026-11-13 au soir (Al-Kahf 18:15-16), puis **un reel chaque matin et les
