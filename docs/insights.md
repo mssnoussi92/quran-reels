@@ -165,8 +165,8 @@ chiffres sur l'image, les montre au propriétaire et demande, puis lance `insigh
 
 - `video` : l'identifiant d'une vidéo thématique (`<publication>/<short-N|film>`, voir la page), le passage d'un
   reel (`106:1-4`) ou un titre ; une entrée non reconnue est listée à part (« Captures sans vidéo reconnue »).
-- `metrics` : `views`, `hook` (% qui passent 3 s ; YouTube : « regardées » ; TikTok : 100 − « taux de saut » s'il
-  est affiché), `avg_watch` (s), `watch_pct`, `kept_30s`, `finished` (% qui ont regardé jusqu'au bout ; TikTok :
+- `metrics` : `views`, `hook` (% qui passent 3 s ; TikTok : 100 − « taux de saut » s'il est affiché ; YouTube :
+  « Ont choisi de regarder » va dans `viewed_pct` depuis le 2026-11-21, une entrée plus ancienne garde `hook`), `avg_watch` (s), `watch_pct`, `kept_30s`, `finished` (% qui ont regardé jusqu'au bout ; TikTok :
   « A regardé la vidéo en entier »), `shares`, `saves`, `comments`, `likes`, `follows`, `reach` (Facebook : une
   exportation de Meta Business Suite, l'API ne le donne pas pour les reels), et trois chiffres des exportations de
   YouTube Studio, que l'API n'a pas : `impressions` (impressions de miniatures), `ctr` (taux de clics sur la miniature,
