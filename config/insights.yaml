@@ -52,12 +52,13 @@ trials:                    # « Essais en cours »; with `platforms`, a before /
       d'abord (les deux changements ne se séparent pas)
     platforms: [instagram]
     kinds: [Reels]
-  - what: Légendes des reels en arabe d'abord
+  - what: Titres et descriptions en arabe d'abord sur Facebook, Instagram et TikTok
     since: 2026-11-22
-    where: Facebook, Instagram, TikTok
-    judge: vues à 48 h des reels sur Facebook, avant / après
-    platforms: [facebook]
-    kinds: [Reels]
+    where: reels et vidéos thématiques
+    judge: vues à 48 h, avant / après ; sur Instagram, la légende perd ses versets le même jour (les deux
+      changements ne se séparent pas)
+    platforms: [facebook, instagram]
+    kinds: [Reels, Shorts thématiques]
   - what: Shorts du calendrier mis en ligne par le run
     since: 2026-11-22
     where: YouTube (les reels ; la date est celle du premier Short mis en ligne ainsi, à corriger

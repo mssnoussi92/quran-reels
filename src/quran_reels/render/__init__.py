@@ -83,9 +83,11 @@ def signatures(cfg: Config) -> dict[str, str]:
 def series_line(passage: Passage) -> str:
     """The series in both languages, the Arabic first, one counter last: «آيات الدعاء ·
     Supplications from the Quran · 3/38». Titles are always given in Arabic and English (owner,
-    2026-11-09), the Arabic first since 2026-11-21 (owner: most viewers are in Arabic-speaking
-    countries and search in Arabic; as the YouTube titles). The Arabic title is label_ar without
-    its Arabic counter, the English one label_en without its counter (series titles never contain
+    2026-11-09), **the Arabic first everywhere**, titles and descriptions, on every platform
+    (owner, 2026-11-21: « je veux l'arabe d'abord partout titres et description », correcting a
+    session that had put the English first back on Facebook, Instagram and TikTok; 74 % of the
+    channel's views come from Arabic-speaking countries). The Arabic title is label_ar without its
+    Arabic counter, the English one label_en without its counter (series titles never contain
     « · », tests/test_basmala.py)."""
     if not passage.label_en:
         return ""
@@ -95,7 +97,7 @@ def series_line(passage: Passage) -> str:
 
 
 def surah_line(passage: Passage) -> str:
-    """« سورة الضحى · Surah Ad-Duhaa (93:1-11) »: the Arabic first (owner, 2026-11-21)."""
+    """« سورة الضحى · Surah Ad-Duhaa (93:1-11) »: the Arabic first, everywhere (owner, 2026-11-21)."""
     return f"سورة {passage.surah_name_ar} · Surah {passage.surah_name_en} ({passage.reference})"
 
 
@@ -142,7 +144,7 @@ def _credits(cfg: Config, passage: Passage) -> list[str]:
 
 def _reference(passage: Passage, label: bool = True) -> str:
     """The series line (when the passage has one) over the surah and its reference, each in
-    Arabic first (owner, 2026-11-21)."""
+    Arabic first (owner, 2026-11-21: everywhere)."""
     return (series_line(passage) + "\n" if passage.label_en and label else "") + surah_line(passage)
 
 

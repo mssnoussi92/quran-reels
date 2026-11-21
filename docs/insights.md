@@ -228,6 +228,20 @@ chiffres sur l'image, les montre au propriétaire et demande, puis lance `insigh
 - **Word of the day en pause** depuis le 2026-11-15 (choix du propriétaire : 4 vues en médiane par publication sur
   Instagram, 21 vues en tout sur Facebook en 9 jours) ; ses relevés restent pour comparer s'il revient.
 
+## À la revue du dimanche 22 novembre : l'ordre des langues dans les titres
+
+**Décidé par le propriétaire le 2026-11-21 : l'arabe d'abord partout**, titres et descriptions, sur toutes les
+plateformes (« je veux l'arabe d'abord partout titres et description »). Une session avait compris « l'anglais d'abord
+sur Facebook, Instagram et TikTok » et l'avait appliqué (PR #100 ; quran-themes-demo PR #83) : c'est corrigé le même jour.
+Rien à décider à la revue ; on mesure (`trials` de `config/insights.yaml`, « avant / après »).
+
+- **Ce qui manque pour en juger** : la langue du public sur Facebook, Instagram et TikTok. Aucune API lue ici ne la
+  donne. Instagram ne donne la répartition par pays qu'à partir de 100 abonnés. Il faut donc des captures, si les
+  applications les montrent : l'onglet « Audience » de Meta Business Suite (pays, Facebook et Instagram) et l'onglet
+  « Spectateurs » de TikTok Studio (pays).
+- **Pas d'essai A/B possible** : un même titre ne sort pas dans deux ordres. La comparaison se fait avant / après, à
+  type de vidéo égal, avec la prudence de la page.
+
 ## À la revue du dimanche 29 novembre : l'essai de la version courte
 
 Décidé avec le propriétaire le 2026-11-17 : « on fait le point dimanche ». Les shorts 1, 2 et 3 de Dhul-Qarnayn sont

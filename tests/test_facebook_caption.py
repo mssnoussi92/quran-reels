@@ -144,6 +144,7 @@ def test_instagram_and_tiktok_keep_the_arabic_never_the_translation(cfg):
     p = passage(ayahs=3, glossed=True)
     text = social_caption(cfg, p)
     blocks = text.rstrip("\n").split("\n\n")
+    # the Arabic first on every platform (owner, 2026-11-21: « l'arabe d'abord partout »)
     assert blocks[0] == ("السبع آيات المنجيات · The seven munjiyat verses · 2/7\n"
                          "سورة الأنعام · Surah Al-An'am (6:17-19)")
     assert blocks[1].splitlines() == ["بِسْمِ", "كَلِمَة ﴿١٧﴾", "كَلِمَة ﴿١٨﴾", "كَلِمَة ﴿١٩﴾"]
