@@ -397,6 +397,7 @@ def find_split(audio: Path, labels: list[str], texts: list[str], expected: list[
         starts = ayah_starts([t.split() for t in texts], recognizer.words(samples))
     candidates = sorted([p for p in silences if speech[0] < p.middle < speech[1]]
                         + dips(envelope(samples), MIN_DIP), key=lambda p: p.start)
+    recited = speech[1]                    # where the voice stops, whatever the published end says
     if end is not None and end < speech[1] - 0.5:
         near = [p for p in candidates if end - WINDOW[1] <= p.middle <= end + WINDOW[0]]
         stop = max(near, key=lambda p: p.weight - abs(p.middle - end) / 0.4) if near else None
@@ -468,6 +469,14 @@ def find_split(audio: Path, labels: list[str], texts: list[str], expected: list[
         seg_start = max(p.end - PAD, p.middle)
     cut = bounds(chosen, speech, total)
     cut[0] = (round(first, 3), cut[0][1])
+    # The published end may cut the last ayah short (mp3quran ends Tawfiq As-Sayegh's 97:5 at 34.32 s, his voice goes on
+    # to 35.2 s: the cut fell in a breath of « الفجر » and the ayah was heard at 0.62, 2026-11-21). The end of the
+    # recitation is tried too, and kept only when the last segment is heard as its ayah better than the trimmed one: words
+    # that are not the surah after it (« صدق الله العظيم ») make it heard worse, so they stay out.
+    last = len(cut) - 1
+    whole = round(min(recited + PAD, total), 3)
+    if wanted(last) and whole - cut[last][1] > 0.3 and score(last, cut[last][0], whole) > score(last, *cut[last]):
+        cut[last] = (cut[last][0], whole)
     edges: dict[int, str] = {}           # a cut that moves words of one ayah to the other
     for k, p in enumerate(chosen):
         if wanted(k) or wanted(k + 1):

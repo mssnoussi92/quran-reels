@@ -377,3 +377,24 @@ def test_a_stop_that_never_reaches_silence_is_a_stop(tmp_path):
     assert [round(p.start, 1) for p in plain] == [5.4]
     assert [(round(p.start, 1), round(p.end, 1)) for p in stops(wav, 8.0)] == [(2.7, 3.1),
                                                                                (5.4, 6.2)]
+
+
+@pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="needs ffmpeg")
+@pytest.mark.parametrize("after, kept", [("مَطْلَعِ ٱلْفَجْرِ", "whole"), ("صدق الله العظيم", "published")])
+def test_a_published_end_that_cuts_the_last_ayah_short_is_not_kept(tmp_path, monkeypatch, after, kept):
+    """Tawfiq As-Sayegh's 97:5 (2026-11-21): mp3quran ends it at 34.32 s, his voice goes on to 35.2 s; cut at the published
+    end, the ayah lost « مطلع الفجر » and was heard at 0.62, so YouTube had nothing for 97:1-5. The end of the recitation is
+    tried too and kept when the ayah is heard better; words that are not the surah after it stay out."""
+    from quran_reels.sources.surah_audio import find_split
+
+    wav = recording(tmp_path / "097.wav", (0.2, False), (4.0, True), (0.6, False), (4.0, True), (0.8, False))
+    clock(monkeypatch, 9.6)
+    last = "سَلَٰمٌ هِيَ حَتَّىٰ مَطْلَعِ ٱلْفَجْرِ"
+    first_half = "سَلَٰمٌ هِيَ حَتَّىٰ" if kept == "whole" else last
+    says = Says((0.2, 4.2, "إِنَّا أَنزَلْنَاهُ فِي لَيْلَةِ ٱلْقَدْرِ"), (4.8, 7.4, first_half), (7.4, 8.8, after))
+    segments, scores = find_split(wav, ["1", "5"], ["إِنَّآ أَنزَلْنَٰهُ فِى لَيْلَةِ ٱلْقَدْرِ", last], [4.0, 4.0], says,
+                                  starts=[0.2, 4.8], end=7.6)
+    if kept == "whole":                       # the voice's end: the whole ayah heard
+        assert segments["5"][1] == pytest.approx(9.05, abs=0.05) and scores["5"] == 1.0
+    else:                                     # « صدق الله العظيم » after it: the published end stays
+        assert segments["5"][1] < 8.0 and scores["5"] == 1.0

@@ -99,6 +99,11 @@
   https://download.pytorch.org/whl/cpu && pip install -e .[asr]`) : le pipeline quotidien n'a
   besoin ni du modèle ni de la vérification. Basmala : début du fichier de la sourate (même
   séance, sans isti'adha) ; elle finit au **dernier vrai arrêt avant l'ayah 1** (le récitateur s'arrête toujours après la basmala ; le début publié par mp3quran peut être en retard : chez Budair, sourate 2, la basmala gardait « Alif », entendu « ah » avant Ayat al-Kursi, 2026-11-05).
+  **La fin de la dernière ayah** : la fin publiée par mp3quran sert à laisser dehors ce qui suit la sourate (« صدق الله
+  العظيم ») ; elle peut aussi être en avance (2026-11-21, Tawfiq As-Sayegh, 97:5 : fin publiée à 34,32 s, sa voix
+  jusqu'à 35,2 s ; la coupe est tombée sur un souffle de « الفجر », l'ayah entendue à 0,62, rien pour YouTube sur 97:1-5).
+  Depuis, la fin de la récitation est essayée aussi et gardée quand la dernière ayah y est mieux reconnue (97:5 : 0,97,
+  4,5 s) ; des mots qui ne sont pas la sourate la font moins bien reconnaître, ils restent dehors (`find_split`).
   **La basmala est aussi vérifiée sur l'enregistrement lui-même, sans reconnaissance**
   (2026-11-11, `surah_audio.stops`, `basmala_break`) : la version YouTube du reel 29:60 par
   Tawfiq As-Sayegh disait « Alif » après sa basmala. Dans son fichier, la basmala finit à
