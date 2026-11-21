@@ -397,13 +397,22 @@ def reel(caption="Surah Ad-Duhaa (93:1-11) · سورة الضحى\n\nبِسْم�
 
 def test_youtube_texts_come_from_the_caption():
     yt = publish_mod.youtube_texts(reel())
-    assert yt["title"] == "Surah Ad-Duhaa (93:1-11) · سورة الضحى"
-    assert yt["description"].startswith(yt["title"]) and "Recitation: X" in yt["description"]
+    # the YouTube title puts the Arabic first (owner, 2026-11-21); the caption keeps its order
+    assert yt["title"] == "سورة الضحى · Surah Ad-Duhaa (93:1-11)"
+    assert yt["description"].startswith("Surah Ad-Duhaa (93:1-11) · سورة الضحى")
+    assert "Recitation: X" in yt["description"]
     assert yt["hashtags"].split() == reel().hashtags
     series = publish_mod.youtube_texts(reel("Supplications from the Quran · آيات الدعاء · 3/38\n"
                                             "Surah Al-Baqarah (2:201) · سورة البقرة\n\nx\n"))
-    assert series["title"] == ("Supplications from the Quran · آيات الدعاء · 3/38 · "
-                               "Surah Al-Baqarah (2:201) · سورة البقرة")
+    assert series["title"] == ("آيات الدعاء · Supplications from the Quran · 3/38 · "
+                               "سورة البقرة · Surah Al-Baqarah (2:201)")
+    munjiyat = publish_mod.youtube_texts(reel(
+        "The seven munjiyat verses · السبع آيات المنجيات · 4/7\n"
+        "Surah Hud (11:56) · سورة هود\n\nx\n"))
+    assert munjiyat["title"] == ("السبع آيات المنجيات · The seven munjiyat verses · 4/7 · "
+                                 "سورة هود · Surah Hud (11:56)")
+    plain = publish_mod.youtube_texts(reel("Surah Al-Fil (105:1-5) · سورة الفيل\n\nx\n"))
+    assert plain["title"] == "سورة الفيل · Surah Al-Fil (105:1-5)"
 
 
 def test_a_long_youtube_title_keeps_both_languages():
@@ -412,11 +421,17 @@ def test_a_long_youtube_title_keeps_both_languages():
     surah = "Surah Al-Baqarah (2:222) · سورة البقرة"
     no_count = publish_mod.youtube_texts(reel(
         f"Repentance and forgiveness in the Quran · آيات التوبة · 12/16\n{surah}\n\nx\n"))
-    assert no_count["title"] == f"Repentance and forgiveness in the Quran · آيات التوبة · {surah}"
+    assert no_count["title"] == ("آيات التوبة · Repentance and forgiveness in the Quran · "
+                                 "سورة البقرة · Surah Al-Baqarah (2:222)")
+    assert len(no_count["title"]) <= publish_mod.YOUTUBE_TITLE_MAX
     long = publish_mod.youtube_texts(reel(
         "The first ten verses of Surah Al-Kahf · أول عشر آيات من سورة الكهف\n"
         "Surah Al-Kahf (18:1-10) · سورة الكهف\n\nx\n"))
-    assert long["title"] == "Surah Al-Kahf (18:1-10) · سورة الكهف"
+    assert long["title"] == "سورة الكهف · Surah Al-Kahf (18:1-10)"
+    # nothing fits: the surah line alone, cut by whole words with «…», still under the limit
+    huge = publish_mod.youtube_texts(reel("Surah " + "Al-Longname " * 12 + "(1:1) · سورة " + "طويل " * 20
+                                          + "\n\nx\n"))["title"]
+    assert huge.endswith("…") and len(huge) <= publish_mod.YOUTUBE_TITLE_MAX
     assert publish_mod.youtube_texts(reel(), 3)["hashtags"] == "#QuranWordsDaily #Quran #SurahAdDuhaa"
 
 

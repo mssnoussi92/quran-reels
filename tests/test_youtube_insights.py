@@ -395,3 +395,28 @@ def test_the_detailed_reading_keeps_sources_countries_and_retention(tmp_path):
     assert len(detail["errors"]) == 3 and "engagedViews" in detail["errors"][0]
     assert "dua for rizq" not in text                            # no search term in the log
     assert "SHORTS 90%" in text and "EG 60%" in text
+
+
+def test_an_arabic_first_title_finds_its_reel_as_the_english_first_one_did():
+    """Owner, 2026-11-21: YouTube titles of reels put the Arabic first."""
+    assert Y.video_key("سورة الماعون · Surah Al-Ma'un (107:1-7)") == "107:1-7"
+    assert Y.video_key("سورة التوبة · Surah At-Tawbah (9:51)") == "9:51-51"
+    assert Y.video_key("آيات الدعاء · Supplications · 3/38 · سورة غافر · Surah Ghafir (40:60)") == "40:60-60"
+    published = datetime(2026, 11, 9, 8, 0, tzinfo=UTC)
+    posts = {
+        "facebook:a": {"platform": "facebook", "key": "slot:2026-11-09/morning", "kind": "reel-morning",
+                       "label": "111:1-5", "ref": {"passage": "111:1-5"},
+                       "published": "2026-11-09T06:20:00+00:00",
+                       "first_line": "Surah Al-Masad (111:1-5) · سورة المسد"},
+        "facebook:k1": {"platform": "facebook", "key": "slot:2026-11-06/evening", "kind": "reel-kahf",
+                        "published": "2026-11-06T18:30:00+00:00",
+                        "first_line": "Surah Al-Kahf on Friday · سورة الكهف يوم الجمعة · 1/36"},
+    }
+    # by its reference
+    assert Y.match("سورة المسد · Surah Al-Masad (111:1-5)", "", published, posts)["key"] == (
+        "slot:2026-11-09/morning")
+    # by its names only
+    assert Y.match("سورة المسد · Surah Al-Masad", "", published, posts)["key"] == (
+        "slot:2026-11-09/morning")
+    assert Y.match("سورة الكهف يوم الجمعة · Surah Al-Kahf on Friday · 1/36", "",
+                   datetime(2026, 11, 7, tzinfo=UTC), posts)["key"] == "slot:2026-11-06/evening"
