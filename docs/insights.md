@@ -125,6 +125,14 @@ les chiffres ont été rangés comme des captures (source `youtube-api`) : ces e
 à part, `continue-on-error`). Ce qu'aucune API ne donne (impressions, taux de clics, « regardées » contre
 « balayées » des Shorts) reste dans YouTube Studio. Mise en place : docs/plateformes.md, « Statistiques YouTube ».
 
+**À la demande, le détail** (demande du propriétaire, 2026-11-21 : « vois si tu peux récupérer plus d'info ») :
+`insights.yml` lancé avec `youtube_detail` lit seulement YouTube, avec le même jeton en lecture seule
+(`insights/youtube_detail.py`) : pour chaque vidéo des 30 derniers jours, d'où viennent ses vues (fil des Shorts,
+recherche, vidéos suggérées, accueil…), les pays de ses spectateurs, sa courbe de rétention et, si YouTube les
+donne, ses vues « engagées » ; pour la chaîne, ses sources, ses pays, les recherches et les vidéos qui l'amènent.
+Le résultat est un artefact du run (`youtube-detail`, 3 jours) qu'une session lit ; rien n'est écrit sur `state`,
+et le journal ne montre ni les recherches ni rien d'autre que nos titres et des chiffres.
+
 ## Captures TikTok (et ce que l'API YouTube ne donne pas)
 
 TikTok n'a pas d'API pour nous : ses chiffres n'existent que par les captures du propriétaire, envoyées **dans

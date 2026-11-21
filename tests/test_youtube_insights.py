@@ -345,3 +345,53 @@ def test_a_reel_published_by_hand_is_one_video_on_every_platform():
     assert Y.match("سورة الناس - Surah An-Nas", "", datetime(2026, 11, 5, 8, 56, tzinfo=UTC),
                    posts)["key"] == "slot:2026-11-05/morning"
     assert _manual_key({"platform": "tiktok", "video": "93:1-11"}, posts, None) == "hand:93:1-11"
+
+
+class DetailHttp(FakeHttp):
+    """FakeHttp, and the reports of the detailed reading by their dimensions; engaged views
+    refused, as YouTube would for a metric it does not serve."""
+
+    def get(self, url, params=None, headers=None, timeout=None):
+        if url != Y.ANALYTICS:
+            return super().get(url, params, headers, timeout)
+        self.calls.append(("GET", url, params))
+        assert params["ids"] == "channel==MINE" and params["endDate"] == "2026-11-15"
+        dim = params["dimensions"]
+        heads = {"insightTrafficSourceType": ("insightTrafficSourceType", "views",
+                                              "estimatedMinutesWatched"),
+                 "country": ("country", "views", "averageViewDuration"),
+                 "elapsedVideoTimeRatio": ("elapsedVideoTimeRatio", "audienceWatchRatio",
+                                           "relativeRetentionPerformance"),
+                 "insightTrafficSourceDetail": ("insightTrafficSourceDetail", "views")}
+        rows = {"insightTrafficSourceType": [["SHORTS", 90, 30.0], ["YT_SEARCH", 10, 4.0]],
+                "country": [["EG", 60, 40], ["DZ", 40, 35]],
+                "elapsedVideoTimeRatio": [[0.01, 1.2, 0.4], [0.5, 0.6, 0.3]],
+                "insightTrafficSourceDetail": [["dua for rizq", 3]]}
+        if dim == "video":
+            return Answer(400, {"error": {"message": "Unknown identifier (engagedViews)"}})
+        return Answer(200, {"columnHeaders": [{"name": n} for n in heads[dim]],
+                            "rows": rows[dim]})
+
+
+def test_the_detailed_reading_keeps_sources_countries_and_retention(tmp_path):
+    from quran_reels.insights import youtube_detail as D
+
+    out = tmp_path / "detail.json"
+    http = DetailHttp()
+    text = D.main(out, now=NOW, client=Y.YouTube("cid", "secret", http), env=ENV)
+    detail = json.loads(out.read_text(encoding="utf-8"))
+    assert [v["id"] for v in detail["videos"]] == ["v1", "v2", "v3"]      # the private one left out
+    v1 = detail["videos"][0]
+    assert v1["sources"][0] == {"insightTrafficSourceType": "SHORTS", "views": 90, "pct": 90.0,
+                                "minutes": 30.0}
+    assert v1["countries"][1]["country"] == "DZ" and v1["countries"][1]["pct"] == 40.0
+    assert v1["retention"][0] == [0.01, 1.2, 0.4] and "engaged" not in v1
+    reports = [p for m, u, p in http.calls if u == Y.ANALYTICS]
+    assert {p["filters"] for p in reports if p["dimensions"] == "elapsedVideoTimeRatio"} == {
+        "video==v1", "video==v2", "video==v3"}
+    first = next(p for p in reports if p["filters"] == "video==v3")
+    assert first["startDate"] == "2026-11-11"                    # its publication, Pacific day
+    assert detail["channel"]["search_terms"][0]["views"] == 3
+    assert len(detail["errors"]) == 3 and "engagedViews" in detail["errors"][0]
+    assert "dua for rizq" not in text                            # no search term in the log
+    assert "SHORTS 90%" in text and "EG 60%" in text
