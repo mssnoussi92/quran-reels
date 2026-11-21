@@ -370,6 +370,10 @@ def main(argv: list[str] | None = None) -> int:
             except SystemExit as e:
                 print(e, file=sys.stderr)
                 failed.append(key)
+            except Exception as e:      # noqa: BLE001  (this passage only: the next ones go on)
+                print(f"{src.audio.reciter} {key}: cannot be split: {type(e).__name__}: {e}; "
+                      f"nothing rendered", file=sys.stderr)
+                failed.append(key)
         if failed:
             print(f"not ready: {', '.join(failed)}", file=sys.stderr)
         return 1 if failed else 0

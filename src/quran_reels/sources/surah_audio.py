@@ -32,6 +32,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from itertools import pairwise
 from pathlib import Path
+from urllib.parse import urlparse
 
 import numpy as np
 
@@ -587,6 +588,24 @@ class SurahFiles:
             self.http.download(self.surah_url(surah), path, min_bytes=20_000)
         return path
 
+    def recording(self, surah: int) -> Path:
+        """`audio`, a recording that cannot be had being a passage not ready (SystemExit with
+        one line: the reciter, the surah, the host, the HTTP status), not a crash that stops
+        every later passage of the reciter (Omar Hisham has no surah 35, 2026-11-21)."""
+        import requests
+
+        try:
+            return self.audio(surah)
+        except requests.RequestException as e:
+            status = getattr(getattr(e, "response", None), "status_code", None)
+            host = urlparse(self.surah_url(surah)).netloc
+            raise SystemExit(f"{self.reciter}, surah {surah}: no recording of surah {surah} at "
+                             f"{host} ({status if status else type(e).__name__}); "
+                             f"nothing rendered") from e
+        except RuntimeError as e:           # too short a file (http.download)
+            raise SystemExit(f"{self.reciter}, surah {surah}: no usable recording: {e}; "
+                             f"nothing rendered") from e
+
     def split_path(self, surah: int) -> Path:
         """The split file to read: one whose basmala counts as checked (`enough`) before one
         where it does not, then the one with the most checked ayahs (the first folder when
@@ -631,11 +650,12 @@ class SurahFiles:
     def make_split(self, surah: int, check: set[str] | None = None) -> dict:
         """Find the split, check its segments by speech recognition (`check`: these only;
         those already checked with the same cuts are kept), write it to `splits`."""
-        from quran_reels.sources.recognition import MODEL, Recognizer
-
-        if self.max_minutes and duration(self.audio(surah)) > self.max_minutes * 60:
+        recording = self.recording(surah)       # before the model: no recording, nothing to load
+        if self.max_minutes and duration(recording) > self.max_minutes * 60:
             raise SystemExit(f"{self.reciter}, surah {surah}: recording longer than "
                              f"{self.max_minutes:g} min, not split")
+        from quran_reels.sources.recognition import MODEL, Recognizer
+
         texts = self.texts(surah)
         labels = list(texts)
         ref = self.reference(surah)
@@ -658,7 +678,7 @@ class SurahFiles:
             self._recognizer = Recognizer()
         before = read_json(self.split_path(surah)) if self.split_path(surah).is_file() else {}
         try:
-            segments, scores = find_split(self.audio(surah), labels, list(texts.values()),
+            segments, scores = find_split(recording, labels, list(texts.values()),
                                           expected, self._recognizer, starts, check,
                                           end=timing[int(labels[-1])][1]
                                           if starts and int(labels[-1]) in timing else None)
