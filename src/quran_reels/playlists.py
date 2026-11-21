@@ -12,7 +12,8 @@ The owner had made the six playlists of docs/profils.md by hand and kept them up
   sorted by date would refuse a position);
 - a series or a document without a playlist gets its own, public, created with its first video and
   titled from its validated names, the Arabic first (config/series/*.yaml: title_ar, title_en; the
-  first line of publication-<doc>.md); its id is kept in youtube-playlists.json (state branch);
+  first line of publication-<doc>.md); its id is kept in youtube-playlists.json (state branch). One
+  he made by hand under those names, in either order, is his: taken over, never made twice;
 - the six titles were written English first: each is turned around once, Arabic first (owner's
   choice, 2026-11-21), its description kept as he wrote it; a title he changes later is left alone.
 
@@ -235,14 +236,32 @@ def sync(conf: dict[str, Any], insights: dict[str, Any], published: dict[str, An
             if not pid:
                 if not title:
                     continue
-                done.append(f"create « {title} » ({k})")
-                if dry_run:
-                    pid = f"(new {k})"
+                # One he made by hand with the same names, in either order: his, taken over
+                # (2026-11-21: « We Will Show Them Our Signs · سنريهم آياتنا », made the evening
+                # its first Short went out, would have been made a second time).
+                mine = next((i for i, sn in existing.items()
+                             if sn.get("title", "").strip() in (title, swapped(title))), None)
+                if mine:
+                    current = existing[mine].get("title", "")
+                    done.append(f"take over « {current} » ({k})")
+                    pid = mine
+                    if not dry_run:
+                        state.setdefault("playlists", {})[k] = pid
+                    if current != title:
+                        done.append(f"rename « {current} » → « {title} »")
+                        if not dry_run:
+                            channel.rename(pid, title, existing[mine])
                 else:
-                    pid = channel.create(title)
-                    state.setdefault("playlists", {})[k] = pid
+                    done.append(f"create « {title} » ({k})")
+                    if dry_run:
+                        pid = f"(new {k})"
+                    else:
+                        pid = channel.create(title)
+                        state.setdefault("playlists", {})[k] = pid
+                        contents[pid] = []
                 ids[k] = pid
-                contents[pid] = []
+                if pid.startswith("(new"):
+                    contents[pid] = []
             if pid not in contents:
                 contents[pid] = channel.items(pid) if not pid.startswith("(new") else []
             items = contents[pid]

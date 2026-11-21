@@ -216,9 +216,9 @@ def test_the_playlists_sign_in_saves_its_own_secret(monkeypatch):
     assert saved == {P.SECRET: "rt-lists"}
 
 
-def test_the_configuration_names_his_six_playlists():
+def test_the_configuration_names_his_playlists():
     conf = P.settings(Path(__file__).resolve().parents[1])
-    assert len(conf["playlists"]) == 6 and conf["since"]
+    assert len(conf["playlists"]) == 7 and conf["since"]          # his six, and « سنريهم آياتنا »
     for v in conf["playlists"].values():          # Arabic first: the first half has Arabic letters
         first = v["title"].split(" · ")[0]
         assert any("؀" <= ch <= "ۿ" for ch in first), v["title"]
@@ -228,3 +228,17 @@ def test_the_configuration_names_his_six_playlists():
                                                ("a · b · c", "a · b · c")])
 def test_only_a_title_of_two_halves_is_turned(title, turned):
     assert P.swapped(title) == turned
+
+
+def test_a_playlist_he_made_by_hand_is_taken_over_never_made_twice():
+    """2026-11-21: he made « We Will Show Them Our Signs · سنريهم آياتنا » by hand with the first
+    Short of the series; the night's run would have made « سنريهم آياتنا · … » a second time."""
+    ch, state = FakeChannel(), {}
+    ch.lists["PLhis"] = {"title": "We Will Show Them Our Signs · سنريهم آياتنا", "description": ""}
+    ch.content["PLhis"] = ["vsigns"]
+    lines = P.sync(CONF, INSIGHTS, PUBLISHED, state, ch, names())
+    assert "take over « We Will Show Them Our Signs · سنريهم آياتنا » (signs)" in lines
+    assert state["playlists"]["signs"] == "PLhis"
+    assert ("rename", "PLhis", "سنريهم آياتنا · We Will Show Them Our Signs", "") in ch.calls
+    assert ch.content["PLhis"] == ["vsigns", "vsigns2"]        # his Short not added twice
+    assert not [c for c in ch.calls if c[0] == "create" and "سنريهم" in c[2]]
