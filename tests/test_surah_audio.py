@@ -398,3 +398,62 @@ def test_a_published_end_that_cuts_the_last_ayah_short_is_not_kept(tmp_path, mon
         assert segments["5"][1] == pytest.approx(9.05, abs=0.05) and scores["5"] == 1.0
     else:                                     # « صدق الله العظيم » after it: the published end stays
         assert segments["5"][1] < 8.0 and scores["5"] == 1.0
+
+
+# ---- a recording that cannot be had is one passage not ready, not a crash --------------------
+
+def _no_surah_35(tmp_path):
+    import requests
+
+    from quran_reels.sources.surah_audio import SurahFiles
+
+    class Http404:
+        def download(self, url, dest, min_bytes=1):
+            if "/035.mp3" in url:
+                r = requests.Response()
+                r.status_code = 404
+                raise requests.HTTPError("404 Client Error: Not Found for url: " + url, response=r)
+            raise AssertionError("the next passages must not download in this test")
+
+    return SurahFiles(tmp_path / "cache", Http404(), "omar-hisham-al-arabi",
+                      "https://dn7.ca.archive.org/0/items/omar/{surah:03d}.mp3",
+                      [tmp_path / "splits"], lambda s: {}, lambda s: {})
+
+
+def test_a_missing_recording_is_said_in_one_line(tmp_path):
+    with pytest.raises(SystemExit) as e:
+        _no_surah_35(tmp_path).make_split(35, {"2"})
+    assert str(e.value) == ("omar-hisham-al-arabi, surah 35: no recording of surah 35 at "
+                            "dn7.ca.archive.org (404); nothing rendered")
+
+
+def test_split_goes_on_after_a_passage_with_no_recording(tmp_path, monkeypatch, capsys):
+    """2026-11-21: Omar Hisham has no surah 35 on archive.org; the 404 stopped the split of
+    100, 99, 98... the same night. Now only 35:2-2 is not ready, and the exit code says so."""
+    from types import SimpleNamespace
+
+    from quran_reels import cli, config
+    from quran_reels.sources import Sources
+
+    audio = _no_surah_35(tmp_path)
+    tried = []
+    real = audio.make_split
+
+    def make_split(surah, check=None):
+        if surah == 35:
+            return real(surah, check)
+        tried.append(surah)
+        return {}
+    audio.make_split = make_split
+    audio.matches = lambda surah: {}
+    chapters = {s: {"verses_count": 11} for s in (35, 100, 99)}
+    fake = SimpleNamespace(audio=audio, translation_slug="t",
+                           quran=SimpleNamespace(ensure=lambda slug: None, chapters=chapters))
+    monkeypatch.setattr(config, "load", lambda: SimpleNamespace(content={}))
+    monkeypatch.setattr(Sources, "from_config", classmethod(lambda cls, cfg: fake))
+
+    assert cli.main(["split", "35:2-2", "100:1-11", "99:1-8"]) == 1
+    assert tried == [100, 99]
+    err = capsys.readouterr().err
+    assert "no recording of surah 35 at dn7.ca.archive.org (404)" in err
+    assert "not ready: 35:2-2" in err
