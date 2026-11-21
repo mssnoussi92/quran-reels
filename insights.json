@@ -7696,6 +7696,378 @@
    },
    "source": "capture",
    "added": "2026-11-15T14:33:13+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "theme:dua/short-3",
+   "published": "2026-11-19",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 6,
+    "ctr": 16.67
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "theme:moussa-khidr/short-1",
+   "published": "2026-11-13",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 97,
+    "ctr": 9.28
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "theme:moussa-khidr/short-2",
+   "published": "2026-11-14",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 65,
+    "ctr": 9.23
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "slot:2026-11-08/morning",
+   "published": "2026-11-08",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 70,
+    "ctr": 8.57
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "theme:dua/short-1",
+   "published": "2026-11-17",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 25,
+    "ctr": 8.0
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "theme:moussa-khidr/short-3",
+   "published": "2026-11-15",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 41,
+    "ctr": 7.32
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "slot:2026-11-08/evening",
+   "published": "2026-11-08",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 357,
+    "ctr": 6.44
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "slot:2026-11-10/morning",
+   "published": "2026-11-10",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 162,
+    "ctr": 6.17
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "theme:dua/short-2",
+   "published": "2026-11-18",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 55,
+    "ctr": 5.45
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "hand:93:1-11",
+   "published": "2026-11-04",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 60,
+    "ctr": 5.0
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "slot:2026-11-10/evening",
+   "published": "2026-11-10",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 223,
+    "ctr": 4.48
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "slot:2026-11-06/evening",
+   "published": "2026-11-06",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 91,
+    "ctr": 4.4
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "slot:2026-11-05/evening",
+   "published": "2026-11-05",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 216,
+    "ctr": 3.7
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "slot:2026-11-12/morning",
+   "published": "2026-11-12",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 352,
+    "ctr": 3.13
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "slot:2026-11-06/morning",
+   "published": "2026-11-06",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 320,
+    "ctr": 3.13
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "slot:2026-11-09/morning",
+   "published": "2026-11-09",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 618,
+    "ctr": 2.91
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "slot:2026-11-19/morning",
+   "published": "2026-11-19",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 104,
+    "ctr": 2.88
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "theme:dua-9x16/film",
+   "published": "2026-11-16",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 290,
+    "ctr": 2.76
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "slot:2026-11-18/morning",
+   "published": "2026-11-18",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 118,
+    "ctr": 2.54
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "theme:moussa-khidr-9x16/film",
+   "published": "2026-11-12",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 6963,
+    "ctr": 2.54
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "slot:2026-11-16/morning",
+   "published": "2026-11-16",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 450,
+    "ctr": 2.22
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "slot:2026-11-07/evening",
+   "published": "2026-11-07",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 460,
+    "ctr": 1.96
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "slot:2026-11-09/evening",
+   "published": "2026-11-09",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 369,
+    "ctr": 1.9
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "slot:2026-11-05/morning",
+   "published": "2026-11-05",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 108,
+    "ctr": 1.85
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "slot:2026-11-17/morning",
+   "published": "2026-11-17",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 458,
+    "ctr": 1.75
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "slot:2026-11-07/morning",
+   "published": "2026-11-07",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 254,
+    "ctr": 1.57
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "slot:2026-11-11/evening",
+   "published": "2026-11-11",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 340,
+    "ctr": 1.47
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "slot:2026-11-13/evening",
+   "published": "2026-11-13",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 545,
+    "ctr": 1.28
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "slot:2026-11-14/morning",
+   "published": "2026-11-14",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 252,
+    "ctr": 1.19
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "slot:2026-11-11/morning",
+   "published": "2026-11-11",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 518,
+    "ctr": 1.16
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
+  },
+  {
+   "platform": "youtube",
+   "video": "slot:2026-11-20/morning",
+   "published": "2026-11-20",
+   "seen": "2026-11-20",
+   "m": {
+    "impressions": 54,
+    "ctr": 0.0
+   },
+   "source": "export YouTube Studio",
+   "added": "2026-11-21T14:22:01+00:00"
   }
  ],
  "runs": [
