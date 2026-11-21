@@ -207,6 +207,41 @@ def test_the_captions_issue_says_youtube_always_has_its_own_reciter():
     assert "`/youtube 2026-11-12/morning" not in body and "https://page" not in body
 
 
+def test_the_captions_issue_says_when_the_run_put_the_short_on_youtube():
+    """platforms.youtube.upload (2026-11-21): nothing to do by hand, no /youtube command; when
+    the upload failed, the instructions by hand are still there, with why."""
+    from quran_reels.notify import failure_text, merge_captions
+    item = {"key": "2026-11-22/morning", "day": "2026-11-22", "time": "07:30",
+            "passage": "108:1-3", "label": "", "reciter": "fares_abbad", "retry": False,
+            "caption": "Al-Kawthar by Fares Abbad\n",
+            "results": {"facebook": {"status": "published", "url": "https://f", "error": None},
+                        "youtube": {"status": "published", "url": "https://youtube.com/shorts/v1",
+                                    "error": None}},
+            "files": {"mp4": "https://dl/a.mp4", "youtube_mp4": "https://dl/a-youtube.mp4",
+                      "page": "https://page", "command": "/youtube 2026-11-22/morning"},
+            "youtube": {"reciter": "sayegh", "video": "youtube/108_001-003.mp4",
+                        "caption": "Al-Kawthar by Tawfiq As-Sayegh\n",
+                        "label": "Tawfiq As-Sayegh", "instead_of": "Fares Abbad",
+                        "always": True}}
+    body = merge_captions("", {"items": [item]})
+    assert ("**YouTube : [mis en ligne par le run](https://youtube.com/shorts/v1)**, récitée par "
+            "Tawfiq As-Sayegh (pas cette vidéo). Rien à faire.") in body
+    assert "`/youtube 2026-11-22/morning" not in body and "pas cette vidéo** (" not in body
+
+    item["results"]["youtube"] = {"status": "failed", "url": None, "error": "HTTP 403 quotaExceeded"}
+    body = merge_captions("", {"items": [item]})
+    assert "**YouTube : la mise en ligne par le run n'a pas abouti** (HTTP 403 quotaExceeded)" in body
+    assert "`/youtube 2026-11-22/morning <lien>`" in body and "[ce MP4](https://dl/a-youtube.mp4)" in body
+    text = failure_text({"items": [item]}, "https://run")
+    assert "📺 YouTube : la mise en ligne du Short a échoué" in text
+    assert "rien n'est publié, sur aucune plateforme" not in text
+
+    item["results"]["youtube"] = {"status": "blocked", "url": None, "error": "droits (Meta) : …"}
+    text = failure_text({"items": [item]}, "https://run")
+    assert "📺 Meta a reconnu un contenu protégé dans la version YouTube" in text
+    assert "rien n'est publié, sur aucune plateforme" not in text
+
+
 def test_a_slot_nobody_tried_opens_the_alert_even_when_this_run_published(tmp_path):
     """The alert is written by a run: for a slot no run took, a later run has to say it, and
     its own success must not close what it has just opened."""

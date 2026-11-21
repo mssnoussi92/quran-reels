@@ -1,12 +1,16 @@
 name: youtube-auth
 
-# One-time Google sign-in for the channel's statistics, read only (insights/youtube.py): again if
-# the refresh token is lost or revoked (a Google password change revokes it).
+# One-time Google sign-in, again if the refresh token is lost or revoked (a Google password change
+# revokes it). Two tokens, one sign-in each, told apart by the scopes Google granted:
+# - Statistics (youtube-login.html → Statistics): YOUTUBE_REFRESH_TOKEN, read only
+#   (insights/youtube.py);
+# - Uploads (youtube-login.html → Uploads): YOUTUBE_UPLOAD_REFRESH_TOKEN, upload and read, never
+#   change nor delete (publishers/youtube.py: the daily run uploads the calendar's Short).
 # 1. https://mssnoussi92.github.io/quran-reels/youtube-login.html → Google → copy the code.
 # 2. Run this workflow within a few minutes with that code.
-# The code is exchanged here with YOUTUBE_CLIENT_SECRET; the refresh token is saved into the
-# YOUTUBE_REFRESH_TOKEN secret with GH_SECRETS_TOKEN (fine-grained token, Secrets: read and
-# write on this repository). The code is read from the event file and never shown in the log.
+# The code is exchanged here with YOUTUBE_CLIENT_SECRET; the refresh token is saved into its
+# secret with GH_SECRETS_TOKEN (fine-grained token, Secrets: read and write on this repository).
+# The code is read from the event file and never shown in the log.
 
 on:
   workflow_dispatch:

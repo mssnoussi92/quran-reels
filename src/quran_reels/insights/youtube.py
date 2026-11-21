@@ -17,7 +17,9 @@ names; a theme video's is its own title). TikTok stays on screenshots.
 Access: an OAuth client of the owner's Google Cloud project (YOUTUBE_CLIENT_ID,
 YOUTUBE_CLIENT_SECRET) and a refresh token saved once by the workflow youtube-auth
 (YOUTUBE_REFRESH_TOKEN, docs/plateformes.md). Nothing here can upload, edit or delete: the scopes
-are read-only. Tokens never reach a log (errors are rebuilt without them).
+are read-only. Tokens never reach a log (errors are rebuilt without them). The uploads of the
+daily run have a token of their own (publishers/youtube.py, YOUTUBE_UPLOAD_REFRESH_TOKEN), saved
+by the same sign-in when Google grants the upload scope (auth).
 """
 
 from __future__ import annotations
@@ -70,13 +72,19 @@ class YouTubeEnv:
         return cls(cid, secret, refresh)
 
 
-def auth_url(client_id: str, redirect_uri: str, state: str = "quran-reels") -> str:
+def auth_url(client_id: str, redirect_uri: str, state: str = "quran-reels",
+             upload: bool = False) -> str:
+    """Google's sign-in for the statistics (read only), or for the uploads (upload: their own
+    token). Never the scopes granted before (include_granted_scopes false): each token keeps
+    only its own, the statistics' stays read-only."""
     from urllib.parse import urlencode
+
+    from quran_reels.publishers.youtube import UPLOAD_SCOPES
 
     return AUTH_URL + "?" + urlencode({
         "client_id": client_id, "redirect_uri": redirect_uri, "response_type": "code",
-        "scope": " ".join(SCOPES), "access_type": "offline", "prompt": "consent",
-        "include_granted_scopes": "true", "state": state})
+        "scope": " ".join(UPLOAD_SCOPES if upload else SCOPES), "access_type": "offline",
+        "prompt": "consent", "include_granted_scopes": "false", "state": state})
 
 
 class YouTube:
@@ -511,10 +519,13 @@ def collect(path: Path, s: dict[str, Any], now: datetime | None = None,
 
 
 def auth(redirect_uri: str, code: str | None, client: YouTube | None = None) -> int:
-    """Exchange the code of youtube-callback.html, save YOUTUBE_REFRESH_TOKEN (workflow
-    youtube-auth). The code is read from the workflow's event file, never printed."""
+    """Exchange the code of youtube-callback.html, save the refresh token (workflow
+    youtube-auth): YOUTUBE_UPLOAD_REFRESH_TOKEN when Google granted the upload scope (the
+    button « Mise en ligne » of youtube-login.html), else YOUTUBE_REFRESH_TOKEN, read only. The
+    code is read from the workflow's event file, never printed."""
     from quran_reels.gh_secrets import SecretSaveError, mask, save_secret
     from quran_reels.publish import _event_input, _summary
+    from quran_reels.publishers.youtube import UPLOAD_SCOPES, UPLOAD_SECRET
 
     code = code or os.environ.get("YOUTUBE_AUTH_CODE") or _event_input("code")
     if not code:
@@ -533,16 +544,20 @@ def auth(redirect_uri: str, code: str | None, client: YouTube | None = None) -> 
                  "quelques minutes : recommencer depuis youtube-login.html.")
         raise SystemExit(f"YouTube sign-in failed: {e}") from None
     granted = set((t.get("scope") or "").split())
-    missing = [s.rsplit("/", 1)[-1] for s in SCOPES if s not in granted]
+    upload = UPLOAD_SCOPES[0] in granted
+    wanted, secret = (UPLOAD_SCOPES, UPLOAD_SECRET) if upload else (SCOPES, REFRESH_SECRET)
+    missing = [s.rsplit("/", 1)[-1] for s in wanted if s not in granted]
     if not t.get("refresh_token"):
         raise SystemExit("Google gave no refresh token: sign in again from youtube-login.html "
                          "(it asks for consent each time)")
     try:
-        save_secret(REFRESH_SECRET, t["refresh_token"])
+        save_secret(secret, t["refresh_token"])
     except SecretSaveError as e:
         _summary(f"## ❌ Connexion YouTube\n\nJeton obtenu mais non enregistré : {e}")
         raise SystemExit(str(e)) from None
-    lines = [f"Chaîne : {ch['title']}", f"{REFRESH_SECRET} enregistré (lecture seule)."]
+    what = ("mise en ligne des Shorts du calendrier : envoyer et lire, ni modifier ni supprimer"
+            if upload else "lecture seule")
+    lines = [f"Chaîne : {ch['title']}", f"{secret} enregistré ({what})."]
     if missing:
         lines.append("Autorisations refusées : " + ", ".join(missing)
                      + " : recommencer en cochant tout.")

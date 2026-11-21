@@ -49,6 +49,7 @@ et se mesure ensuite.
 | Mots difficiles | **غريب التفسير الميسر** (Tafsir al-Muyassar, Complexe du Roi Fahd ; `almuyassar-ghareeb` sur tafsir.app), choix du propriétaire le 2026-11-05 (avant : Ibn Qutaybah, *Tafsir Gharib al-Qur'an*), sens en arabe, **1 à 3 mots liés** surlignés |
 | Récitateurs | **Choisis par passage** (`content.rotation`, `reciters.py`) parmi ceux du propriétaire (2026-11-05) : **Omar Hisham Al-Arabi, Muhammad Siddiq Al-Minshawi, Tawfiq As-Sayegh, Salah Budair, Fares Abbad** (EveryAyah, ajouté depuis le catalogue, ticket #19, directement dans la rotation sans essai sur Facebook seul : choix du propriétaire) : prêt pour le passage (découpe vérifiée), ≤ 90 s, **Omar Hisham d'abord dès que sa découpe du passage est vérifiée** (choix du propriétaire, 2026-11-21 : `content.rotation.prefer` ; ses enregistrements de Juz' 'Amma enchaînent les ayahs sans pause et se vérifient rarement), sinon pas un des 2 derniers publiés, puis le plus proche de 60 s (passage long → récitateur rapide, sourate courte → plus lent). Écartés : Alafasy, **Nabil Ar-Rifai** (Rights Manager : 2:255 rendue muette par Facebook dans 24 territoires, 2026-11-05) et **Saad Al-Ghamdi** (2:255 revendiquée par UMG, muette en Russie, le même soir), Hudhaifi, Ayyub, Akhdar (après écoute) ; un récitateur revendiqué après publication est écarté automatiquement (`claimed`) ; **en essai** : Husary (ticket #32, EveryAyah, Facebook seul d'abord) ; **YouTube : toujours Tawfiq As-Sayegh** (choix du propriétaire, 2026-11-11, `platforms.youtube.reciter` : aucune revendication constatée sur ses récitations, la voix des épisodes thématiques de la même chaîne) : un reel d'un autre récitateur a sa version YouTube par lui ; pas prêt pour le passage → rien pour YouTube ce créneau, aucun autre à sa place ; Budair y reste revendiqué (Content ID, 2026-11-06) |
 | Droits | **Vérification Meta avant chaque publication** : brouillon Facebook + conteneur Instagram, publiés seulement si Meta répond `complete` sans correspondance, sinon rien n'est publié (TikTok compris) ; **sauf** Instagram en `error` sans correspondance aux deux envois avec Facebook propre : laissé de côté, le reel part sur les autres et l'alerte le dit (choix du propriétaire, 2026-11-20, docs/plateformes.md). Elle n'a vu ni Alafasy, ni Ar-Rifai, ni Al-Ghamdi (revendications arrivées quelques minutes après la publication). Contrôle après publication prêt (`rights_after_timeout` > 0 : relu 5 min puis à chaque run pendant 2 jours ; muet ou bloqué → retiré de Facebook et Instagram + alerte, récitateur écarté) mais **désactivé : le propriétaire vérifie lui-même pour l'instant** (2026-11-05) ; nouveaux récitateurs testés sur Facebook seul, Instagram ensuite |
+| YouTube | **Shorts du calendrier mis en ligne par le run, en public** (choix du propriétaire, 2026-11-21 : « les reels d'abord » ; YouTube ne verrouille plus en privé ce qu'un projet non audité met en ligne par l'API depuis le 2026-11-02, et donne 100 mises en ligne par jour) : la version YouTube du créneau (Tawfiq As-Sayegh), juste après le reel s'il est sorti, avec les textes de la page « À publier », après la vérification de Meta sur ce fichier même (règle 6), jamais deux fois ; seulement une fois le propriétaire connecté pour cela (`YOUTUBE_UPLOAD_REFRESH_TOKEN`, avant : à la main) ; **vidéos thématiques et demandes : toujours à la main** (`platforms.youtube.upload`, docs/plateformes.md) |
 | Fond | **choisi selon ce que dit le passage** (montagnes, mer, rivières, jardins, nuit, aube, ciel…) : vidéos Pexels choisies par le propriétaire et scènes générées (aube, nuit, mer), **sans personnes ni animaux** ; scènes **animées** au rythme d'un ciel filmé (nuages, brume, vagues, lumière) avec un **zoom lent** sur toute la vidéo, le texte immobile (Facebook : « image statique » sur 6:17, 2026-11-09) |
 | Exécution | GitHub Actions (dépôt public → gratuit), migrable sur le homelab (Docker) |
 | À la demande | Reel choisi depuis le téléphone (récitateur, sourate entière ou ayahs X à Y, fond, plateformes, **mots expliqués** cochés dans le formulaire **avant le ticket**, sous les ayahs affichées, ou `/mots 1 4` après l'aperçu, parmi les sens numérotés du Muyassar, jamais écrits ; extraits du Muyassar publiés sur le site pour le formulaire, choix du 2026-11-06) : catalogue → ticket prérempli → **aperçu** en commentaire → publié seulement après **`/publier`** du propriétaire ; **en plus** des 2 créneaux ; le calendrier **ne saute pas** un passage publié à la demande ; YouTube coché : une seule vidéo par demande, donc « Auto » = Tawfiq As-Sayegh pour tout le reel, et YouTube retiré de la demande avec un autre récitateur (choix du 2026-11-11, docs/on-demand.md) |
@@ -58,7 +59,7 @@ et se mesure ensuite.
 | Titres | **Toujours en arabe et en anglais** (choix du propriétaire, 2026-11-09) : noms des comptes, série et sourate en tête des légendes (`render.series_line`, `render.surah_line` : « آيات الدعاء · Supplications from the Quran · 3/38 », « سورة الضحى · Surah Ad-Duhaa (93:1-11) »), titres YouTube (raccourcis par parties entières, jamais une seule langue), **l'arabe d'abord depuis le 2026-11-21**, le compteur d'une série en dernier : titres YouTube (« سورة الفيل · Surah Al-Fil (105:1-5) ») et, le même jour, tête des légendes Facebook, Instagram, TikTok et `caption.txt` des reels rendus ensuite (choix du propriétaire : 74 % des vues de la chaîne viennent de pays arabophones et les recherches qui amènent des vues sont en arabe ; les reels déjà publiés gardent leur légende, leurs titres YouTube se changent à la main dans Studio), Word of the day, playlists, images ; le texte des ayahs reste hors de la légende Facebook |
 | Comptes pro | Page Facebook + Instagram en type **Créateur**, reliés |
 | Signature | **@quran_words_daily** sur chaque image, dans la zone sûre (repartages) ; **TikTok : `@quran.words.daily`** (choix du propriétaire, 2026-11-09 : `@quran_words_daily` y est à quelqu'un d'autre) : sa propre version de chaque reel (`platforms.tiktok.signature`, `render.signatures` : calque fixe redessiné, `out/<passage>/tiktok.mp4`) et la même signature à la fin de sa légende (`Reel.for_platform`) |
-| Hashtags | Fin de légende, dans l'ordre : `#QuranWordsDaily`, `#Quran`, 1er tag de la série, sourate (`#SurahAdDuhaa` `#سورة_الضحى`), `#القرآن_الكريم`, autres tags de la série, récitateur, gloses (`#تفسير_القرآن`) ; **Instagram et TikTok : les 5 premiers** (leur limite), Facebook 8, `caption.txt` tous (YouTube à la main). **Facebook : légende courte, ≤ 400 caractères hashtags compris** (sa liste de qualité, 2026-11-09) : série et référence (titres en arabe et en anglais), crédits sur une ligne, signature, hashtags ; ni le texte arabe des ayahs ni la traduction (dans la vidéo ; choix du propriétaire) ; trop longue → des hashtags de la fin. **Instagram et TikTok : légende courte** (2026-11-15) : la même, plus le texte arabe des ayahs, sans la traduction ; **Instagram sans le texte des ayahs depuis le 2026-11-21** (choix du propriétaire : « Instagram coupe parfois la couverture à cause des mots dans les versets » ; `platforms.instagram.caption_verses: false`, TikTok le garde) ; YouTube (`caption.txt`) garde tout |
+| Hashtags | Fin de légende, dans l'ordre : `#QuranWordsDaily`, `#Quran`, 1er tag de la série, sourate (`#SurahAdDuhaa` `#سورة_الضحى`), `#القرآن_الكريم`, autres tags de la série, récitateur, gloses (`#تفسير_القرآن`) ; **Instagram et TikTok : les 5 premiers** (leur limite), Facebook 8, `caption.txt` tous (YouTube : description et tags). **Facebook : légende courte, ≤ 400 caractères hashtags compris** (sa liste de qualité, 2026-11-09) : série et référence (titres en arabe et en anglais), crédits sur une ligne, signature, hashtags ; ni le texte arabe des ayahs ni la traduction (dans la vidéo ; choix du propriétaire) ; trop longue → des hashtags de la fin. **Instagram et TikTok : légende courte** (2026-11-15) : la même, plus le texte arabe des ayahs, sans la traduction ; **Instagram sans le texte des ayahs depuis le 2026-11-21** (choix du propriétaire : « Instagram coupe parfois la couverture à cause des mots dans les versets » ; `platforms.instagram.caption_verses: false`, TikTok le garde) ; YouTube (`caption.txt`) garde tout |
 
 ## Règles de contenu (non négociables)
 
@@ -142,7 +143,8 @@ src/quran_reels/
   publishers/      un adaptateur par plateforme, interface commune `Publisher` (dry_run) :
                    meta.py (client Graph, contrôle du jeton), facebook.py, instagram.py
                    (prepare → rights → commit), rights.py (vérification des droits Meta),
-                   tiktok.py (brouillon dans la boîte TikTok, connexion OAuth)
+                   tiktok.py (brouillon dans la boîte TikTok, connexion OAuth),
+                   youtube.py (Short du calendrier mis en ligne par le run, envoi reprenable)
   publish.py       `quran-reels publish|meta-check|tiktok-auth` : contrôle, publication, résumé
   gh_secrets.py    réécrit un secret Actions (refresh token TikTok) via gh + GH_SECRETS_TOKEN
   daily.py         `quran-reels daily` : créneaux dus maintenant → rendu → publication → état
@@ -343,8 +345,10 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   seulement si la vérification des droits de Meta est propre partout (voir docs/plateformes.md).
 - TikTok : sans audit, la publication directe est forcée en privé → mode **brouillon**
   (MEDIA_UPLOAD vers la boîte TikTok) en attendant l'audit.
-- YouTube : sans audit, les uploads API sont verrouillés en privé → **upload manuel** du MP4
-  en attendant ; demander l'audit tôt. Quota ≈ 6 uploads/jour. Droits : **Content ID**, à
+- YouTube : **le run `daily` met en ligne le Short du calendrier** (2026-11-21, choix du
+  propriétaire ; `publishers/youtube.py`, `daily.to_youtube`) : plus de verrouillage en privé
+  ni d'audit depuis le 2026-11-02, 100 mises en ligne par jour. Vidéos thématiques, demandes, et
+  tout tant que le propriétaire ne s'est pas connecté pour cela : **à la main**. Droits : **Content ID**, à
   part de Meta : Salah Budair y est revendiqué (Short 18:1-10 bloqué partout le 2026-11-06 ;
   un Short de plus d'1 min revendiqué l'est toujours). **Sur YouTube, toujours Tawfiq
   As-Sayegh** (choix du propriétaire, 2026-11-11 : `platforms.youtube.reciter`,
@@ -472,7 +476,9 @@ GitHub Actions secrets : `META_PAGE_ID`, `META_PAGE_TOKEN`, `IG_USER_ID`, `TIKTO
 chaque rotation), `GH_SECRETS_TOKEN` (jeton fin GitHub, Secrets : lecture/écriture sur ce dépôt
 seulement, voir docs/plateformes.md ; son échéance est lue à chaque publication et imprimée
 dans le journal, ticket d'alerte 14 jours avant), `YOUTUBE_CLIENT_ID`, `YOUTUBE_CLIENT_SECRET`,
-`YOUTUBE_REFRESH_TOKEN` (statistiques YouTube en lecture seule, écrit par le workflow `youtube-auth`).
+`YOUTUBE_REFRESH_TOKEN` (statistiques YouTube en lecture seule, écrit par le workflow `youtube-auth`),
+`YOUTUBE_UPLOAD_REFRESH_TOKEN` (mise en ligne des Shorts du calendrier : envoyer et lire, ni modifier ni supprimer ;
+même workflow, bouton « Uploads » de youtube-login.html ; `daily.yml` lui seul).
 Jamais un jeton dans un log : en-têtes `Authorization`, erreurs reconstruites, `::add-mask::`.
 Les logs Actions d'un dépôt public sont publics : rien d'identifiant n'y est imprimé.
 
@@ -524,7 +530,9 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-30.
       (publish-test run #12, 2026-11-05 ; Instagram : 1er conteneur bloqué, publié au 2e).
 - [x] App TikTok Sandbox · [x] connexion (`tiktok-auth`, compte quran_words_daily, refresh
       token jusqu'à ≈ 2027-11-04) · [x] brouillon dans la boîte TikTok en Sandbox (run #8)
-- [ ] Demande d'audit YouTube
+- [x] Audit YouTube : plus nécessaire (verrouillage en privé levé par YouTube le 2026-11-02) ·
+      [x] mise en ligne des Shorts du calendrier par le run (2026-11-21) · [ ] connexion
+      « Uploads » par le propriétaire · [ ] premier Short mis en ligne par le run, regardé dans Studio
 - [x] **Reels en pause** du 2026-11-12 au soir au 2026-11-13 au matin (`pause` de
       `config/schedule.yaml`, demande du propriétaire : les épisodes thématiques démarrent) ·
       [x] reprise le 2026-11-13 au soir (Al-Kahf 18:15-16), puis **un reel chaque matin et les

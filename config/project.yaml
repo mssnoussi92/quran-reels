@@ -213,9 +213,21 @@ platforms:
     # the end of its caption; the other platforms keep video.handle.
     signature: "@quran.words.daily"
     redirect_uri: https://mssnoussi92.github.io/quran-reels/tiktok-callback.html
-  youtube:                           # locked private until the YouTube audit: by hand
-    enabled: false
-    mode: manual
+  youtube:
+    enabled: false                   # not one of publish.py's platforms: see `upload` below
+    mode: manual                     # on demand and theme videos: uploaded by hand
+    # The calendar's Short uploaded by the daily run itself (owner's choice, 2026-11-21: YouTube
+    # no longer locks the API's uploads as private since 2026-11-02, Data API revision history;
+    # 100 uploads a day). Only once the owner has signed in for it (YOUTUBE_UPLOAD_REFRESH_TOKEN:
+    # youtube-login.html → Uploads, workflow youtube-auth); until then by hand, as before.
+    # The texts are those of the page « À publier » (publish.youtube_texts): title, caption and
+    # hashtags; Meta's check sees the file first (rule 6). publishers/youtube.py, daily.py.
+    upload:
+      daily: true
+      privacy: public
+      made_for_kids: false
+      synthetic_media: false         # a real reciter, filmed or drawn nature: nothing realistic made up
+      # category: "27"               # unset: YouTube's default, as for the uploads by hand
     # YouTube has its own claims (Content ID), not Meta's: Salah Budair's Al-Kahf (al-Haram,
     # 1426-1427 H) is registered there; the Short 18:1-10 (1:28) was blocked worldwide
     # (2026-11-06): a Short over 1 min with any Content ID claim is. When the rotation picks

@@ -82,6 +82,16 @@ due »: normal, say so in one line, never as a failure.
    - daily: the captions issue says « YouTube : rien pour ce créneau » and the slot has
      `youtube: {reciter: null, error}`: Tawfiq was not ready for that passage. The reel of the
      day must not go to YouTube in his place; report the reason given.
+   - daily, YouTube uploaded by the run (since 2026-11-21, once the owner signed in for it:
+     `platforms.youtube.upload`, docs/plateformes.md « Mise en ligne des Shorts »): the slot's
+     `results.youtube` (status, id, url; no `by_hand`). `failed` without id: nothing reached
+     YouTube (network, quota, token: « connexion YouTube perdue » → the owner signs in again,
+     youtube-login.html → Uploads, then youtube-auth); the next run of the window tries again,
+     dispatch `daily.yml` while the window is open if the scheduler's retry is spent. `failed`
+     with an id: YouTube has it but refused it or kept it private: never uploaded again, the
+     owner looks at it in Studio. `blocked`: Meta's check of the YouTube version found a match
+     or could not end: not on YouTube, not retried. Log « has not signed in »: the token is
+     not there yet, YouTube stays by hand.
    - TikTok « could not be kept »: `GH_SECRETS_TOKEN` is missing or expired, the new refresh
      token was not saved. The owner makes a new token (docs/plateformes.md), then signs in
      again (tiktok-auth workflow) if the next run fails on the refresh.
@@ -94,7 +104,8 @@ due »: normal, say so in one line, never as a failure.
 6. **Report in French, short:** passage, reciter, link per platform, the TikTok draft waiting
    in the inbox (caption on the page « À publier »,
    https://mssnoussi92.github.io/quran-reels/publier.html, and in the pinned issue
-   « 📋 Légendes à copier »), the YouTube file
+   « 📋 Légendes à copier »), YouTube: the Short's link when the run uploaded it
+   (`results.youtube.url`), else the YouTube file to upload by hand
    (always recited by Tawfiq As-Sayegh: the same MP4 when the reel is his, else
    `youtube/<passage>.mp4`, the slot's `youtube`; its direct link and YouTube page are in the
    captions issue entry; or none for this slot, see step 4), what

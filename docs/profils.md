@@ -285,8 +285,10 @@ le titre validé de l'épisode, sans promesse de récompense (série munjiyat : 
 reward ») : à relire par le propriétaire comme le reste.
 
 Pas de playlist par récitateur pour l'instant : utile pour la recherche (« Minshawi »), mais
-chaque Short serait à classer une fois de plus à la main. À faire quand l'audit YouTube
-permettra de publier par l'API, playlists comprises.
+chaque Short serait à classer une fois de plus à la main. Le run met en ligne les Shorts du
+calendrier depuis le 2026-11-21 (sans audit, docs/plateformes.md) ; les ranger dans une playlist
+par l'API demanderait une autorisation plus large (`youtube`, qui permet aussi de modifier et de
+supprimer) que celle de la mise en ligne : à proposer au propriétaire, pas fait.
 
 ### Facebook : 3 seulement
 
