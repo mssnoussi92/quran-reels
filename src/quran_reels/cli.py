@@ -78,6 +78,13 @@ def main(argv: list[str] | None = None) -> int:
     yurl.add_argument("--state", default="quran-reels")
     yurl.add_argument("--upload", action="store_true",
                       help="the uploads' sign-in (YOUTUBE_UPLOAD_REFRESH_TOKEN), not the statistics'")
+    yurl.add_argument("--playlists", action="store_true",
+                      help="the playlists' sign-in (YOUTUBE_PLAYLISTS_REFRESH_TOKEN)")
+    ypl = sub.add_parser("youtube-playlists",
+                         help="put the channel's videos in their playlists (config/playlists.yaml)")
+    ypl.add_argument("--state", default="state-branch",
+                     help="checkout of the state branch (insights.json, published.json)")
+    ypl.add_argument("--dry-run", action="store_true", help="print what would be done")
     yauth = sub.add_parser("youtube-auth",
                            help="exchange the Google code, save YOUTUBE_REFRESH_TOKEN (read only) "
                                 "or YOUTUBE_UPLOAD_REFRESH_TOKEN (uploads)")
@@ -436,6 +443,13 @@ def main(argv: list[str] | None = None) -> int:
         print(auth_url(os.environ["TIKTOK_CLIENT_KEY"], conf["redirect_uri"], args.state))
         return 0
 
+    if args.command == "youtube-playlists":
+        from pathlib import Path
+
+        from quran_reels import playlists
+
+        return playlists.run(cfg.root, Path(args.state), dry_run=args.dry_run)
+
     if args.command in ("youtube-auth-url", "youtube-auth"):
         import os
 
@@ -445,7 +459,7 @@ def main(argv: list[str] | None = None) -> int:
         redirect = (insights_collect.settings(cfg).get("youtube") or {})["redirect_uri"]
         if args.command == "youtube-auth-url":
             print(youtube.auth_url(os.environ["YOUTUBE_CLIENT_ID"], redirect, args.state,
-                                   upload=args.upload))
+                                   upload=args.upload, playlists=args.playlists))
             return 0
         return youtube.auth(redirect, args.code)
 

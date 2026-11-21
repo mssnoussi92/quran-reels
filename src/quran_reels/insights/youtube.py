@@ -73,17 +73,19 @@ class YouTubeEnv:
 
 
 def auth_url(client_id: str, redirect_uri: str, state: str = "quran-reels",
-             upload: bool = False) -> str:
+             upload: bool = False, playlists: bool = False) -> str:
     """Google's sign-in for the statistics (read only), or for the uploads (upload: their own
     token). Never the scopes granted before (include_granted_scopes false): each token keeps
     only its own, the statistics' stays read-only."""
     from urllib.parse import urlencode
 
+    from quran_reels.playlists import SCOPES as PLAYLIST_SCOPES
     from quran_reels.publishers.youtube import UPLOAD_SCOPES
 
+    scopes = PLAYLIST_SCOPES if playlists else UPLOAD_SCOPES if upload else SCOPES
     return AUTH_URL + "?" + urlencode({
         "client_id": client_id, "redirect_uri": redirect_uri, "response_type": "code",
-        "scope": " ".join(UPLOAD_SCOPES if upload else SCOPES), "access_type": "offline",
+        "scope": " ".join(scopes), "access_type": "offline",
         "prompt": "consent", "include_granted_scopes": "false", "state": state})
 
 
@@ -520,10 +522,13 @@ def collect(path: Path, s: dict[str, Any], now: datetime | None = None,
 
 def auth(redirect_uri: str, code: str | None, client: YouTube | None = None) -> int:
     """Exchange the code of youtube-callback.html, save the refresh token (workflow
-    youtube-auth): YOUTUBE_UPLOAD_REFRESH_TOKEN when Google granted the upload scope (the
-    button « Mise en ligne » of youtube-login.html), else YOUTUBE_REFRESH_TOKEN, read only. The
-    code is read from the workflow's event file, never printed."""
+    youtube-auth): YOUTUBE_PLAYLISTS_REFRESH_TOKEN when Google granted youtube.force-ssl (the
+    button « Playlists » of youtube-login.html), YOUTUBE_UPLOAD_REFRESH_TOKEN when it granted the
+    upload scope (« Uploads »), else YOUTUBE_REFRESH_TOKEN, read only. The code is read from the
+    workflow's event file, never printed."""
     from quran_reels.gh_secrets import SecretSaveError, mask, save_secret
+    from quran_reels.playlists import SCOPES as PLAYLIST_SCOPES
+    from quran_reels.playlists import SECRET as PLAYLIST_SECRET
     from quran_reels.publish import _event_input, _summary
     from quran_reels.publishers.youtube import UPLOAD_SCOPES, UPLOAD_SECRET
 
@@ -545,7 +550,9 @@ def auth(redirect_uri: str, code: str | None, client: YouTube | None = None) -> 
         raise SystemExit(f"YouTube sign-in failed: {e}") from None
     granted = set((t.get("scope") or "").split())
     upload = UPLOAD_SCOPES[0] in granted
-    wanted, secret = (UPLOAD_SCOPES, UPLOAD_SECRET) if upload else (SCOPES, REFRESH_SECRET)
+    lists = PLAYLIST_SCOPES[0] in granted
+    wanted, secret = ((PLAYLIST_SCOPES, PLAYLIST_SECRET) if lists else
+                      (UPLOAD_SCOPES, UPLOAD_SECRET) if upload else (SCOPES, REFRESH_SECRET))
     missing = [s.rsplit("/", 1)[-1] for s in wanted if s not in granted]
     if not t.get("refresh_token"):
         raise SystemExit("Google gave no refresh token: sign in again from youtube-login.html "
@@ -555,7 +562,9 @@ def auth(redirect_uri: str, code: str | None, client: YouTube | None = None) -> 
     except SecretSaveError as e:
         _summary(f"## ❌ Connexion YouTube\n\nJeton obtenu mais non enregistré : {e}")
         raise SystemExit(str(e)) from None
-    what = ("mise en ligne des Shorts du calendrier : envoyer et lire, ni modifier ni supprimer"
+    what = ("playlists de la chaîne : ce jeton peut aussi modifier et supprimer, seule l'étape des "
+            "playlists s'en sert" if lists else
+            "mise en ligne des Shorts du calendrier : envoyer et lire, ni modifier ni supprimer"
             if upload else "lecture seule")
     lines = [f"Chaîne : {ch['title']}", f"{secret} enregistré ({what})."]
     if missing:

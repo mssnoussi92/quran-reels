@@ -1,0 +1,60 @@
+# The channel's YouTube playlists, kept by the run (src/quran_reels/playlists.py, workflow
+# `playlists`, each night after the statistics). Owner's choice, 2026-11-21: « reprends les
+# miennes et ajoute s'il n'existe pas » — the six playlists he made by hand (docs/profils.md) are
+# taken over by their ids, never made again; their titles turned Arabic first once (his choice the
+# same day), their descriptions kept as he wrote them. A series or a theme document with no
+# playlist below gets its own with its first video, public, titled from its validated names,
+# Arabic first (its id then in youtube-playlists.json on the state branch).
+enabled: true
+since: 2026-11-21          # only the videos published from that day on: what he filed before stays
+                           # as he filed it (Moussa and al-Khidr's film in the stories, not Al-Kahf)
+
+playlists:                 # key → the owner's playlist; a new video is added at the end
+  juz-amma:
+    id: PLUMXC7cmQ3lo
+    title: "جزء عمّ · Juz' 'Amma"
+  al-kahf:
+    id: PLG_I2vE5B50w
+    title: "سورة الكهف · Surah Al-Kahf"
+  stories:
+    id: PLaO0tSA6Jt14
+    title: "حكايات من القرآن · Stories from the Quran"
+  munjiyat:
+    id: PLCVGkd7ZCYSs
+    title: "آية الكرسي والسبع المنجيات · Ayat al-Kursi & the seven munjiyat"
+  dua:
+    id: PLE5mFi8FHY1E
+    title: "الدعاء · Du'a"
+  ayah:
+    id: PLWPwcbMEjkvk
+    title: "آية وحكايتها · A Verse and Its Story"
+
+series:                    # a reel, by the series of its passage (config/series/*.yaml)
+  juz-amma: [juz-amma]
+  kahf-first-ten: [al-kahf]
+  al-kahf: [al-kahf]
+  ayat-al-kursi: [munjiyat]
+  munjiyat: [munjiyat]
+  dua: [dua]
+  mushaf: []               # the Quran in order, after Juz' 'Amma: no playlist yet (to decide)
+                           # rizq, sabr, tawba…: their own, with their first reel
+
+hand:                      # published by hand (statistics key « hand:<passage> »)
+  "93:1-11": [juz-amma]
+
+docs:                      # a theme video, by its document in quran-themes-demo (-9x16 dropped);
+                           # film / short apart, as he did for Moussa and al-Khidr
+  dua: [dua]
+  moussa-khidr: {film: [stories], short: [al-kahf, stories]}
+  qarnayn: {film: [stories], short: [al-kahf, stories]}
+  kahf: {film: [stories], short: [al-kahf, stories]}
+  ayah: [ayah]
+  quiz: []                 # the quiz: Instagram, and the test page, never YouTube
+  quiz-ma3ak: []
+  ma3ak: []
+                           # signs, kalima, farq, map, sual, lens, qadar, sahw, hayyin, sahib…: their own
+
+themes:                    # where the names of a theme document are read
+  repo: mssnoussi92/quran-themes-demo
+  ref: main
+  texts: docs/retention

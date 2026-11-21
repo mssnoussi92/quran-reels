@@ -30,6 +30,9 @@
       comments, watch time), <strong>read only</strong>.</li>
     <li><strong>Uploads</strong>: the daily run uploads the calendar's Short to the channel. It can
       upload and read, it can neither change nor delete a video.</li>
+    <li><strong>Playlists</strong>: each night, the run puts the new videos in their playlists. Google
+      has no narrower permission for playlists: this token could also change or delete videos; only
+      the playlists step uses it.</li>
   </ul>
   <p class="muted">The page runs in your browser only: the client ID is not stored and is sent
     nowhere except to Google, inside the sign-in address.</p>
@@ -39,6 +42,7 @@
     <input id="key" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="text">
     <button id="go" disabled>Statistics: continue to Google</button>
     <button id="up" disabled>Uploads: continue to Google</button>
+    <button id="pl" disabled>Playlists: continue to Google</button>
   </div>
 
   <h2>Then</h2>
@@ -46,7 +50,7 @@
     <li>Choose the Google account of the channel, then the channel <em>Quran Words Daily</em> if Google
       asks. « Google hasn't verified this app »: Advanced → Go to Quran Words Daily (it is your own app).</li>
     <li>Tick every box Google shows (statistics: YouTube, YouTube Analytics; uploads: manage your
-      videos, view your account), Continue.</li>
+      videos, view your account; playlists: manage your YouTube account), Continue.</li>
     <li>Google sends you back to the callback page: copy the code.</li>
     <li>Within a few minutes, on GitHub: Actions → <strong>youtube-auth</strong> → Run workflow →
       paste the code.</li>
@@ -59,11 +63,13 @@
     var REDIRECT = "https://mssnoussi92.github.io/quran-reels/youtube-callback.html";
     var STATS = "https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics.readonly";
     var UPLOADS = "https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly";
+    var PLAYLISTS = "https://www.googleapis.com/auth/youtube.force-ssl";
     var key = document.getElementById("key"), go = document.getElementById("go"),
-      up = document.getElementById("up");
-    key.addEventListener("input", function () { go.disabled = up.disabled = !key.value.trim(); });
+      up = document.getElementById("up"), pl = document.getElementById("pl");
+    key.addEventListener("input", function () { go.disabled = up.disabled = pl.disabled = !key.value.trim(); });
     go.addEventListener("click", function () { signIn(STATS); });
     up.addEventListener("click", function () { signIn(UPLOADS); });
+    pl.addEventListener("click", function () { signIn(PLAYLISTS); });
     function signIn(SCOPES) {
       var bytes = new Uint8Array(12);
       crypto.getRandomValues(bytes);
