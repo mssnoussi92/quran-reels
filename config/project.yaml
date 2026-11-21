@@ -34,6 +34,9 @@ content:
     # rotation, without the Facebook-only test): Fares Abbad.
     reciters: [omar_hisham, minshawi, sayegh, budair, fares_abbad]   # ties: this order
     avoid_last: 2                     # not one of the last 2 published, unless none else fits
+    # The owner, 2026-11-21: Omar Hisham whenever his split of the passage is checked, before the
+    # rule above (his Juz' 'Amma recordings run ayahs together and are seldom checkable).
+    prefer: [omar_hisham]
   # One MP3 per ayah from EveryAyah (id: its folder), so the text follows the recitation
   # exactly. Planning durations: Quran.com timings of the same recording (timings_id), or the
   # file sizes (constant bitrate, kbps). basmala: the file recited before a surah.

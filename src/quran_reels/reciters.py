@@ -4,6 +4,9 @@ The owner's reciters (2026-11-05): Omar Hisham, Al-Minshawi, Saad Al-Ghamdi, Nab
 Tawfiq As-Sayegh, Salah Budair. For each passage, among those that are ready for it (their
 recording split and every needed ayah checked, config/splits/) and fit in max_seconds:
 
+0. a reciter of `prefer`, as soon as he is ready and fits (the owner, 2026-11-21: Omar Hisham,
+   whose recordings are seldom split, recites every passage his split is checked for), before
+   any rule below, `avoid_last` included; a claimed one is never ready;
 1. not one of the last `avoid_last` reciters published (variety), unless no other fits;
 2. the closest to target_seconds: a long passage goes to a quick reciter (As-Sayegh,
    Ar-Rifai: about 0.77 of Alafasy's time), a short surah to a slower one (Al-Minshawi 1.16,
@@ -107,7 +110,8 @@ def choose(cfg: Config, key: str, recent: list[str], claimed: Iterable[str] = ()
 
 
 def best(cfg: Config, opts: list[Option], recent: list[str]) -> str | None:
-    """The rotation's rule on given options: ready and within max_seconds, not one of the last
+    """The rotation's rule on given options: ready and within max_seconds, a reciter of `prefer`
+    first (in its order), else not one of the last
     `avoid_last` published unless none else fits, then the closest to target_seconds (ties:
     the list's order). None when no option fits."""
     rot = cfg.content.get("rotation") or {}
@@ -116,6 +120,9 @@ def best(cfg: Config, opts: list[Option], recent: list[str]) -> str | None:
     fits = [o for o in opts if o.seconds is not None and o.seconds <= high]
     if not fits:
         return None
+    for name in rot.get("prefer") or []:     # ready and within max_seconds: him, whatever else
+        if any(o.name == name for o in fits):
+            return name
     avoid = set(recent[-int(rot.get("avoid_last", 2)):]) if rot.get("avoid_last", 2) else set()
     pool = [o for o in fits if o.name not in avoid] or fits
     return min(pool, key=lambda o: abs(o.seconds - target)).name     # min keeps the list order

@@ -162,3 +162,24 @@ def test_the_configured_youtube_reciter_is_tawfiq_as_sayegh():
     assert reciters.fixed_on(cfg, "youtube") == "sayegh"
     assert set(reciters.fixed_reciters(cfg)) <= set(cfg.content["reciters"])
     assert reciters.with_reciter(cfg, "sayegh").content["reciter"]["label"] == "Tawfiq As-Sayegh"
+
+
+def test_a_preferred_reciter_recites_whenever_he_is_ready(seconds):
+    """The owner, 2026-11-21: Omar Hisham whenever his split is checked, even right after himself and
+    even when another is closer to a minute; never when he is not ready, too long or claimed."""
+    cfg = Cfg()
+    cfg.content["rotation"]["prefer"] = ["omar_hisham"]
+    seconds["101:1-11"] = {"omar_hisham": 80.0, "minshawi": 66.0, "sayegh": 59.0}
+    assert reciters.choose(cfg, "101:1-11", ["omar_hisham", "omar_hisham"])[0] == "omar_hisham"
+    seconds["102:1-8"] = {"omar_hisham": None, "minshawi": 66.0, "sayegh": 59.0}
+    assert reciters.choose(cfg, "102:1-8", [])[0] == "sayegh"                  # not ready: the rule
+    seconds["2:1-5"] = {"omar_hisham": 95.0, "minshawi": 70.0, "sayegh": 62.0}
+    assert reciters.choose(cfg, "2:1-5", [])[0] == "sayegh"                    # too long for a reel
+    assert reciters.choose(cfg, "101:1-11", [], claimed={"omar_hisham"})[0] == "sayegh"
+
+
+def test_the_configured_rotation_prefers_omar_hisham():
+    from quran_reels.config import load
+
+    rot = load().content["rotation"]
+    assert rot["prefer"] == ["omar_hisham"] and set(rot["prefer"]) <= set(rot["reciters"])
