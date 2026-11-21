@@ -1,0 +1,50 @@
+{
+ "kind": "theme",
+ "id": "theme/2026-11-21",
+ "created": "2026-11-21T16:47:28+00:00",
+ "key": "theme:2026-11-21",
+ "day": "2026-11-21",
+ "time": "18:00",
+ "title": "One sentence could have disproved the Quran · كلمة واحدة كانت هتكذّب القرآن",
+ "passage": "« سنريهم آياتنا » 1 : Abou Lahab",
+ "label": "One sentence could have disproved the Quran · كلمة واحدة كانت هتكذّب القرآن",
+ "results": [
+  {
+   "name": "Facebook",
+   "url": "https://www.facebook.com/reel/1161476146337376/",
+   "label": "publié"
+  },
+  {
+   "name": "Instagram",
+   "url": "https://www.instagram.com/reel/DgAr5-oAk3I/",
+   "label": "publié"
+  },
+  {
+   "name": "TikTok",
+   "url": null,
+   "label": "brouillon, non publié"
+  },
+  {
+   "name": "YouTube",
+   "url": "https://youtube.com/shorts/TslMGOee8Mo",
+   "label": "publié"
+  }
+ ],
+ "tiktok": "كلمة واحدة كانت هتكذّب القرآن\nOne sentence could have disproved the Quran\n\nكتاب قال على راجل عايش، وباسمه، إنه هيموت على الكفر.\nA book said of a living man, by his name, that he would die a disbeliever.\n\n🎙️ صوت مولَّد بالذكاء الاصطناعي · AI-generated voice\n\n#سورة_المسد #القرآن_الكريم #سنريهم_آياتنا #Quran #أبو_لهب\n",
+ "video": {
+  "tiktok": "https://github.com/mssnoussi92/quran-themes-demo/releases/download/page-signs/signs-short-1-lahab-tiktok.mp4"
+ },
+ "youtube": {
+  "title": "كلمة واحدة كانت هتكذّب القرآن · One sentence could have disproved the Quran",
+  "description": "كتاب قال على راجل عايش، وباسمه، إنه هيموت على الكفر. وكل اللي كان عليه عشان يكذّبه: كلمة واحدة، ولو كدب. وما قالهاش. سورة المسد، وكلام ابن كثير عنها.\n\nA book said of a living man, by his name, that he would die a disbeliever. All he had to do to prove it wrong was say one sentence, even as a lie. He never said it. Surat al-Masad, and what Ibn Kathir wrote about it.\n\nسنريهم آياتنا · ١ · We Will Show Them Our Signs · 1\n\nصوت الراوي مولَّد بالذكاء الاصطناعي · AI-generated voice (Gemini TTS, Egyptian Arabic)\n\n@quran_words_daily",
+  "credits": "Quoted:\n• Meaning after Tafsir Ibn Kathir (111:5) · https://quran.com/111:5/tafsirs/ar-tafsir-ibn-kathir\n• Sahih al-Bukhari 4971 (told in the narration's own words) · https://sunnah.com/bukhari:4971\n• Meaning after Tafsir Ibn Kathir (111:1) · https://quran.com/111:1/tafsirs/ar-tafsir-ibn-kathir\n• Surah Al-Masad (111:1-5) · Recitation: Tawfiq As-Sayegh · Translation: Saheeh International · https://quran.com/111/1-5\n• Meaning after Al-Tafsir al-Muyassar (111:1) · https://quran.com/111:1/tafsirs/ar-tafsir-muyassar\n• Meaning after Al-Tafsir al-Muyassar (111:2) · https://quran.com/111:2/tafsirs/ar-tafsir-muyassar\n• Meaning after Al-Tafsir al-Muyassar (111:3) · https://quran.com/111:3/tafsirs/ar-tafsir-muyassar\n• Sahih al-Bukhari 4280 (told in the narration's own words) · https://sunnah.com/bukhari:4280\n• Surah Fussilat (41:53) · Recitation: Tawfiq As-Sayegh · Translation: Saheeh International · https://quran.com/41/53\n\nImages: NASA, ESA, S. Beckwith (STScI), HUDF Team (CC BY 4.0) · Ambience: BigSoundBank (Joseph Sardin)",
+  "hashtags": "#سورة_المسد #القرآن_الكريم #سنريهم_آياتنا #Quran #أبو_لهب",
+  "file": "https://github.com/mssnoussi92/quran-themes-demo/releases/download/page-signs/signs-short-1-lahab.mp4",
+  "thumbnail": "https://github.com/mssnoussi92/quran-themes-demo/releases/download/page-signs/signs-short-1-lahab-cover.jpg",
+  "url": "https://youtube.com/shorts/TslMGOee8Mo"
+ },
+ "match": [
+  "theme:signs/short-1"
+ ],
+ "notes": []
+}
