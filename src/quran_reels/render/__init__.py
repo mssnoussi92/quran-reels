@@ -140,14 +140,16 @@ def _reference(passage: Passage, label: bool = True) -> str:
         f"Surah {passage.surah_name_en} ({passage.reference}) · سورة {passage.surah_name_ar}"
 
 
-def social_caption(cfg: Config, passage: Passage, limit: int = CAPTION_LIMIT) -> str:
+def social_caption(cfg: Config, passage: Passage, limit: int = CAPTION_LIMIT,
+                   verses: bool = True) -> str:
     """Instagram's and TikTok's caption, without hashtags (owner, 2026-11-15: shorter, the Arabic
     kept): series and reference, the Arabic of each ayah (a verse is looked up by its words, and
     both apps search captions), the credits on one line, the handle. No translation: it is in the
-    video, as the credits are. Over `limit`: without the Arabic, as Facebook's."""
+    video, as the credits are. Over `limit`: without the Arabic, as Facebook's. `verses` False:
+    never the Arabic (Instagram since 2026-11-21, `platforms.instagram.caption_verses`)."""
     arabic = [passage.basmala.text] if passage.basmala else []
     arabic += [f"{a.text} ﴿{arabic_digits(a.ref.ayah)}﴾" for a in passage.ayahs]
-    for body in ("\n".join(arabic), ""):
+    for body in ("\n".join(arabic) if verses else "", ""):
         blocks = [_reference(passage), body, " · ".join(_credits(cfg, passage)), cfg.video["handle"]]
         text = "\n\n".join(b for b in blocks if b) + "\n"
         if len(text) <= limit:
@@ -408,6 +410,11 @@ def render_passage(cfg: Config, key: str, label_ar: str = "", label_en: str = ""
     # What Facebook gets, and Instagram and TikTok (publish.load_reel); caption.txt keeps it all
     # (YouTube, by hand).
     record["captions"] = {"social": social_caption(cfg, passage, room)}
+    # Instagram without the verses (the owner, 2026-11-21: « Instagram coupe parfois la couverture à cause
+    # des mots dans les versets »); TikTok keeps them.
+    insta = (cfg.project.get("platforms") or {}).get("instagram") or {}
+    if insta.get("caption_verses") is False:
+        record["captions"]["instagram"] = social_caption(cfg, passage, room, verses=False)
     if short := facebook_caption(cfg, passage, tags):
         record["captions"]["facebook"] = short
     if signed:                  # publish.load_reel: their MP4 and caption

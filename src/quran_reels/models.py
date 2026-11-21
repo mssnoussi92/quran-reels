@@ -133,15 +133,19 @@ class Reel:
     hashtags: list[str] = field(default_factory=list)   # most important first
     facebook: str = ""               # Facebook's short caption, hashtags included (render)
     social: str = ""                 # Instagram's and TikTok's, without hashtags (render)
+    instagram: str = ""              # Instagram's own when it differs (no verses, 2026-11-21)
     # platforms signed with their own name (render.signatures): {"tiktok": (mp4, caption)}
     variants: dict[str, tuple[Path, str]] = field(default_factory=dict)
 
     def for_platform(self, platform: str) -> Reel:
         """The reel a platform gets: its own MP4 and caption when it has a variant (TikTok,
-        signed with its own name); Instagram and TikTok their short caption (`social`)."""
+        signed with its own name); Instagram and TikTok their short caption (`social`), Instagram
+        its own when the render made one (`instagram`: without the verses, 2026-11-21)."""
         if platform in self.variants:
             video, caption = self.variants[platform]
             return replace(self, video=video, caption=caption, variants={}, social="")
+        if platform == "instagram" and self.instagram:
+            return replace(self, caption=self.instagram, variants={}, social="", instagram="")
         if platform in SOCIAL and self.social:
             return replace(self, caption=self.social, variants={}, social="")
         return self

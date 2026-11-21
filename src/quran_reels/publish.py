@@ -141,7 +141,7 @@ def load_reel(video: Path) -> Reel:
                 cover=work / "preview" / f"{surah:03d}{int(cover['ref'].split(':')[1]):03d}.png",
                 cover_ms=int((cover["start"] + cover["seconds"] / 2) * 1000),
                 facebook=captions.get("facebook") or "", social=social,
-                variants=variants)
+                instagram=captions.get("instagram") or "", variants=variants)
 
 
 YOUTUBE_TITLE_MAX = 100        # YouTube refuses a longer title
