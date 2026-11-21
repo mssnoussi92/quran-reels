@@ -48,15 +48,8 @@ trials:                    # « Essais en cours »; with `platforms`, a before /
   - what: Légende Instagram sans les versets
     since: 2026-11-22
     where: Instagram (reels)
-    judge: vues à 48 h des reels, avant / après ; le même jour, la tête de légende passe à l'arabe
-      d'abord (les deux changements ne se séparent pas)
+    judge: vues à 48 h des reels, avant / après
     platforms: [instagram]
-    kinds: [Reels]
-  - what: Légendes des reels en arabe d'abord
-    since: 2026-11-22
-    where: Facebook, Instagram, TikTok
-    judge: vues à 48 h des reels sur Facebook, avant / après
-    platforms: [facebook]
     kinds: [Reels]
   - what: Omar Hisham d'abord quand sa découpe est vérifiée
     since: 2026-11-22
