@@ -530,7 +530,9 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-30.
       (publish-test run #12, 2026-11-05 ; Instagram : 1er conteneur bloqué, publié au 2e).
 - [x] App TikTok Sandbox · [x] connexion (`tiktok-auth`, compte quran_words_daily, refresh
       token jusqu'à ≈ 2027-11-04) · [x] brouillon dans la boîte TikTok en Sandbox (run #8)
-- [x] Audit YouTube : plus nécessaire (verrouillage en privé levé par YouTube le 2026-11-02) ·
+- [x] Audit YouTube : plus nécessaire (verrouillage en privé levé par YouTube le 2026-11-02), pas
+      demandé (choix du propriétaire, 2026-11-21) ; pages Confidentialité et Conditions complétées
+      pour les règles de l'API YouTube ·
       [x] mise en ligne des Shorts du calendrier par le run (2026-11-21) · [ ] connexion
       « Uploads » par le propriétaire · [ ] premier Short mis en ligne par le run, regardé dans Studio
 - [x] **Reels en pause** du 2026-11-12 au soir au 2026-11-13 au matin (`pause` de
