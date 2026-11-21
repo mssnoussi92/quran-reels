@@ -91,6 +91,52 @@
      "rights_after": null
     }
    }
+  },
+  "2026-11-21": {
+   "label": "Quiz 7 : «قطرًا»",
+   "videos": {
+    "facebook": "ma3ak/short-7",
+    "instagram": "ma3ak/short-7"
+   },
+   "at": "2026-11-21T16:48:07+00:00",
+   "results": {
+    "facebook": {
+     "platform": "facebook",
+     "status": "published",
+     "remote_id": "2196235264587615",
+     "url": "https://www.facebook.com/reel/2196235264587615/",
+     "error": null,
+     "rights": {
+      "platform": "facebook",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 0.10594391200001496,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    },
+    "instagram": {
+     "platform": "instagram",
+     "status": "published",
+     "remote_id": "18276556963307081",
+     "url": "https://www.instagram.com/reel/DgAsqVkGTzR/",
+     "error": null,
+     "rights": {
+      "platform": "instagram",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 31.947418133000014,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    }
+   }
   }
  }
 }
