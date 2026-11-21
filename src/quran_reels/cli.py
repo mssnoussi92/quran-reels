@@ -76,8 +76,11 @@ def main(argv: list[str] | None = None) -> int:
     yurl = sub.add_parser("youtube-auth-url",
                           help="print the Google sign-in URL (needs YOUTUBE_CLIENT_ID)")
     yurl.add_argument("--state", default="quran-reels")
+    yurl.add_argument("--upload", action="store_true",
+                      help="the uploads' sign-in (YOUTUBE_UPLOAD_REFRESH_TOKEN), not the statistics'")
     yauth = sub.add_parser("youtube-auth",
-                           help="exchange the Google code, save YOUTUBE_REFRESH_TOKEN (read only)")
+                           help="exchange the Google code, save YOUTUBE_REFRESH_TOKEN (read only) "
+                                "or YOUTUBE_UPLOAD_REFRESH_TOKEN (uploads)")
     yauth.add_argument("--code", help="default: $YOUTUBE_AUTH_CODE or the workflow input")
 
     plan = sub.add_parser("plan", help="split every surah; --write freezes config/plan.yaml")
@@ -441,7 +444,8 @@ def main(argv: list[str] | None = None) -> int:
 
         redirect = (insights_collect.settings(cfg).get("youtube") or {})["redirect_uri"]
         if args.command == "youtube-auth-url":
-            print(youtube.auth_url(os.environ["YOUTUBE_CLIENT_ID"], redirect, args.state))
+            print(youtube.auth_url(os.environ["YOUTUBE_CLIENT_ID"], redirect, args.state,
+                                   upload=args.upload))
             return 0
         return youtube.auth(redirect, args.code)
 

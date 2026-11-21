@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <meta name="referrer" content="no-referrer">
-<title>Connect YouTube statistics · Quran Words Daily</title>
+<title>Connect YouTube · Quran Words Daily</title>
 <link rel="stylesheet" href="style.css">
 <style>
   label { display: block; margin: 6px 0; color: var(--muted); font-size: 15px; }
@@ -23,23 +23,30 @@
     <nav><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></nav>
   </header>
 
-  <h1>Connect YouTube statistics</h1>
-  <p class="muted">For the owner of this project. Lets the nightly statistics read the channel's
-    numbers (views, likes, comments, watch time), <strong>read only</strong>: nothing can be uploaded,
-    changed or deleted. The page runs in your browser only: the client ID is not stored and is sent
+  <h1>Connect YouTube</h1>
+  <p class="muted">For the owner of this project. Two separate sign-ins, each with its own token:</p>
+  <ul class="muted">
+    <li><strong>Statistics</strong>: the nightly statistics read the channel's numbers (views, likes,
+      comments, watch time), <strong>read only</strong>.</li>
+    <li><strong>Uploads</strong>: the daily run uploads the calendar's Short to the channel. It can
+      upload and read, it can neither change nor delete a video.</li>
+  </ul>
+  <p class="muted">The page runs in your browser only: the client ID is not stored and is sent
     nowhere except to Google, inside the sign-in address.</p>
 
   <div class="card">
     <label for="key">Client ID (Google Cloud → Google Auth Platform → Clients → quran-reels)</label>
     <input id="key" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="text">
-    <button id="go" disabled>Continue to Google</button>
+    <button id="go" disabled>Statistics: continue to Google</button>
+    <button id="up" disabled>Uploads: continue to Google</button>
   </div>
 
   <h2>Then</h2>
   <ol>
     <li>Choose the Google account of the channel, then the channel <em>Quran Words Daily</em> if Google
       asks. « Google hasn't verified this app »: Advanced → Go to Quran Words Daily (it is your own app).</li>
-    <li>Tick both boxes (YouTube, YouTube Analytics), Continue.</li>
+    <li>Tick every box Google shows (statistics: YouTube, YouTube Analytics; uploads: manage your
+      videos, view your account), Continue.</li>
     <li>Google sends you back to the callback page: copy the code.</li>
     <li>Within a few minutes, on GitHub: Actions → <strong>youtube-auth</strong> → Run workflow →
       paste the code.</li>
@@ -50,20 +57,24 @@
 <script>
   (function () {
     var REDIRECT = "https://mssnoussi92.github.io/quran-reels/youtube-callback.html";
-    var SCOPES = "https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics.readonly";
-    var key = document.getElementById("key"), go = document.getElementById("go");
-    key.addEventListener("input", function () { go.disabled = !key.value.trim(); });
-    go.addEventListener("click", function () {
+    var STATS = "https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics.readonly";
+    var UPLOADS = "https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly";
+    var key = document.getElementById("key"), go = document.getElementById("go"),
+      up = document.getElementById("up");
+    key.addEventListener("input", function () { go.disabled = up.disabled = !key.value.trim(); });
+    go.addEventListener("click", function () { signIn(STATS); });
+    up.addEventListener("click", function () { signIn(UPLOADS); });
+    function signIn(SCOPES) {
       var bytes = new Uint8Array(12);
       crypto.getRandomValues(bytes);
       var state = Array.from(bytes, function (b) { return b.toString(16).padStart(2, "0"); }).join("");
       var params = [
         ["client_id", key.value.trim()], ["redirect_uri", REDIRECT], ["response_type", "code"],
         ["scope", SCOPES], ["access_type", "offline"], ["prompt", "consent"],
-        ["include_granted_scopes", "true"], ["state", state]
+        ["include_granted_scopes", "false"], ["state", state]
       ].map(function (kv) { return kv[0] + "=" + encodeURIComponent(kv[1]); }).join("&");
       window.location.href = "https://accounts.google.com/o/oauth2/v2/auth?" + params;
-    });
+    }
   })();
 </script>
 </body>

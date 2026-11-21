@@ -456,6 +456,26 @@ def publish_reel(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
     return results_list
 
 
+def rights_only(cfg: Config, video: Path,
+                checked: tuple[Graph, MetaEnv, TokenReport] | None = None) -> tuple[bool, str]:
+    """Meta's copyright check of a file that goes nowhere on Meta (rule 6: nothing is published
+    without it): a Facebook draft, deleted, and an Instagram container, left to expire, as for an
+    on-demand request with YouTube alone. (clear, summary). Clear as a publication would be:
+    every check complete without a match, or Instagram set aside (set_aside)."""
+    from dataclasses import fields
+
+    keys = {f.name for f in fields(RightsCheck)}
+    dry = publish_reel(cfg, video, list(META), True, checked)
+    checks = {r.platform: RightsCheck(**{k: v for k, v in r.rights.items() if k in keys})
+              for r in dry if r.rights}
+    aside = set_aside(checks)
+    clear = len(checks) == len(META) and all(c.clear or n in aside for n, c in checks.items())
+    summary = " ; ".join(
+        f"{r.platform} : " + ((r.rights or {}).get("summary") or r.error or r.status.value)
+        for r in dry)
+    return clear, summary
+
+
 def run(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
         checked: tuple[Graph, MetaEnv, TokenReport] | None = None) -> int:
     results = publish_reel(cfg, video, platforms, dry_run, checked)

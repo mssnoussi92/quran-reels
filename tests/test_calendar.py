@@ -989,3 +989,170 @@ queues: {reading: [juz-amma]}
         conf.write_text(yaml_text.replace(period, changed))
         with pytest.raises(SystemExit, match=why):
             load_schedule(SimpleNamespace(root=Path(tmp_path)))
+
+
+# ---- the calendar's Short uploaded to YouTube by the run (owner's choice, 2026-11-21) -------
+
+@pytest.fixture
+def on_channel(world, youtube, monkeypatch, tmp_path):
+    """daily.run with platforms.youtube.upload on and the owner signed in for it: a fake
+    uploader and a fake Meta check of the YouTube version. on_channel(conf, answers) → (cfg, sent,
+    checked, report): `sent`, the files uploaded; `checked`, the files Meta looked at alone."""
+    from types import SimpleNamespace
+
+    from quran_reels.models import PublishResult
+    from quran_reels.publishers import youtube as youtube_mod
+
+    sent, checked = [], []
+    monkeypatch.setenv(youtube_mod.UPLOAD_SECRET, "rt")
+
+    def load_reel(video):
+        reel = SimpleNamespace(video=video, text=lambda n=None: f"caption {video.parent.name}\n")
+        reel.for_platform = lambda platform: reel
+        return reel
+
+    monkeypatch.setattr(daily.publish_mod, "load_reel", load_reel)
+    monkeypatch.setattr(youtube_mod, "video_for", lambda reel, conf, max_tags=None: reel)
+
+    def make(conf, answers=(), clear=True):
+        answers = list(answers)
+
+        class Uploader:
+            def upload(self, v):
+                sent.append(v.video)
+                status, vid = answers.pop(0) if answers else (PublishStatus.PUBLISHED, "v1")
+                return PublishResult("youtube", status, remote_id=vid,
+                                     url=f"https://youtube.com/shorts/{vid}" if vid else None,
+                                     error=None if status == PublishStatus.PUBLISHED else "nope")
+
+        monkeypatch.setattr(youtube_mod.Uploader, "from_environ", classmethod(
+            lambda cls, **kw: Uploader()))
+        monkeypatch.setattr(daily.publish_mod, "rights_only", lambda cfg, video, c=None: (
+            checked.append(video) or (clear, "facebook : complete, aucune correspondance")))
+        cfg, _, _, report = youtube({**conf, "upload": {"daily": True}})
+        return cfg, sent, checked, report
+    return make
+
+
+def test_the_run_uploads_youtubes_own_version_after_metas_check(world, on_channel, monkeypatch,
+                                                                tmp_path):
+    """The reel is by the rotation's reciter, YouTube's version by Tawfiq (here ghamdi): Meta's
+    check sees that very file first (rule 6), then it goes up; the next run does nothing."""
+    from quran_reels import reciters
+    from quran_reels.reciters import Option
+
+    calls, _, path = world
+    cfg, sent, checked, report = on_channel({"reciter": "ghamdi"})
+    monkeypatch.setattr(reciters, "passage_seconds", lambda cfg, key: Option("ghamdi", 50.0))
+    assert daily.run(cfg, path, now=paris(2026, 11, 5, 7, 20), report=report) == 0
+    version = tmp_path / "out" / "youtube" / "114_001-006.mp4"
+    assert checked == [version] and sent == [version]
+    slot = State.load(path).slot(date(2026, 11, 5), "morning")
+    assert slot["results"]["youtube"]["status"] == "published"
+    assert slot["results"]["youtube"]["url"] == "https://youtube.com/shorts/v1"
+    assert "by_hand" not in slot["results"]["youtube"]
+    item = json.loads(report.read_text(encoding="utf-8"))["items"][0]
+    assert item["results"]["youtube"]["status"] == "published"
+    assert daily.run(cfg, path, now=paris(2026, 11, 5, 8, 20)) == 0
+    assert len(sent) == 1 and len(calls["publish"]) == 1
+
+
+def test_a_reel_by_youtubes_reciter_goes_up_as_it_is(world, on_channel):
+    _, _, path = world
+    cfg, sent, checked, report = on_channel({"reciter": "rifai"})
+    assert daily.run(cfg, path, now=paris(2026, 11, 5, 7, 20), report=report) == 0
+    assert checked == []                    # Meta's check of the reel itself was clean
+    assert [v.name for v in sent] == ["114_001-006.mp4"] and sent[0].parent.name == "out"
+
+
+def test_nothing_goes_up_before_the_owner_signs_in_nor_on_a_dry_run(world, on_channel, monkeypatch,
+                                                                     capsys):
+    from quran_reels.publishers import youtube as youtube_mod
+
+    _, _, path = world
+    cfg, sent, _, report = on_channel({"reciter": "rifai"})
+    daily.run(cfg, path, now=paris(2026, 11, 5, 7, 20), dry_run=True)
+    monkeypatch.delenv(youtube_mod.UPLOAD_SECRET)
+    assert daily.run(cfg, path, now=paris(2026, 11, 5, 7, 20), report=report) == 0
+    assert sent == [] and "youtube" not in State.load(path).slot(
+        date(2026, 11, 5), "morning")["results"]
+    assert "has not signed in" in capsys.readouterr().err
+    # The step that only looks at what is due knows whether the token is there, never its value.
+    monkeypatch.setenv("YOUTUBE_UPLOAD_READY", "true")
+    assert daily.youtube_ready()
+
+
+def test_an_upload_youtube_did_not_get_is_tried_again_alone(world, on_channel):
+    """Nothing reached YouTube (no id): the run fails (alert), the next one of the window
+    uploads it again without posting the reel a second time anywhere else."""
+    calls, _, path = world
+    cfg, sent, _, report = on_channel({"reciter": "rifai"}, [(PublishStatus.FAILED, None)])
+    assert daily.run(cfg, path, now=paris(2026, 11, 5, 7, 20), report=report) == 1
+    assert daily.run(cfg, path, now=paris(2026, 11, 5, 8, 20), report=report) == 0
+    assert len(sent) == 2 and calls["publish"] == [("114_001-006", ("facebook", "instagram"))]
+    item = json.loads(report.read_text(encoding="utf-8"))["items"][0]
+    assert set(item["results"]) == {"facebook", "instagram", "youtube"}   # the whole entry
+    assert State.load(path).slot(date(2026, 11, 5), "morning")["results"]["youtube"][
+        "status"] == "published"
+
+
+def test_a_video_youtube_has_is_never_uploaded_twice(world, on_channel):
+    _, _, path = world
+    cfg, sent, _, _ = on_channel({"reciter": "rifai"}, [(PublishStatus.FAILED, "v9")])
+    assert daily.run(cfg, path, now=paris(2026, 11, 5, 7, 20)) == 1
+    assert daily.run(cfg, path, now=paris(2026, 11, 5, 8, 20)) == 0
+    assert len(sent) == 1
+
+
+def test_a_version_metas_check_refuses_does_not_go_up(world, on_channel, monkeypatch):
+    from quran_reels import reciters
+    from quran_reels.reciters import Option
+
+    calls, _, path = world
+    cfg, sent, checked, _ = on_channel({"reciter": "ghamdi"}, clear=False)
+    monkeypatch.setattr(reciters, "passage_seconds", lambda cfg, key: Option("ghamdi", 50.0))
+    assert daily.run(cfg, path, now=paris(2026, 11, 5, 7, 20)) == 1           # alert
+    slot = State.load(path).slot(date(2026, 11, 5), "morning")
+    assert len(checked) == 1 and sent == []
+    assert slot["results"]["youtube"]["status"] == "blocked"
+    assert slot["results"]["facebook"]["status"] == "published"               # the reel is out
+    assert daily.run(cfg, path, now=paris(2026, 11, 5, 8, 20)) == 0           # not retried
+    assert len(checked) == 1 and len(calls["publish"]) == 1
+
+
+def test_nothing_goes_up_when_youtubes_reciter_is_not_ready(world, on_channel, monkeypatch):
+    from quran_reels import reciters
+    from quran_reels.reciters import Option
+
+    _, _, path = world
+    cfg, sent, checked, _ = on_channel({"reciter": "ghamdi"})
+    monkeypatch.setattr(reciters, "passage_seconds",
+                        lambda cfg, key: Option("ghamdi", None, "surah 114 not split"))
+    assert daily.run(cfg, path, now=paris(2026, 11, 5, 7, 20)) == 0
+    assert daily.run(cfg, path, now=paris(2026, 11, 5, 8, 20)) == 0
+    assert sent == checked == []
+
+
+def test_a_passage_on_youtube_already_is_not_put_there_again(world, on_channel):
+    """A passage given back to its queue (a claim) or a series that starts over."""
+    _, _, path = world
+    cfg, sent, _, _ = on_channel({"reciter": "rifai"})
+    State({"slots": {"2026-11-01/morning": {
+        "queue": "reading", "item": "x", "passage": "114:1-6",
+        "results": {"youtube": {"status": "published", "id": "old",
+                                "url": "https://youtube.com/shorts/old"}}}}}).save(path)
+    assert daily.run(cfg, path, now=paris(2026, 11, 5, 7, 20)) == 0
+    assert sent == []
+    y = State.load(path).slot(date(2026, 11, 5), "morning")["results"]["youtube"]
+    assert y["url"] == "https://youtube.com/shorts/old" and "2026-11-01/morning" in y["error"]
+
+
+def test_nothing_goes_up_while_the_reel_is_not_out(world, on_channel):
+    calls, answers, path = world
+    answers["facebook"] = [PublishStatus.FAILED]
+    answers["instagram"] = [PublishStatus.FAILED]
+    cfg, sent, _, _ = on_channel({"reciter": "rifai"})
+    assert daily.run(cfg, path, now=paris(2026, 11, 5, 7, 20)) == 1
+    assert sent == []
+    assert daily.run(cfg, path, now=paris(2026, 11, 5, 8, 20)) == 0           # now it is out
+    assert len(sent) == 1 and len(calls["publish"]) == 2

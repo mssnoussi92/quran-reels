@@ -74,6 +74,9 @@ jobs:
         if: inputs.passage == ''
         env:
           NOW: ${{ inputs.now }}
+          # Whether the owner has signed in for the YouTube uploads (true or false, never the
+          # token): a slot whose Short did not reach YouTube is still due for it.
+          YOUTUBE_UPLOAD_READY: ${{ secrets.YOUTUBE_UPLOAD_REFRESH_TOKEN != '' }}
         run: |
           if [ "${{ inputs.dry_run }}" = "true" ]; then
             quran-reels daily --state "$STATE" --check --force ${NOW:+--now "$NOW"}
@@ -123,6 +126,11 @@ jobs:
           TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
           TIKTOK_REFRESH_TOKEN: ${{ secrets.TIKTOK_REFRESH_TOKEN }}
           GH_SECRETS_TOKEN: ${{ secrets.GH_SECRETS_TOKEN }}
+          # The calendar's Short on YouTube (platforms.youtube.upload, publishers/youtube.py):
+          # its own token, upload and read only (youtube-login.html → Uploads, youtube-auth).
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_UPLOAD_REFRESH_TOKEN: ${{ secrets.YOUTUBE_UPLOAD_REFRESH_TOKEN }}
           NOW: ${{ inputs.now }}
           WITHOUT: ${{ inputs.without }}
           PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}    # an approved Pixabay clip, first use

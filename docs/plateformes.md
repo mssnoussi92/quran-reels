@@ -327,13 +327,41 @@ github.com → photo de profil → Settings → Developer settings → Personal 
   fois. Expiré, le prochain refresh token de TikTok ne peut plus être enregistré : refaire le
   jeton comme ci-dessus, puis la connexion TikTok si un run échoue sur le rafraîchissement.
 
-## YouTube Shorts — manuel puis automatique après audit
+## YouTube Shorts — mis en ligne par le run depuis le 2026-11-21
 
-- API : YouTube Data API v3, `videos.insert` (1 600 unités, quota par défaut 10 000/jour,
-  donc environ 6 uploads par jour).
-- Projets non vérifiés créés après le 28/07/2020 : vidéos verrouillées en privé.
-  → Demander l'audit (formulaire YouTube API Services) dès que le projet Google Cloud existe.
-  En attendant, le MP4 du jour est mis à disposition et mis en ligne à la main.
+- API : YouTube Data API v3, `videos.insert`, dans son propre compteur depuis 2026 : **100 mises
+  en ligne par jour**, 1 unité chacune (avant : 1 600 unités sur 10 000, environ 6 par jour).
+- **Plus de verrouillage en privé ni d'audit** : de juillet 2020 au 1er novembre 2026, une vidéo
+  mise en ligne par l'API d'un projet non audité restait privée. YouTube a levé cette règle le
+  2026-11-02 ([historique de l'API](https://developers.google.com/youtube/v3/revision_history),
+  [videos.insert](https://developers.google.com/youtube/v3/docs/videos/insert) : « Videos uploaded
+  from unverified API projects are not restricted to private viewing mode »). L'audit n'est plus
+  nécessaire ; il ne servirait qu'à dépasser les quotas.
+- **Les Shorts du calendrier sont mis en ligne par le run `daily`** (choix du propriétaire,
+  2026-11-21 : les reels d'abord, les vidéos thématiques et les demandes restent à la main) :
+  `platforms.youtube.upload` de config/project.yaml, `publishers/youtube.py`, `daily.to_youtube`.
+  - **Quoi** : la version YouTube du créneau (par Tawfiq As-Sayegh, ci-dessous), en **public**,
+    avec les textes de la page « À publier » : titre (la tête de la légende, l'arabe d'abord),
+    description (`caption.txt`) suivie de tous les hashtags, hashtags aussi en tags ; « pas
+    conçue pour les enfants », « pas de contenu synthétique réaliste » ; catégorie : celle de
+    YouTube par défaut, comme à la main (`category` pour en fixer une).
+  - **Quand** : juste après la publication du reel du créneau, seulement s'il est sorti (le
+    passage est publié) ; tous les reels du calendrier, le matin comme le dimanche soir.
+  - **Droits (règle 6)** : la vérification de Meta voit le fichier envoyé : celle du reel quand
+    c'est la même vidéo, sinon une à elle (brouillon Facebook supprimé, conteneur Instagram
+    jamais publié, comme une demande « YouTube seul »). Pas propre : pas mise sur YouTube (`blocked`)
+    et le ticket d'alerte le dit. Content ID ne se lit pas par l'API pour une chaîne comme la
+    nôtre : la seule garde est Tawfiq, jamais revendiqué jusqu'ici, comme à la main.
+  - **Jamais deux fois** : un envoi qui n'a rien donné à YouTube (pas d'identifiant : réseau,
+    quota, jeton) fait échouer le run (ticket d'alerte) et le run suivant du créneau le refait,
+    seul ; un envoi qui a un identifiant (YouTube l'a refusé, ou l'a gardé privé) n'est jamais
+    refait : à voir dans Studio. Un passage déjà sur la chaîne (même passage, autre créneau)
+    n'y est pas remis.
+  - **Tant que le propriétaire ne s'est pas connecté pour la mise en ligne**
+    (`YOUTUBE_UPLOAD_REFRESH_TOKEN`, « Mise en ligne des Shorts » ci-dessous), rien ne change :
+    à la main, comme avant. La page « À publier » montre « YouTube ✓ » et le lien dès que le run l'a
+    mis en ligne ; le ticket « 📋 Légendes à copier » dit « mis en ligne par le run, rien à
+    faire » ; sinon, MP4, textes et `/youtube` comme avant.
 - Shorts : vertical, 3 min maximum.
 - **Droits : Content ID, pas Rights Manager.** YouTube a ses propres empreintes, que Meta n'a
   pas forcément : la sourate Al-Kahf de **Salah Budair** (al-Haram, 1426-1427 H, déposée au
@@ -381,7 +409,9 @@ github.com → photo de profil → Settings → Developer settings → Personal 
   `/youtube <jour>/<créneau> <lien>` (état : `results.youtube` du créneau, `by_hand`).
 - Nouveau récitateur sur YouTube (si `platforms.youtube.reciter` change un jour) : mettre en
   ligne en **privé**, attendre quelques minutes, regarder les revendications (YouTube Studio →
-  Contenu → Restrictions), puis rendre public.
+  Contenu → Restrictions), puis rendre public. Avec la mise en ligne par le run : passer d'abord
+  `upload.privacy` à `private` (un Short gardé privé est un échec avec identifiant : alerte, pas
+  de second envoi), le rendre public dans Studio, puis remettre `public`.
 - OAuth Google : un projet en statut **« Test »** reçoit des refresh tokens qui expirent au bout
   de 7 jours. Il faut passer l'écran de consentement en **« En production »** (écran « app non
   validée » accepté pour un usage personnel) pour garder un refresh token durable.
@@ -416,6 +446,26 @@ avec un client OAuth du projet Google Cloud du propriétaire. Lecture seule : `y
 
 Un changement de mot de passe Google ou une révocation (myaccount.google.com → Sécurité → Accès tiers) coupe le
 jeton : refaire l'étape 6. Sans ces secrets, YouTube reste aux captures.
+
+### Mise en ligne des Shorts (choix du propriétaire, 2026-11-21)
+
+Un second jeton, à part de celui des statistiques, qui reste en lecture seule : `YOUTUBE_UPLOAD_REFRESH_TOKEN`,
+autorisations `youtube.upload` et `youtube.readonly` : il met en ligne et lit, il ne peut ni modifier ni supprimer une
+vidéo. Même projet, même client, même page ; depuis le téléphone, une fois (5 minutes) :
+
+1. https://mssnoussi92.github.io/quran-reels/youtube-login.html, coller l'ID client → bouton **« Uploads: continue to
+   Google »** → le compte de la chaîne, « Google n'a pas validé cette application » → Paramètres avancés → Accéder à
+   Quran Words Daily → cocher les cases (gérer vos vidéos YouTube, voir votre compte YouTube) → la page de retour
+   montre un code.
+2. Dans les minutes qui suivent, Actions → **youtube-auth** → coller le code → Run. Le workflow reconnaît la mise en
+   ligne aux autorisations données et enregistre `YOUTUBE_UPLOAD_REFRESH_TOKEN` ; le résumé du run nomme la chaîne
+   et dit « mise en ligne des Shorts du calendrier ».
+3. Le prochain reel du calendrier part aussi sur YouTube. Pour l'arrêter : `upload: daily: false` dans
+   config/project.yaml (une PR), ou retirer l'accès (myaccount.google.com → Sécurité → Accès tiers) : retour à la
+   main.
+
+Le jeton se perd comme l'autre (mot de passe Google changé, accès retiré) : le run le dit (« connexion YouTube
+perdue »), le Short du jour reste à mettre à la main, refaire les étapes 1 et 2.
 
 ## Format vidéo commun
 

@@ -77,7 +77,10 @@ def failure_text(report: dict | None, run_url: str) -> str:
     aside = any(r.get("status") == "blocked" and ASIDE in (r.get("error") or "")
                 for i in (report or {}).get("items", []) for r in i["results"].values())
     blocked = any(r.get("status") == "blocked" and ASIDE not in (r.get("error") or "")
-                  for i in (report or {}).get("items", []) for r in i["results"].values())
+                  for i in (report or {}).get("items", []) for p, r in i["results"].items()
+                  if p != "youtube")
+    youtube = {r.get("status") for i in (report or {}).get("items", [])
+               for p, r in i["results"].items() if p == "youtube"}
     themes = any(str(i.get("key", "")).startswith("theme:") for i in (report or {}).get("items", []))
     if blocked and themes:
         lines += ["", ("⛔ Meta a reconnu un contenu protégé dans la vidéo thématique (ou n'a pas pu "
@@ -95,6 +98,15 @@ def failure_text(report: dict | None, run_url: str) -> str:
                        "deux envois, aucune correspondance) et Facebook ne trouvait rien sur le "
                        "même reel : il est publié sur les autres plateformes, pas sur Instagram "
                        "(ton choix du 2026-11-20). Rien à faire ; le créneau n'est pas réessayé.")]
+    if "blocked" in youtube:
+        lines += ["", ("📺 Meta a reconnu un contenu protégé dans la version YouTube (ou n'a pas pu "
+                       "la vérifier) : elle n'est pas mise sur YouTube, ni réessayée ; le reel du "
+                       "jour est sorti ailleurs. Rien à faire de plus.")]
+    if "failed" in youtube:
+        lines += ["", ("📺 YouTube : la mise en ligne du Short a échoué (détail ci-dessus). Quand "
+                       "YouTube n'a rien reçu, le run suivant du créneau réessaie ; sinon (ou en "
+                       "attendant) le MP4 et ses textes sont sur la page « À publier » : à mettre "
+                       "à la main, comme avant, et rien ne la remettra.")]
     claimed = any(r.get("status") == "removed" or "À RETIRER À LA MAIN" in (r.get("error") or "")
                   for i in (report or {}).get("items", []) for r in i["results"].values())
     if claimed:
@@ -129,13 +141,29 @@ def missed_text(missed: list[str], run_url: str) -> str:
     return "\n".join(lines)
 
 
+def _uploaded(item: dict) -> dict | None:
+    """YouTube's answer when the run put the Short there (platforms.youtube.upload)."""
+    r = (item.get("results") or {}).get("youtube") or {}
+    return r if r.get("status") == "published" else None
+
+
 def _youtube(item: dict) -> list[str]:
     """What to put on YouTube when it is not this video (daily.youtube_version): its own
     reciter's version (`always`: platforms.youtube.reciter), or another reciter's when
-    Content ID claims this one; or nothing at all."""
+    Content ID claims this one; or nothing at all. Nothing to do when the run uploaded it."""
     y = item.get("youtube")
+    done = _uploaded(item)
+    if done:
+        by = f", récitée par {y['label']} (pas cette vidéo)" if y and y.get("label") else ""
+        link = f"[mis en ligne par le run]({done['url']})" if done.get("url") else \
+            "mis en ligne par le run"
+        return ["", f"**YouTube : {link}**{by}. Rien à faire."]
+    tried = (item.get("results") or {}).get("youtube") or {}
+    note = [] if not tried else [
+        "", (f"**YouTube : la mise en ligne par le run n'a pas abouti** "
+             f"({tried.get('error') or tried.get('status')}) : à la main, comme avant.")]
     if not y:
-        return []
+        return note
     if not y.get("reciter"):
         if y.get("always"):
             return ["", (f"**YouTube : rien pour ce créneau, ne pas y mettre cette vidéo** : "
@@ -149,7 +177,7 @@ def _youtube(item: dict) -> list[str]:
              f"`{y['video']}`, récitée par {y['label']}, dans l'artefact « reel » du run")
     reason = (f"sur YouTube, toujours {y['label']}" if y.get("always") else
               f"{y['instead_of']} y est revendiqué par Content ID")
-    return ["", f"**YouTube : pas cette vidéo** ({reason}) mais {where}. Sa légende :",
+    return [*note, "", f"**YouTube : pas cette vidéo** ({reason}) mais {where}. Sa légende :",
             "", "```text", y["caption"].strip(), "```"]
 
 
@@ -159,7 +187,7 @@ def _files(item: dict) -> list[str]:
     f = item.get("files")
     if not f:
         return []
-    if not f.get("youtube_mp4"):
+    if not f.get("youtube_mp4") or _uploaded(item):
         return ["", f"⬇️ [MP4]({f['mp4']})"]
     return ["", (f"⬇️ [MP4]({f['mp4']}) · 📺 [YouTube : MP4, titre, description, hashtags à "
                  f"copier]({f['page']})"),
@@ -201,7 +229,8 @@ def merge_captions(body: str, report: dict, keep: int = KEEP_CAPTIONS) -> str:
             "à jour en secours.\n\n"
             "Légendes des dernières vidéos, à coller sur le brouillon TikTok (il arrive dans "
             "ta boîte) : 5 hashtags, la limite de TikTok. Mis à jour à chaque publication ; "
-            "les plus récentes en haut. YouTube (à la main) : le lien ⬇️ MP4 de chaque vidéo "
+            "les plus récentes en haut. YouTube : le run y met en ligne le Short du calendrier "
+            "(« mis en ligne par le run ») ; sinon, à la main : le lien ⬇️ MP4 de chaque vidéo "
             "s'enregistre sur le téléphone, la page 📺 donne titre, description et tous les "
             "hashtags à copier ; puis commente `/youtube <jour>/<créneau> <lien>` ici.")
     return "\n\n".join([head, *(v for _, v in entries[:keep])]) + "\n"

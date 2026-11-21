@@ -25,11 +25,19 @@ A reciter whose basmala the recording itself contradicts (sources/surah_audio.py
 raised by the render) is passed over for that passage: the next one of the rotation takes the
 slot, and nothing with that cut is published.
 
-YouTube (uploaded by hand) has its own reciter, always the same (platforms.youtube.reciter:
-Tawfiq As-Sayegh): when the rotation picks another one, the run renders the passage again by
-him into out/youtube/ for the owner to upload, and the captions issue says so. A passage he is
-not ready for gets nothing for YouTube that day. Without that setting, YouTube takes the reel
-as it is unless its Content ID claims the reciter (platforms.youtube.exclude_reciters).
+YouTube has its own reciter, always the same (platforms.youtube.reciter: Tawfiq As-Sayegh):
+when the rotation picks another one, the run renders the passage again by him into
+out/youtube/, and the captions issue says so. A passage he is not ready for gets nothing for
+YouTube that day. Without that setting, YouTube takes the reel as it is unless its Content ID
+claims the reciter (platforms.youtube.exclude_reciters).
+
+Since 2026-11-21 (owner's choice; YouTube no longer locks the API's uploads as private since
+2026-11-02) the run uploads that Short itself, public (platforms.youtube.upload,
+publishers/youtube.py), once the owner has signed in for it (YOUTUBE_UPLOAD_REFRESH_TOKEN):
+only after the reel went out, only a file Meta's check has seen clean (rule 6: the reel's own
+check, or one of its own for the version by Tawfiq), never a passage already on the channel.
+An upload that got nothing to YouTube is tried again by the next runs of the slot's window; one
+that has an id never is. Until the owner signs in, YouTube stays by hand, as before.
 """
 
 from __future__ import annotations
@@ -48,6 +56,7 @@ from quran_reels import passage as passage_mod
 from quran_reels import publish as publish_mod
 from quran_reels.config import Config
 from quran_reels.models import PublishResult, PublishStatus
+from quran_reels.publishers import youtube as youtube_mod
 from quran_reels.selector.calendar import (
     OK_STATUSES,
     Item,
@@ -87,7 +96,7 @@ def pending(sched: Schedule, series: dict[str, Series], state: State, now: datet
         record = sim.slot(day, slot.name)
         if record and (record.get("claimed") or any(
                 r.get("status") == PublishStatus.BLOCKED.value
-                for r in record["results"].values())):
+                for n, r in record["results"].items() if n != "youtube")):
             print(f"{day} {slot.name}: blocked or claimed by the rights check, not retried "
                   f"({record['passage']})", file=sys.stderr)
             continue
@@ -95,6 +104,8 @@ def pending(sched: Schedule, series: dict[str, Series], state: State, now: datet
             continue        # published by hand (state record): a platform left out is left out
         if record:
             done = {p for p, r in record["results"].items() if r.get("status") in OK_STATUSES}
+            if youtube_settled(record):
+                done.add("youtube")
             todo = [p for p in platforms if p not in done]
             if todo:
                 item = item_by_id(sched, series, record["queue"], record["item"])
@@ -109,6 +120,26 @@ def pending(sched: Schedule, series: dict[str, Series], state: State, now: datet
         mark_done(sim, queue, item)
         out.append(Pending(day, slot, queue, item, list(platforms), retry=False))
     return out
+
+
+def youtube_settled(record: dict) -> bool:
+    """Nothing more for YouTube on this slot: nothing goes there (its reciter was not ready), or
+    it has an answer that is not a failure without an id. A failure with an id (YouTube has the
+    video, it refused or kept it private) is never uploaded again."""
+    if "youtube" in record and (record.get("youtube") or {}).get("reciter") is None:
+        return True
+    y = record["results"].get("youtube")
+    if not y:
+        return False
+    return y.get("status") != PublishStatus.FAILED.value or bool(y.get("id"))
+
+
+def youtube_ready() -> bool:
+    """The owner has signed in for the uploads: the token itself (the publishing step), or what
+    the workflow says of it to the step that only looks at what is due (YOUTUBE_UPLOAD_READY,
+    true or false, never the token)."""
+    return bool(os.environ.get(youtube_mod.UPLOAD_SECRET)) or \
+        os.environ.get("YOUTUBE_UPLOAD_READY") == "true"
 
 
 def _output(name: str, value: str) -> None:
@@ -163,6 +194,13 @@ def run(cfg: Config, state_path: Path, now: datetime | None = None, dry_run: boo
         print(f"left out by hand for this run: {', '.join(without)}", file=sys.stderr)
     if dry_run:     # TikTok's only test mode is a real draft in the owner's inbox
         platforms = [x for x in platforms if x != "tiktok"]
+    elif youtube_mod.settings(cfg) is not None:     # never on a dry run: a real upload
+        if youtube_ready():
+            platforms = [*platforms, "youtube"]
+        else:
+            print("YouTube: the run would upload the Short (platforms.youtube.upload), but the "
+                  f"owner has not signed in for it ({youtube_mod.UPLOAD_SECRET}): by hand, as "
+                  "before", file=sys.stderr)
     todo = pending(sched, series, state, now, platforms)
     local = now.astimezone(sched.tz)
     if not force:       # a day of the pause: its slots wait, their passages stay first in line
@@ -378,6 +416,71 @@ def youtube_version(cfg: Config, p: Pending, reciter: str | None,
         return {"reciter": None, "error": error, **rule}
 
 
+def on_youtube(state: State, passage: str, key: str) -> dict | None:
+    """An earlier slot of the same passage that is on YouTube already (by the run or by hand):
+    its results.youtube. A passage given back to its queue (a claim) or a series that starts
+    over would otherwise put the same Short on the channel twice."""
+    for other, record in sorted((state.data.get("slots") or {}).items()):
+        y = (record.get("results") or {}).get("youtube") or {}
+        if other != key and record.get("passage") == passage \
+                and y.get("status") == PublishStatus.PUBLISHED.value:
+            return y | {"slot": other}
+    return None
+
+
+def to_youtube(cfg: Config, state: State, p: Pending, video: Path, youtube: dict | None,
+               checked: tuple | None) -> PublishResult | None:
+    """The slot's Short uploaded by the run (platforms.youtube.upload): the reel itself, or its
+    version by YouTube's own reciter (youtube_version). None: nothing to do now (the reel is
+    not out, or nothing goes to YouTube for this slot). Never raises: the reel is out."""
+    key = f"{p.day.isoformat()}/{p.slot.name}"
+    record = state.slot(p.day, p.slot.name) or {}
+    results = record.get("results") or {}
+    if not any(r.get("status") in OK_STATUSES for n, r in results.items() if n != "youtube"):
+        return None         # its passage is not published: it may go out another day
+    if youtube and not youtube.get("reciter"):
+        return None         # nothing for YouTube this slot (its reciter is not ready)
+    try:
+        earlier = on_youtube(state, p.item.key, key)
+        if earlier:
+            print(f"{p.item.key}: on YouTube already ({earlier['slot']}: {earlier.get('url')}), "
+                  "not uploaded again", file=sys.stderr)
+            return PublishResult("youtube", PublishStatus.PUBLISHED, remote_id=earlier.get("id"),
+                                 url=earlier.get("url"),
+                                 error=f"déjà sur YouTube ({earlier['slot']}), pas remise")
+        path = cfg.out / youtube["video"] if youtube else video
+        # Rule 6: Meta's check has seen this very file. The reel's own when it is the same
+        # video and went out on Meta; else one of its own (a draft and a container, unpublished).
+        seen = youtube is None and any(
+            results.get(n, {}).get("status") == PublishStatus.PUBLISHED.value
+            for n in publish_mod.META)
+        if not seen:
+            print(f"{p.item.key}: Meta's rights check of the YouTube version "
+                  f"({path.name}), nothing published on Meta", file=sys.stderr)
+            publish_mod._summary(f"### Vérification des droits de la version YouTube "
+                                 f"({p.item.key})\n\nBrouillon et conteneur Meta, jamais "
+                                 "publiés : le tableau « Dry run » qui suit est cette vérification.")
+            clear, summary = publish_mod.rights_only(cfg, path, checked)
+            if not clear:
+                return PublishResult("youtube", PublishStatus.BLOCKED,
+                                     error=f"droits (Meta) : {summary} — pas mise sur YouTube")
+        uploader = youtube_mod.Uploader.from_environ()
+        if uploader is None:
+            return PublishResult("youtube", PublishStatus.FAILED,
+                                 error=f"pas de jeton de mise en ligne ({youtube_mod.UPLOAD_SECRET})")
+        conf = youtube_mod.settings(cfg) or {}
+        reel = publish_mod.load_reel(path)
+        print(f"youtube: uploading {path.name} ({conf.get('privacy', 'public')})",
+              file=sys.stderr)
+        result = uploader.upload(youtube_mod.video_for(reel, conf,
+                                                       publish_mod.max_hashtags(cfg, "youtube")))
+    except Exception as e:      # noqa: BLE001  (the reel is out; a later run tries again)
+        result = PublishResult("youtube", PublishStatus.FAILED, error=f"{type(e).__name__}: {e}")
+    print(f"youtube: {result.status.value} {result.remote_id or ''} {result.url or ''} "
+          f"{result.error or ''}".rstrip(), file=sys.stderr)
+    return result
+
+
 def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: State,
              state_path: Path, todo: list[Pending], platforms: list[str], dry_run: bool,
              log: dict, now: datetime, sleep: Callable[[float], None] = time.sleep) -> int:
@@ -446,8 +549,10 @@ def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
                     raise
                 print(f"warning: {e}; another reciter is chosen", file=sys.stderr)
                 refused.add(reciter)
-        results = publish_mod.publish_reel(pcfg, video, p.platforms, dry_run, checked)
-        if not dry_run:
+        reel_platforms = [x for x in p.platforms if x != "youtube"]
+        results = publish_mod.publish_reel(pcfg, video, reel_platforms, dry_run, checked) \
+            if reel_platforms else []        # a later run of the slot, for YouTube alone
+        if not dry_run and results:
             # Written at once: a run stopped after this (cancelled, timed out, a crash in the
             # YouTube version) has still told the state what is out.
             record_slot(state, p, results, reciter, render_facts(video))
@@ -457,17 +562,6 @@ def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
                                    PublishStatus.REMOVED) for r in results)
         caption = copy_text(cfg, video)
         youtube = youtube_version(dcfg, p, reciter, rec.claimed_reciters(state))
-        log["items"].append({
-            "key": f"{p.day.isoformat()}/{p.slot.name}", "day": p.day.isoformat(),
-            "time": f"{p.slot.at:%H:%M}", "passage": p.item.key, "label": p.item.label_en,
-            "reciter": reciter,
-            "retry": p.retry, "caption": caption,
-            "results": {r.platform: {"status": r.status.value, "url": r.url, "error": r.error}
-                        for r in results},
-            **({"youtube": youtube} if youtube else {})})
-        if caption:
-            publish_mod._summary("**Légende à coller sur le brouillon TikTok**\n\n"
-                                 f"```text\n{caption.strip()}\n```")
         if not dry_run and youtube:
             # With a reciter: the video for YouTube. Without: none (`error`), not this reel;
             # never written over the version an earlier run of the slot made.
@@ -477,4 +571,26 @@ def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
             elif not (record.get("youtube") or {}).get("reciter"):
                 record["youtube"] = {"reciter": None, "error": youtube.get("error", "")}
             state.save(state_path)
+        shown = {r.platform: {"status": r.status.value, "url": r.url, "error": r.error}
+                 for r in results}
+        if "youtube" in p.platforms and not dry_run:
+            uploaded = to_youtube(dcfg, state, p, video, youtube, checked)
+            if uploaded:
+                record_slot(state, p, [uploaded], reciter)
+                state.save(state_path)
+                failed |= uploaded.status in (PublishStatus.FAILED, PublishStatus.BLOCKED)
+                if not results:     # YouTube alone this run: the entry keeps the others
+                    shown = {n: {k: r.get(k) for k in ("status", "url", "error")} for n, r in
+                             (state.slot(p.day, p.slot.name) or {})["results"].items()}
+                shown["youtube"] = {"status": uploaded.status.value, "url": uploaded.url,
+                                    "error": uploaded.error}
+        log["items"].append({
+            "key": f"{p.day.isoformat()}/{p.slot.name}", "day": p.day.isoformat(),
+            "time": f"{p.slot.at:%H:%M}", "passage": p.item.key, "label": p.item.label_en,
+            "reciter": reciter,
+            "retry": p.retry, "caption": caption, "results": shown,
+            **({"youtube": youtube} if youtube else {})})
+        if caption:
+            publish_mod._summary("**Légende à coller sur le brouillon TikTok**\n\n"
+                                 f"```text\n{caption.strip()}\n```")
     return 1 if failed else 0
