@@ -53,4 +53,17 @@ def render(data: dict[str, Any]) -> str:
 
 
 def render_stats(data: dict[str, Any]) -> str:
-    return _env().get_template("stats.html.j2").render(d=data, s=data.get("stats") or {})
+    from markupsafe import Markup
+
+    from quran_reels.catalog import charts, dashboard
+
+    s = data.get("stats") or {}
+
+    def safe(x: Any) -> Any:
+        if isinstance(x, dict):
+            return {k: safe(v) for k, v in x.items()}
+        return Markup(x) if isinstance(x, str) else x
+
+    figs = safe(dashboard.figures(s["dash"])) if s.get("dash") else {}
+    return _env().get_template("stats.html.j2").render(
+        d=data, s=s, g=figs, colours=charts.PLATFORM_COLOURS, names=dashboard.PLATFORM_NAMES)

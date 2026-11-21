@@ -117,9 +117,34 @@ def _manual_key(entry: dict, posts: dict, themes: Any, groups: dict | None = Non
     return _by_name(entry, posts) or f"manual:{video}"
 
 
+def is_gone(rec: dict, insights: dict[str, Any], since: datetime, now: datetime) -> bool:
+    """Young enough to be listed by the last reading, and it was not: not public any more,
+    or never was (a draft left by a test, a post scheduled by hand). Or a Facebook video
+    nobody can have seen: no caption, not one view after two days (2026-11-15: nine such,
+    listed by /videos without being marked unpublished)."""
+    try:
+        published = datetime.fromisoformat(rec.get("published", ""))
+    except ValueError:
+        return False
+    listed = {"facebook": insights.get("listed"), "instagram": insights.get("listed"),
+              "youtube": insights.get("listed_youtube")}.get(rec.get("platform"))
+    if bool(listed) and published >= since and rec.get("seen") != listed:
+        return True
+    snaps = [s.get("m") or {} for s in (rec.get("snapshots") or {}).values()]
+    return (rec.get("platform") == "facebook" and rec.get("kind") == "other"
+            and not rec.get("first_line") and now - published > timedelta(hours=48)
+            and bool(snaps) and all(not m.get("views") for m in snaps))
+
+
 def build(insights: dict[str, Any] | None, settings: dict[str, Any], now: datetime,
           tz: ZoneInfo, themes: Any = None,
-          reciters: dict[str, str] | None = None) -> dict[str, Any]:
+          reciters: dict[str, str] | None = None, detail: dict[str, Any] | None = None,
+          backgrounds: dict[str, dict] | None = None,
+          series_names: dict[str, str] | None = None) -> dict[str, Any]:
+    """The page's data. `detail`: youtube-detail.json of the state branch (read each night);
+    `backgrounds`: each reel slot's background by its key (« slot:2026-11-07/morning »);
+    `series_names`: a series id → its title. The dashboard (catalog/dashboard.py) is under
+    « dash », and « dataset », one row per video and platform, is written apart (dataset.json)."""
     if not insights or not (insights.get("posts") or insights.get("manual")):
         return {"empty": True}
     posts: dict[str, dict] = insights.get("posts") or {}
@@ -127,25 +152,8 @@ def build(insights: dict[str, Any] | None, settings: dict[str, Any], now: dateti
     min_videos, min_points = int(compare.get("min_videos", 3)), int(compare.get("min_points", 12))
     since = now - timedelta(days=int(settings.get("days", 35)))
 
-    listed_by = {"facebook": insights.get("listed"), "instagram": insights.get("listed"),
-                 "youtube": insights.get("listed_youtube")}
-
     def gone(rec: dict) -> bool:
-        """Young enough to be listed by the last reading, and it was not: not public any more,
-        or never was (a draft left by a test, a post scheduled by hand). Or a Facebook video
-        nobody can have seen: no caption, not one view after two days (2026-11-15: nine such,
-        listed by /videos without being marked unpublished)."""
-        try:
-            published = datetime.fromisoformat(rec.get("published", ""))
-        except ValueError:
-            return False
-        listed = listed_by.get(rec.get("platform"))
-        if bool(listed) and published >= since and rec.get("seen") != listed:
-            return True
-        snaps = [s.get("m") or {} for s in (rec.get("snapshots") or {}).values()]
-        return (rec.get("platform") == "facebook" and rec.get("kind") == "other"
-                and not rec.get("first_line") and now - published > timedelta(hours=48)
-                and bool(snaps) and all(not m.get("views") for m in snaps))
+        return is_gone(rec, insights, since, now)
 
     groups: dict[str, dict[str, Any]] = {}
     for uid, rec in posts.items():
@@ -226,8 +234,16 @@ def build(insights: dict[str, Any] | None, settings: dict[str, Any], now: dateti
     except ValueError:
         updated = None
     unsupported = {k: v for k, v in (insights.get("unsupported") or {}).items() if v}
+    from quran_reels.catalog import dashboard
+
+    rows = dashboard.dataset(posts, insights.get("manual") or [], lambda rec: not gone(rec),
+                             lambda e: _manual_key(e, posts, themes, groups), tz,
+                             backgrounds or {}, series_names or {}, reciters or {}, detail)
     return {
         "empty": False,
+        "dash": dashboard.compute(rows, insights, settings, detail, lambda rec: not gone(rec),
+                                  tz, now),
+        "dataset": rows,
         "updated": updated.astimezone(tz).strftime("%d/%m %H:%M") if updated else "",
         "stale": bool(updated and now - updated > timedelta(hours=36)),
         "stopped": last.get("stopped", ""), "errors": len(last.get("errors") or []),

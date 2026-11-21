@@ -500,6 +500,13 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-30.
   après son accord par le skill `record-stats` (`insights.yml`, entrée `manual`).
   **Vues engagées et part de la recherche YouTube** lues chaque nuit (choix du propriétaire, 2026-11-21 :
   `engaged`, `search_pct` ; les vues d'un Short comptent ses boucles) : montrées, la comparaison reste sur les vues.
+- **Tableau de bord** en tête de la page « Statistiques » (choix du propriétaire, 2026-11-21, maquette validée) :
+  abonnés, types de vidéos à 48 h (un point par vidéo), audits (récitateur, fond, durée, série, jour, version
+  courte), avant / après chaque essai (`trials` de `config/insights.yaml`), YouTube en détail (`youtube-detail.json`
+  chaque nuit), rétention Facebook, TikTok, données manquantes (`missing`) ; `catalog/dataset.json`, une ligne par
+  vidéo et par plateforme, pour les audits de toute session (docs/insights.md, « Le tableau de bord »). Une session
+  qui fait partir un changement l'ajoute à `trials` ; les exports de YouTube Studio s'importent par
+  `quran-reels insights import-youtube` (skill `record-stats`).
 - Le calendrier du catalogue montre aussi les vidéos thématiques (calendar.md de
   quran-themes-demo, tel qu'écrit) : un seul calendrier pour la Page ; à partir du 2026-11-19
   ils y sont « automatique », et « publié » d'après `themes.json`.

@@ -33,7 +33,11 @@ The owner decides; the review proposes. Nothing here publishes, changes a calend
    « À la revue du <date> » that is not done yet (a trial to judge, a question to ask the owner): each one gets its
    answer in the review, with its numbers. Once answered, a PR moves it to what was decided.
 1. **Read the numbers.** `git fetch origin state && git show origin/state:insights.json`, and
-   the page https://mssnoussi92.github.io/quran-reels/catalog/stats.html. Check `updated` (less
+   the page https://mssnoussi92.github.io/quran-reels/catalog/stats.html (its dashboard: kinds at
+   48 h, audits, before / after each trial, YouTube detail, missing data). For any audit, start from
+   https://mssnoussi92.github.io/quran-reels/catalog/dataset.json (one row per video and platform,
+   docs/insights.md, « Le tableau de bord »); judge each trial of `trials` in config/insights.yaml
+   whose window has passed, and add the ones that shipped since. Check `updated` (less
    than 36 h old), the last run (`stopped`, `errors`): a relevé that did not run is said first,
    with the run link (workflow `insights`).
 2. **Read both calendars.** `quran-reels calendar --days 21 --state <state checkout>` (reels),

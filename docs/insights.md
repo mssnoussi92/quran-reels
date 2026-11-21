@@ -79,6 +79,28 @@ Ceux de la fiche du propriétaire (`docs/retention/calendar.md` de quran-themes-
 - La courbe de rétention brute est gardée (`retention`) : sa lecture (secondes ou 40 intervalles, fraction ou
   pourcentage) se corrige sans relire Meta.
 
+## Le tableau de bord (choix du propriétaire, 2026-11-21)
+
+La page « Statistiques » commence par un tableau de bord, fait d'après la maquette qu'il a validée le 2026-11-21
+(« un dashboard complet, bien classé, utile aux autres sessions pour faire des audits et voir ce qui marche et ce qui
+ne marche pas, avec des courbes ») : `catalog/dashboard.py` calcule, `catalog/charts.py` dessine (SVG dans la page,
+une info-bulle au toucher sur chaque point, couleurs vérifiées sur le fond de la page).
+
+- **Vue d'ensemble** : les abonnés de chaque plateforme et leur courbe.
+- **Ce qui marche** : chaque type de vidéo, un point par vidéo à 48 h, la médiane en trait blanc : vues (Facebook,
+  Instagram, YouTube), vues engagées de YouTube, part regardée, taux de clics des miniatures (exports de Studio) ;
+  sous la courbe, les médianes en chiffres (le tableau d'avant).
+- **Audits** : par récitateur, par fond, par durée, par série, par jour de la semaine, version courte contre short
+  entier ; puis **avant / après** chaque changement de `trials` (`config/insights.yaml`).
+- **YouTube en détail** (`youtube-detail.json`, chaque nuit) : d'où viennent les vues, les pays, la rétention médiane,
+  ce qu'on tape pour nous trouver. **Facebook** : sa courbe de rétention, seconde par seconde. **TikTok** : les
+  dernières captures.
+- **Essais en cours** et **Données manquantes** (`trials`, `missing` de `config/insights.yaml`, avec la date du dernier
+  envoi) : une session ajoute un essai le jour où un changement part, et une source le jour où elle en trouve une.
+- **Pour les sessions** : `catalog/dataset.json`, une ligne par vidéo et par plateforme avec tout ce qu'on sait d'elle
+  et ses chiffres à 48 h, 7 jours, 28 jours et au dernier relevé. Les audits de la revue et des sessions partent de
+  ce fichier, avec la règle ci-dessous.
+
 ## Comparer sans se tromper
 
 La page compare chaque type de vidéo (reel du matin, du vendredi, série du dimanche, Word of the day, film,
