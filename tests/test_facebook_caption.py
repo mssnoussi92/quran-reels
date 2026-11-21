@@ -60,8 +60,8 @@ def test_series_reference_credits_handle_and_hashtags(cfg):
     body, tags = split(text)
     assert len(text) <= LIMIT
     assert body.split("\n\n") == [
-        ("The seven munjiyat verses · السبع آيات المنجيات · 2/7\n"
-         "Surah Al-An'am (6:17) · سورة الأنعام"),
+        ("السبع آيات المنجيات · The seven munjiyat verses · 2/7\n"
+         "سورة الأنعام · Surah Al-An'am (6:17)"),
         f"{RECITATION} · {TRANSLATION}",
         "@quran_words_daily"]
     assert tags == hashtags(cfg, p)[:8]                  # platforms.facebook.max_hashtags
@@ -144,9 +144,9 @@ def test_instagram_and_tiktok_keep_the_arabic_never_the_translation(cfg):
     p = passage(ayahs=3, glossed=True)
     text = social_caption(cfg, p)
     blocks = text.rstrip("\n").split("\n\n")
-    # Facebook, Instagram and TikTok: the English first, always (owner, 2026-11-21)
-    assert blocks[0] == ("The seven munjiyat verses · السبع آيات المنجيات · 2/7\n"
-                         "Surah Al-An'am (6:17-19) · سورة الأنعام")
+    # the Arabic first on every platform (owner, 2026-11-21: « l'arabe d'abord partout »)
+    assert blocks[0] == ("السبع آيات المنجيات · The seven munjiyat verses · 2/7\n"
+                         "سورة الأنعام · Surah Al-An'am (6:17-19)")
     assert blocks[1].splitlines() == ["بِسْمِ", "كَلِمَة ﴿١٧﴾", "كَلِمَة ﴿١٨﴾", "كَلِمَة ﴿١٩﴾"]
     assert blocks[2] == f"{RECITATION} · {TRANSLATION} · {MEANINGS}"
     assert blocks[3] == cfg.video["handle"] and len(blocks) == 4
