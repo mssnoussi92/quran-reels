@@ -8,6 +8,7 @@
 | avg_watch   | seconds watched on average            | ig_reels_avg_watch_time    | post_video_avg_time_watched      |
 | watch_pct   | avg_watch ÷ duration                  | computed                   | computed                         |
 | kept_30s    | % still there at 0:30 (films)         | —                          | — (see below)                    |
+| impressions, ctr, viewed_pct: YouTube Studio exports only (docs/insights.md, « Captures »). |
 | shares, saves, comments, likes, follows, replays: as Meta counts them. |
 
 Meta names a few of these « in development »: an empty answer stays empty, never 0.
@@ -49,7 +50,10 @@ NUMBERS = ("views", "reach", "hook", "avg_watch", "watch_pct", "kept_30s", "shar
            "comments", "likes", "follows", "replays",
            "finished",      # % who watched to the end (TikTok: « A regardé la vidéo en entier »)
            "engaged",       # YouTube: views past the first seconds (loops of a Short do not count)
-           "search_pct")    # YouTube: % of the views that come from YouTube search
+           "search_pct",    # YouTube: % of the views that come from YouTube search
+           "impressions",   # YouTube Studio export: thumbnail impressions (the API has none)
+           "ctr",           # YouTube Studio export: thumbnail click-through rate, in %
+           "viewed_pct")    # YouTube Shorts: % who chose to watch, not swiped away (Studio)
 
 
 def values(answer: dict[str, Any]) -> dict[str, Any]:

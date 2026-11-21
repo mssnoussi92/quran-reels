@@ -273,6 +273,27 @@ def test_a_slot_blocked_by_the_rights_check_is_not_retried(world):
 
 # ---- the record written at once, another try in the same run ------------------------------
 
+def test_the_slot_keeps_the_background_and_the_length_of_its_reel(world, tmp_path):
+    """For later audits: the background the render used and the reel's length, from the
+    manifest of the render; nothing invented when there is no manifest."""
+    _, _, path = world
+    work = tmp_path / "114:1-6"
+    work.mkdir()
+    (work / "manifest.json").write_text(
+        '{"seconds": 41.26, "background": {"id": "mer-01", "source": "pexels"}}', "utf-8")
+    assert daily.run(None, path, now=paris(2026, 11, 5, 7, 20)) == 0
+    slot = State.load(path).slot(date(2026, 11, 5), "morning")
+    assert slot["background"] == "mer-01" and slot["seconds"] == 41.3
+    assert slot["passage"] == "114:1-6" and slot["results"]["facebook"]["status"] == "published"
+
+
+def test_a_slot_without_manifest_has_no_background_key(world):
+    _, _, path = world
+    daily.run(None, path, now=paris(2026, 11, 5, 7, 20))
+    slot = State.load(path).slot(date(2026, 11, 5), "morning")
+    assert "background" not in slot and "seconds" not in slot
+
+
 def test_what_is_out_is_recorded_before_anything_else_is_tried(world, monkeypatch):
     """Daily run #8 was cancelled inside its publish step: a run stopped after Facebook has the
     reel must have said so, or the next run posts it again."""

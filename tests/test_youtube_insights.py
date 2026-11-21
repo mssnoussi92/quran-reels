@@ -410,6 +410,7 @@ def test_the_detailed_reading_keeps_sources_countries_and_retention(tmp_path):
     assert first["startDate"] == "2026-11-11"                    # its publication, Pacific day
     assert detail["channel"]["search_terms"][0]["views"] == 3
     assert len(detail["errors"]) == 3 and "engagedViews" in detail["errors"][0]
+    assert "\n" not in out.read_text(encoding="utf-8")            # compact: no indent
     assert "dua for rizq" not in text                            # no search term in the log
     assert "SHORTS 90%" in text and "EG 60%" in text
 
@@ -516,3 +517,73 @@ def test_the_page_shows_engaged_views_and_the_search_share_for_youtube():
     out = St.build(data, {"days": 35}, datetime(2026, 11, 16, 8, tzinfo=UTC), ZoneInfo("Europe/Paris"))
     html = render_stats({"repo": "o/r", "stats": json.loads(json.dumps(out, default=str))})
     assert "vues engagées" not in html and "par la recherche" not in html
+
+
+# ------------------------------------------------------------------ Studio export (import-youtube)
+
+DATA = __import__("pathlib").Path(__file__).parent / "data"
+
+
+def _state(tmp_path, ids):
+    posts = {f"youtube:{i}": {"platform": "youtube", "key": k, "published": "2026-11-13T08:00:00+00:00"}
+             for i, k in ids.items()}
+    (tmp_path / "insights.json").write_text(json.dumps({"posts": posts}), encoding="utf-8")
+    return tmp_path
+
+
+def test_the_studio_export_gives_impressions_and_ctr_under_the_page_key(tmp_path, capsys):
+    from quran_reels.insights import youtube_import as I
+
+    state = _state(tmp_path, {"75zO0MtWtVo": "theme:moussa-khidr/short-1",
+                              "JONE82FSqd4": "slot:2026-11-08/morning"})
+    assert I.main(None, DATA / "youtube_studio_table_fr.csv", state, "2026-11-22") == 0
+    cap = capsys.readouterr()
+    out = json.loads(cap.out)                       # one line of JSON
+    assert cap.out.count("\n") == 1
+    assert out[0] == {"platform": "youtube", "video": "theme:moussa-khidr/short-1",
+                      "published": "2026-11-13", "seen": "2026-11-22",
+                      "metrics": {"impressions": 97, "ctr": 9.28}, "source": "export YouTube Studio"}
+    assert out[1]["video"] == "slot:2026-11-08/morning" and out[1]["metrics"]["impressions"] == 70
+    assert len(out) == 2                            # Total row skipped, unknown ids left out
+    for vid in ("Dnbn1ANNUnE", "FUg5tLOqPME"):
+        assert vid in cap.err
+    from quran_reels.insights import collect as C
+    assert C.add_manual(tmp_path / "m.json", out) == 2          # `manual` accepts the line
+
+
+def test_the_zip_and_english_headers(tmp_path):
+    import zipfile
+
+    from quran_reels.insights import youtube_import as I
+
+    table = ("Content,Video title,Video publish time,Duration,Views,Impressions,"
+             "Impressions click-through rate (%),Viewed (vs. swiped away) (%)\n"
+             "Total,,,,10,\"14,056\",2.7,\n"
+             "abc,T,\"Nov 19, 2026\",30,10,\"1,234\",\"4,5\",71.2\n")
+    z = tmp_path / "e.zip"
+    with zipfile.ZipFile(z, "w") as f:
+        f.writestr("Chart data.csv", "Date,Content,Views\n2026-11-04,abc,1\n")
+        f.writestr("Table data.csv", table)
+    state = _state(tmp_path, {"abc": "slot:2026-11-19/morning"})
+    got = I.entries(I.read_table(zip_path=z), I.youtube_keys(json.loads(
+        (state / "insights.json").read_text())), "2026-11-22")
+    assert got[0]["metrics"] == {"impressions": 1234, "ctr": 4.5, "viewed_pct": 71.2}
+
+
+def test_numbers_and_dates_of_the_export():
+    from quran_reels.insights import youtube_import as I
+
+    assert I.parse_number("2,71") == 2.71 and I.parse_number("1 252", integer=True) == 1252
+    assert I.parse_number("") is None and I.parse_number("-") is None
+    assert I.parse_date("Nov 19, 2026") == "2026-11-19" and I.parse_date("19 nov. 2026") == "2026-11-19"
+
+
+def test_manual_accepts_the_new_numbers(tmp_path):
+    from quran_reels.insights import collect as C
+
+    C.add_manual(tmp_path / "i.json", [{"platform": "facebook", "video": "slot:2026-11-21/morning",
+                                        "seen": "2026-11-22", "metrics": {"reach": 900}},
+                                       {"platform": "youtube", "video": "slot:2026-11-21/morning",
+                                        "seen": "2026-11-22",
+                                        "metrics": {"impressions": 97, "ctr": 9.28, "viewed_pct": 71}}])
+    assert len(json.loads((tmp_path / "i.json").read_text())["manual"]) == 2
