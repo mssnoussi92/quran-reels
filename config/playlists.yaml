@@ -28,6 +28,9 @@ playlists:                 # key → the owner's playlist; a new video is added 
   ayah:
     id: PLWPwcbMEjkvk
     title: "آية وحكايتها · A Verse and Its Story"
+  signs:                   # made by him on 2026-11-21 with the first Short of the series
+    id: PLXcVY91CFIBc
+    title: "سنريهم آياتنا · We Will Show Them Our Signs"
 
 series:                    # a reel, by the series of its passage (config/series/*.yaml)
   juz-amma: [juz-amma]
