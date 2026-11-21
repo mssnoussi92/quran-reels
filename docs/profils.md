@@ -188,20 +188,15 @@ YouTube → Vous → Votre chaîne → Modifier (ou l'app YouTube Studio) :
   son premier reel (l'accroche), pas une récitation : c'est ce qui dit le mieux ce qu'est
   devenue la page.
 
-Description (1 000 caractères au plus) :
-
-```
-Quran & Sunnah for everyday life · القرآن والسنة في حياتك اليومية
-
-• Quran recitation, twice a day: whole passages with the Arabic text, the English translation (Sahih International) and the meaning of its difficult words (Tafsir al-Muyassar). Every Friday: Surah Al-Kahf.
-• Themes for life: du'a, patience, repentance, trust in God, khushu…
-• Stories from the Quran: Moses and al-Khidr, Dhul-Qarnayn…
-
-Every verse and hadith comes from a published source, cited in the video. The Quran is always recited by a real reciter. Hadith: Sahih al-Bukhari, Sahih Muslim, Jami' at-Tirmidhi (graded by al-Albani). Themes and stories: Egyptian Arabic narration (AI-generated voice), English subtitles.
-
-كِتَـٰبٌ أَنزَلْنَـٰهُ إِلَيْكَ مُبَـٰرَكٌ لِّيَدَّبَّرُوٓا۟ ءَايَـٰتِهِۦ وَلِيَتَذَكَّرَ أُو۟لُوا۟ ٱلْأَلْبَـٰبِ
-"[This is] a blessed Book which We have revealed to you, [O Muḥammad], that they might reflect upon its verses and that those of understanding would be reminded." (Sad, 38:29)
-```
+Description et mots-clés de la chaîne : **`config/channel.yaml`**, appliqués une fois par le run
+(workflow `youtube-channel`, `channel.py`), validés par le propriétaire le 2026-11-21 : la description
+d'avant (ci-dessous dans l'historique du dépôt) disait « twice a day » et commençait en anglais ; celle-ci
+garde son arabe validé mot pour mot, une ligne anglaise et le verset 38:29 (993 caractères, 999 avec les
+marques de sens invisibles au début des lignes qui en ont besoin : `bidi.py`, sans elles un affichage de
+droite à gauche ou forcé de gauche à droite mélange les lignes anglaises ou les mots arabes autour de
+« (Sahih International) », essayé dans Chromium). Mots-clés : 310 caractères sur 500 ; le nom arabe d'une
+série s'y ajoute la nuit de sa première vidéo sur YouTube (son choix, même soir ; workflow `playlists`),
+jamais un retiré ; à 500, le run le dit et il choisit quoi retirer.
 
 Le verset 38:29 (« ليدبروا آياته », d'où vient le nom « آيات ») et sa traduction sont recopiés
 tels quels de l'API Quran.com (texte uthmani, Sahih International, ressource 20), comme dans

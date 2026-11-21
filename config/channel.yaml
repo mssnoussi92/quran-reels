@@ -3,9 +3,11 @@
 # (wrong since 2026-11-14) and began in English (his rule since the same day: the Arabic first).
 # The owner validated a longer description, then it proved over YouTube's 1 000 characters: this
 # one keeps his validated Arabic word for word, one English line, and the verse his description
-# already had (38:29, Uthmani, Sahih International). He reviews both texts before anything is
-# applied: `validated: true` only on his word. Limits: description 1 000, keywords 500.
-validated: false
+# already had (38:29, Uthmani, Sahih International). Sent with an invisible direction mark at the
+# start of the lines that need one (bidi.py): 999 characters. Limits: description 1 000, keywords 500.
+validated: true          # the owner, 2026-11-21: the description « je la valide » (on condition
+                         # that the Arabic reads right: the marks); the keywords as they are, the
+                         # series' names added by the run (his choice the same evening)
 keywords: '"القرآن الكريم" تلاوة "تلاوة خاشعة" "التفسير الميسر" "معاني كلمات القرآن" "قصص القرآن" "سورة الكهف" "جزء عم" "آيات الدعاء" "آية وحكايتها" "سنريهم آياتنا" "توفيق الصايغ" Quran "Quran recitation" "Quran with translation" Tafsir "Quran stories" "Surah Al-Kahf" "Juz Amma" "Sahih International" "Islamic reminders"'
 description: 'القرآن والسنة في حياتك اليومية · Quran & Sunnah for everyday life
 
@@ -24,3 +26,22 @@ description: 'القرآن والسنة في حياتك اليومية · Quran 
   كِتَـٰبٌ أَنزَلْنَـٰهُ إِلَيْكَ مُبَـٰرَكٌ لِّيَدَّبَّرُوٓا۟ ءَايَـٰتِهِۦ وَلِيَتَذَكَّرَ أُو۟لُوا۟ ٱلْأَلْبَـٰبِ
 
   "[This is] a blessed Book which We have revealed to you, [O Muḥammad], that they might reflect upon its verses and that those of understanding would be reminded." (Sad, 38:29)'
+
+# A series' Arabic name joins the keywords the night its first video is on YouTube (the nightly
+# playlists step, channel.series_keywords; owner's choice, 2026-11-21: « à leur première vidéo, par
+# le run »): added at the end, never one taken out. A series (reels, config/series/) or a document
+# (theme videos, publication-<doc>.md of quran-themes-demo) not written here: its Arabic name
+# without vowel signs or punctuation (« مخيّر ولا مسيّر؟ » → « مخير ولا مسير »). Written here: a
+# shorter name, more than one, or null for none.
+series_keywords:
+  series:
+    juz-amma: جزء عم
+    mushaf: null             # the Quran in order: no series name
+    kahf-first-ten: سورة الكهف
+    al-kahf: سورة الكهف       # not « سورة الكهف يوم الجمعة »
+    tawba: آيات التوبة        # not « آيات التوبة والاستغفار »
+  docs:
+    sahw: [إزاي أعملها, سجود السهو]
+    quiz: null               # the quiz: never on YouTube
+    quiz-ma3ak: null
+    ma3ak: null

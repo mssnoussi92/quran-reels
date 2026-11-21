@@ -18,12 +18,14 @@ The owner had made the six playlists of docs/profils.md by hand and kept them up
   choice, 2026-11-21), its description kept as he wrote it; a title he changes later is left alone.
 
 The same step sends the subtitles the daily run left for the videos it uploaded (captions.py:
-youtube-captions/ on the state branch), with the same token: only it holds the scope captions need.
+youtube-captions/ on the state branch), with the same token: only it holds the scope captions need;
+and adds to the channel's keywords the Arabic name of a series whose first video is on YouTube
+(channel.series_keywords, owner's choice, 2026-11-21).
 
 Access: its own token, YOUTUBE_PLAYLISTS_REFRESH_TOKEN (scope youtube.force-ssl: the only one that
 lets playlists be written, and it could also change or delete videos; owner's choice, 2026-11-21),
 saved by the workflow youtube-auth from youtube-login.html → Playlists. Only this step reads it,
-and it only calls playlists, playlistItems and captions. Without it, nothing is done (by hand, as before).
+and it only calls playlists, playlistItems, captions and channels (the keywords). Without it, nothing is done (by hand, as before).
 """
 
 from __future__ import annotations
@@ -135,6 +137,17 @@ def where(key: str, conf: dict[str, Any], published: dict[str, Any], names: Name
     if group and found:
         return [(group, arabic_first(*found))]
     return []
+
+
+def group_of(key: str, published: dict[str, Any]) -> tuple[str, str] | None:
+    """("series", the series of a reel's passage) or ("docs", a theme video's document)."""
+    kind, _, rest = key.partition(":")
+    if kind == "slot":
+        item = ((published.get("slots") or {}).get(rest) or {}).get("item") or ""
+        return ("series", item.split("/", 1)[0]) if item else None
+    if kind == "theme":
+        return ("docs", rest.partition("/")[0].removesuffix("-9x16"))
+    return None
 
 
 # ------------------------------------------------------------------------------ the channel
@@ -328,11 +341,18 @@ def run(root: Path, state_dir: Path, dry_run: bool = False, channel: Any = None,
                       doc=doc_name_online(themes.get("repo", "mssnoussi92/quran-themes-demo"),
                                           themes.get("ref", "main"),
                                           themes.get("texts", "docs/retention")))
-    lines = sync(conf, read("insights.json"), read("published.json"), state, channel, names,
-                 dry_run)
+    insights, published = read("insights.json"), read("published.json")
+    lines = sync(conf, insights, published, state, channel, names, dry_run)
     from quran_reels import captions  # the reels' subtitles, written by the daily run
 
     lines += captions.upload_pending(state_dir / captions.DIR, channel, dry_run)
+    from quran_reels import channel as settings_of_channel  # a series' name, at its first video
+
+    posts = sorted((p for k, p in (insights.get("posts") or {}).items()
+                    if k.startswith("youtube:") and p.get("key")),
+                   key=lambda p: str(p.get("published", "")))
+    groups = [g for p in posts if (g := group_of(p["key"], published))]
+    lines += settings_of_channel.series_keywords(root, groups, channel, names, dry_run)
     for line in lines or ["playlists: nothing to do"]:
         print(line)
     if not dry_run:
