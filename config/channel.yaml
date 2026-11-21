@@ -1,0 +1,26 @@
+# The YouTube channel's keywords and description (channel.py, workflow `youtube-channel`, by hand,
+# once). Proposed on 2026-11-21: the keywords were empty; the description said « twice a day »
+# (wrong since 2026-11-14) and began in English (his rule since the same day: the Arabic first).
+# The owner validated a longer description, then it proved over YouTube's 1 000 characters: this
+# one keeps his validated Arabic word for word, one English line, and the verse his description
+# already had (38:29, Uthmani, Sahih International). He reviews both texts before anything is
+# applied: `validated: true` only on his word. Limits: description 1 000, keywords 500.
+validated: false
+keywords: '"القرآن الكريم" تلاوة "تلاوة خاشعة" "التفسير الميسر" "معاني كلمات القرآن" "قصص القرآن" "سورة الكهف" "جزء عم" "آيات الدعاء" "آية وحكايتها" "سنريهم آياتنا" "توفيق الصايغ" Quran "Quran recitation" "Quran with translation" Tafsir "Quran stories" "Surah Al-Kahf" "Juz Amma" "Sahih International" "Islamic reminders"'
+description: 'القرآن والسنة في حياتك اليومية · Quran & Sunnah for everyday life
+
+
+  • تلاوة كل صباح: مقاطع كاملة بالنص العربي والترجمة الإنجليزية (Sahih International) ومعاني الكلمات الصعبة من التفسير الميسر. يوم الجمعة: سورة الكهف. مساء الأحد: آيات في موضوع واحد.
+
+  • مواضيع وقصص للحياة، من الاثنين إلى السبت: الدعاء، الصبر، التوبة… موسى والخضر، ذو القرنين، أصحاب الكهف…
+
+
+  كل آية وكل حديث من مصدر منشور، مذكور في الفيديو. القرآن يُتلى دائمًا بصوت قارئ حقيقي. الأحاديث: صحيح البخاري، صحيح مسلم، جامع الترمذي (بحكم الألباني). المواضيع والقصص: راوٍ باللهجة المصرية (صوت مولَّد بالذكاء الاصطناعي)، مع ترجمة إنجليزية.
+
+
+  Quran every morning, themes and stories Monday to Saturday. Every verse and hadith from a published source.
+
+
+  كِتَـٰبٌ أَنزَلْنَـٰهُ إِلَيْكَ مُبَـٰرَكٌ لِّيَدَّبَّرُوٓا۟ ءَايَـٰتِهِۦ وَلِيَتَذَكَّرَ أُو۟لُوا۟ ٱلْأَلْبَـٰبِ
+
+  "[This is] a blessed Book which We have revealed to you, [O Muḥammad], that they might reflect upon its verses and that those of understanding would be reminded." (Sad, 38:29)'

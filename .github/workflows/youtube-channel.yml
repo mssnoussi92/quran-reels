@@ -1,0 +1,47 @@
+name: youtube-channel
+
+# The YouTube channel's keywords and description (src/quran_reels/channel.py, config/channel.yaml),
+# proposed on 2026-11-21, applied once the owner validates them. By hand only, never on a schedule (what he later writes in
+# Studio is not written over): `apply` unticked, it prints the two fields now and as validated;
+# ticked, it changes those two and sends every other setting of the channel back as it was. The
+# playlists' token: channels.update needs youtube.force-ssl.
+on:
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: "Change them (unticked: only print what would change)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: youtube-playlists      # never beside the nightly playlists step (same token)
+  cancel-in-progress: false
+
+env:
+  PIP_CONSTRAINT: ${{ github.workspace }}/constraints.txt
+
+jobs:
+  channel:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install the package
+        run: pip install -e .
+      - name: Keywords and description
+        env:                   # secrets for this step only
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_PLAYLISTS_REFRESH_TOKEN: ${{ secrets.YOUTUBE_PLAYLISTS_REFRESH_TOKEN }}
+        run: |
+          if [ "${{ inputs.apply }}" = "true" ]; then
+            quran-reels youtube-channel --apply
+          else
+            quran-reels youtube-channel
+          fi
