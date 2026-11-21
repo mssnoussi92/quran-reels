@@ -46,8 +46,8 @@ def test_only_keywords_and_description_change_the_rest_is_sent_back(tmp_path, ca
     (method, part, body), = ch.sent
     assert (method, part, body["id"]) == ("PUT", "brandingSettings", "UC1")
     sent = body["brandingSettings"]
-    assert sent["channel"] == {"title": "Quran Words Daily · القرآن",
-                               "description": "عربي أولاً · Arabic first", "country": "FR",
+    assert sent["channel"] == {"title": "Quran Words Daily · القرآن",      # with its direction mark
+                               "description": "\u202bعربي أولاً · Arabic first", "country": "FR",
                                "unsubscribedTrailer": "abc", "keywords": KEYWORDS}
     assert sent["watch"] == {"featuredPlaylistId": "PLx"} and "image" not in sent
     assert "every other setting as it was" in capsys.readouterr().out
@@ -57,6 +57,7 @@ def test_only_keywords_and_description_change_the_rest_is_sent_back(tmp_path, ca
 def test_the_texts_are_arabic_first_true_and_within_youtubes_limits():
     conf = C.settings(Path(__file__).resolve().parents[1])
     assert len(conf["description"]) <= 1000 and len(conf["keywords"]) <= 500
+    assert len(C.wanted({}, conf)["channel"]["description"]) <= 1000     # marks included
     assert conf["description"].startswith("القرآن والسنة في حياتك اليومية · Quran & Sunnah")
     assert "twice a day" not in conf["description"] and "every morning" in conf["description"]
     assert conf["description"].rstrip().endswith("(Sad, 38:29)")

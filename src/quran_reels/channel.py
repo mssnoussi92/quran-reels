@@ -9,6 +9,11 @@ settings are read first, only `keywords` and `description` change, the rest is s
 A dry run prints the two fields before and after and changes nothing. Never run by a schedule: what
 the owner later writes in Studio is not written over.
 
+The description mixes Arabic and English lines: a line that needs it starts with the invisible
+mark of its own direction (bidi.directed, no word changed; owner, 2026-11-21: « être sûr que
+l'affichage de l'arabe sera bon »), so that it reads right wherever YouTube shows it. The marks
+count in YouTube's 1 000 characters.
+
 Access: the playlists' token (YOUTUBE_PLAYLISTS_REFRESH_TOKEN, youtube.force-ssl): channels.update
 needs it, the upload token cannot.
 """
@@ -20,6 +25,7 @@ from typing import Any
 
 import yaml
 
+from quran_reels.bidi import directed, directions, plain
 from quran_reels.insights.youtube import DATA, YouTubeError
 
 FIELDS = ("keywords", "description")
@@ -48,7 +54,8 @@ def wanted(branding: dict[str, Any], conf: dict[str, Any]) -> dict[str, Any]:
     out.setdefault("channel", {})
     for f in FIELDS:
         if conf.get(f) is not None:
-            out["channel"][f] = str(conf[f]).strip()
+            text = str(conf[f]).strip()
+            out["channel"][f] = directed(text) if f == "description" else text
     return out
 
 
@@ -59,8 +66,9 @@ def run(root: Path, dry_run: bool = True, ch: Any = None) -> int:
     if not any(conf.get(f) for f in FIELDS):
         print("youtube-channel: nothing in config/channel.yaml")
         return 0
-    too_long = [f"{f} ({len(str(conf[f]).strip())} > {n})" for f, n in LIMITS.items()
-                if conf.get(f) and len(str(conf[f]).strip()) > n]
+    sent = wanted({}, conf)["channel"]                   # as sent: the marks count too
+    too_long = [f"{f} ({len(sent[f])} > {n})" for f, n in LIMITS.items()
+                if sent.get(f) and len(sent[f]) > n]
     if too_long:
         raise SystemExit(f"youtube-channel: over YouTube's limit: {', '.join(too_long)}")
     if not dry_run and not conf.get("validated"):
@@ -76,7 +84,9 @@ def run(root: Path, dry_run: bool = True, ch: Any = None) -> int:
     changed = [f for f in FIELDS if (before.get(f) or "").strip() != new["channel"].get(f, "")]
     for f in FIELDS:
         print(f"--- {f}, now:\n{before.get(f) or '(empty)'}\n--- {f}, validated:\n"
-              f"{new['channel'].get(f, '')}\n")
+              f"{plain(new['channel'].get(f, ''))}\n")
+    if new["channel"].get("description"):
+        print(f"each line (+: a direction mark): {directions(new['channel']['description'])}")
     if not changed:
         print("youtube-channel: the channel has them already, nothing to do")
         return 0
