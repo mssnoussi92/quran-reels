@@ -50,7 +50,8 @@ env:
 jobs:
   post:
     runs-on: ubuntu-24.04
-    timeout-minutes: 60    # a 9:16 film is sent twice to Facebook (unpublished, then published)
+    timeout-minutes: 75    # a 9:16 film is sent twice to Facebook (unpublished, then published);
+                           # then the 16:9 one to YouTube, waited for while YouTube processes it
     env:
       STATE_FILE: ${{ inputs.page == 'ma3ak' && 'themes-ma3ak.json' || 'themes.json' }}
       SETTINGS: ${{ inputs.page == 'ma3ak' && 'config/themes-ma3ak.yaml' || 'config/themes.yaml' }}
@@ -98,6 +99,11 @@ jobs:
           TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
           TIKTOK_REFRESH_TOKEN: ${{ secrets.TIKTOK_REFRESH_TOKEN }}
           GH_SECRETS_TOKEN: ${{ secrets.GH_SECRETS_TOKEN }}
+          # YouTube (config/themes.yaml, publishers/youtube.py): upload and read, never change nor
+          # delete (youtube-login.html → Uploads, workflow youtube-auth).
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_UPLOAD_REFRESH_TOKEN: ${{ secrets.YOUTUBE_UPLOAD_REFRESH_TOKEN }}
           DAY: ${{ inputs.day }}
           PLATFORMS: ${{ inputs.platforms }}
         run: |
@@ -133,8 +139,8 @@ jobs:
         run: |
           bash "$GITHUB_WORKSPACE/.github/scripts/save-state.sh" "Themes ($STATE_FILE)" "$STATE_FILE"
 
-      # The page publier.html (src/quran_reels/feed.py): the TikTok text of the draft and what
-      # YouTube gets by hand, on a fixed link. Never fails the run.
+      # The page publier.html (src/quran_reels/feed.py): the TikTok text of the draft, and YouTube's
+      # link (or its file and texts when the upload did not happen), on a fixed link. Never fails.
       - name: The page « À publier »
         if: always() && inputs.page != 'ma3ak' && inputs.dry_run != true && steps.due.outputs.due == 'true'
         continue-on-error: true

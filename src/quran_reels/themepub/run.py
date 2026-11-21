@@ -9,8 +9,14 @@ pre-release page-<doc> (workflow page-files). Same rule as the reels:
 2. Meta's copyright check is read on both. Anything but clear on one, and nothing goes out,
    TikTok included.
 3. Facebook and Instagram are published; TikTok gets its own version (signed
-   @quran.words.daily) as a draft in the inbox; YouTube stays by hand (the captions issue
-   gives the file and the title).
+   @quran.words.daily) as a draft in the inbox.
+4. YouTube (owner's choice, 2026-11-21; by hand before): its video goes up, public, with its
+   validated title and description and its thumbnail (publishers/youtube.py), once Meta's check
+   was clear: the same file for a short (or its short version), and for a 16:9 film the check of
+   its 9:16 twin, same voice, recitation and ambience (the owner's decision: Meta checks reels,
+   vertical ones). A video of the same title already on the channel (uploaded by hand) is not
+   put again. Never on a dry run. The « related video » of a Short, which the API does not
+   offer, stays by hand.
 
 A platform already done for the day (themes.json, branch `state`) is never sent again; one that
 failed before anything reached it is tried again by the next run of the window. A day may have
@@ -24,6 +30,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import sys
 from collections.abc import Callable
@@ -44,6 +51,7 @@ from quran_reels.themepub import texts as texts_mod
 PARIS = ZoneInfo("Europe/Paris")
 META = ("facebook", "instagram")
 DONE = {"published", "draft", "blocked", "removed", "ready"}
+HASHTAG = re.compile(r"#[^\s#]+")
 
 
 def settings(cfg: Config, path: Path | None = None) -> dict[str, Any]:
@@ -229,6 +237,9 @@ def reels_for(s: dict[str, Any], row: cal.Row, folder: Path,
     when the line of files names one (`cut`, owner's trial from 2026-11-24); same texts."""
     out = {}
     for platform, v in row.videos.items():
+        if platform == "youtube":
+            out[platform] = youtube_reel(s, v, folder, download)
+            continue
         name, seconds = file_for(platform, v)
         cover = download(s, v.doc, v.cover, folder) if v.cover and platform != "tiktok" else None
         video = download(s, v.doc, name, folder)
@@ -240,6 +251,21 @@ def reels_for(s: dict[str, Any], row: cal.Row, folder: Path,
             title=v.title, seconds=seconds, cover_image=cover,
             cover_url=asset_url(s, v.doc, v.cover) if v.cover else None)
     return out
+
+
+def youtube_reel(s: dict[str, Any], v: texts_mod.Video, folder: Path,
+                 download: Callable[..., Path] = _download) -> ThemeReel:
+    """What YouTube gets: its file (the short, its short version, or the 16:9 film), its
+    validated title and description (description, credits and hashtags, as the page gives them),
+    its hashtags as tags, and its thumbnail (the film's drawn one, or the short's cover)."""
+    name, seconds = file_for("youtube", v)
+    image = v.thumbnail or v.cover
+    description = (v.captions.get("youtube_description") or "").strip()
+    return ThemeReel(video=download(s, v.doc, name, folder),
+                     caption=description + "\n" if description else "",
+                     title=(v.captions.get("youtube_title") or "").strip(), seconds=seconds,
+                     cover_image=download(s, v.doc, image, folder) if image else None,
+                     hashtags=list(dict.fromkeys(HASHTAG.findall(description))))
 
 
 # YouTube too since 2026-11-18 (owner's choice, after the first numbers: on YouTube a theme short
@@ -280,11 +306,57 @@ def publishers_for(cfg: Config, s: dict[str, Any], row: cal.Row, platforms: list
                 graph, env.page_id, rights_timeout=out["facebook"].rights_timeout)
     if "tiktok" in platforms:
         out["tiktok"] = publish_mod.tiktok_publisher()
+    if "youtube" in platforms:
+        from quran_reels.publishers import youtube as youtube_mod
+
+        out["youtube"] = youtube_mod.Uploader.from_environ()     # None: not signed in for it
     return out
 
 
+def to_youtube(s: dict[str, Any], uploader: Any, reel: ThemeReel, checks: dict, blocked: dict,
+               reason: str, previous: dict, dry_run: bool, film: bool) -> PublishResult | None:
+    """YouTube's answer for the row, or None: Meta's check has not seen the video yet (its upload
+    failed), a later run of the window will try. Never raises: the others are out."""
+    from quran_reels.publishers import youtube as youtube_mod
+
+    if dry_run:
+        return PublishResult("youtube", PublishStatus.CANCELLED,
+                             error="essai à blanc : rien sur YouTube")
+    earlier = [p for p in META if (previous.get(p) or {}).get("status") == "blocked"]
+    if blocked or earlier:
+        why = reason or "; ".join(f"{p} : {(previous[p] or {}).get('error') or 'bloqué'}"
+                                  for p in earlier)
+        return PublishResult("youtube", PublishStatus.BLOCKED, error=f"non envoyé, droits : {why}")
+    seen = any(c.clear for c in checks.values()) or any(
+        (previous.get(p) or {}).get("status") == PublishStatus.PUBLISHED.value for p in META)
+    if not seen:
+        print("youtube: waits for Meta's check of the video (no clear check yet)",
+              file=sys.stderr)
+        return None
+    if uploader is None:
+        return PublishResult("youtube", PublishStatus.FAILED,
+                             error="pas de jeton de mise en ligne YouTube "
+                                   f"({youtube_mod.UPLOAD_SECRET})")
+    if not reel.title or not reel.caption.strip():
+        return PublishResult("youtube", PublishStatus.FAILED,
+                             error="titre ou description YouTube absent du texte validé")
+    conf = s.get("youtube") or {}
+    video = youtube_mod.Video(
+        path=reel.video, title=reel.title, description=reel.caption,
+        tags=youtube_mod.tags_of(reel.hashtags), category=conf.get("category"),
+        privacy=str(conf.get("privacy", "public")),
+        made_for_kids=bool(conf.get("made_for_kids", False)),
+        synthetic_media=bool(conf.get("synthetic_media", False)), long=film)
+    print(f"youtube: uploading {reel.video.name} ({video.privacy})", file=sys.stderr)
+    try:
+        return uploader.upload(video, thumbnail=reel.cover_image, dedupe=True)
+    except Exception as e:          # noqa: BLE001
+        return PublishResult("youtube", PublishStatus.FAILED, error=f"{type(e).__name__}: {e}")
+
+
 def publish_row(row: cal.Row, reels: dict[str, ThemeReel], publishers: dict, platforms: list[str],
-                dry_run: bool) -> dict[str, PublishResult]:
+                dry_run: bool, s: dict[str, Any] | None = None,
+                previous: dict | None = None) -> dict[str, PublishResult]:
     from quran_reels.publish import check_rights  # imported here, as in publishers_for
 
     results: dict[str, PublishResult] = {}
@@ -319,6 +391,14 @@ def publish_row(row: cal.Row, reels: dict[str, ThemeReel], publishers: dict, pla
             else:
                 results[name] = publishers[name].commit(prepared[name], reels[name])
             results[name].rights = checks[name].as_dict()
+        elif name == "youtube":
+            v = row.videos.get("youtube")
+            answer = to_youtube(s or {}, publishers.get("youtube"), reels[name], checks, blocked,
+                                reason, previous or {}, dry_run,
+                                film=bool(v and v.aspect == "16:9"))
+            if answer is None:
+                continue
+            results[name] = answer
         elif name == "tiktok":
             if dry_run:
                 results[name] = PublishResult(name, PublishStatus.CANCELLED,
@@ -350,9 +430,12 @@ def publish_row(row: cal.Row, reels: dict[str, ThemeReel], publishers: dict, pla
 
 
 def youtube_video(row: cal.Row, videos: dict[str, texts_mod.Video]) -> texts_mod.Video | None:
-    """The video YouTube gets that day, by hand: the short itself, or the 16:9 film."""
+    """The video YouTube gets that day: the short itself (or its short version), or the 16:9
+    film; the one the run uploads when YouTube is among its platforms."""
     if "youtube" not in row.platforms:
         return None
+    if "youtube" in row.videos:
+        return row.videos["youtube"]
     return next((videos[f"{d}/{row.part}"] for d in row.docs
                  if f"{d}/{row.part}" in videos and "youtube" in videos[f"{d}/{row.part}"].platforms),
                 None)
@@ -363,21 +446,35 @@ def _item(s: dict[str, Any], row: cal.Row, entry: dict,
     """The day as the captions issue shows it (notify.merge_captions): the TikTok text to paste
     on the draft, the TikTok file, and what YouTube gets by hand."""
     v = row.videos.get("tiktok") or next(iter(row.videos.values()), None)
-    notes = []
-    if yt and yt.video:
-        title = (yt.captions.get("youtube_title") or "").strip()
-        notes = ["", "**YouTube (à la main)** : "
-                 f"[ce MP4]({asset_url(s, yt.doc, file_for('youtube', yt)[0])})"
-                 + (f" · titre : `{title}`" if title else "")
-                 + " · description : ta page « Films et shorts à publier »."]
-    tiktok = row.videos.get("tiktok")
     results = {p: r for p, r in (entry.get("results") or {}).items() if p in row.platforms}
+    notes = []
+    done_yt = (results.get("youtube") or {})
+    texts = youtube_texts(s, yt)
+    if done_yt.get("status") == "published":
+        link = (f"[mise en ligne par le run]({done_yt['url']})" if done_yt.get("url")
+                else "mise en ligne par le run")
+        notes = ["", f"**YouTube : {link}**. Rien à faire"
+                 + (f" ({done_yt['error']})." if done_yt.get("error") else ".")
+                 + (" Sur un Short, la « vidéo associée » (le film) se met à la main dans Studio."
+                    if yt and yt.aspect != "16:9" else "")]
+        if texts:
+            texts["url"] = done_yt.get("url") or ""
+    elif yt and yt.video:
+        title = (yt.captions.get("youtube_title") or "").strip()
+        why = (f"**YouTube : la mise en ligne par le run n'a pas abouti** "
+               f"({done_yt.get('error') or done_yt.get('status')}) ; à la main : "
+               if done_yt else "**YouTube (à la main)** : ")
+        notes = ["", why
+                 + f"[ce MP4]({asset_url(s, yt.doc, file_for('youtube', yt)[0])})"
+                 + (f" · titre : `{title}`" if title else "")
+                 + " · description : la page « À publier »."]
+    tiktok = row.videos.get("tiktok")
     return {"key": item_key(row), "day": row.day.isoformat(),
             "time": s.get("time", "19:00"), "passage": row.label,
             "label": v.title if v else "", "results": results,
             "caption": tiktok.captions.get("tiktok", "") if tiktok else "",
             "files": {"mp4": asset_url(s, tiktok.doc, tiktok.tiktok)} if tiktok else None,
-            "notes": notes, "youtube": youtube_texts(s, yt), "match": match_keys(row)}
+            "notes": notes, "youtube": texts, "match": match_keys(row)}
 
 
 def item_key(row: cal.Row) -> str:
@@ -505,7 +602,7 @@ def run(cfg: Config, state_path: Path, now: datetime | None = None, dry_run: boo
         if wanted:
             reels = reels_for(s, row, cfg.out / "themes", download, encode, publish_file)
             pubs = (make_publishers or publishers_for)(cfg, s, row, wanted)
-            results = publish_row(row, reels, pubs, wanted, dry_run)
+            results = publish_row(row, reels, pubs, wanted, dry_run, s, previous)
             # The day's entry, every row's platforms together (one video a day per platform).
             cut = (entry.get("cut") or {}) | {p: v.cut for p, v in row.videos.items()
                                                if p in CUT_PLATFORMS and v.cut}

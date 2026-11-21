@@ -1,6 +1,8 @@
 # The theme videos of quran-themes-demo, published on the Page by the workflow `themes`
 # (docs/themes.md). Owner's decision, 2026-11-15: Facebook and Instagram after Meta's copyright
-# check, TikTok as a draft in the inbox (the owner posts it), YouTube by hand.
+# check, TikTok as a draft in the inbox (the owner posts it); YouTube by hand until 2026-11-21, then
+# uploaded by the run too (owner's choice, 2026-11-21: shorts and films; a film's 16:9 version goes
+# on the check of its 9:16 twin, same sound).
 #
 # What and when: docs/retention/calendar.md of quran-themes-demo, as written (« Le calendrier »);
 # the texts: its publication-<doc>.md; the files: its public pre-release page-<doc> (workflow
@@ -19,7 +21,14 @@ time: "18:00"              # Paris (owner's request, 2026-11-19: 18:00 like the 
                            # his decision of 2026-11-13)
 early_minutes: 20          # a run up to 20 min before takes the day's video
 window_hours: 3            # after that, the day's video is missed (an alert says so)
-platforms: [facebook, instagram, tiktok]
+platforms: [facebook, instagram, tiktok, youtube]
+youtube:                   # publishers/youtube.py: its own token, YOUTUBE_UPLOAD_REFRESH_TOKEN
+  privacy: public
+  made_for_kids: false
+  synthetic_media: false   # owner's choice, 2026-11-21: « Non »: a narrator's synthetic voice that
+                           # imitates no one is not the realistic content YouTube asks about; every
+                           # description already says the voice is AI-generated
+  # category: "27"         # unset: YouTube's default, as for the uploads by hand
 reels_max_seconds: 900     # Facebook: up to 15 min through the Reels API, with Meta's rights check on the
                            # unpublished reel. Dry runs of 2026-11-15: a 2:05 short and the 8:24 film taken
                            # as reels, check « complete, aucune correspondance »; as Page videos

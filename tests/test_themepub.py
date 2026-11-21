@@ -700,3 +700,180 @@ def test_instagram_fetches_a_video_given_by_its_address():
     assert params["video_url"] == "https://h/x.mp4" and "upload_type" not in params
     assert pub._upload(reel, params) == ("c1", False) and not uploads
     assert posted[0]["cover_url"] == "https://h/c.jpg"
+
+
+# ------------------------------------------------------------------------------ YouTube by the run
+
+YT_SHORT = """**YouTube · Titre (35/100)**
+
+```text
+صابر… ودعا! · Patient… and he asked
+```
+
+**YouTube · Description**
+
+```text
+The long description
+🎙️ AI-generated voice
+```
+
+**YouTube · Crédits**
+
+```text
+Quoted:
+• a source
+```
+
+**YouTube · Hashtags (3)**
+
+```text
+#Dua #Quran #دعاء
+```
+"""
+YT_FILM = """**Description YouTube**
+
+```text
+The film's description
+🎙️ AI-generated voice
+#Dua
+```
+"""
+
+
+class FakeUploader:
+    """publishers/youtube.Uploader: answers in turn (status, id), the videos it was given."""
+
+    def __init__(self, answers=()):
+        self.answers, self.sent = list(answers), []
+
+    def upload(self, video, thumbnail=None, dedupe=False):
+        self.sent.append((video, thumbnail, dedupe))
+        status, vid = self.answers.pop(0) if self.answers else (PublishStatus.PUBLISHED, "yt1")
+        url = None if not vid else (f"https://www.youtube.com/watch?v={vid}" if video.long
+                                    else f"https://youtube.com/shorts/{vid}")
+        return PublishResult("youtube", status, remote_id=vid, url=url,
+                             error=None if status == PublishStatus.PUBLISHED else "quotaExceeded")
+
+
+@pytest.fixture
+def on_youtube(setup, monkeypatch):
+    """The Page with YouTube among the run's platforms (config/themes.yaml since 2026-11-21) and
+    YouTube texts validated for the short and the film."""
+    run, pubs, fetched, tmp = setup
+    monkeypatch.setitem(globals(), "S", S | {"platforms": ["facebook", "instagram", "tiktok",
+                                                           "youtube"],
+                                             "youtube": {"privacy": "public",
+                                                         "synthetic_media": False}})
+    monkeypatch.setattr(R, "settings", lambda cfg: globals()["S"])
+    short_end = SHORTS.index("**Titre YouTube (35/100)**")
+    film_end = SHORTS.index("## Short 1")
+    text = (SHORTS[:film_end] + YT_FILM + "\n" + SHORTS[film_end:short_end] + YT_SHORT)
+    monkeypatch.setitem(globals(), "SHORTS", text)
+
+    def resolved():
+        vids = videos()
+        rows = cal.rows(CALENDAR, date(2026, 11, 20))
+        for r in rows:
+            cal.resolve(r, vids, S["platforms"])
+        return R.Sources(vids, rows)
+
+    monkeypatch.setitem(globals(), "sources", resolved)
+    pubs["youtube"] = FakeUploader()
+    return run, pubs, fetched, tmp
+
+
+def test_a_short_goes_to_youtube_after_metas_check_with_its_texts_and_cover(on_youtube):
+    run, pubs, _fetched, tmp = on_youtube
+    out = run(now=paris("2026-11-24", "18:45"))
+    assert out["due"] and not out["failed"]
+    (video, thumbnail, dedupe), = pubs["youtube"].sent
+    assert video.path.name == "dua-short-1-asked.mp4" and not video.long
+    assert video.title == "صابر… ودعا! · Patient… and he asked"
+    assert video.description == ("The long description\n🎙️ AI-generated voice\n\nQuoted:\n• a source"
+                                 "\n\n#Dua #Quran #دعاء\n")
+    assert video.tags == ["Dua", "Quran", "دعاء"] and video.privacy == "public"
+    assert not video.synthetic_media and not video.made_for_kids    # owner's choice, 2026-11-21
+    assert thumbnail.name == "dua-short-1-asked-cover.jpg" and dedupe
+    state = json.loads((tmp / "themes.json").read_text())["posts"]["2026-11-24"]
+    assert state["results"]["youtube"]["status"] == "published"
+    item = json.loads((tmp / "report.json").read_text())["items"][0]
+    assert "**YouTube : [mise en ligne par le run](https://youtube.com/shorts/yt1)**" in item["notes"][1]
+    assert "vidéo associée" in item["notes"][1]
+    assert item["youtube"]["url"] == "https://youtube.com/shorts/yt1"
+    from quran_reels import feed, notify
+
+    class Previews:
+        def publish(self, files, message, derived=None):
+            self.files = files
+
+    previews = Previews()
+    R.page_files(tmp / "report.json", previews)
+    e = feed.entry(json.loads(previews.files["theme/2026-11-24/reel.json"]))
+    assert e["youtube"]["url"] == "https://youtube.com/shorts/yt1"      # the page: YouTube ✓
+    body = notify.merge_captions("", {"items": [item]})
+    assert "revendiqué" not in body and "mise en ligne par le run" in body
+    # the next run of the window: nothing more anywhere
+    assert not run(now=paris("2026-11-24", "19:50"))["due"]
+    assert len(pubs["youtube"].sent) == 1
+
+
+def test_a_films_16x9_goes_on_the_check_of_its_9x16_twin(on_youtube):
+    """Owner's decision, 2026-11-21: Meta checks the 9:16 film (Facebook); YouTube gets the
+    16:9 one, same voice, recitation and ambience, with the film's drawn thumbnail."""
+    run, pubs, _fetched, tmp = on_youtube
+    out = run(now=paris("2026-11-23", "18:45"))
+    assert not out["failed"]
+    (video, thumbnail, _), = pubs["youtube"].sent
+    assert video.path.name == "dua-film-16x9.mp4" and video.long
+    assert thumbnail.name == "dua-film-thumbnail.jpg"
+    assert pubs["facebook"].calls[0][1].video.name == "dua-film-9x16.mp4"
+    results = json.loads((tmp / "themes.json").read_text())["posts"]["2026-11-23"]["results"]
+    assert results["youtube"]["url"] == "https://www.youtube.com/watch?v=yt1"
+
+
+def test_youtube_gets_nothing_when_meta_finds_a_match(on_youtube):
+    run, pubs, _, tmp = on_youtube
+    pubs["instagram"].clear = False
+    out = run(now=paris("2026-11-24", "18:45"))
+    results = json.loads((tmp / "themes.json").read_text())["posts"]["2026-11-24"]["results"]
+    assert results["youtube"]["status"] == "blocked" and not pubs["youtube"].sent
+    assert out["failed"]
+
+
+def test_a_dry_run_puts_nothing_on_youtube(on_youtube):
+    run, pubs, _, tmp = on_youtube
+    out = run(day=date(2026, 11, 24), dry_run=True)
+    assert out["items"][0]["results"]["youtube"]["status"] == "cancelled"
+    assert not pubs["youtube"].sent and not (tmp / "themes.json").exists()
+
+
+def test_youtube_alone_is_tried_again_and_never_twice(on_youtube):
+    """Nothing reached YouTube (no id): the next run of the window uploads it again, alone, on
+    the check Meta already gave; Facebook, Instagram and TikTok are not sent again."""
+    run, pubs, _, tmp = on_youtube
+    pubs["youtube"].answers = [(PublishStatus.FAILED, None)]
+    assert run(now=paris("2026-11-24", "18:45"))["failed"]
+    for p in ("facebook", "instagram", "tiktok"):
+        pubs[p].calls.clear()
+    out = run(now=paris("2026-11-24", "19:50"))
+    assert out["due"] and not out["failed"]
+    assert len(pubs["youtube"].sent) == 2
+    assert not any(pubs[p].calls for p in ("facebook", "instagram", "tiktok"))
+    results = json.loads((tmp / "themes.json").read_text())["posts"]["2026-11-24"]["results"]
+    assert results["youtube"]["status"] == "published"
+    assert not run(now=paris("2026-11-24", "20:50"))["due"]
+
+
+def test_youtube_waits_without_a_token_or_a_validated_text(on_youtube, monkeypatch):
+    run, pubs, _, tmp = on_youtube
+    pubs["youtube"] = None                  # the owner has not signed in for the uploads
+    out = run(now=paris("2026-11-24", "18:45"))
+    results = json.loads((tmp / "themes.json").read_text())["posts"]["2026-11-24"]["results"]
+    assert results["youtube"]["status"] == "failed" and "YOUTUBE_UPLOAD_REFRESH_TOKEN" in \
+        results["youtube"]["error"]
+    assert results["facebook"]["status"] == "published" and out["failed"]
+    # no description: never sent, said in the alert (the description declares the AI voice)
+    monkeypatch.setitem(globals(), "SHORTS", SHORTS.split("**YouTube · Description**")[0])
+    row = next(r for r in sources().rows if r.day == date(2026, 11, 24))
+    assert "youtube" not in row.videos
+    assert any("titre ou de description YouTube" in p for p in row.problems)

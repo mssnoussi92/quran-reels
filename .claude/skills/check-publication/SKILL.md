@@ -91,7 +91,10 @@ due »: normal, say so in one line, never as a failure.
      with an id: YouTube has it but refused it or kept it private: never uploaded again, the
      owner looks at it in Studio. `blocked`: Meta's check of the YouTube version found a match
      or could not end: not on YouTube, not retried. Log « has not signed in »: the token is
-     not there yet, YouTube stays by hand.
+     not there yet, YouTube stays by hand. Theme videos (themes.yml, 2026-11-21) the same:
+     `themes.json` on the state branch, `posts["<day>"].results.youtube`; a film's thumbnail
+     not set says « miniature non posée » in its `error` (published all the same: the owner
+     sets it in Studio); « déjà sur la chaîne » means the owner had uploaded it by hand.
    - TikTok « could not be kept »: `GH_SECRETS_TOKEN` is missing or expired, the new refresh
      token was not saved. The owner makes a new token (docs/plateformes.md), then signs in
      again (tiktok-auth workflow) if the next run fails on the refresh.

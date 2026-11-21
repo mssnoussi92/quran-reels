@@ -152,6 +152,8 @@ def _youtube(item: dict) -> list[str]:
     reciter's version (`always`: platforms.youtube.reciter), or another reciter's when
     Content ID claims this one; or nothing at all. Nothing to do when the run uploaded it."""
     y = item.get("youtube")
+    if y and "file" in y:       # a theme video's texts for YouTube: its notes say what goes where
+        return []
     done = _uploaded(item)
     if done:
         by = f", récitée par {y['label']} (pas cette vidéo)" if y and y.get("label") else ""

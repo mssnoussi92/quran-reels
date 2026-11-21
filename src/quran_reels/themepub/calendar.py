@@ -144,6 +144,14 @@ def resolve(row: Row, videos: dict[str, Video], wanted: list[str]) -> Row:
             row.problems.append(f"{platform} : {video.id} n'a pas de texte pour {platform}")
         elif platform == "tiktok" and not (video.tiktok and video.captions.get("tiktok")):
             row.problems.append(f"tiktok : {video.id} n'a pas de version ou de texte TikTok")
+        elif platform == "youtube" and not any(p in row.platforms for p in ("facebook",
+                                                                           "instagram")):
+            continue        # no Meta check would see it (rule 6): by hand, as before
+        elif platform == "youtube" and not ((video.captions.get("youtube_title") or "").strip()
+                                            and (video.captions.get("youtube_description")
+                                                 or "").strip()):
+            row.problems.append(f"youtube : {video.id} n'a pas de titre ou de description YouTube "
+                                "(la description déclare la voix IA)")
         else:
             row.videos[platform] = video
     return row

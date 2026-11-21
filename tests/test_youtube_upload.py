@@ -181,3 +181,58 @@ def test_the_uploads_sign_in_asks_its_own_scopes_and_saves_its_own_secret(monkey
     monkeypatch.setattr("quran_reels.gh_secrets.save_secret", lambda n, v: saved.update({n: v}))
     assert Y.auth("https://x/cb", "code", Y.YouTube("cid", "secret", Exchange())) == 0
     assert saved == {U.UPLOAD_SECRET: "rt-upload"}             # never the statistics' secret
+
+
+class Channel(Google):
+    """The channel's latest uploads, and thumbnails.set."""
+
+    def __init__(self, titles=(), thumb=None, **kw):
+        super().__init__(**kw)
+        self.titles, self.thumb = list(titles), thumb or Answer(200, {"items": []})
+
+    def post(self, url, params=None, data=None, headers=None, timeout=None):
+        if url == U.THUMBNAIL:
+            self.calls.append(("THUMB", params, headers["Content-Type"], len(data)))
+            return self.thumb
+        return super().post(url, params, data, headers, timeout)
+
+    def get(self, url, params=None, headers=None, timeout=None):
+        if url.endswith("/channels"):
+            return Answer(200, {"items": [{"contentDetails": {"relatedPlaylists": {"uploads": "UU"}}}]})
+        if url.endswith("/playlistItems"):
+            return Answer(200, {"items": [{"snippet": {"title": t, "resourceId": {"videoId": f"old{i}"}}}
+                                          for i, t in enumerate(self.titles)]})
+        return super().get(url, params, headers, timeout)
+
+
+def test_a_theme_video_gets_its_thumbnail_once_processed(video, tmp_path):
+    cover = tmp_path / "cover.jpg"
+    cover.write_bytes(b"\xff\xd8jpeg")
+    http = Channel()
+    result = uploader(http).upload(video, thumbnail=cover, dedupe=True)
+    assert result.status == PublishStatus.PUBLISHED and result.error is None
+    kinds = [c[0] for c in http.calls]
+    assert kinds.index("THUMB") > kinds.index("GET")               # after the processing
+    assert next(c for c in http.calls if c[0] == "THUMB")[1:3] == ({"videoId": "vid1"}, "image/jpeg")
+    # A refused thumbnail leaves the video published, and says why.
+    refused = Channel(thumb=Answer(403, {"error": {"message": "no", "errors": [{"reason": "forbidden"}]}}))
+    result = uploader(refused).upload(video, thumbnail=cover)
+    assert result.status == PublishStatus.PUBLISHED
+    assert result.error == "miniature non posée : HTTP 403 forbidden no"
+    big = tmp_path / "big.jpg"
+    big.write_bytes(b"x" * (U.THUMBNAIL_MAX + 1))
+    assert "plus que 2 Mo" in uploader(Channel()).upload(video, thumbnail=big).error
+
+
+def test_a_video_already_on_the_channel_by_hand_is_not_put_again(video):
+    http = Channel(titles=["something else", video.title])
+    result = uploader(http).upload(video, dedupe=True)
+    assert (result.status, result.remote_id) == (PublishStatus.PUBLISHED, "old1")
+    assert "déjà sur la chaîne" in result.error
+    assert not any(c[0] == "PUT" for c in http.calls)               # nothing uploaded
+
+
+def test_a_film_has_a_watch_address_not_a_shorts_one(video):
+    video.long = True
+    result = uploader(Google()).upload(video)
+    assert result.url == "https://www.youtube.com/watch?v=vid1"
