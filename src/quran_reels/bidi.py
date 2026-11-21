@@ -12,19 +12,24 @@ the end of the line closes (a paragraph separator ends every embedding). No word
 One mark, and only where a line needs it (YouTube counts the marks: the channel's description has
 1 000 characters): a line that mixes both directions, or that begins or ends with a sign of no
 direction of its own (a period, a bracket, a quote, a bullet, a number). A line of one direction
-from its first letter to its last (a verse alone), or without a letter, is left as it is.
+from its first letter to its last (a verse alone), or without a letter, is left as it is. So is a
+line that begins with what YouTube reads at a line's start, which a mark before it could hide:
+hashtags (« #Quran », the three shown above the title), a mention (« @quran_words_daily »), a
+chapter's time (« 0:00 », « 1:02:03 ») or a link.
 Embeddings, not isolates: a phone that reads a line's direction from its first letter skips what
 is inside an isolate, and would read nothing.
 """
 
 from __future__ import annotations
 
+import re
 import unicodedata
 
 RLE, LRE, PDF = "\u202b", "\u202a", "\u202c"
 MARKS = (RLE, LRE, PDF, "\u200e", "\u200f", "\u2066", "\u2067", "\u2068", "\u2069")
 RTL, LTR = ("R", "AL"), ("L",)
 IGNORED = ("NSM", "BN")         # vowel signs, invisible marks: they take the letter's direction
+KEEP = re.compile(r"^\s*(?:[#@]|\d{1,2}(?::\d{2}){1,2}(?!\d)|https?://)")   # read by YouTube
 
 
 def plain(text: str) -> str:
@@ -46,7 +51,7 @@ def first_strong(line: str) -> str | None:
 def needs_mark(line: str) -> bool:
     """Would the line read differently in another direction than its own?"""
     d = first_strong(line)
-    if d is None:
+    if d is None or KEEP.match(line):
         return False
     kinds = [k for ch in line.strip() if (k := unicodedata.bidirectional(ch)) not in IGNORED]
     own, other = (RTL, LTR) if d == "rtl" else (LTR, RTL)

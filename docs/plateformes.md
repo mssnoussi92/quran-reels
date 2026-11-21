@@ -521,7 +521,11 @@ limites de YouTube (description 1 000 caractères, mots-clés 500 ; les marques 
   LRE) au début de chaque ligne qui en a besoin fixe son sens, quel que soit l'affichage (`bidi.py`, aucun mot
   changé ; sa demande : « être sûr que l'affichage de l'arabe sera bon »). Essayé dans Chromium dans les trois
   affichages possibles : chaque ligne son sens (téléphone), tout de droite à gauche, tout forcé de gauche à droite ;
-  sans marques, deux des trois cassaient le texte.
+  sans marques, deux des trois cassaient le texte. **Les descriptions des vidéos aussi** (reels et vidéos
+  thématiques, `publishers/youtube.py`, `described`), sauf les lignes que YouTube lit en début de ligne et qu'une
+  marque pourrait cacher : hashtags (les trois au-dessus du titre), « @quran_words_daily », temps d'un chapitre
+  (« 0:00 »), lien ; sans marques si elles seules faisaient dépasser les 5 000 octets (les reels en font au plus
+  2 125, + 66 avec les marques).
 - **Le nom d'une série, à sa première vidéo** (son choix, même soir : « à leur première vidéo, par le run ») : la
   nuit, après les playlists, le workflow `playlists` ajoute à la fin des mots-clés le nom arabe de chaque série
   (reels) ou document (vidéos thématiques) qui a une vidéo sur YouTube, sans voyelles ni ponctuation, ou celui de

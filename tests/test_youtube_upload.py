@@ -82,7 +82,7 @@ def test_a_short_goes_up_public_with_the_texts_of_the_page(video):
     assert start[4]["X-Upload-Content-Length"] == "10"
     body = json.loads(start[3])
     assert body["snippet"]["title"] == "سورة الناس · Surah An-Nas (114:1-6)"
-    assert body["snippet"]["description"] == "سورة الناس b\n\n#Quran"     # no < > for YouTube
+    assert body["snippet"]["description"] == "\u202bسورة الناس b\n\n#Quran"   # no < >; its direction
     assert body["status"] == {"privacyStatus": "public", "selfDeclaredMadeForKids": False,
                               "containsSyntheticMedia": False}
     assert "categoryId" not in body["snippet"]          # YouTube's default, as by hand
@@ -244,3 +244,22 @@ def test_the_language_is_declared_as_studio_asks_it():
     body = U.Video(path=_P("x.mp4"), title="t", description="d", language="ar").body()
     assert body["snippet"]["defaultLanguage"] == body["snippet"]["defaultAudioLanguage"] == "ar"
     assert "defaultLanguage" not in U.Video(path=_P("x.mp4"), title="t", description="d").body()["snippet"]
+
+
+def test_each_line_keeps_its_direction_but_what_youtube_reads_at_a_line_start():
+    from pathlib import Path as _P
+
+    from quran_reels.bidi import LRE, RLE
+
+    text = ("سورة التكاثر · Surah At-Takathur (102:1-8)\n\nأَلْهَىٰكُمُ ٱلتَّكَاثُرُ ﴿١﴾\n"
+            "1. Competition in [worldly] increase diverts you\n0:00 البداية · Opening\n"
+            "1:02:03 الخاتمة\n@quran_words_daily\nhttps://example.org/x\n\n#Quran #سورة_التكاثر")
+    sent = U.Video(path=_P("x.mp4"), title="t", description=text).body()["snippet"]["description"]
+    lines = sent.split("\n")
+    assert lines[0].startswith(RLE) and lines[2].startswith(RLE) and lines[3].startswith(LRE)
+    assert lines[4:8] == ["0:00 البداية · Opening", "1:02:03 الخاتمة", "@quran_words_daily",
+                          "https://example.org/x"]                 # chapters, mention, link
+    assert lines[-1] == "#Quran #سورة_التكاثر"                   # the hashtags as they are
+    full = "سورة " + "ب" * (U.DESCRIPTION_MAX // 2 - 9) + ".\n#Quran"     # 4 999 bytes: no marks
+    assert U.described(full) == full
+    assert len(full.encode("utf-8")) == U.DESCRIPTION_MAX - 1

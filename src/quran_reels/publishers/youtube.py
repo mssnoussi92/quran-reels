@@ -81,7 +81,7 @@ class Video:
 
     def body(self) -> dict[str, Any]:
         snippet: dict[str, Any] = {"title": clean(self.title)[:TITLE_MAX],
-                                   "description": _cut_bytes(clean(self.description),
+                                   "description": _cut_bytes(described(self.description),
                                                              DESCRIPTION_MAX)}
         if self.tags:
             snippet["tags"] = self.tags
@@ -98,6 +98,18 @@ class Video:
 def clean(text: str) -> str:
     """YouTube refuses « < » and « > » in a title or a description."""
     return text.replace("<", "").replace(">", "")
+
+
+def described(text: str) -> str:
+    """The description as sent: each line that needs it starts with the invisible mark of its own
+    direction (bidi.directed, no word changed; the Arabic first and English lines read right
+    wherever YouTube shows them, as on the channel's description, 2026-11-21); without the marks
+    if they alone would push it over YouTube's limit."""
+    from quran_reels.bidi import directed
+
+    text = clean(text)
+    marked = directed(text)
+    return marked if len(marked.encode("utf-8")) <= DESCRIPTION_MAX else text
 
 
 def _cut_bytes(text: str, limit: int) -> str:
