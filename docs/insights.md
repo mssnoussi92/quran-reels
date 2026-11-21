@@ -228,6 +228,25 @@ chiffres sur l'image, les montre au propriétaire et demande, puis lance `insigh
 - **Word of the day en pause** depuis le 2026-11-15 (choix du propriétaire : 4 vues en médiane par publication sur
   Instagram, 21 vues en tout sur Facebook en 9 jours) ; ses relevés restent pour comparer s'il revient.
 
+## À la revue du dimanche 22 novembre : l'ordre des langues dans les titres
+
+Décidé avec le propriétaire le 2026-11-21 : « applique cette règle et mets-la disponible pour toutes les sessions, on
+s'adapte après la revue si nécessaire ». La règle en place : **YouTube, l'arabe d'abord** (titres et `caption.txt` ;
+74 % des vues de la chaîne viennent de pays arabophones, et les recherches qui amènent des vues sont en arabe) ;
+**Facebook, Instagram et TikTok, l'anglais d'abord, toujours** (reels : `render.series_line`, `render.surah_line` ;
+vidéos thématiques : `publish.py` de quran-themes-demo et son test `tests/test_title_order.py`).
+
+- **Ce qui manque pour en juger** : la langue du public sur Facebook, Instagram et TikTok. Aucune API lue ici ne la
+  donne. Instagram ne donne la répartition par pays qu'à partir de 100 abonnés. Il faut donc des captures, si les
+  applications les montrent : l'onglet « Audience » de Meta Business Suite (pays, Facebook et Instagram) et l'onglet
+  « Spectateurs » de TikTok Studio (pays).
+- **Pas d'essai A/B possible** : un même titre ne sort pas dans deux ordres. Le choix se fait sur le public, pas sur
+  une comparaison de vues.
+- **La question à poser au propriétaire** (choix) : garder l'anglais d'abord sur ces trois plateformes ; passer à
+  l'arabe d'abord partout ; ou décider plateforme par plateforme selon la part arabophone. À changer, c'est un seul
+  réglage dans chaque dépôt (`arabic_first` de `render.series_line` et `render.surah_line` ; `publish.py` de
+  quran-themes-demo et son test).
+
 ## À la revue du dimanche 29 novembre : l'essai de la version courte
 
 Décidé avec le propriétaire le 2026-11-17 : « on fait le point dimanche ». Les shorts 1, 2 et 3 de Dhul-Qarnayn sont
