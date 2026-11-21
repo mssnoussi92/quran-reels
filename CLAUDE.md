@@ -23,6 +23,16 @@ répondre autre chose. Le message garde le contexte, les chiffres et la contradi
 choix vaut sa parole si l'option nomme exactement ce qui est validé. Sans cet outil (session planifiée, personne en
 face) : la question va dans le rapport, ses options numérotées.
 
+**L'amélioration continue** (demande du propriétaire, 2026-11-21 : « le workflow est censé évoluer, pas l'utiliser tel
+qu'il est ; il faut que toutes les sessions sachent ça ; s'il trouve des optimisations, des améliorations ou un besoin
+d'ajouter, il n'hésite pas : on est dans l'amélioration continue, on tire les stats petit à petit et on continue de
+produire de meilleures choses ») : workflows, outils, gabarits, miniatures, titres et statistiques sont faits pour
+évoluer, ici comme dans quran-themes-demo. Une session qui voit une optimisation, une amélioration ou un manque le dit
+et le propose, avec sa raison et les chiffres quand il y en a (page « Statistiques », `insights.yml` avec
+`youtube_detail`) ; ce qui touche une décision du propriétaire (un texte, le calendrier, un récitateur…) lui est
+demandé comme toujours, le reste se fait (PR, checks, fusion). Chaque changement part de ce que disent les mesures,
+et se mesure ensuite.
+
 ## Décisions validées
 
 | Sujet | Choix |

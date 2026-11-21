@@ -632,3 +632,40 @@ def test_the_test_page_never_reads_the_page_word_of_the_day(state):
     assert f"facebook:{PAGE}_9" not in posts                         # the Page's Word of the day (images.json)
     assert "facebook:999_5" not in posts and "facebook:7001" in posts   # another Page's post out; a reel's id kept
     assert posts["facebook:111"]["kind"] == "other"                     # published.json not read: not the Page's reel
+
+
+def test_a_youtube_title_of_its_own_is_recognised():
+    """2026-11-21 (owner's choice): the film of Dhul-Qarnayn is titled on YouTube « قصة ذو القرنين: 3
+    اختبارات للقوة · The story of Dhul-Qarnayn: 3 tests of power », not like its heading: the « YouTube ·
+    Titre » block of its section is read, and that title is matched whole, never by a prefix."""
+    texts = """# Dhul-Qarnayn · ذو القرنين : textes de publication
+
+## Le film · Dhul-Qarnayn: 3 tests of power · ذو القرنين: ٣ اختبارات للقوة
+
+`qarnayn-film-16x9.mp4` · 8:24 · 16:9 · YouTube · miniature : `qarnayn-film-thumbnail.jpg`
+
+**YouTube · Titre (78/100)**
+
+```text
+قصة ذو القرنين: 3 اختبارات للقوة · The story of Dhul-Qarnayn: 3 tests of power
+```
+
+## Short 1 · The fate of a whole people… at his word · مصير قوم كاملين… بكلمة منه!
+
+`qarnayn-short-1-west.mp4` · 2:06 · 9:16 · Facebook, Instagram, TikTok, YouTube Shorts · couverture : `c.jpg`
+
+**YouTube · Titre (69/100)**
+
+```text
+مصير قوم كاملين… بكلمة منه! · The fate of a whole people… at his word
+```
+"""
+    videos = T.parse_texts("qarnayn", texts)
+    assert videos[0].title_youtube == ("قصة ذو القرنين: 3 اختبارات للقوة · The story of Dhul-Qarnayn: "
+                                       "3 tests of power")
+    themes = T.ThemeIndex(videos)
+    assert themes.match(videos[0].title_youtube, "youtube").id == "qarnayn/film"
+    assert themes.match("Dhul-Qarnayn: 3 tests of power · ذو القرنين: ٣ اختبارات للقوة", "youtube").id \
+        == "qarnayn/film"                                        # the heading's order still works
+    assert themes.match("قصة ذو القرنين: 3 اختبارات للقوة", "youtube") is None   # its half: not whole
+    assert themes.match(videos[1].title_youtube, "youtube").id == "qarnayn/short-1"

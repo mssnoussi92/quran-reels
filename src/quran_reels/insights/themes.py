@@ -26,6 +26,7 @@ SECTION = re.compile(r"^##\s+(?P<head>[^·]+?)\s+·\s+(?P<en>.+?)\s+·\s+(?P<ar>
 FILE = re.compile(r"^`(?P<file>[^`]+\.mp4)`.*?·\s*(?P<dur>\d+:\d{2})\s*·\s*(?P<aspect>\d+:\d+)"
                   r"\s*·\s*(?P<where>[^·]+)")
 CUT = re.compile(r"`(?P<name>[^`]+-cut\.mp4)`(?:\s*,\s*(?P<dur>\d+:\d{2}))?")
+YOUTUBE_TITLE = re.compile(r"^\*\*YouTube · Titre\b")
 DAY = re.compile(r"(?P<d>\d{1,2})\s+(?P<m>[a-zéûè]+)\.?", re.IGNORECASE)
 
 
@@ -57,6 +58,8 @@ class ThemeVideo:
     platforms: list[str] = field(default_factory=list)
     kind: str = "theme-short"    # theme-short | theme-film | theme-episode
     cut: str = ""                # its short version (« -cut.mp4 », on the line of files)
+    title_youtube: str = ""      # the « YouTube · Titre » block when the section has one (it may
+                                 # differ from the heading: « قصة ذو القرنين: 3 اختبارات للقوة · … »)
     cut_seconds: float | None = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -113,6 +116,15 @@ def parse_texts(doc: str, text: str) -> list[ThemeVideo]:
                     video.cut = c["name"]
                     video.cut_seconds = _seconds(c["dur"]) if c["dur"] else None
                 break
+        for j, nxt in enumerate(lines[i + 1:], start=i + 1):
+            if nxt.startswith("## "):
+                break
+            if YOUTUBE_TITLE.match(nxt.strip()):
+                block = [ln.strip() for ln in lines[j + 1:j + 6]]
+                if "```text" in block:
+                    k = block.index("```text")
+                    video.title_youtube = block[k + 1] if k + 1 < len(block) else ""
+                break
         out.append(video)
     return out
 
@@ -135,8 +147,10 @@ class ThemeIndex:
             return None
         # A theme video's YouTube title is « <English> · <Arabic> » (published until 2026-11-21) or
         # « <Arabic> · <English> » (from then on): either title starts the line.
+        # Its own YouTube title, when the file writes one apart from the heading (2026-11-21).
         found = [v for v in self.videos if _starts(line, norm(v.title_en)) or (
-            len(norm(v.title_ar)) >= ARABIC_MIN and _starts(line, norm(v.title_ar)))]
+            len(norm(v.title_ar)) >= ARABIC_MIN and _starts(line, norm(v.title_ar))) or (
+            len(norm(v.title_youtube)) >= ARABIC_MIN and line == norm(v.title_youtube))]
         if not found:
             return None
         # The 16:9 film (YouTube) and its 9:16 version (Facebook) share a title.
