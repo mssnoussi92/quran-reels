@@ -173,3 +173,35 @@ def test_the_repository_table_names_series_that_exist():
     assert set(table["series"]) <= series
     assert all(len(w) <= C.LONGEST for v in (table["series"] | table["docs"]).values() if v
                for w in ([v] if isinstance(v, str) else v))
+
+
+def test_a_change_youtube_serves_late_is_read_again_not_called_refused(tmp_path, capsys):
+    """2026-11-21: read at once after the change, both fields seemed refused; they were there."""
+    import yaml
+
+    config(tmp_path, yaml.safe_dump({"validated": True, "keywords": KEYWORDS,
+                                     "description": "عربي أولاً · Arabic first"}, allow_unicode=True))
+
+    class Late(FakeChannel):
+        def __init__(self, stale_reads):
+            super().__init__()
+            self.stale, self.old = stale_reads, None
+            outer, inner = self, self.client
+
+            class Client:
+                def get(self, url, token, **params):
+                    if outer.old is not None and outer.stale > 0:
+                        outer.stale -= 1
+                        return {"items": [{"id": "UC1", "brandingSettings": outer.old}]}
+                    return inner.get(url, token, **params)
+            self.client = Client()
+
+        def _send(self, method, url, part, body):
+            self.old = {k: dict(v) for k, v in self.branding.items()}
+            return super()._send(method, url, part, body)
+
+    waits = []
+    assert C.run(tmp_path, dry_run=False, ch=Late(stale_reads=2), sleep=waits.append) == 0
+    assert waits == [C.WAIT, C.WAIT] and "every other setting as it was" in capsys.readouterr().out
+    with pytest.raises(SystemExit, match="did not keep keywords, description"):
+        C.run(tmp_path, dry_run=False, ch=Late(stale_reads=99), sleep=lambda s: None)
