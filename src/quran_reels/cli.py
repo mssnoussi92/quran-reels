@@ -178,6 +178,11 @@ def main(argv: list[str] | None = None) -> int:
     iy = ins_sub.add_parser("youtube", help="read the channel's YouTube numbers → insights.json")
     iy.add_argument("--state", default="state", help="checkout of the state branch")
     iy.add_argument("--dry-run", action="store_true", help="read, print, save nothing")
+    iyd = ins_sub.add_parser("youtube-detail",
+                             help="each video's traffic sources, countries, retention → a JSON "
+                                  "file (read only, nothing saved on the state branch)")
+    iyd.add_argument("--out", default="youtube-detail.json")
+    iyd.add_argument("--days", type=int, default=30, help="videos published in the last N days")
     ia = ins_sub.add_parser("add", help="numbers read on a screenshot (YouTube, TikTok)")
     ia.add_argument("--state", default="state", help="checkout of the state branch")
     ia.add_argument("--json", required=True,
@@ -656,6 +661,15 @@ def main(argv: list[str] | None = None) -> int:
 
         from quran_reels.insights import collect as insights
 
+        if args.insights_command == "youtube-detail":
+            from quran_reels.insights import youtube, youtube_detail
+
+            try:
+                print(youtube_detail.main(Path(args.out), days=args.days))
+            except youtube.YouTubeError as e:
+                print(f"::error::YouTube non lu : {e}")
+                return 1
+            return 0
         state = Path(args.state)
         if args.insights_command == "collect":
             if not state.is_dir():

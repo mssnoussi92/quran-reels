@@ -93,6 +93,27 @@ def test_a_post_is_recognised_by_the_first_line_of_its_caption():
     assert idx.match("", "facebook") is None
 
 
+def test_a_title_in_either_order_and_either_digits_finds_its_video():
+    """YouTube titles of theme videos are « Arabic · English » from 2026-11-21, the older ones
+    stay « English · Arabic »; ٣ and 3 compare equal (owner's rule: numbers are 123)."""
+    idx = index()
+    old = "Du'a: 3 wrong ideas that keep you from asking · الدعاء: ٣ أفكار غلط بتبعدك عنه"
+    new = "الدعاء: ٣ أفكار غلط بتبعدك عنه · Du'a: 3 wrong ideas that keep you from asking"
+    assert idx.match(old, "youtube").id == "dua/film"
+    assert idx.match(new, "youtube").id == "dua/film"
+    assert idx.match(new, "facebook").id == "dua-9x16/film"        # the platform still decides
+    assert idx.match("الدعاء: 3 أفكار غلط بتبعدك عنه · Du'a", "youtube").id == "dua/film"
+    assert T.norm("٣ و۴") == T.norm("3 و4") == "3 و4"
+    assert idx.match("سابوا خطبة الجمعة… ليه؟ · They walked out", "youtube").id == "ayah/short-1"
+    assert idx.match("صابر… ودعا! · Patient… and he asked", "youtube").id == "dua/short-1"
+    # a short Arabic title is not enough by its start alone: a line that merely begins with it
+    short = T.ThemeIndex([T.ThemeVideo(id="x/short-1", doc="x", series="", part="Short 1",
+                                       title_en="A long English title of its own",
+                                       title_ar="قصير", platforms=["youtube"])])
+    assert short.match("قصير وبعده كلام آخر كثير", "youtube") is None
+    assert short.match("A long English title of its own · قصير", "youtube").id == "x/short-1"
+
+
 def test_calendar_rows_become_days():
     days = T.parse_calendar(CALENDAR, date(2026, 11, 15))
     assert [d.day for d in days] == ["2026-11-12", "2026-11-16", "2026-11-30", "2026-12-01",
@@ -611,3 +632,40 @@ def test_the_test_page_never_reads_the_page_word_of_the_day(state):
     assert f"facebook:{PAGE}_9" not in posts                         # the Page's Word of the day (images.json)
     assert "facebook:999_5" not in posts and "facebook:7001" in posts   # another Page's post out; a reel's id kept
     assert posts["facebook:111"]["kind"] == "other"                     # published.json not read: not the Page's reel
+
+
+def test_a_youtube_title_of_its_own_is_recognised():
+    """2026-11-21 (owner's choice): the film of Dhul-Qarnayn is titled on YouTube « قصة ذو القرنين: 3
+    اختبارات للقوة · The story of Dhul-Qarnayn: 3 tests of power », not like its heading: the « YouTube ·
+    Titre » block of its section is read, and that title is matched whole, never by a prefix."""
+    texts = """# Dhul-Qarnayn · ذو القرنين : textes de publication
+
+## Le film · Dhul-Qarnayn: 3 tests of power · ذو القرنين: ٣ اختبارات للقوة
+
+`qarnayn-film-16x9.mp4` · 8:24 · 16:9 · YouTube · miniature : `qarnayn-film-thumbnail.jpg`
+
+**YouTube · Titre (78/100)**
+
+```text
+قصة ذو القرنين: 3 اختبارات للقوة · The story of Dhul-Qarnayn: 3 tests of power
+```
+
+## Short 1 · The fate of a whole people… at his word · مصير قوم كاملين… بكلمة منه!
+
+`qarnayn-short-1-west.mp4` · 2:06 · 9:16 · Facebook, Instagram, TikTok, YouTube Shorts · couverture : `c.jpg`
+
+**YouTube · Titre (69/100)**
+
+```text
+مصير قوم كاملين… بكلمة منه! · The fate of a whole people… at his word
+```
+"""
+    videos = T.parse_texts("qarnayn", texts)
+    assert videos[0].title_youtube == ("قصة ذو القرنين: 3 اختبارات للقوة · The story of Dhul-Qarnayn: "
+                                       "3 tests of power")
+    themes = T.ThemeIndex(videos)
+    assert themes.match(videos[0].title_youtube, "youtube").id == "qarnayn/film"
+    assert themes.match("Dhul-Qarnayn: 3 tests of power · ذو القرنين: ٣ اختبارات للقوة", "youtube").id \
+        == "qarnayn/film"                                        # the heading's order still works
+    assert themes.match("قصة ذو القرنين: 3 اختبارات للقوة", "youtube") is None   # its half: not whole
+    assert themes.match(videos[1].title_youtube, "youtube").id == "qarnayn/short-1"

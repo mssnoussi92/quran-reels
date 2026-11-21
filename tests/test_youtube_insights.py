@@ -20,8 +20,9 @@ class Answer:
 class FakeHttp:
     """Google's answers by URL: tokens, channel, uploads, videos, analytics."""
 
-    def __init__(self, analytics_ok=True, days_ok=True):
+    def __init__(self, analytics_ok=True, days_ok=True, engaged_ok=True, search_ok=True):
         self.calls, self.analytics_ok, self.days_ok = [], analytics_ok, days_ok
+        self.engaged_ok, self.search_ok = engaged_ok, search_ok
 
     def post(self, url, data=None, timeout=None):
         self.calls.append(("POST", url, data))
@@ -62,30 +63,46 @@ class FakeHttp:
         if url == Y.ANALYTICS:
             if not self.analytics_ok:
                 return Answer(403, {"error": {"message": "YouTube Analytics API has not been used"}})
+            if "engagedViews" in params["metrics"] and not self.engaged_ok:
+                return Answer(400, {"error": {"message": "Unknown identifier (engagedViews)"}})
+            if params["dimensions"] == "insightTrafficSourceType":
+                if not self.search_ok:
+                    return Answer(403, {"error": {"message": "forbidden"}})
+                assert params["metrics"] == "views" and params["filters"].startswith("video==v")
+                return Answer(200, {"columnHeaders": [{"name": "insightTrafficSourceType"},
+                                                      {"name": "views"}],
+                                    "rows": TRAFFIC.get(params["filters"], [])})
             if params["dimensions"] == "day":
                 if not self.days_ok:
                     return Answer(400, {"error": {"message": "Unknown identifier (day)"}})
                 assert params["sort"] == "day" and params["ids"] == "channel==MINE"
-                rows = [r for r in DAYS.get(params["filters"], [])
+                names = ["day", *params["metrics"].split(",")]
+                rows = [r[:len(names)] for r in DAYS.get(params["filters"], [])
                         if params["startDate"] <= r[0] <= params["endDate"]]
-                return Answer(200, {"columnHeaders": [{"name": n} for n in ("day", *Y.DAY_METRICS)],
-                                    "rows": rows})
+                return Answer(200, {"columnHeaders": [{"name": n} for n in names], "rows": rows})
             assert params["filters"] == "video==v1,v2,v3" and params["ids"] == "channel==MINE"
-            return Answer(200, {
-                "columnHeaders": [{"name": n} for n in ("video", "views", "averageViewDuration",
-                                                        "averageViewPercentage", "shares",
-                                                        "subscribersGained")],
-                "rows": [["v2", 600, 68, 73.2, 4, 2], ["v1", 110, 20, 55.5, 0, 0]]})
+            rows = [["v2", 600, 68, 73.2, 4, 2, 480], ["v1", 110, 20, 55.5, 0, 0, 70]]
+            names = ["video", *params["metrics"].split(",")]
+            assert names[:6] == ["video", "views", "averageViewDuration", "averageViewPercentage",
+                                 "shares", "subscribersGained"]
+            return Answer(200, {"columnHeaders": [{"name": n} for n in names],
+                                "rows": [r[:len(names)] for r in rows]})
         raise AssertionError(url)
 
 
 # YouTube Analytics day by day (Pacific days): day, views, average view duration, average view
-# percentage, likes, comments, shares, subscribers gained
+# percentage, likes, comments, shares, subscribers gained, engaged views
 DAYS = {
-    "video==v1": [("2026-11-13", 30, 20, 60.0, 2, 0, 0, 0), ("2026-11-14", 70, 22, 58.0, 5, 1, 0, 1),
-                  ("2026-11-15", 20, 18, 50.0, 1, 0, 1, 0), ("2026-11-16", 9, 15, 40.0, 0, 0, 0, 0)],
-    "video==v3": [("2026-11-11", 10, 12, 85.0, 1, 0, 0, 0), ("2026-11-12", 50, 11, 80.0, 3, 1, 1, 2),
-                  ("2026-11-13", 20, 9, 70.0, 1, 0, 0, 0), ("2026-11-14", 5, 9, 70.0, 0, 0, 0, 0)],
+    "video==v1": [("2026-11-13", 30, 20, 60.0, 2, 0, 0, 0, 20), ("2026-11-14", 70, 22, 58.0, 5, 1, 0, 1, 40),
+                  ("2026-11-15", 20, 18, 50.0, 1, 0, 1, 0, 10), ("2026-11-16", 9, 15, 40.0, 0, 0, 0, 0, 5)],
+    "video==v3": [("2026-11-11", 10, 12, 85.0, 1, 0, 0, 0, 9), ("2026-11-12", 50, 11, 80.0, 3, 1, 1, 2, 40),
+                  ("2026-11-13", 20, 9, 70.0, 1, 0, 0, 0, 15), ("2026-11-14", 5, 9, 70.0, 0, 0, 0, 0, 3)],
+}
+# views by traffic source (lifetime of the window)
+TRAFFIC = {
+    "video==v1": [("SHORTS", 80), ("YT_SEARCH", 15), ("EXT_URL", 5)],
+    "video==v2": [("SHORTS", 500), ("YT_SEARCH", 25)],
+    "video==v3": [],
 }
 
 ENV = Y.YouTubeEnv("cid", "secret", "refresh")
@@ -144,7 +161,7 @@ def test_each_public_video_is_a_post_beside_its_twins(tmp_path):
     assert v1["url"] == "https://www.youtube.com/shorts/v1" and v1["seconds"] == 36
     assert v1["snapshots"]["latest"]["m"] == {"views": 120, "likes": 9, "comments": 1,
                                               "avg_watch": 20.0, "watch_pct": 55.5, "shares": 0,
-                                              "follows": 0}
+                                              "follows": 0, "engaged": 70, "search_pct": 15.0}
     assert "48h" not in v1["snapshots"]                     # 39 h old: not yet
     # 9:51 (v3), published 2026-11-12 06:30 UTC, 22:30 the day before in Pacific time: its 48 h
     # are YouTube's days 11-11 to 11-13, counted once 11-13 is two days old, though first read
@@ -152,7 +169,7 @@ def test_each_public_video_is_a_post_beside_its_twins(tmp_path):
     assert yt["youtube:v3"]["snapshots"]["48h"] == {
         "at": NOW.isoformat(timespec="seconds"), "days": ["2026-11-11", "2026-11-13"],
         "age_h": 49.5, "m": {"views": 80, "likes": 5, "comments": 1, "shares": 1, "follows": 2,
-                             "avg_watch": 10.6, "watch_pct": 78.1}}
+                             "engaged": 64, "avg_watch": 10.6, "watch_pct": 78.1}}
     assert "48h" not in yt["youtube:v2"]["snapshots"]       # as on Meta, the first evening: gone
     assert yt["youtube:v3"]["key"] == "youtube:v3" and yt["youtube:v3"]["kind"] == "other"
     assert data["accounts"]["youtube"]["2026-11-15"] == {"followers_count": 57, "media_count": 22}
@@ -345,3 +362,151 @@ def test_a_reel_published_by_hand_is_one_video_on_every_platform():
     assert Y.match("سورة الناس - Surah An-Nas", "", datetime(2026, 11, 5, 8, 56, tzinfo=UTC),
                    posts)["key"] == "slot:2026-11-05/morning"
     assert _manual_key({"platform": "tiktok", "video": "93:1-11"}, posts, None) == "hand:93:1-11"
+
+
+class DetailHttp(FakeHttp):
+    """FakeHttp, and the reports of the detailed reading by their dimensions; engaged views
+    refused, as YouTube would for a metric it does not serve."""
+
+    def get(self, url, params=None, headers=None, timeout=None):
+        if url != Y.ANALYTICS:
+            return super().get(url, params, headers, timeout)
+        self.calls.append(("GET", url, params))
+        assert params["ids"] == "channel==MINE" and params["endDate"] == "2026-11-15"
+        dim = params["dimensions"]
+        heads = {"insightTrafficSourceType": ("insightTrafficSourceType", "views",
+                                              "estimatedMinutesWatched"),
+                 "country": ("country", "views", "averageViewDuration"),
+                 "elapsedVideoTimeRatio": ("elapsedVideoTimeRatio", "audienceWatchRatio",
+                                           "relativeRetentionPerformance"),
+                 "insightTrafficSourceDetail": ("insightTrafficSourceDetail", "views")}
+        rows = {"insightTrafficSourceType": [["SHORTS", 90, 30.0], ["YT_SEARCH", 10, 4.0]],
+                "country": [["EG", 60, 40], ["DZ", 40, 35]],
+                "elapsedVideoTimeRatio": [[0.01, 1.2, 0.4], [0.5, 0.6, 0.3]],
+                "insightTrafficSourceDetail": [["dua for rizq", 3]]}
+        if dim == "video":
+            return Answer(400, {"error": {"message": "Unknown identifier (engagedViews)"}})
+        return Answer(200, {"columnHeaders": [{"name": n} for n in heads[dim]],
+                            "rows": rows[dim]})
+
+
+def test_the_detailed_reading_keeps_sources_countries_and_retention(tmp_path):
+    from quran_reels.insights import youtube_detail as D
+
+    out = tmp_path / "detail.json"
+    http = DetailHttp()
+    text = D.main(out, now=NOW, client=Y.YouTube("cid", "secret", http), env=ENV)
+    detail = json.loads(out.read_text(encoding="utf-8"))
+    assert [v["id"] for v in detail["videos"]] == ["v1", "v2", "v3"]      # the private one left out
+    v1 = detail["videos"][0]
+    assert v1["sources"][0] == {"insightTrafficSourceType": "SHORTS", "views": 90, "pct": 90.0,
+                                "minutes": 30.0}
+    assert v1["countries"][1]["country"] == "DZ" and v1["countries"][1]["pct"] == 40.0
+    assert v1["retention"][0] == [0.01, 1.2, 0.4] and "engaged" not in v1
+    reports = [p for m, u, p in http.calls if u == Y.ANALYTICS]
+    assert {p["filters"] for p in reports if p["dimensions"] == "elapsedVideoTimeRatio"} == {
+        "video==v1", "video==v2", "video==v3"}
+    first = next(p for p in reports if p["filters"] == "video==v3")
+    assert first["startDate"] == "2026-11-11"                    # its publication, Pacific day
+    assert detail["channel"]["search_terms"][0]["views"] == 3
+    assert len(detail["errors"]) == 3 and "engagedViews" in detail["errors"][0]
+    assert "dua for rizq" not in text                            # no search term in the log
+    assert "SHORTS 90%" in text and "EG 60%" in text
+
+
+def test_an_arabic_first_title_finds_its_reel_as_the_english_first_one_did():
+    """Owner, 2026-11-21: YouTube titles of reels put the Arabic first."""
+    assert Y.video_key("سورة الماعون · Surah Al-Ma'un (107:1-7)") == "107:1-7"
+    assert Y.video_key("سورة التوبة · Surah At-Tawbah (9:51)") == "9:51-51"
+    assert Y.video_key("آيات الدعاء · Supplications · 3/38 · سورة غافر · Surah Ghafir (40:60)") == "40:60-60"
+    published = datetime(2026, 11, 9, 8, 0, tzinfo=UTC)
+    posts = {
+        "facebook:a": {"platform": "facebook", "key": "slot:2026-11-09/morning", "kind": "reel-morning",
+                       "label": "111:1-5", "ref": {"passage": "111:1-5"},
+                       "published": "2026-11-09T06:20:00+00:00",
+                       "first_line": "Surah Al-Masad (111:1-5) · سورة المسد"},
+        "facebook:k1": {"platform": "facebook", "key": "slot:2026-11-06/evening", "kind": "reel-kahf",
+                        "published": "2026-11-06T18:30:00+00:00",
+                        "first_line": "Surah Al-Kahf on Friday · سورة الكهف يوم الجمعة · 1/36"},
+    }
+    # by its reference
+    assert Y.match("سورة المسد · Surah Al-Masad (111:1-5)", "", published, posts)["key"] == (
+        "slot:2026-11-09/morning")
+    # by its names only
+    assert Y.match("سورة المسد · Surah Al-Masad", "", published, posts)["key"] == (
+        "slot:2026-11-09/morning")
+    assert Y.match("سورة الكهف يوم الجمعة · Surah Al-Kahf on Friday · 1/36", "",
+                   datetime(2026, 11, 7, tzinfo=UTC), posts)["key"] == "slot:2026-11-06/evening"
+
+
+def test_engaged_views_and_the_search_share_are_kept(tmp_path):
+    path = tmp_path / "insights.json"
+    Y.collect(path, S, now=NOW, client=Y.YouTube("cid", "secret", FakeHttp()), env=ENV)
+    yt = json.loads(path.read_text())["posts"]
+    v2 = yt["youtube:v2"]["snapshots"]["latest"]["m"]
+    assert v2["engaged"] == 480 and v2["search_pct"] == 4.8          # 25 of 525
+    assert "search_pct" not in yt["youtube:v3"]["snapshots"]["latest"]["m"]   # no view by source
+    assert "search_pct" not in yt["youtube:v3"]["snapshots"]["48h"]["m"]      # latest only
+    assert "engaged" in yt["youtube:v3"]["snapshots"]["48h"]["m"]
+
+
+def test_the_search_query_asks_the_views_of_one_video_from_its_pacific_day(tmp_path):
+    http = FakeHttp()
+    Y.collect(tmp_path / "i.json", S, now=NOW, client=Y.YouTube("cid", "secret", http), env=ENV)
+    asked = [p for m, u, p in http.calls if u == Y.ANALYTICS
+             and p["dimensions"] == "insightTrafficSourceType"]
+    v3 = next(p for p in asked if p["filters"] == "video==v3")
+    assert v3["startDate"] == "2026-11-11" and v3["endDate"] == "2026-11-15"
+    assert len(asked) == 3
+
+
+def test_a_refused_engaged_views_is_asked_again_without_it(tmp_path):
+    path = tmp_path / "insights.json"
+    http = FakeHttp(engaged_ok=False)
+    line = Y.collect(path, S, now=NOW, client=Y.YouTube("cid", "secret", http), env=ENV)
+    assert "unavailable" not in line                                 # the other numbers all there
+    yt = json.loads(path.read_text())["posts"]
+    v1 = yt["youtube:v1"]["snapshots"]["latest"]["m"]
+    assert v1["watch_pct"] == 55.5 and "engaged" not in v1
+    assert "engaged" not in yt["youtube:v3"]["snapshots"]["48h"]["m"]
+    assert yt["youtube:v3"]["snapshots"]["48h"]["m"]["views"] == 80
+    # asked twice each time: with, then without
+    with_ = [p for m, u, p in http.calls if u == Y.ANALYTICS and "engagedViews" in p["metrics"]]
+    without = [p for m, u, p in http.calls if u == Y.ANALYTICS
+               and p["dimensions"] in ("video", "day") and "engagedViews" not in p["metrics"]]
+    assert with_ and len(with_) == len(without)
+
+
+def test_a_refused_search_query_costs_only_its_number(tmp_path):
+    path = tmp_path / "insights.json"
+    line = Y.collect(path, S, now=NOW, client=Y.YouTube("cid", "secret", FakeHttp(search_ok=False)),
+                     env=ENV)
+    assert "unavailable" not in line
+    m = json.loads(path.read_text())["posts"]["youtube:v1"]["snapshots"]["latest"]["m"]
+    assert m["engaged"] == 70 and "search_pct" not in m and m["views"] == 120
+
+
+def test_the_page_shows_engaged_views_and_the_search_share_for_youtube():
+    from zoneinfo import ZoneInfo
+
+    from quran_reels.catalog import stats as St
+    from quran_reels.catalog.page import render_stats
+
+    snap = {"at": "2026-11-16T07:00:00+00:00", "age_h": 48.5,
+            "m": {"views": 120, "engaged": 70, "search_pct": 12.5}}
+    data = {"listed": "2026-11-16T01:00:00+00:00", "listed_youtube": "2026-11-16T01:05:00+00:00",
+            "accounts": {},
+            "posts": {"youtube:v1": {
+                "platform": "youtube", "key": "slot:2026-11-14/morning", "kind": "reel-morning",
+                "label": "107:1-7", "ref": {}, "published": "2026-11-14T06:30:00+00:00",
+                "seen": "2026-11-16T01:05:00+00:00", "url": "https://www.youtube.com/shorts/v1",
+                "snapshots": {"latest": snap}}}}
+    out = St.build(data, {"days": 35}, datetime(2026, 11, 16, 8, tzinfo=UTC), ZoneInfo("Europe/Paris"))
+    html = render_stats({"repo": "o/r", "stats": json.loads(json.dumps(out, default=str))})
+    assert "<b>70</b> vues engagées" in html
+    assert "<b>12,5</b> par la recherche (%)" in html
+    # a video without them shows neither
+    data["posts"]["youtube:v1"]["snapshots"]["latest"]["m"] = {"views": 120}
+    out = St.build(data, {"days": 35}, datetime(2026, 11, 16, 8, tzinfo=UTC), ZoneInfo("Europe/Paris"))
+    html = render_stats({"repo": "o/r", "stats": json.loads(json.dumps(out, default=str))})
+    assert "vues engagées" not in html and "par la recherche" not in html

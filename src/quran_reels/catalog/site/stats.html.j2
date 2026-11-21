@@ -100,6 +100,8 @@
           {% if w.m.avg_watch is not none %}<span><b>{{ w.m.avg_watch|number(' s') }}</b> regardées{% if w.m.watch_pct is not none %} ({{ w.m.watch_pct|number(' %') }}){% endif %}</span>{% endif %}
           {% if w.m.kept_30s is not none %}<span><b>{{ w.m.kept_30s|number(' %') }}</b> encore là à 0:30</span>{% endif %}
           {% if w.m.finished is not none %}<span><b>{{ w.m.finished|number(' %') }}</b> jusqu'au bout</span>{% endif %}
+          {% if w.m.engaged is not none %}<span><b>{{ w.m.engaged|number }}</b> vues engagées</span>{% endif %}
+          {% if w.m.search_pct is not none %}<span><b>{{ w.m.search_pct|number }}</b> par la recherche (%)</span>{% endif %}
           {% if w.m.engage is not none %}<span><b>{{ w.m.engage|number }}</b> partages + enreg.</span>{% endif %}
           {% if w.m.follows is not none %}<span><b>{{ w.m.follows|number }}</b> abonnés</span>{% endif %}
           {% if w.m.likes is not none %}<span><b>{{ w.m.likes|number }}</b> j'aime</span>{% endif %}

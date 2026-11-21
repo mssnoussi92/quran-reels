@@ -47,7 +47,9 @@ REQUEST = {
 }
 NUMBERS = ("views", "reach", "hook", "avg_watch", "watch_pct", "kept_30s", "shares", "saves",
            "comments", "likes", "follows", "replays",
-           "finished")      # % who watched to the end (TikTok: « A regardé la vidéo en entier »)
+           "finished",      # % who watched to the end (TikTok: « A regardé la vidéo en entier »)
+           "engaged",       # YouTube: views past the first seconds (loops of a Short do not count)
+           "search_pct")    # YouTube: % of the views that come from YouTube search
 
 
 def values(answer: dict[str, Any]) -> dict[str, Any]:

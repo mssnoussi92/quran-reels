@@ -41,10 +41,12 @@ SCOPES = ("https://www.googleapis.com/auth/youtube.readonly",
           "https://www.googleapis.com/auth/yt-analytics.readonly")
 REFRESH_SECRET = "YOUTUBE_REFRESH_TOKEN"
 DURATION = re.compile(r"P(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?")
+ENGAGED = "engagedViews"      # views past the first seconds (a Short's « views » count every loop)
 ANALYTICS_METRICS = ("views", "averageViewDuration", "averageViewPercentage", "shares",
-                     "subscribersGained")
+                     "subscribersGained", ENGAGED)
 DAY_METRICS = ("views", "averageViewDuration", "averageViewPercentage", "likes", "comments",
-               "shares", "subscribersGained")
+               "shares", "subscribersGained", ENGAGED)
+SEARCH = "YT_SEARCH"          # insightTrafficSourceType of the views that come from YouTube search
 PACIFIC = ZoneInfo("America/Los_Angeles")     # YouTube Analytics counts its days in Pacific time
 
 
@@ -175,31 +177,59 @@ class YouTube:
                     "description": (v.get("snippet") or {}).get("description", "")}
         return out
 
+    def report(self, token: str, metrics: tuple[str, ...], **params: Any) -> dict[str, Any]:
+        """One Analytics query. Refused because of engagedViews (HTTP 400 naming it): asked again
+        without it, so that the nightly reading never loses its other numbers (2026-11-21)."""
+        try:
+            return self.get(ANALYTICS, token, ids="channel==MINE", metrics=",".join(metrics),
+                            **params)
+        except YouTubeError as e:
+            if ENGAGED not in metrics or "HTTP 400" not in str(e) or ENGAGED not in str(e):
+                raise
+            return self.get(ANALYTICS, token, ids="channel==MINE",
+                            metrics=",".join(m for m in metrics if m != ENGAGED), **params)
+
+    def search_share(self, token: str, video: str, start: date, end: date) -> float | None:
+        """The share of the video's views that come from YouTube search, in % (one decimal), over
+        start → end; None when YouTube gives no view."""
+        body = self.get(ANALYTICS, token, ids="channel==MINE", startDate=start.isoformat(),
+                        endDate=end.isoformat(), metrics="views",
+                        dimensions="insightTrafficSourceType", filters=f"video=={video}")
+        names = [h.get("name") for h in body.get("columnHeaders") or []]
+        rows = [dict(zip(names, row, strict=False)) for row in body.get("rows") or []]
+        total_ = sum(_int(r.get("views")) or 0 for r in rows)
+        if not total_:
+            return None
+        found = sum(_int(r.get("views")) or 0 for r in rows
+                    if r.get("insightTrafficSourceType") == SEARCH)
+        return round(100 * found / total_, 1)
+
     def analytics(self, token: str, ids: list[str], start: date, end: date
                   ) -> dict[str, dict[str, Any]]:
-        """{id: {avg_watch, watch_pct, shares, follows}} from YouTube Analytics (lifetime of the
-        window start → end; YouTube fills it with a delay of a day or two)."""
+        """{id: {avg_watch, watch_pct, shares, follows, engaged}} from YouTube Analytics (lifetime
+        of the window start → end; YouTube fills it with a delay of a day or two)."""
         out: dict[str, dict[str, Any]] = {}
         for i in range(0, len(ids), 200):
-            body = self.get(ANALYTICS, token, ids="channel==MINE", startDate=start.isoformat(),
-                            endDate=end.isoformat(), metrics=",".join(ANALYTICS_METRICS),
-                            dimensions="video", filters="video==" + ",".join(ids[i:i + 200]),
-                            sort="-views", maxResults=200)
+            body = self.report(token, ANALYTICS_METRICS, startDate=start.isoformat(),
+                               endDate=end.isoformat(), dimensions="video",
+                               filters="video==" + ",".join(ids[i:i + 200]),
+                               sort="-views", maxResults=200)
             names = [h.get("name") for h in body.get("columnHeaders") or []]
             for row in body.get("rows") or []:
                 r = dict(zip(names, row, strict=False))
                 out[str(r.get("video"))] = {
                     "avg_watch": _num(r.get("averageViewDuration")),
                     "watch_pct": _num(r.get("averageViewPercentage")),
-                    "shares": _int(r.get("shares")), "follows": _int(r.get("subscribersGained"))}
+                    "shares": _int(r.get("shares")), "follows": _int(r.get("subscribersGained")),
+                    "engaged": _int(r.get(ENGAGED))}
         return out
 
     def days(self, token: str, video: str, start: date, end: date) -> list[dict[str, Any]]:
         """One video's numbers day by day (Pacific days, start → end): views, average view
-        duration and percentage, likes, comments, shares, subscribers gained."""
-        body = self.get(ANALYTICS, token, ids="channel==MINE", startDate=start.isoformat(),
-                        endDate=end.isoformat(), metrics=",".join(DAY_METRICS),
-                        dimensions="day", filters=f"video=={video}", sort="day")
+        duration and percentage, likes, comments, shares, subscribers gained, engaged views."""
+        body = self.report(token, DAY_METRICS, startDate=start.isoformat(),
+                           endDate=end.isoformat(), dimensions="day", filters=f"video=={video}",
+                           sort="day")
         names = [h.get("name") for h in body.get("columnHeaders") or []]
         return [dict(zip(names, row, strict=False)) for row in body.get("rows") or []]
 
@@ -283,6 +313,8 @@ def total(rows: list[dict[str, Any]], start: date, end: date) -> dict[str, Any] 
     for name, col in (("likes", "likes"), ("comments", "comments"), ("shares", "shares"),
                       ("follows", "subscribersGained")):
         m[name] = sum(_int(r.get(col)) or 0 for r in days)
+    if any(r.get(ENGAGED) is not None for r in days):     # YouTube may not give it
+        m["engaged"] = sum(_int(r.get(ENGAGED)) or 0 for r in days)
     if m["views"]:
         for name, col in (("avg_watch", "averageViewDuration"),
                           ("watch_pct", "averageViewPercentage")):
@@ -436,6 +468,14 @@ def collect(path: Path, s: dict[str, Any], now: datetime | None = None,
                 "ref": info["ref"]}
         age_h = (now - v["published"]).total_seconds() / 3600
         snap = {"at": listed, "age_h": round(age_h, 1), "m": numbers(st, extra.get(v["id"]))}
+        if not note:                          # the search share, in the latest reading only
+            try:
+                share = yt.search_share(token, v["id"], v["published"].astimezone(PACIFIC).date(),
+                                        now.date())
+            except YouTubeError:              # refused: no number, the reading goes on
+                share = None
+            if share is not None:
+                snap["m"]["search_pct"] = share
         if by_days:
             for k in checkpoints:            # a checkpoint taken as on Meta, before (2026-11-15)
                 if "days" not in rec["snapshots"].get(k, {"days": True}):

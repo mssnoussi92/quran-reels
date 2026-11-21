@@ -147,15 +147,32 @@ def load_reel(video: Path) -> Reel:
 YOUTUBE_TITLE_MAX = 100        # YouTube refuses a longer title
 
 
+_ARABIC = re.compile(r"[\u0600-\u06FF\u0750-\u077F]")
+_COUNTER = re.compile(r"\d+/\d+")
+
+
+def _arabic_first(line: str) -> str:
+    """One head line with its parts (split on « · ») in the order of the YouTube title (owner,
+    2026-11-21): the Arabic ones first, then the others, a counter (« 4/7 ») last. The captions of
+    the other platforms keep their order; only the YouTube title goes through here."""
+    parts = [p.strip() for p in line.split(" · ") if p.strip()]
+    counter = [p for p in parts if _COUNTER.fullmatch(p)]
+    rest = [p for p in parts if p not in counter]
+    arabic = [p for p in rest if _ARABIC.search(p)]
+    return " · ".join([*arabic, *(p for p in rest if p not in arabic), *counter])
+
+
 def _youtube_title(head: list[str]) -> str:
-    """The caption's head lines on one line. Too long: the series counter goes, then the series,
+    """The caption's head lines on one line, Arabic first within each line (owner, 2026-11-21).
+    Too long: the series counter goes, then the series,
     so that the title keeps both languages (owner, 2026-11-09): never the Arabic or the English
     half alone. Cut with «…» only when the surah line itself is too long."""
+    head = [_arabic_first(line) for line in head]
     series, surah = (head[:-1], head[-1]) if len(head) > 1 else ([], head[0] if head else "")
     tries = [" · ".join([*series, surah])]
     if series:
         parts = " · ".join(series).split(" · ")
-        if re.fullmatch(r"\d+/\d+", parts[-1]):
+        if _COUNTER.fullmatch(parts[-1]):
             tries.append(" · ".join([*parts[:-1], surah]))
         tries.append(surah)
     for title in tries:

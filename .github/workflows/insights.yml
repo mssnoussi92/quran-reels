@@ -13,6 +13,9 @@ name: insights
 #
 # By hand (Actions → insights → Run workflow): `manual` records numbers read on a YouTube or
 # TikTok screenshot (a session copies them, `quran-reels insights add`); nothing else is read.
+# `youtube_detail`: where each YouTube video's views come from, its viewers' countries, its retention
+# curve (insights/youtube_detail.py) → the artifact youtube-detail, for a session; nothing else is read
+# and the state branch is not touched.
 on:
   workflow_run:
     workflows: [prepare-splits]
@@ -26,6 +29,10 @@ on:
       manual:
         description: 'Numbers from a screenshot (JSON, see docs/insights.md); empty: read Meta'
         required: false
+      youtube_detail:
+        description: "YouTube only: each video's traffic sources, countries, retention → an artifact (nothing saved)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write          # the state branch (insights.json)
@@ -68,7 +75,7 @@ jobs:
       # own token only, its own file. Before the Page: both share the Meta app's hourly budget, which the
       # Page's reading may use up to 75 %; the test page needs a few calls (one post a day).
       - name: Read the test page
-        if: inputs.manual == ''
+        if: inputs.manual == '' && !inputs.youtube_detail
         continue-on-error: true
         env:                   # this secret only, for this step only
           META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN_5 }}
@@ -80,7 +87,7 @@ jobs:
           quran-reels insights collect "${args[@]}"
 
       - name: Read Facebook and Instagram
-        if: inputs.manual == ''
+        if: inputs.manual == '' && !inputs.youtube_detail
         env:                   # secrets for this step only
           META_PAGE_ID: ${{ secrets.META_PAGE_ID }}
           META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN }}
@@ -96,7 +103,7 @@ jobs:
       - name: Read YouTube
         # The channel's numbers (insights/youtube.py), read only; nothing when the YouTube secrets
         # are not set (screenshots then). A failure here never loses the Meta numbers.
-        if: always() && inputs.manual == ''
+        if: always() && inputs.manual == '' && !inputs.youtube_detail
         continue-on-error: true
         env:
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
@@ -110,8 +117,24 @@ jobs:
             quran-reels insights youtube --state state-branch
           fi
 
+      - name: YouTube in detail
+        if: inputs.youtube_detail
+        env:
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+        run: quran-reels insights youtube-detail --out youtube-detail.json
+
+      - name: Keep the detail
+        if: inputs.youtube_detail
+        uses: actions/upload-artifact@v7
+        with:
+          name: youtube-detail
+          path: youtube-detail.json
+          retention-days: 3
+
       - name: Save the state
-        if: always() && inputs.dry_run != true
+        if: always() && inputs.dry_run != true && !inputs.youtube_detail
         working-directory: state-branch
         env:
           SAVE_STATE_LEVEL: warning    # not saved: the next night reads again
