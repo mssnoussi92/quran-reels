@@ -40,6 +40,9 @@ def load_history() -> dict:
     return yaml.safe_load((HERE / "history.yaml").read_text(encoding="utf-8")) or {}
 
 
+# The reading in order has no title (no series line on its videos): its name on the statistics page.
+READING = {"juz-amma": "Juz' 'Amma (lecture)", "mushaf": "Lecture du mushaf"}
+
 DATASET_ABOUT = (
     "One row per video and platform (catalog/dashboard.py). video: the page's key of the video "
     "(slot:<day>/<slot> a reel of the calendar, theme:<doc>/<part> a theme video, hand:<passage> "
@@ -214,7 +217,8 @@ def build(cfg: Config, out: Path, state_dir: Path | None = None, previous: str |
                                   (cfg.content.get("reciters") or {}).items()},
                                  _json(state_dir / "youtube-detail.json") if state_dir else None,
                                  _with_kind(cfg, posts["backgrounds"]),
-                                 {sid: s.title_en or sid for sid, s in series.items()}),
+                                 {sid: s.title_en or READING.get(sid, sid)
+                                  for sid, s in series.items()}),
     }
     # One row per video and platform, for the sessions' audits (catalog/dashboard.py): beside
     # the page, not in data.json.
