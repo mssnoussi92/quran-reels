@@ -125,6 +125,17 @@ les chiffres ont été rangés comme des captures (source `youtube-api`) : ces e
 à part, `continue-on-error`). Ce qu'aucune API ne donne (impressions, taux de clics, « regardées » contre
 « balayées » des Shorts) reste dans YouTube Studio. Mise en place : docs/plateformes.md, « Statistiques YouTube ».
 
+**Vues engagées et part de la recherche** (choix du propriétaire, 2026-11-21) : sur YouTube, les « vues » d'un Short
+comptent chaque lecture, boucles comprises : un reel de 17 à 30 s qui repart en boucle paraît bien plus fort qu'un
+short thématique de 2 minutes. Le relevé de nuit garde donc aussi `engaged` (`engagedViews` d'YouTube Analytics : les
+vues qui dépassent les premières secondes ; dans le dernier relevé, par vidéo, et dans les relevés 48 h / 7 j / 28 j
+comptés sur les jours) et `search_pct` (100 × les vues venues de la recherche YouTube, `YT_SEARCH`, sur toutes les
+vues, une décimale ; une requête par vidéo, de son jour de publication à aujourd'hui, dans le dernier relevé
+seulement). Si YouTube refuse la requête à cause d'`engagedViews` (HTTP 400), elle est refaite sans ce chiffre ; une
+requête de la recherche refusée ne coûte que son chiffre. La page « Statistiques » les montre (« vues engagées »,
+« par la recherche (%) ») ; la comparaison des Shorts YouTube se fait toujours sur les vues, la revue du dimanche
+décidera si elle passe aux vues engagées.
+
 **À la demande, le détail** (demande du propriétaire, 2026-11-21 : « vois si tu peux récupérer plus d'info ») :
 `insights.yml` lancé avec `youtube_detail` lit seulement YouTube, avec le même jeton en lecture seule
 (`insights/youtube_detail.py`) : pour chaque vidéo des 30 derniers jours, d'où viennent ses vues (fil des Shorts,
