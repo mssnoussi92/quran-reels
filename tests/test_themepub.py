@@ -789,8 +789,8 @@ def test_a_short_goes_to_youtube_after_metas_check_with_its_texts_and_cover(on_y
     (video, thumbnail, dedupe), = pubs["youtube"].sent
     assert video.path.name == "dua-short-1-asked.mp4" and not video.long
     assert video.title == "صابر… ودعا! · Patient… and he asked"
-    assert video.description == ("The long description\n🎙️ AI-generated voice\n\nQuoted:\n• a source"
-                                 "\n\n#Dua #Quran #دعاء\n")
+    assert video.description == "The long description\n🎙️ AI-generated voice\n\n#Dua #Quran #دعاء\n"
+    assert "Quoted" not in video.description      # the credits never (owner's choice, 2026-11-21)
     assert video.tags == ["Dua", "Quran", "دعاء"] and video.privacy == "public"
     assert not video.synthetic_media and not video.made_for_kids    # owner's choice, 2026-11-21
     assert thumbnail.name == "dua-short-1-asked-cover.jpg" and dedupe

@@ -256,11 +256,16 @@ def reels_for(s: dict[str, Any], row: cal.Row, folder: Path,
 def youtube_reel(s: dict[str, Any], v: texts_mod.Video, folder: Path,
                  download: Callable[..., Path] = _download) -> ThemeReel:
     """What YouTube gets: its file (the short, its short version, or the 16:9 film), its
-    validated title and description (description, credits and hashtags, as the page gives them),
-    its hashtags as tags, and its thumbnail (the film's drawn one, or the short's cover)."""
+    validated title, its description followed by its hashtags, the hashtags as tags, and its
+    thumbnail (the film's drawn one, or the short's cover). Never the credits card (owner's
+    choice, 2026-11-21: « je ne veux pas que les crédits passent dans la description »); every
+    citation has its reference on screen, and the CC BY images their credit on the image."""
     name, seconds = file_for("youtube", v)
     image = v.thumbnail or v.cover
-    description = (v.captions.get("youtube_description") or "").strip()
+    cards = v.cards.get("youtube") or []
+    description = ("\n\n".join(t.strip() for kind, t in cards
+                                if kind in ("description", "hashtags") and t.strip())
+                   if cards else (v.captions.get("youtube_description") or "").strip())
     return ThemeReel(video=download(s, v.doc, name, folder),
                      caption=description + "\n" if description else "",
                      title=(v.captions.get("youtube_title") or "").strip(), seconds=seconds,

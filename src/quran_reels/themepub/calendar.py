@@ -119,6 +119,17 @@ def same_day(rows: list[Row]) -> None:
                 taken[p] = row.label
 
 
+def youtube_ready(video: Video) -> bool:
+    """A validated YouTube title, and a description of its own (its « Description » card; in the
+    older files, the « Description YouTube » block): the credits card alone is not one."""
+    if not (video.captions.get("youtube_title") or "").strip():
+        return False
+    cards = video.cards.get("youtube")
+    if cards:
+        return any(kind == "description" and t.strip() for kind, t in cards)
+    return bool((video.captions.get("youtube_description") or "").strip())
+
+
 def resolve(row: Row, videos: dict[str, Video], wanted: list[str]) -> Row:
     """Tie each platform of the row to one video; what cannot be tied is a problem."""
     row.videos = {}
@@ -147,9 +158,7 @@ def resolve(row: Row, videos: dict[str, Video], wanted: list[str]) -> Row:
         elif platform == "youtube" and not any(p in row.platforms for p in ("facebook",
                                                                            "instagram")):
             continue        # no Meta check would see it (rule 6): by hand, as before
-        elif platform == "youtube" and not ((video.captions.get("youtube_title") or "").strip()
-                                            and (video.captions.get("youtube_description")
-                                                 or "").strip()):
+        elif platform == "youtube" and not youtube_ready(video):
             row.problems.append(f"youtube : {video.id} n'a pas de titre ou de description YouTube "
                                 "(la description déclare la voix IA)")
         else:
