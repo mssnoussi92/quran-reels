@@ -543,11 +543,13 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-30.
       pour les règles de l'API YouTube ·
       [x] mise en ligne des Shorts du calendrier par le run (2026-11-21) · [x] connexion
       « Uploads » par le propriétaire (2026-11-21) · [x] vidéos thématiques aussi (2026-11-21) ·
-      [ ] premier Short mis en ligne par le run, regardé dans Studio · [ ] premier film mis en
+      [x] premier Short mis en ligne par le run (2026-11-22, 101:1-11 par Tawfiq As-Sayegh, public, titre en arabe
+      d'abord : https://youtube.com/shorts/Qs1JsZOdPjo) · [ ] regardé dans Studio par le propriétaire · [ ] premier film mis en
       ligne par le run (Dhul-Qarnayn, lundi 23), miniature regardée · [x] playlists rangées par le
-      run (2026-11-21) · [x] connexion « Playlists » par le propriétaire · [ ] première nuit ·
+      run (2026-11-21) · [x] connexion « Playlists » par le propriétaire · [x] première nuit (2026-11-22 : les 7 titres en
+      arabe d'abord, rien d'autre à faire) ·
       [x] description et mots-clés de la chaîne appliqués par le run (2026-11-21, `youtube-channel` ;
-      marques de sens gardées par YouTube, relu une minute après) · [ ] premier nom de série ajouté la nuit
+      marques de sens gardées par YouTube, relu une minute après) · [x] premier nom de série ajouté la nuit (2026-11-22 : آية الكرسي, السبع آيات المنجيات, موسى والخضر, الدعاء)
 - [x] **Reels en pause** du 2026-11-12 au soir au 2026-11-13 au matin (`pause` de
       `config/schedule.yaml`, demande du propriétaire : les épisodes thématiques démarrent) ·
       [x] reprise le 2026-11-13 au soir (Al-Kahf 18:15-16), puis **un reel chaque matin et les
@@ -578,7 +580,7 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-30.
       tous · [ ] refaire le plan (calculé avec Alafasy) si des passages dépassent 90 s
 - [x] YouTube : toujours Tawfiq As-Sayegh (2026-11-11 ; prêt pour les 16 passages des 8 jours
       suivants ; version YouTube de 108:1-3 rendue dans une session par `daily.youtube_version` :
-      16,8 s, crédit et légende à son nom) · [ ] premier run `daily` avec la règle · [ ] premier
+      16,8 s, crédit et légende à son nom) · [x] premier run `daily` avec la règle (2026-11-22 : reel d'Omar Hisham, version YouTube par Tawfiq) · [ ] premier
       Short mis en ligne par le propriétaire, revendications regardées dans YouTube Studio
 - [x] Basmala vérifiée sur l'enregistrement (2026-11-11, après « الم » entendu après la basmala
       de la version YouTube de 29:60) : 115 basmalas auditées, 4 de Tawfiq refaites (29 ; 6, 40,
