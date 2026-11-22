@@ -225,6 +225,15 @@ chiffres sur l'image, les montre au propriétaire et demande, puis lance `insigh
   du propriétaire (2026-11-18, question à choix)** : dans l'app, 106:1-4 et 107:1-7 n'affichent **aucune mention**
   (ni « Audio indisponible » ni « Ce reel est limité »). L'audio reconnu devient moins probable ; la cause reste
   inconnue. À suivre à chaque revue : combien de reels Instagram restent sous 10 vues.
+  **À la revue du 2026-11-22** : 6 des 10 reels publiés par le run depuis le 11 novembre (109:1-6, 18:15-16, 107:1-7,
+  106:1-4, 104:1-9, 102:1-8 : 3 à 8 vues) ; les 4 autres font 132 à 360 vues, les 6 shorts thématiques 110 à 147 (tous),
+  18:17-18 publié à la main 130. Rien ne les départage (récitateur, fond, heure, basmala) ; seul indice faible, les 5 reels de
+  plus de 35 s sont tous dans le lot. **Hypothèse du propriétaire** (question à choix) : les versets de la légende, dont
+  certains mots seraient refusés par Instagram ; elle explique aussi les shorts thématiques, dont la légende n'a jamais eu de
+  verset. La légende Instagram n'a plus les versets depuis le 2026-11-22 (35:2 le premier) : à la revue du 29 novembre, on
+  compte les reels publiés depuis le 22 qui restent sous 10 vues. **S'il y en a encore, essai la semaine suivante** (son
+  choix) : le run envoie les reels à Instagram comme les vidéos thématiques (`video_url` de la release `reels`, une image de
+  couverture), au lieu du fichier (`upload_type: resumable`), et on compte de nouveau.
 - **Word of the day en pause** depuis le 2026-11-15 (choix du propriétaire : 4 vues en médiane par publication sur
   Instagram, 21 vues en tout sur Facebook en 9 jours) ; ses relevés restent pour comparer s'il revient.
 
@@ -241,6 +250,12 @@ Rien à décider à la revue ; on mesure (`trials` de `config/insights.yaml`, «
   « Spectateurs » de TikTok Studio (pays).
 - **Pas d'essai A/B possible** : un même titre ne sort pas dans deux ordres. La comparaison se fait avant / après, à
   type de vidéo égal, avec la prudence de la page.
+- **Réponse de la revue (2026-11-22), TikTok** : les captures « Spectateurs » du propriétaire. Le public TikTok est en
+  Europe : sur le compte (7 jours), Royaume-Uni 33,4 %, Pays-Bas 12,9 %, Allemagne 10,5 %, Suède 5,3 %, Belgique 4,4 %,
+  Italie 3,9 %, France 3,8 % ; 72 % de femmes ; 100 % de non-abonnés. 101:1-11, publié le 22 avec la légende en arabe
+  d'abord, est vu à 47 % au Royaume-Uni comme les autres : **la langue de la légende ne décide pas du public TikTok** (une
+  vidéo, 13 heures ; à revoir sur celles de la semaine). Sur YouTube, l'inverse : Algérie 22 %, Syrie, Maroc, Irak, Égypte.
+  Facebook et Instagram : toujours inconnus (Meta Business Suite, onglet « Audience », si le propriétaire l'envoie).
 
 ## À la revue du dimanche 29 novembre : l'essai de la version courte
 
@@ -261,6 +276,34 @@ partis en version courte sur Facebook et Instagram les 24, 25 et 26 novembre (73
   affirmée ; un écart net est une piste à confirmer sur d'autres coupes, pas une règle.
 - **La question à poser au propriétaire** (choix) : couper le reste du stock pour Facebook et Instagram, refaire
   l'essai sur trois autres shorts, ou en rester au short entier.
+
+Aussi à cette revue (décidé à celle du 22 novembre) :
+
+- **Instagram** : combien des reels publiés depuis le 22 novembre (légende sans versets) restent sous 10 vues ; s'il y en a
+  encore, l'essai de l'envoi par `video_url` part la semaine suivante (ci-dessus, « À regarder à la prochaine revue »).
+- **Les trois captures TikTok du 22 novembre non rattachées** le soir même (101:1-11, 35:2-2, la bande-annonce
+  `trailer-9x16/film`) : publiées le jour même, elles n'avaient pas encore de publication relevée par la Page ; elles doivent
+  être sous leur vidéo après le relevé de la nuit, plus sous « Captures sans vidéo reconnue ».
+- **Les légendes Facebook en 400 caractères** (ligne de la voix IA plus courte sur Facebook, trois accroches resserrées ;
+  quran-themes-demo, PR #89) : premier regard, sans conclure (`trials`).
+
+## À la revue du dimanche 6 décembre : les bordures
+
+Facebook a noté « Qualité du contenu : vidéo avec bordures » sur deux vidéos (captures du propriétaire à la revue du
+2026-11-22) et « légendes de qualité » sur une autre (la bande-annonce, 408 caractères). Mesuré par la session le même soir :
+les vidéos thématiques ont une bande sombre qui ne bouge pas en bas de l'image (sous les sous-titres : 170 px en médiane,
+jusqu'à 590 px sur 1920 ; le short 3 du du'a, Abou Lahab, la caravane) et souvent un ciel presque noir en haut (264 px) ; la
+bande-annonce est une carte au milieu d'un fond uni. Les trois derniers reels récités n'en ont aucune (corrigé pour eux le
+13 novembre, la colline de la scène de nuit). Sur Facebook à 48 h, cette semaine : reels 270 vues (n = 4), shorts thématiques
+207 (n = 4), sous le seuil de la page.
+
+- **Décidé par le propriétaire le 2026-11-22** (question à choix) : le gabarit de quran-themes-demo corrigé (la scène descend
+  sous les sous-titres, éclairée, texturée, en mouvement), **essai sur les trois shorts de la caverne** (1er au 3 décembre),
+  validés par lui sur images avant ; pas sur Dhul-Qarnayn (24 au 26 novembre), déjà dans l'essai de la version courte.
+- **Ce qu'on regarde** : la remarque « bordures » de Meta sur ces trois shorts (captures du propriétaire, « Récapitulatif » de
+  chaque reel), leurs vues à 48 h sur Facebook contre les shorts thématiques d'avant. Trois vidéos, des sujets différents et
+  l'heure changée le 27 novembre (13:00) : un écart net est une piste, pas une règle.
+- **La question à poser au propriétaire** (choix) : refaire le reste du stock sans la bande, ou en rester là.
 
 ## À la revue du dimanche 6 décembre : une Page ou deux
 
