@@ -1,7 +1,58 @@
 {
- "updated": "2026-11-22T12:50:18+00:00",
+ "updated": "2026-11-22T16:50:17+00:00",
  "days": 14,
  "entries": [
+  {
+   "id": "daily/2026-11-22-evening",
+   "kind": "daily",
+   "key": "2026-11-22/evening",
+   "day": "2026-11-22",
+   "time": "18:00",
+   "created": "2026-11-22T16:50:16+00:00",
+   "title": "35:2-2 · Surah Fatir · سورة فاطر",
+   "passage": "35:2-2",
+   "label": "",
+   "reciter": "Tawfiq As-Sayegh",
+   "results": [
+    {
+     "name": "Facebook",
+     "url": "https://www.facebook.com/reel/3169245669932573/",
+     "label": "publié"
+    },
+    {
+     "name": "Instagram",
+     "url": "https://www.instagram.com/reel/DgDRN4zCCbX/",
+     "label": "publié"
+    },
+    {
+     "name": "TikTok (brouillon)",
+     "url": null,
+     "label": "brouillon, non publié"
+    },
+    {
+     "name": "YouTube (à la main)",
+     "url": "https://youtube.com/shorts/wW7ajWOYQH4",
+     "label": "publié"
+    }
+   ],
+   "tiktok": "السبع آيات المنجيات · The seven munjiyat verses · 6/7\nسورة فاطر · Surah Fatir (35:2)\n\nمَّا يَفْتَحِ ٱللَّهُ لِلنَّاسِ مِن رَّحْمَةٍ فَلَا مُمْسِكَ لَهَا ۖ وَمَا يُمْسِكْ فَلَا مُرْسِلَ لَهُۥ مِنۢ بَعْدِهِۦ ۚ وَهُوَ ٱلْعَزِيزُ ٱلْحَكِيمُ ﴿٢﴾\n\nRecitation: Tawfiq As-Sayegh · Translation: Sahih International · Word meanings: Tafsir al-Muyassar, King Fahd Complex\n\n@quran.words.daily\n\n#QuranWordsDaily #Quran #المنجيات #SurahFatir #سورة_فاطر\n",
+   "video": {
+    "full": "https://github.com/mssnoussi92/quran-reels/releases/download/reels/2026-11-22-evening-035_002-002.mp4",
+    "youtube": "https://github.com/mssnoussi92/quran-reels/releases/download/reels/2026-11-22-evening-035_002-002.mp4"
+   },
+   "youtube": {
+    "title": "السبع آيات المنجيات · The seven munjiyat verses · 6/7 · سورة فاطر · Surah Fatir (35:2)",
+    "description": "السبع آيات المنجيات · The seven munjiyat verses · 6/7\nسورة فاطر · Surah Fatir (35:2)\n\nمَّا يَفْتَحِ ٱللَّهُ لِلنَّاسِ مِن رَّحْمَةٍ فَلَا مُمْسِكَ لَهَا ۖ وَمَا يُمْسِكْ فَلَا مُرْسِلَ لَهُۥ مِنۢ بَعْدِهِۦ ۚ وَهُوَ ٱلْعَزِيزُ ٱلْحَكِيمُ ﴿٢﴾\n2. Whatever Allāh grants to people of mercy - none can withhold it; and whatever He withholds - none can release it thereafter. And He is the Exalted in Might, the Wise.\n\nRecitation: Tawfiq As-Sayegh\nTranslation: Sahih International\nWord meanings: التفسير الميسر، مجمع الملك فهد\n\n@quran_words_daily\n",
+    "credits": "",
+    "hashtags": "#QuranWordsDaily #Quran #المنجيات #SurahFatir #سورة_فاطر #القرآن_الكريم #السبع_المنجيات #TawfiqAsSayegh #توفيق_الصايغ #تفسير_القرآن #التفسير_الميسر",
+    "file": "https://github.com/mssnoussi92/quran-reels/releases/download/reels/2026-11-22-evening-035_002-002.mp4",
+    "thumbnail": ""
+   },
+   "notes": [],
+   "match": [
+    "slot:2026-11-22/evening"
+   ]
+  },
   {
    "id": "theme/2026-11-22",
    "kind": "theme",
