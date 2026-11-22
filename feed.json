@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-22T12:46:24+00:00",
+ "updated": "2026-11-22T12:50:18+00:00",
  "days": 14,
  "entries": [
   {
@@ -8,7 +8,7 @@
    "key": "theme:2026-11-22",
    "day": "2026-11-22",
    "time": "14:00",
-   "created": "2026-11-22T12:46:23+00:00",
+   "created": "2026-11-22T12:50:16+00:00",
    "title": "The channel's trailer · إعلان القناة",
    "passage": "La bande-annonce de la chaîne (sa demande du 2026-11-22 : publiée par quran-reels à 14 h ; il l'épingle et la met en bande-annonce lui-même)",
    "label": "The channel's trailer · إعلان القناة",
@@ -16,8 +16,8 @@
    "results": [
     {
      "name": "Instagram",
-     "url": null,
-     "label": "échec"
+     "url": "https://www.instagram.com/reel/DgC16xWk_XY/",
+     "label": "publié"
     },
     {
      "name": "Facebook",
