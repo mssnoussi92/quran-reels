@@ -1,0 +1,51 @@
+{
+ "kind": "theme",
+ "id": "theme/2026-11-22",
+ "created": "2026-11-22T12:46:23+00:00",
+ "key": "theme:2026-11-22",
+ "day": "2026-11-22",
+ "time": "14:00",
+ "title": "The channel's trailer · إعلان القناة",
+ "passage": "La bande-annonce de la chaîne (sa demande du 2026-11-22 : publiée par quran-reels à 14 h ; il l'épingle et la met en bande-annonce lui-même)",
+ "label": "The channel's trailer · إعلان القناة",
+ "results": [
+  {
+   "name": "Instagram",
+   "url": null,
+   "label": "échec"
+  },
+  {
+   "name": "Facebook",
+   "url": "https://www.facebook.com/reel/2660578587792222/",
+   "label": "publié"
+  },
+  {
+   "name": "TikTok",
+   "url": null,
+   "label": "brouillon, non publié"
+  },
+  {
+   "name": "YouTube",
+   "url": "https://www.youtube.com/watch?v=7yx4e_YioXU",
+   "label": "publié"
+  }
+ ],
+ "tiktok": "القرآن كل صباح… آية تفهمها\nThe Quran every morning, a verse you understand\n\n«أبابيل»… تعرف معناها؟ كل صباح مقطع من القرآن، وقصص بالرسم، وإجابات من القرآن والسنة لحياتك.\n\"Ababil\"… do you know what it means? A passage of the Quran every morning, stories drawn, and answers from the Quran and the Sunnah for your life.\n🎙️ صوت مولَّد بالذكاء الاصطناعي · AI-generated voice\n\n#القرآن_الكريم #QuranWordsDaily #Quran #قصص_القرآن #تدبر_القرآن\n",
+ "video": {
+  "tiktok": "https://github.com/mssnoussi92/quran-themes-demo/releases/download/page-trailer-9x16/trailer-film-9x16-tiktok.mp4"
+ },
+ "youtube": {
+  "title": "القرآن كل صباح… آية تفهمها · The Quran every morning, a verse you understand",
+  "description": "كل صباح مقطع من القرآن بصوت قارئ حقيقي، مع الترجمة ومعنى الكلمة الصعبة. وقصص القرآن بالرسم، وسلاسل من الاثنين إلى السبت. كل آية وكل حديث من مصدر منشور.\n\nA passage of the Quran every morning, recited by a real reciter, with the translation and the hard word explained. Stories of the Quran, drawn, and series, Monday to Saturday. Every verse and hadith from a published source.\n\n🎙️ AI-generated voice · صوت مولَّد بالذكاء الاصطناعي",
+  "credits": "",
+  "hashtags": "#القرآن_الكريم #QuranWordsDaily #Quran",
+  "file": "https://github.com/mssnoussi92/quran-themes-demo/releases/download/page-trailer/trailer-film-16x9.mp4",
+  "thumbnail": "https://github.com/mssnoussi92/quran-themes-demo/releases/download/page-trailer/trailer-thumbnail.jpg",
+  "url": "https://www.youtube.com/watch?v=7yx4e_YioXU"
+ },
+ "match": [
+  "theme:trailer/film",
+  "theme:trailer-9x16/film"
+ ],
+ "notes": []
+}
