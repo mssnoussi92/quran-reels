@@ -88,6 +88,22 @@ trials:                    # « Essais en cours »; with `platforms`, a before /
     since: 2026-11-24
     where: Facebook, Instagram, YouTube (24 au 26 novembre)
     judge: l'audit « version courte contre short entier », à la revue du 29 novembre
+  - what: Légendes Facebook en 400 caractères
+    since: 2026-11-23
+    where: "Facebook, vidéos thématiques (ligne de la voix IA plus courte, trois accroches resserrées ; décision du
+      propriétaire à la revue du 2026-11-22, quran-themes-demo PR #89)"
+    judge: "la remarque « légendes de qualité » de Meta (captures) ; vues à 48 h des vidéos thématiques sur Facebook, avant /
+      après (l'heure change aussi le 27 novembre)"
+    platforms: [facebook]
+    kinds: [Shorts thématiques, Films]
+  - what: Vidéos thématiques sans bande sombre (bordures)
+    since: 2026-12-01
+    where: "Facebook d'abord : les trois shorts de la caverne (1er au 3 décembre), gabarit de quran-themes-demo corrigé ;
+      décision du propriétaire à la revue du 2026-11-22"
+    judge: "la remarque « vidéo avec bordures » de Meta sur ces shorts (captures) ; leurs vues à 48 h sur Facebook contre les
+      shorts thématiques d'avant, à la revue du 6 décembre"
+    platforms: [facebook]
+    kinds: [Shorts thématiques]
   - what: Page test « معاك 5 ثواني » (un seul type de vidéo)
     since: 2026-11-19
     where: sa propre page Facebook et Instagram
