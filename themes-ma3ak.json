@@ -137,6 +137,52 @@
      "rights_after": null
     }
    }
+  },
+  "2026-11-22": {
+   "label": "Quiz 8 : وصية لقمان",
+   "videos": {
+    "facebook": "ma3ak/short-8",
+    "instagram": "ma3ak/short-8"
+   },
+   "at": "2026-11-22T16:51:07+00:00",
+   "results": {
+    "facebook": {
+     "platform": "facebook",
+     "status": "published",
+     "remote_id": "1364713212342819",
+     "url": "https://www.facebook.com/reel/1364713212342819/",
+     "error": null,
+     "rights": {
+      "platform": "facebook",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 0.12147328500000754,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    },
+    "instagram": {
+     "platform": "instagram",
+     "status": "published",
+     "remote_id": "18006263232009380",
+     "url": "https://www.instagram.com/reel/DgDR0y5iJVY/",
+     "error": null,
+     "rights": {
+      "platform": "instagram",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 32.311191928,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    }
+   }
   }
  }
 }
