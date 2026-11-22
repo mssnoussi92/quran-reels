@@ -15,7 +15,8 @@
     "juz-amma/105:1-5",
     "juz-amma/104:1-9",
     "juz-amma/103:1-3",
-    "juz-amma/102:1-8"
+    "juz-amma/102:1-8",
+    "juz-amma/101:1-11"
    ]
   },
   "themes": {
@@ -739,6 +740,48 @@
    "youtube": {
     "reciter": "sayegh",
     "video": "youtube/102_001-008.mp4"
+   }
+  },
+  "2026-11-22/morning": {
+   "queue": "reading",
+   "item": "juz-amma/101:1-11",
+   "passage": "101:1-11",
+   "results": {
+    "facebook": {
+     "status": "published",
+     "id": "2316463515800268",
+     "url": "https://www.facebook.com/reel/2316463515800268/",
+     "error": null,
+     "at": "2026-11-22T06:31:21+00:00"
+    },
+    "instagram": {
+     "status": "blocked",
+     "id": "17897965773503710",
+     "url": null,
+     "error": "droits : vérification en error deux fois, aucune correspondance, Facebook propre — laissé de côté, publié sur les autres",
+     "at": "2026-11-22T06:31:21+00:00"
+    },
+    "tiktok": {
+     "status": "draft",
+     "id": "v_inbox_file~v2.7710879408605612054",
+     "url": null,
+     "error": null,
+     "at": "2026-11-22T06:31:21+00:00"
+    },
+    "youtube": {
+     "status": "published",
+     "id": "Qs1JsZOdPjo",
+     "url": "https://youtube.com/shorts/Qs1JsZOdPjo",
+     "error": null,
+     "at": "2026-11-22T06:46:10+00:00"
+    }
+   },
+   "reciter": "omar_hisham",
+   "background": "pb-alpine-peak",
+   "seconds": 49.5,
+   "youtube": {
+    "reciter": "sayegh",
+    "video": "youtube/101_001-011.mp4"
    }
   }
  },
