@@ -55,6 +55,7 @@ docs:                      # a theme video, by its document in quran-themes-demo
   quiz: []                 # the quiz: Instagram, and the test page, never YouTube
   quiz-ma3ak: []
   ma3ak: []
+  trailer: []              # the channel's trailer (2026-11-22): on the channel's home, in no playlist
                            # signs, kalima, farq, map, sual, lens, qadar, sahw, hayyin, sahib…: their own
 
 themes:                    # where the names of a theme document are read

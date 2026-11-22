@@ -20,6 +20,10 @@ release_prefix: page-      # https://github.com/<repo>/releases/download/page-<d
 time: "18:00"              # Paris (owner's request, 2026-11-19: 18:00 like the test page; before: 19:00,
                            # his decision of 2026-11-13)
 times:                     # from a day on, another hour (themepub/run.py, time_for)
+  - from: 2026-11-22       # the channel's trailer, Sunday 22 at 14:00 (owner's request, 2026-11-22: « publie-les
+    time: "14:00"          # automatiquement », the hour the session advised: before his Sunday peak, between the
+  - from: 2026-11-23       # 07:30 reel and the 18:00 one); the next day, 18:00 again
+    time: "18:00"
   - from: 2026-11-27       # owner's choice, 2026-11-21: 13:00, an hour before his YouTube viewers' peak
     time: "13:00"          # (14:00-16:00 Paris on weekdays, Studio « Quand vos spectateurs sont sur
                            # YouTube »); after the short versions of Dhul-Qarnayn (24-26) so the two
