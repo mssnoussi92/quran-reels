@@ -186,15 +186,24 @@
     "tiktok": "trailer-9x16/film",
     "youtube": "trailer/film"
    },
-   "at": "2026-11-22T12:42:03+00:00",
+   "at": "2026-11-22T12:47:32+00:00",
    "results": {
     "instagram": {
      "platform": "instagram",
-     "status": "failed",
-     "remote_id": null,
-     "url": null,
-     "error": "instagram container 17898039975503710: ERROR Error: Media upload has failed with error code 2207077",
-     "rights": null,
+     "status": "published",
+     "remote_id": "17923408323242046",
+     "url": "https://www.instagram.com/reel/DgC16xWk_XY/",
+     "error": null,
+     "rights": {
+      "platform": "instagram",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 31.709381655999977,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
      "rights_after": null
     },
     "facebook": {
