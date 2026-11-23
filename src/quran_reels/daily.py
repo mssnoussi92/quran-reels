@@ -502,7 +502,7 @@ def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
              log: dict, now: datetime, sleep: Callable[[float], None] = time.sleep) -> int:
     from quran_reels import reciters as rec
     from quran_reels.gh_secrets import token_expiry
-    from quran_reels.render import hook_slot, render_passage
+    from quran_reels.render import arabic_platforms, hook_slot, render_passage
     from quran_reels.sources.surah_audio import CutError
 
     order = {s.name: i for i, s in enumerate(sorted(sched.slots, key=lambda s: s.at))}
@@ -555,11 +555,14 @@ def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
                         f"{o.name}: {o.why}" for o in opts) + ")")
                 pcfg = rec.with_reciter(dcfg, reciter)
             try:
+                # The trials of 2026-11-23: the word's screen, TikTok's caption in Arabic only.
+                extra: dict = {}
+                if hook_slot(cfg, p.slot.name, p.day):
+                    extra["hook_day"] = p.day
+                if arabic := arabic_platforms(cfg, p.day):
+                    extra["arabic_only"] = tuple(arabic)
                 video = render_passage(pcfg, p.item.key, p.item.label_ar, p.item.label_en,
-                                       p.item.series.hashtags,
-                                       **({"hook_day": p.day} if hook_slot(cfg, p.slot.name, p.day)
-                                          else {})
-                                       ).video
+                                       p.item.series.hashtags, **extra).video
                 break
             except CutError as e:
                 # A basmala checked by recognition that the recording itself contradicts

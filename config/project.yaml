@@ -46,6 +46,7 @@ content:
     alafasy:
       id: Alafasy_128kbps
       label: Mishary Rashid Alafasy
+      label_ar: "مشاري راشد العفاسي"       # the captions in Arabic only (platforms.<name>.arabic_only)
       hashtags: ["#Alafasy", "#مشاري_العفاسي"]
       timings_id: 7
       rights: "aucune licence connue ; reconnu par Rights Manager sur Facebook (2026-11-05)"
@@ -53,6 +54,7 @@ content:
     hudhaifi:
       id: Hudhaify_128kbps
       label: Ali Al-Hudhaifi
+      label_ar: "علي الحذيفي"       # the captions in Arabic only (platforms.<name>.arabic_only)
       producer: King Fahd Complex
       hashtags: ["#Hudhaifi", "#علي_الحذيفي"]
       kbps: 128
@@ -61,6 +63,7 @@ content:
     ayyoub:
       id: Muhammad_Ayyoub_128kbps
       label: Muhammad Ayyub
+      label_ar: "محمد أيوب"       # the captions in Arabic only (platforms.<name>.arabic_only)
       producer: King Fahd Complex
       hashtags: ["#MuhammadAyyub", "#محمد_أيوب"]
       kbps: 128
@@ -69,6 +72,7 @@ content:
     akhdar:
       id: Ibrahim_Akhdar_32kbps       # only 32 kb/s mono on EveryAyah
       label: Ibrahim Al-Akhdar
+      label_ar: "إبراهيم الأخضر"       # the captions in Arabic only (platforms.<name>.arabic_only)
       producer: King Fahd Complex
       hashtags: ["#IbrahimAlAkhdar", "#إبراهيم_الأخضر"]
       kbps: 32
@@ -81,6 +85,7 @@ content:
       surah_url: "https://archive.org/download/omar-hisham-al-arabi/{surah:03d}.mp3"
       split_max_minutes: 15           # his slow recordings (93: 5 min, 89: 9 min) rarely fit
       label: Omar Hisham Al-Arabi
+      label_ar: "عمر هشام العربي"       # the captions in Arabic only (platforms.<name>.arabic_only)
       hashtags: ["#OmarHisham", "#عمر_هشام_العربي"]
       basmala: "001001"               # Al-Fatiha's first ayah
       rights: "aucune licence connue ; copies archive.org par des tiers ; diffusé sur Apple Music et Spotify : risque Rights Manager"
@@ -91,6 +96,7 @@ content:
       surah_url: "https://cdn.mp3quran.net/audio/muhammad-minshawi/r1/{surah:03d}.mp3"
       mp3quran: 112
       label: Muhammad Siddiq Al-Minshawi
+      label_ar: "محمد صديق المنشاوي"       # the captions in Arabic only (platforms.<name>.arabic_only)
       hashtags: ["#Minshawi", "#المنشاوي"]
       basmala: "001001"
       rights: "aucune licence connue ; mp3quran.net"
@@ -99,6 +105,7 @@ content:
       surah_url: "https://cdn.mp3quran.net/audio/saad-ghamdi/r1/{surah:03d}.mp3"
       mp3quran: 30
       label: Saad Al-Ghamdi
+      label_ar: "سعد الغامدي"       # the captions in Arabic only (platforms.<name>.arabic_only)
       hashtags: ["#SaadAlGhamdi", "#سعد_الغامدي"]
       basmala: "001001"
       rights: "aucune licence connue ; mp3quran.net"
@@ -107,6 +114,7 @@ content:
       surah_url: "https://cdn.mp3quran.net/audio/nabil-rifai/r1/{surah:03d}.mp3"
       mp3quran: 87
       label: Nabil Ar-Rifai
+      label_ar: "نبيل الرفاعي"       # the captions in Arabic only (platforms.<name>.arabic_only)
       hashtags: ["#NabilArRifai", "#نبيل_الرفاعي"]
       basmala: "001001"
       rights: "aucune licence connue ; mp3quran.net"
@@ -115,6 +123,7 @@ content:
       surah_url: "https://cdn.mp3quran.net/audio/tawfeeq-sayegh/r1/{surah:03d}.mp3"
       mp3quran: 17
       label: Tawfiq As-Sayegh
+      label_ar: "توفيق الصايغ"       # the captions in Arabic only (platforms.<name>.arabic_only)
       hashtags: ["#TawfiqAsSayegh", "#توفيق_الصايغ"]
       basmala: "001001"
       rights: "aucune licence connue ; mp3quran.net"
@@ -123,6 +132,7 @@ content:
       surah_url: "https://cdn.mp3quran.net/audio/salah-budair/r1/{surah:03d}.mp3"
       mp3quran: 43
       label: Salah Budair
+      label_ar: "صلاح البدير"       # the captions in Arabic only (platforms.<name>.arabic_only)
       hashtags: ["#SalahBudair", "#صلاح_البدير"]
       basmala: "001001"
       rights: "aucune licence connue ; mp3quran.net ; YouTube : Al-Kahf (al-Haram 1426-1427 H) dans Content ID, Short 18:1-10 bloqué partout (2026-11-06) ; Meta : rien"
@@ -133,6 +143,7 @@ content:
     fares_abbad:
       id: Fares_Abbad_64kbps
       label: Fares Abbad
+      label_ar: "فارس عباد"       # the captions in Arabic only (platforms.<name>.arabic_only)
       hashtags: ["#FaresAbbad", "#فارس_عباد"]
       kbps: 48
       basmala: "001001"
@@ -144,6 +155,7 @@ content:
     husary:
       id: Husary_128kbps
       label: Mahmoud Khalil Al-Husary
+      label_ar: "محمود خليل الحصري"       # the captions in Arabic only (platforms.<name>.arabic_only)
       hashtags: ["#Husary", "#محمود_خليل_الحصري"]
       kbps: 128
       rights: "aucune licence connue ; EveryAyah ; enregistrements très diffusés : risque Rights Manager"
@@ -211,6 +223,7 @@ video:
     voice_after: 0.55                 # and after it, before the first ayah's screen
     voice_line: "🎙️ صوت مولَّد بالذكاء الاصطناعي · AI-generated voice"
     voice_line_short: "🎙️ صوت بالذكاء الاصطناعي · AI voice"
+    voice_line_ar: "🎙️ صوت مولَّد بالذكاء الاصطناعي"   # a caption in Arabic only (platforms.<name>.arabic_only)
 
 platforms:
   # A platform that did not get the reel at all (Instagram refusing the upload, TikTok's upload
@@ -240,6 +253,12 @@ platforms:
     mode: draft                       # inbox upload, posted by hand from the TikTok app
     max_hashtags: 5                   # TikTok accepts 5 (seen by the owner, 2026-11-05)
     hashtags: arabic_first            # owner's trial, 2026-11-23 (see instagram)
+    # Owner's trial, 2026-11-23 (« un essai sur TikTok seulement en mettant une légende arabe seulement
+    # pendant une semaine, pour tester si les pays de l'audience changent » ; « dès mardi, en même temps »
+    # as the word's screen): the reels' TikTok caption in Arabic only, Arabic hashtags only
+    # (render.arabic_caption), from `from` to `until`. Its audience was in Europe (101:1-11: the United
+    # Kingdom 47 %), the trailer's too with an Arabic voice and caption: docs/insights.md.
+    arabic_only: { from: "2026-11-24", until: "2026-11-30" }
     # Its own signature (render.signatures): on TikTok, @quran_words_daily is someone else's
     # empty account (2026-11-09), so TikTok gets the reel with this name on every frame and at
     # the end of its caption; the other platforms keep video.handle.

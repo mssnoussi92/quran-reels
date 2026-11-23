@@ -257,3 +257,52 @@ def test_the_ticket_says_why_youtube_has_another_video():
                         "always": True, "plain": True}}
     text = "\n".join(notify._youtube(item))
     assert "sans la question du début" in text
+
+
+def test_tiktok_has_its_caption_in_arabic_only_for_the_week_of_the_trial():
+    from quran_reels.render import arabic_caption, arabic_platforms
+
+    platforms = {"tiktok": {"arabic_only": {"from": "2026-11-24", "until": "2026-11-30"}},
+                 "instagram": {"hashtags": "arabic_first"}}
+    cfg = cfg_with({"handle": "@quran_words_daily"}, platforms)
+    assert arabic_platforms(cfg, date(2026, 11, 23)) == []
+    assert arabic_platforms(cfg, date(2026, 11, 24)) == ["tiktok"]
+    assert arabic_platforms(cfg, date(2026, 11, 30)) == ["tiktok"]
+    assert arabic_platforms(cfg, date(2026, 12, 1)) == [] and arabic_platforms(None, DAY) == []
+    cfg.project["content"].update({"translation": {"label": "Sahih International"},
+                                   "glosses": {"label": "التفسير الميسر، مجمع الملك فهد"}})
+    cfg.project["content"]["reciter"].update({"label": "Fares Abbad", "label_ar": "فارس عباد"})
+    p = passage({2: ["أَنقَضَ"]})
+    text = arabic_caption(cfg, p, voice="🎙️ صوت مولَّد بالذكاء الاصطناعي")
+    assert text.startswith("سورة القارعة (101:1-3)\n\n")
+    assert "تلاوة: فارس عباد · الترجمة: Sahih International · معاني الكلمات: التفسير الميسر" in text
+    assert "🎙️ صوت مولَّد بالذكاء الاصطناعي\n\n@quran_words_daily\n" in text
+    assert "Recitation" not in text and "Surah" not in text and "AI" not in text
+    # Too long: without the ayahs, never without the credits.
+    short = arabic_caption(cfg, p, limit=len(text) - 1, voice="🎙️ صوت مولَّد بالذكاء الاصطناعي")
+    assert "﴿" not in short and "تلاوة: فارس عباد" in short
+
+
+def test_the_tiktok_variant_takes_its_own_caption(tmp_path):
+    import json
+
+    from quran_reels import publish
+
+    work = tmp_path / "101_001-003"
+    (work / "preview").mkdir(parents=True)
+    (tmp_path / "101_001-003.mp4").write_bytes(b"")
+    (work / "tiktok.mp4").write_bytes(b"")
+    (work / "caption.txt").write_text("full\n", encoding="utf-8")
+    (work / "manifest.json").write_text(json.dumps({
+        "passage": "101:1-3", "surah": {"name_ar": "القارعة", "name_en": "Al-Qari'ah"},
+        "ayahs": [{"ref": "101:1", "glosses": [], "start": 0.4, "seconds": 2.0}],
+        "hashtags": ["#QuranWordsDaily", "#سورة_القارعة"],
+        "platform_hashtags": {"tiktok": ["#القرآن_الكريم", "#سورة_القارعة"]},
+        "captions": {"social": "social @quran_words_daily\n",
+                     "tiktok": "عربي\n\n@quran_words_daily\n"},
+        "variants": {"tiktok": {"video": "tiktok.mp4", "signature": "@quran.words.daily",
+                                "instead_of": "@quran_words_daily"}}}), encoding="utf-8")
+    reel = publish.load_reel(tmp_path / "101_001-003.mp4")
+    assert reel.for_platform("tiktok").text(5) == \
+        "عربي\n\n@quran.words.daily\n\n#القرآن_الكريم #سورة_القارعة\n"
+    assert reel.for_platform("instagram").caption.startswith("social")
