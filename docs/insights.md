@@ -257,6 +257,51 @@ Rien à décider à la revue ; on mesure (`trials` de `config/insights.yaml`, «
   vidéo, 13 heures ; à revoir sur celles de la semaine). Sur YouTube, l'inverse : Algérie 22 %, Syrie, Maroc, Irak, Égypte.
   Facebook et Instagram : toujours inconnus (Meta Business Suite, onglet « Audience », si le propriétaire l'envoie).
 
+## La question du mot (essai à partir du 24 novembre)
+
+**Ce qu'on a vu** (le soir du 2026-11-22, captures du propriétaire et relevés de la Page) : le même reel ne va
+pas au même public selon la plateforme.
+
+| Plateforme | Public d'un reel du matin | Ce qui le décide |
+| --- | --- | --- |
+| YouTube | arabe : 85 % des vues en médiane (Algérie, Maroc, Syrie, Irak, Jordanie ; 105:1-5 : 93 %) | le contenu |
+| Instagram | Inde, Iran, Turquie, Ouzbékistan, Pakistan (101:1-11) ; Iran 21 %, Maroc 13 %, Turquie, Inde (105:1-5) | **la langue parlée dans la vidéo** |
+| TikTok | Europe : Royaume-Uni 47 % (101:1-11), puis la Suède, l'Allemagne, l'Italie ; 76 % de femmes | **la région du compte** |
+
+- **Instagram** : la récitation y est lue comme « Coran pour tous les musulmans » ; dès que la vidéo parle arabe, elle va
+  aux pays arabes : le short « كلمة واحدة » (voix égyptienne) en Syrie 20 %, au Maroc 15 %, en Jordanie, en Irak, en
+  Arabie ; la bande-annonce (voix et question en arabe) au Maroc, en Irak, en Syrie, en Algérie, en Jordanie.
+- **Toucher les arabophones ne suffit pas** : ce short a fait 120 vues, 8 j'aime, 1 partage, comme tous les shorts
+  thématiques (110 à 147 vues). La bande-annonce, elle, a eu **8 partages et 6 enregistrements en 10 h**, quand aucune des
+  39 publications Instagram d'avant n'avait dépassé 1 partage et 3 enregistrements à 48 h. Ce qui la distingue : son
+  ouverture, une question sur un mot (« «أبابيل»… تعرف معناها؟ »), la promesse même des reels, qu'ils ne disent pas au début.
+- **TikTok** : la bande-annonce, voix arabe, question en arabe, légende en arabe d'abord et lieu « Cairo », est partie
+  comme le reel : Royaume-Uni 28 %, Allemagne 14 %, Pays-Bas 9 %, Suède, Italie, Belgique, Espagne ; aucun pays arabe dans
+  les dix premiers. Ni la vidéo, ni la légende, ni le lieu ne changent le public : sans doute la région attachée au compte.
+  Ce public aime (78 j'aime pour 673 vues sur 101:1-11) mais part au bout de 3 s (2,9 à 3,6 s en moyenne).
+
+**L'essai** (choix du propriétaire, 2026-11-23 : « question du mot + hashtags arabes », puis, sur la maquette, « comme
+dans la bande-annonce : le mot avec la narration dans un écran séparé, ensuite la récitation », trois phrases de voix
+validées, une requête) : les reels du matin s'ouvrent sur un écran à part d'environ 3 s, le mot en grand, « تعرف معناها؟ »
+et la ligne anglaise, la voix du narrateur qui pose la question sans dire le mot, puis le premier verset en fondu
+(`video.hook` de project.yaml, docs/rendu.md) ; le mot est le premier expliqué après le premier verset, sa réponse arrive
+dans le reel ; la récitation commence donc environ 3 s plus tard, et les légendes disent la voix de synthèse.
+Facebook, Instagram et TikTok ; **YouTube sans** (sa version est refaite sans l'écran) : il sert de témoin. Hashtags
+arabes en premier sur Instagram et TikTok (`platforms.<nom>.hashtags: arabic_first`). Mesure : les trois lignes de
+`trials` (config/insights.yaml).
+
+**À la revue du 29 novembre** (premier regard, 5 ou 6 reels) puis **du 6 décembre** (la semaine entière) :
+
+- Instagram : partages et enregistrements à 48 h, contre les reels d'avant ; et les **pays** sur 2 ou 3 reels (captures
+  « Audience ») : la question écrite suffit-elle à Instagram pour les montrer aux pays arabes ? Le même jour, le compte des
+  reels Instagram sous 10 vues (légende sans versets, ci-dessus) : les deux changements se recouvrent sur Instagram à
+  partir du 24 ; ils ne mesurent pas la même chose (montrés ou non ; à qui et avec quels partages).
+- TikTok : la durée moyenne regardée et les vues complètes (captures), contre 2,9 à 3,6 s.
+- Facebook contre YouTube (sans la question) : les vues à 48 h des deux, pour ne pas prendre une semaine creuse pour un
+  effet.
+- **La question à poser au propriétaire** (choix) : garder la question, la changer (la taille, le mot choisi), ou revenir
+  sans ; YouTube aussi, si elle aide ailleurs.
+
 ## À la revue du dimanche 29 novembre : l'essai de la version courte
 
 Décidé avec le propriétaire le 2026-11-17 : « on fait le point dimanche ». Les shorts 1, 2 et 3 de Dhul-Qarnayn sont

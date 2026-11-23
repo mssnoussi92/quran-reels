@@ -108,6 +108,30 @@ trials:                    # « Essais en cours »; with `platforms`, a before /
     since: 2026-11-19
     where: sa propre page Facebook et Instagram
     judge: ses quiz contre le quiz de la Page, à partir du 23 novembre (insights-ma3ak.json)
+  # The question on a word (video.hook) and the Arabic hashtags first on Instagram and TikTok (owner's
+  # choice, 2026-11-23, after the trailer and his screenshots of the audience: docs/insights.md, « La
+  # question du mot »). Three lines: what each platform is judged on.
+  - what: "Question du mot au début des reels du matin : Instagram, partages (hashtags arabes d'abord)"
+    since: 2026-11-24
+    where: "reels du matin : Facebook, Instagram, TikTok ; YouTube sans la question (témoin)"
+    judge: "partages et enregistrements à 48 h ; pays du public (captures « Audience » de 2 ou 3 reels) :
+      la question écrite suffit-elle à Instagram pour les montrer aux pays arabes ?"
+    platforms: [instagram]
+    kinds: [Reels]
+    metric: shares
+  - what: "Question du mot : vues à 48 h, Facebook et YouTube (témoin, sans la question)"
+    since: 2026-11-24
+    where: "reels du matin"
+    judge: "Facebook avec la question contre YouTube sans : un changement des deux à la fois n'est pas la question"
+    platforms: [facebook, youtube]
+    kinds: [Reels]
+  - what: "Question du mot : TikTok, durée moyenne regardée (hashtags arabes d'abord)"
+    since: 2026-11-24
+    where: "reels du matin (public européen : la question en anglais compte)"
+    judge: "durée moyenne regardée et vues complètes des captures, contre 2,9 à 3,6 s avant"
+    platforms: [tiktok]
+    kinds: [Reels]
+    metric: avg_watch
 
 missing:                   # « Données manquantes »: what the page lacks and how it comes; `look`
                            # finds the last manual entry that brought it (none: not done yet)

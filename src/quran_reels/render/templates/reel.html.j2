@@ -8,7 +8,10 @@
   layer:
     static   scrim + handle + credits, constant for the whole video
     content  one per ayah (reference, ayah, translation, glosses), faded in and out
-    preview  both, on a gradient standing in for the video (mockups only)
+    hook     the screen of the question on a word (video.hook), before the first ayah: the word
+             large, the question under it, in Arabic then in English
+    preview  static and content, on a gradient standing in for the video (mockups only)
+    hookpreview  static and hook, on that gradient
 
   Variables:
     fonts_dir        file:// URI of assets/fonts
@@ -24,6 +27,7 @@
     handle           "@quran_words_daily"  page signature, on every frame
     safe             {top, bottom, sides}
     highlight        "#f6c86b"
+    hook             {word, question, en} on the layers hook and hookpreview (video.hook)
 
   Text that does not fit between the safe margins is scaled down (--k) by the script below;
   window.__fit holds the final factor.
@@ -39,7 +43,7 @@
   html, body { width: 1080px; height: 1920px; background: transparent; }
   body { position: relative; overflow: hidden; color: #fff; }
 
-  {% if layer == "preview" %}
+  {% if layer in ("preview", "hookpreview") %}
   body { background: linear-gradient(180deg, #0b1026 0%, #1a2350 45%, #3b3a6b 72%, #8a5a5a 100%); }
   {% endif %}
   .scrim { position: absolute; inset: 0;
@@ -66,6 +70,22 @@
   .ayah .hl { color: {{ highlight }}; }
   .ayah .num { font-size: calc(72px * var(--k)); opacity: .9; }
 
+  /* The screen of the question on a word (video.hook), before the first ayah: the word large
+     and alone, the question under it; drawn centred, video.compose makes it grow as it comes. */
+  .intro { position: absolute; top: {{ safe.top }}px; bottom: {{ safe.bottom + 150 }}px;
+      left: {{ safe.sides }}px; right: {{ safe.sides }}px; display: flex; flex-direction: column;
+      justify-content: center; align-items: center; text-align: center; }
+  .intro .ibox { width: 100%; display: flex; flex-direction: column; align-items: center;
+      gap: calc(30px * var(--k)); }
+  .intro .w { font-family: "AmiriQuran"; color: {{ highlight }}; direction: rtl;
+      font-size: calc(170px * var(--k)); line-height: 1.7; text-wrap: balance;
+      text-shadow: 0 6px 40px rgba(0,0,0,.6); }
+  .intro .w .g { font-family: "Amiri"; font-size: .55em; vertical-align: .35em; opacity: .9; }
+  .intro .q { font-family: "Amiri"; font-weight: 700; font-size: calc(84px * var(--k));
+      direction: rtl; text-shadow: 0 3px 24px rgba(0,0,0,.6); }
+  .intro .en { font-family: "Lora"; font-style: italic; font-size: calc(44px * var(--k));
+      opacity: .92; text-shadow: 0 2px 16px rgba(0,0,0,.6); }
+
   .tr { font-family: "Lora"; font-style: italic; font-size: calc(46px * var(--k)); line-height: 1.45;
       max-width: 860px; text-wrap: balance; text-shadow: 0 2px 16px rgba(0,0,0,.6); }
 
@@ -90,8 +110,15 @@
 </style>
 </head>
 <body>
-  {% if layer in ("static", "preview") %}
+  {% if layer in ("static", "preview", "hookpreview") %}
   <div class="scrim"></div>
+  {% endif %}
+  {% if layer in ("hook", "hookpreview") %}
+  <div class="intro"><div class="ibox">
+    <div class="w"><span class="g">«</span>{{ hook.word }}<span class="g">»</span></div>
+    <div class="q">{{ hook.question }}</div>
+    {% if hook.en %}<div class="en">{{ hook.en }}</div>{% endif %}
+  </div></div>
   {% endif %}
   {% if layer in ("content", "preview") %}
   <div class="content">
@@ -115,7 +142,7 @@
     </div>
   </div>
   {% endif %}
-  {% if layer in ("static", "preview") %}
+  {% if layer in ("static", "preview", "hookpreview") %}
   <div class="footer">
     <div class="handle">{{ handle }}</div>
     <div class="credit">{{ credit }}</div>
@@ -123,7 +150,8 @@
   {% endif %}
 <script>
   document.fonts.ready.then(() => {
-    const box = document.querySelector(".content"), stack = document.querySelector(".stack");
+    const box = document.querySelector(".content") || document.querySelector(".intro");
+    const stack = document.querySelector(".stack") || document.querySelector(".ibox");
     let k = 1;
     if (box && stack) {
       for (let i = 0; i < 60 && stack.offsetHeight > box.clientHeight; i++) {

@@ -87,3 +87,23 @@ def test_a_text_too_long_is_scaled_down_and_stays_inside(renderer, tmp_path):
     _, top, _, bottom = drawn_box(image)
     assert top >= safe["top"] and bottom <= 1920 - safe["bottom"], (top, bottom, fit)
 
+
+
+
+def test_the_question_has_a_screen_of_its_own_between_the_safe_margins(renderer, tmp_path):
+    """video.hook: the layer « hook » draws the word large, the question and its English line,
+    centred between the safe margins, nothing of an ayah; a long phrase is scaled down to fit."""
+    cfg, r = renderer
+    safe = cfg.video["safe_area"]
+    hook = {"word": "أَثْقَالَهَا", "question": "تعرف معناها؟",
+            "en": "Do you know what this word means?"}
+    for name, word in (("short", hook["word"]), ("long", "لِأَحَدٍ عِندَهُۥ مِن نِّعْمَةٍ تُجْزَىٰٓ")):
+        dest = tmp_path / f"{name}.png"
+        fit = r.render("hook", dest, hook={**hook, "word": word})
+        image = pixels(dest)
+        left, top, right, bottom = drawn_box(image)
+        assert left >= safe["sides"] and right <= 1080 - safe["sides"], (name, left, right)
+        assert top >= safe["top"] and bottom <= 1920 - safe["bottom"], (name, top, bottom, fit)
+        assert abs((left + right) / 2 - 540) < 40                     # centred
+        assert (image[:, :, 3] > 128).sum() > 15_000 and image[0, 0, 3] == 0
+    assert r.render("hook", tmp_path / "x.png", hook=hook) == 1.0     # the short one, full size
