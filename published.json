@@ -16,7 +16,8 @@
     "juz-amma/104:1-9",
     "juz-amma/103:1-3",
     "juz-amma/102:1-8",
-    "juz-amma/101:1-11"
+    "juz-amma/101:1-11",
+    "juz-amma/100:1-11"
    ]
   },
   "themes": {
@@ -822,6 +823,48 @@
    "reciter": "sayegh",
    "background": "dawn",
    "seconds": 19.5
+  },
+  "2026-11-23/morning": {
+   "queue": "reading",
+   "item": "juz-amma/100:1-11",
+   "passage": "100:1-11",
+   "results": {
+    "facebook": {
+     "status": "published",
+     "id": "1473209314776855",
+     "url": "https://www.facebook.com/reel/1473209314776855/",
+     "error": null,
+     "at": "2026-11-23T06:40:37+00:00"
+    },
+    "instagram": {
+     "status": "published",
+     "id": "17889008256690974",
+     "url": "https://www.instagram.com/reel/DgEw6VrjOOa/",
+     "error": null,
+     "at": "2026-11-23T06:45:51+00:00"
+    },
+    "tiktok": {
+     "status": "draft",
+     "id": "v_inbox_file~v2.7711252719763638275",
+     "url": null,
+     "error": null,
+     "at": "2026-11-23T06:40:37+00:00"
+    },
+    "youtube": {
+     "status": "published",
+     "id": "ujIP-T6vG80",
+     "url": "https://youtube.com/shorts/ujIP-T6vG80",
+     "error": null,
+     "at": "2026-11-23T06:49:14+00:00"
+    }
+   },
+   "reciter": "minshawi",
+   "background": "dawn",
+   "seconds": 62.2,
+   "youtube": {
+    "reciter": "sayegh",
+    "video": "youtube/100_001-011.mp4"
+   }
   }
  },
  "removed": [
