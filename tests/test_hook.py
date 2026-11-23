@@ -96,6 +96,15 @@ def test_only_the_slots_named_open_on_the_question():
     assert not hook_slot(None, "morning")
 
 
+def test_no_question_before_its_first_day():
+    cfg = cfg_with({"hook": {**HOOK, "from": date(2026, 11, 24)}})
+    assert not hook_slot(cfg, "morning", date(2026, 11, 23))
+    assert hook_slot(cfg, "morning", date(2026, 11, 24)) and hook_slot(cfg, "morning", date(2026, 12, 1))
+    assert not hook_slot(cfg, "evening", date(2026, 11, 29))
+    cfg = cfg_with({"hook": {**HOOK, "from": "2026-11-24"}})         # as a string too
+    assert not hook_slot(cfg, "morning", date(2026, 11, 23))
+
+
 def test_the_voice_files_are_in_the_repository():
     from quran_reels import config
 

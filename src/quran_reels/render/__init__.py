@@ -98,10 +98,16 @@ def _hook_conf(cfg: Config | None) -> dict:
     return (project.get("video") or {}).get("hook") or {}
 
 
-def hook_slot(cfg: Config | None, slot: str) -> bool:
-    """Does a reel of this slot of the daily run open on the question of video.hook?"""
+def hook_slot(cfg: Config | None, slot: str, day: date | None = None) -> bool:
+    """Does a reel of this slot of the daily run, on `day`, open on the question of video.hook?
+    Not before its `from` day (the owner's « dès mardi »: 2026-11-24)."""
     conf = _hook_conf(cfg)
-    return bool(conf) and slot in (conf.get("slots") or [])
+    if not conf or slot not in (conf.get("slots") or []):
+        return False
+    start = conf.get("from")
+    if start and day is not None:
+        return day >= (start if isinstance(start, date) else date.fromisoformat(str(start)))
+    return True
 
 
 def hook_for(cfg: Config, passage: Passage, day: date) -> dict | None:
