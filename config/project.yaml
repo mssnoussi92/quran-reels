@@ -198,6 +198,7 @@ video:
   # voice is synthetic (`voice_line`; Facebook, 400 characters: `voice_line_short`), as those of
   # the theme videos. Absent: no question.
   hook:
+    from: "2026-11-24"                # the first reel with it (the owner's « dès mardi », 2026-11-23)
     slots: [morning]
     max_words: 2
     question: "تعرف معناها؟"
