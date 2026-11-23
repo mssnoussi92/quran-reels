@@ -402,6 +402,9 @@ def main(argv: list[str] | None = None) -> int:
         return 1 if failed else 0
 
     if args.command == "render":
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+
         from quran_reels.render import render_passage
         from quran_reels.selector.plan import resolve
 
@@ -412,7 +415,8 @@ def main(argv: list[str] | None = None) -> int:
             rcfg = with_reciter(cfg, args.reciter)
         else:
             rcfg = _reciter_for(cfg, key)
-        print(render_passage(rcfg, key, hook=args.hook).video)
+        today = datetime.now(ZoneInfo("Europe/Paris")).date()
+        print(render_passage(rcfg, key, hook_day=today if args.hook else None).video)
         return 0
 
     if args.command == "meta-check":

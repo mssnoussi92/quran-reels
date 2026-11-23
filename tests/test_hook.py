@@ -6,6 +6,7 @@ from __future__ import annotations
 import shutil
 import subprocess
 import wave
+from datetime import date, timedelta
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -22,8 +23,12 @@ from quran_reels.render import (
     video,
 )
 
-HOOK = {"slots": ["morning"], "seconds": 3, "max_words": 2,
-        "ar": "«{word}»… تعرف معناها؟", "en": "Do you know what this word means?"}
+HOOK = {"slots": ["morning"], "max_words": 2, "question": "تعرف معناها؟",
+        "en": "Do you know what this word means?",
+        "voices": ["assets/hook/voice-1.flac", "assets/hook/voice-2.flac", "assets/hook/voice-3.flac"],
+        "voice_line": "🎙️ صوت مولَّد بالذكاء الاصطناعي · AI-generated voice",
+        "voice_line_short": "🎙️ صوت بالذكاء الاصطناعي · AI voice"}
+DAY = date(2026, 11, 24)
 
 
 def cfg_with(video_conf: dict | None = None, platforms: dict | None = None) -> Config:
@@ -53,27 +58,35 @@ def passage(glosses: dict[int, list[str]], start: int = 1, end: int = 3,
 def test_the_question_asks_a_word_whose_answer_comes_later():
     cfg = cfg_with({"hook": HOOK})
     p = passage({1: ["ٱلْقَارِعَةُ"], 2: ["مَا ٱلْقَارِعَةُ"], 5: ["كَٱلْعِهْنِ ٱلْمَنفُوشِ"]})
-    asked = hook_for(cfg, p)
+    asked = hook_for(cfg, p, DAY)
     assert asked["word"] == "مَا ٱلْقَارِعَةُ" and asked["ref"] == "101:2"   # not ayah 1's
-    assert asked["before"] + asked["word"] + asked["after"] == "«مَا ٱلْقَارِعَةُ»… تعرف معناها؟"
-    assert asked["en"] == "Do you know what this word means?" and asked["seconds"] == 3.0
+    assert asked["question"] == "تعرف معناها؟"
+    assert asked["en"] == "Do you know what this word means?"
+
+
+def test_the_three_voices_turn_with_the_day():
+    cfg = cfg_with({"hook": HOOK})
+    p = passage({2: ["أَنقَضَ"]})
+    names = [hook_for(cfg, p, DAY + timedelta(days=i))["voice"].name for i in range(4)]
+    assert len(set(names[:3])) == 3 and names[3] == names[0]
+    assert hook_for(cfg, p, DAY)["voice"] == hook_for(cfg, p, DAY)["voice"]    # the same day
 
 
 def test_a_short_word_is_preferred_to_a_long_phrase():
     cfg = cfg_with({"hook": HOOK})
     p = passage({2: ["وَوَضَعْنَا عَنكَ وِزْرَكَ"], 3: ["أَنقَضَ"]})
-    assert hook_for(cfg, p)["word"] == "أَنقَضَ"
+    assert hook_for(cfg, p, DAY)["word"] == "أَنقَضَ"
     p = passage({2: ["وَوَضَعْنَا عَنكَ وِزْرَكَ"]})          # only a long one: it is asked
-    assert hook_for(cfg, p)["word"] == "وَوَضَعْنَا عَنكَ وِزْرَكَ"
+    assert hook_for(cfg, p, DAY)["word"] == "وَوَضَعْنَا عَنكَ وِزْرَكَ"
 
 
 def test_no_question_without_a_word_after_the_first_screen_or_without_the_setting():
     p = passage({1: ["أَعْثَرْنَا"]}, start=21, end=21)     # a single ayah: its answer at once
-    assert hook_for(cfg_with({"hook": HOOK}), p) is None
-    assert hook_for(cfg_with({}), passage({2: ["أَنقَضَ"]})) is None
+    assert hook_for(cfg_with({"hook": HOOK}), p, DAY) is None
+    assert hook_for(cfg_with({}), passage({2: ["أَنقَضَ"]}), DAY) is None
     # With the basmala first, the first ayah's words come after it.
     p = passage({1: ["ٱلْقَارِعَةُ"]}, basmala=True)
-    assert hook_for(cfg_with({"hook": HOOK}), p)["ref"] == "101:1"
+    assert hook_for(cfg_with({"hook": HOOK}), p, DAY)["ref"] == "101:1"
 
 
 def test_only_the_slots_named_open_on_the_question():
@@ -81,6 +94,32 @@ def test_only_the_slots_named_open_on_the_question():
     assert hook_slot(cfg, "morning") and not hook_slot(cfg, "evening")
     assert not hook_slot(cfg_with({}), "morning") and not hook_slot(cfg_with(), "morning")
     assert not hook_slot(None, "morning")
+
+
+def test_the_voice_files_are_in_the_repository():
+    from quran_reels import config
+
+    cfg = config.load()
+    conf = cfg.video["hook"]
+    assert len(conf["voices"]) == 3 and all((cfg.root / v).is_file() for v in conf["voices"])
+    assert cfg.project["platforms"]["youtube"]["hook"] is False      # the control
+
+
+def test_the_captions_say_a_synthetic_voice_speaks():
+    from quran_reels.render import caption, facebook_caption, social_caption
+
+    cfg = cfg_with({"handle": "@quran_words_daily"},
+                   {"facebook": {"max_caption_chars": 400, "max_hashtags": 8}})
+    cfg.project["content"].update({"translation": {"label": "Sahih International"},
+                                   "glosses": {"label": "Tafsir al-Muyassar"}})
+    cfg.project["content"]["reciter"]["label"] = "Fares Abbad"
+    p = passage({2: ["أَنقَضَ"]})
+    line, short = HOOK["voice_line"], HOOK["voice_line_short"]
+    assert line in social_caption(cfg, p, voice=line)
+    assert line not in social_caption(cfg, p)
+    fb = facebook_caption(cfg, p, hashtags(cfg, p), voice=short)
+    assert short in fb and len(fb) <= 400
+    assert line in caption(cfg, p, voice=line)
 
 
 def test_instagram_and_tiktok_take_the_arabic_hashtags_first():
@@ -131,29 +170,41 @@ def _mean(mp4: Path, at: float) -> float:
 
 
 @pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="needs ffmpeg")
-def test_the_question_is_laid_over_its_first_seconds_only(tmp_path):
-    """Black background, clear text layers, a white question: white for its frames, faded at its
-    end, never past them; the reel lasts as long as without it."""
-    fps = 10
+def test_the_question_has_its_screen_and_its_voice_before_the_first_ayah(tmp_path):
+    """Black background, a white question screen, clear ayah layers: white for its frames (it
+    grows, so its centre), then gone; its voice in the lead, before the first ayah's sound; the
+    reel lasts as long as its timeline."""
+    fps, sr = 10, video.SAMPLE_RATE
     bg = _png(tmp_path / "bg.png", "black")
     clear = _clear_png(tmp_path / "clear.png")
     hook = _png(tmp_path / "hook.png", "white")
-    audio = tmp_path / "a.wav"
-    with wave.open(str(audio), "wb") as w:
+    voice = tmp_path / "voice.wav"
+    with wave.open(str(voice), "wb") as w:              # 0.5 s of a loud constant
         w.setnchannels(video.CHANNELS)
         w.setsampwidth(2)
-        w.setframerate(video.SAMPLE_RATE)
-        w.writeframes(b"\0" * 4 * video.SAMPLE_RATE * video.CHANNELS * 2)
-    timeline = video.build_timeline([2 * video.SAMPLE_RATE, 2 * video.SAMPLE_RATE], fps=fps,
-                                    lead=0.0, tail=0.0)
-    out = video.compose(bg, clear, [clear, clear], timeline, audio, tmp_path / "r.mp4",
-                        width=64, height=64, fade=0.2, overlay=(hook, 15))
-    assert _mean(out, 0.8) > 200            # the question, white over black
-    assert _mean(out, 2.5) < 30             # gone after its 15 frames (1.5 s)
-    # Never past the first screen (2 s here), even when asked for longer.
-    out = video.compose(bg, clear, [clear, clear], timeline, audio, tmp_path / "s.mp4",
-                        width=64, height=64, fade=0.2, overlay=(hook, 100))
-    assert _mean(out, 1.0) > 200 and _mean(out, 3.0) < 30
+        w.setframerate(sr)
+        w.writeframes(b"\x00\x40" * (video.CHANNELS * sr // 2))
+    ayah = tmp_path / "ayah.wav"
+    with wave.open(str(ayah), "wb") as w:
+        w.setnchannels(video.CHANNELS)
+        w.setsampwidth(2)
+        w.setframerate(sr)
+        w.writeframes(b"\0" * 2 * sr * video.CHANNELS * 2)
+    timeline = video.build_timeline([2 * sr], fps=fps, lead=1.5 + 0.2, tail=0.0)
+    audio = video.write_audio([ayah], timeline, tmp_path / "a.wav", intro=(voice, sr // 4))
+    with wave.open(str(audio)) as w:
+        raw = w.readframes(w.getnframes())
+    step = video.CHANNELS * 2
+    level = [abs(int.from_bytes(raw[i * step:i * step + 2], "little", signed=True))
+             for i in (sr // 8, sr // 2, sr, 2 * sr)]
+    assert level[0] == 0 and level[1] > 10_000 and level[3] == 0      # the voice from 0.25 s
+    out = video.compose(bg, clear, [clear], timeline, audio, tmp_path / "r.mp4",
+                        width=64, height=64, fade=0.2, intro=(hook, 15))
+    assert _mean(out, 0.8) > 150            # the question's screen, white over black
+    assert _mean(out, 2.5) < 30             # gone after its 15 frames (1.5 s): the first ayah
+    with pytest.raises(ValueError):         # never longer than the lead it takes its place in
+        video.compose(bg, clear, [clear], timeline, audio, tmp_path / "s.mp4",
+                      width=64, height=64, intro=(hook, 100))
 
 
 def test_youtubes_version_is_made_again_without_the_question(monkeypatch, tmp_path):
@@ -164,8 +215,8 @@ def test_youtubes_version_is_made_again_without_the_question(monkeypatch, tmp_pa
 
     made = []
 
-    def render(cfg, key, label_ar="", label_en="", series_tags=(), variants=True, hook=False):
-        made.append((cfg.out, variants, hook))
+    def render(cfg, key, label_ar="", label_en="", series_tags=(), variants=True, hook_day=None):
+        made.append((cfg.out, variants, hook_day))
         return SimpleNamespace(video=cfg.out / "101_001-011.mp4")
 
     import quran_reels.render as render_mod
@@ -181,7 +232,7 @@ def test_youtubes_version_is_made_again_without_the_question(monkeypatch, tmp_pa
                                              series=SimpleNamespace(hashtags=())))
     assert daily.youtube_version(cfg, p, "sayegh", set()) is None       # no question: the same
     got = daily.youtube_version(cfg, p, "sayegh", set(), hooked=True)
-    assert made == [(tmp_path / "out" / "youtube", False, False)]
+    assert made == [(tmp_path / "out" / "youtube", False, None)]
     assert got["reciter"] == "sayegh" and got["plain"] and got["always"]
     assert got["video"] == "youtube/101_001-011.mp4"
     # YouTube taking the question too: the same video, as before.

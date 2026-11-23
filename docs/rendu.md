@@ -7,18 +7,22 @@
 - Deux calques PNG transparents sur le fond : `static` (voile, signature, crédits, fixe) et un
   `content` par ayah (référence, ayah, traduction, gloses) en fondu de 0,25 s.
 - **La question du mot** (essai choisi par le propriétaire le 2026-11-23, docs/insights.md, « La question du
-  mot » ; `video.hook` de project.yaml) : un reel du matin rendu par le run s'ouvre sur « «أَثْقَالَهَا»… تعرف معناها؟ »
-  et « Do you know what this word means? ». Le mot est le premier mot expliqué après le premier verset, de 2 mots au plus
-  s'il y en a un (`render.hook_for`) : sa réponse arrive plus loin dans le reel, dans l'encadré du mot ; sans un tel mot
-  (une seule ayah), pas de question. La première image garde la place de la question (cachée) ; la question elle-même
-  est un calque à part (`frames/hook.png`, couche « hook » du gabarit : la même page, tout le reste invisible), posé sur
-  les 3 premières secondes, jamais au-delà du premier écran, effacé en fondu (`video.compose`, `overlay`) : le verset ne
-  bouge pas et la récitation commence comme avant. L'aperçu du premier écran (couverture Facebook) la montre. TikTok l'a
-  aussi, avec sa signature. **YouTube non** (`platforms.youtube.hook: false`, le témoin) : sa version est rendue de
-  nouveau sans la question, par le même récitateur s'il est celui de YouTube (`daily.youtube_version`, `plain`), et ce
-  fichier passe par la vérification de Meta comme toute version YouTube. Le manifeste garde la question (`hook` : texte,
-  mot, ayah de la réponse, durée) et l'état le mot (`render_facts`). Essai local : `quran-reels render 99:1-8 --hook
-  --reciter fares_abbad`.
+  mot » ; `video.hook` de project.yaml) : un reel du matin rendu par le run s'ouvre, comme la bande-annonce, sur un
+  écran à part : le mot en grand, en or, entre guillemets, « تعرف معناها؟ » et « Do you know what this word means? »
+  dessous (`frames/hook.png`, couche « hook » du gabarit ; `preview/hook.png`). L'écran arrive à 90 % de sa taille et
+  grandit pendant son fondu, tient, s'efface, puis le premier verset arrive en fondu (`video.intro_filter`) ; il prend sa
+  place dans l'avance du premier verset (`video.compose`, `intro`). La voix du narrateur (voix D de quran-themes-demo,
+  une requête, trois phrases validées par le propriétaire : « الكلمة دي… تعرف معناها؟ », « تعرف معنى الكلمة دي؟ »,
+  « الكلمة دي… معناها إيه؟ », `assets/hook/`, qui tournent avec le jour) dit la question à 0,35 s, nivelée à −16 LUFS
+  (`video.write_audio`, `intro`) ; elle **ne dit jamais le mot** : il est écrit, puis récité. Le mot est le premier mot
+  expliqué après le premier verset, de 2 mots au plus s'il y en a un (`render.hook_for`) : sa réponse arrive plus loin
+  dans le reel ; sans un tel mot (une seule ayah), pas d'écran. Les légendes de ces reels disent la voix de synthèse
+  (« 🎙️ صوت مولَّد بالذكاء الاصطناعي · AI-generated voice » ; Facebook, 400 caractères : « 🎙️ صوت بالذكاء الاصطناعي ·
+  AI voice »). TikTok a l'écran aussi, avec sa signature. **YouTube non** (`platforms.youtube.hook: false`, le
+  témoin) : sa version est rendue de nouveau sans lui, par le même récitateur s'il est celui de YouTube
+  (`daily.youtube_version`, `plain`), et ce fichier passe par la vérification de Meta comme toute version YouTube. Le
+  manifeste garde la question (`hook` : mot, ayah de la réponse, voix, durée) et l'état le mot (`render_facts`). Essai
+  local : `quran-reels render 99:1-8 --hook --reciter fares_abbad`.
 - **Signature propre à une plateforme** (`platforms.<nom>.signature`, `render.signatures`) :
   TikTok, où `@quran_words_daily` est le compte de quelqu'un d'autre, a la sienne
   (`@quran.words.daily`, 2026-11-09). Le calque `static` est redessiné avec ce nom

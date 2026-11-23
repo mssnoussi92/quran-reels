@@ -88,14 +88,25 @@ def build_timeline(ayah_samples: list[int], fps: int, lead: float, tail: float,
                     total_frames=-(-end // spf), screens=screens)
 
 
-def write_audio(wavs: list[Path], timeline: Timeline, dest: Path) -> Path:
-    """Lead silence + every ayah + silence up to the last video frame, as one WAV."""
+def write_audio(wavs: list[Path], timeline: Timeline, dest: Path,
+                intro: tuple[Path, int] | None = None) -> Path:
+    """Lead silence + every ayah + silence up to the last video frame, as one WAV.
+    intro: (wav, at), a sound said in the lead from sample `at` (the question of video.hook,
+    said over its own screen before the first ayah); it must end before the lead does."""
     frame_bytes = CHANNELS * 2
     with wave.open(str(dest), "wb") as out:
         out.setnchannels(CHANNELS)
         out.setsampwidth(2)
         out.setframerate(SAMPLE_RATE)
-        out.writeframes(b"\0" * timeline.lead_samples * frame_bytes)
+        lead = b"\0" * timeline.lead_samples * frame_bytes
+        if intro:
+            with wave.open(str(intro[0])) as w:
+                said = w.readframes(w.getnframes())
+            at = intro[1] * frame_bytes
+            if at + len(said) > len(lead):
+                raise ValueError("the intro's sound is longer than the lead")
+            lead = lead[:at] + said + lead[at + len(said):]
+        out.writeframes(lead)
         written = timeline.lead_samples
         for wav in wavs:
             with wave.open(str(wav)) as w:
@@ -179,23 +190,44 @@ def push_in_filter(zoom: float, frames: int) -> str:
             "interpolation=cubic:sense=source:eval=frame")
 
 
+INTRO_GROW = 0.9       # the screen of video.hook comes at this size and reaches 1 in INTRO_GROW_S
+INTRO_GROW_S = 0.7
+INTRO_FADE = 0.4      # it fades in and out over this, then the first ayah fades in
+
+
+def intro_filter(width: int, height: int, frames: int, fps: int) -> str:
+    """The screen of the question (video.hook): it grows from INTRO_GROW to its size as it fades
+    in, holds, fades out. Scaled about the centre, a transparent margin around while it is smaller
+    (scale and pad, evaluated per frame)."""
+    d = frames / fps
+    f = min(INTRO_FADE, d / 4)
+    k = f"min(1,{INTRO_GROW:g}+{1 - INTRO_GROW:g}*t/{INTRO_GROW_S:g})"
+    return (f"scale=w='trunc({width}*{k})':h='trunc({height}*{k})':eval=frame,"
+            f"pad=w={width}:h={height}:x='(ow-iw)/2':y='(oh-ih)/2':color=black@0.0:eval=frame,"
+            f"fade=t=in:st=0:d={f:.3f}:alpha=1,fade=t=out:st={d - f:.3f}:d={f:.3f}:alpha=1")
+
+
 def compose(background: Path, static: Path, frames: list[Path], timeline: Timeline,
             audio: Path, dest: Path, width: int, height: int, fade: float = 0.25,
-            crf: int = 19, zoom: float = 0.0, overlay: tuple[Path, int] | None = None) -> Path:
+            crf: int = 19, zoom: float = 0.0, intro: tuple[Path, int] | None = None) -> Path:
     """Background (looped) + static layer + one faded layer per ayah + audio → MP4.
     zoom > 0: the background grows by that much over the reel (push_in_filter).
-    overlay: (png, frames), a layer laid over the first `frames` frames, faded in with the first
-    screen and out at its end (the question of video.hook); never past the first screen."""
+    intro: (png, frames), a screen of its own for the first `frames` frames, taken from the lead
+    of the first ayah's screen (the question of video.hook): it grows and fades in, fades out,
+    then the first ayah fades in (intro_filter)."""
     fps, total = timeline.fps, timeline.total_frames
     counts = timeline.frame_counts()
+    if intro:
+        n = int(intro[1])
+        if not 0 < n < counts[0]:
+            raise ValueError(f"the intro's {n} frames do not fit in the first screen's {counts[0]}")
+        frames, counts = [intro[0], *frames], [n, counts[0] - n, *counts[1:]]
     cmd = ["ffmpeg", "-v", "error", "-y",
            "-stream_loop", "-1", "-i", str(background),
            "-loop", "1", "-framerate", str(fps), "-i", str(static)]
     for f in frames:
         cmd += ["-loop", "1", "-framerate", str(fps), "-i", str(f)]
     cmd += ["-i", str(audio)]
-    if overlay:
-        cmd += ["-loop", "1", "-framerate", str(fps), "-i", str(overlay[0])]
 
     push = f"{push_in_filter(zoom, total)}," if zoom > 0 else ""
     graph = [
@@ -208,6 +240,10 @@ def compose(background: Path, static: Path, frames: list[Path], timeline: Timeli
     for i, n in enumerate(counts):
         d = n / fps
         f_len = min(fade, d / 4)
+        if intro and i == 0:
+            graph.append(f"[2:v]format=rgba,trim=end_frame={n},setpts=PTS-STARTPTS,"
+                         f"{intro_filter(width, height, n, fps)}[t0]")
+            continue
         graph.append(
             f"[{i + 2}:v]format=rgba,trim=end_frame={n},setpts=PTS-STARTPTS,"
             f"fade=t=in:st=0:d={f_len:.3f}:alpha=1,"
@@ -215,18 +251,7 @@ def compose(background: Path, static: Path, frames: list[Path], timeline: Timeli
         )
     labels = "".join(f"[t{i}]" for i in range(len(counts)))
     graph.append(f"{labels}concat=n={len(counts)}:v=1:a=0[text]")
-    if overlay:
-        n = max(1, min(int(overlay[1]), counts[0]))
-        d = n / fps
-        f_in, f_out = min(fade, counts[0] / fps / 4), min(fade, d / 4)
-        graph.append(
-            f"[{len(frames) + 3}:v]format=rgba,trim=end_frame={n},setpts=PTS-STARTPTS,"
-            f"fade=t=in:st=0:d={f_in:.3f}:alpha=1,"
-            f"fade=t=out:st={d - f_out:.3f}:d={f_out:.3f}:alpha=1[hook]")
-        graph.append("[base][text]overlay=0:0:format=auto[shown]")
-        graph.append("[shown][hook]overlay=0:0:format=auto:eof_action=pass,format=yuv420p[v]")
-    else:
-        graph.append("[base][text]overlay=0:0:format=auto,format=yuv420p[v]")
+    graph.append("[base][text]overlay=0:0:format=auto,format=yuv420p[v]")
 
     cmd += ["-filter_complex", ";".join(graph),
             "-map", "[v]", "-map", f"{len(frames) + 2}:a",

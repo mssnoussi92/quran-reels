@@ -89,28 +89,21 @@ def test_a_text_too_long_is_scaled_down_and_stays_inside(renderer, tmp_path):
 
 
 
-def test_the_question_lands_in_the_room_the_first_frame_keeps(renderer, tmp_path):
-    """video.hook: the first frame keeps the question's room, empty; the layer « hook » draws the
-    question alone, in that room, between the safe margins; the rest of the page stays where it
-    was (the verse does not move when the question fades)."""
+
+def test_the_question_has_a_screen_of_its_own_between_the_safe_margins(renderer, tmp_path):
+    """video.hook: the layer « hook » draws the word large, the question and its English line,
+    centred between the safe margins, nothing of an ayah; a long phrase is scaled down to fit."""
     cfg, r = renderer
-    passage = Passage(93, 1, 11, "الضحى", "Ad-Duhaa")
-    basmala = Ayah(ref=AyahRef(1, 1), text=BASMALA, translation=TRANSLATION)
-    hook = {"before": "«", "word": "سَجَىٰ", "after": "»… تعرف معناها؟",
-            "en": "Do you know what this word means?"}
-    ctx = ayah_context(passage, basmala, basmala=True, first=True, hook=hook)
-    plain, asked = tmp_path / "plain.png", tmp_path / "hook.png"
-    fit = r.render("content", plain, **ctx)
-    assert r.render("hook", asked, **ctx, hook_shown=True) == fit      # the same page
-    page, question = pixels(plain), pixels(asked)
     safe = cfg.video["safe_area"]
-    left, top, right, bottom = drawn_box(question)
-    assert left >= safe["sides"] and right <= 1080 - safe["sides"], (left, right)
-    assert top >= safe["top"], top
-    drawn = page[:, :, 3] > 128
-    assert not drawn[top:bottom + 1, left:right + 1].any()          # its room, left empty
-    assert drawn.sum() > 20_000 and drawn_box(page)[1] > bottom      # the text, under it
-    # Not asked on another frame: the same frame without it has no room kept.
-    again = tmp_path / "again.png"
-    r.render("content", again, **ayah_context(passage, basmala, basmala=True, first=True))
-    assert drawn_box(pixels(again))[1] < drawn_box(page)[1]
+    hook = {"word": "أَثْقَالَهَا", "question": "تعرف معناها؟",
+            "en": "Do you know what this word means?"}
+    for name, word in (("short", hook["word"]), ("long", "لِأَحَدٍ عِندَهُۥ مِن نِّعْمَةٍ تُجْزَىٰٓ")):
+        dest = tmp_path / f"{name}.png"
+        fit = r.render("hook", dest, hook={**hook, "word": word})
+        image = pixels(dest)
+        left, top, right, bottom = drawn_box(image)
+        assert left >= safe["sides"] and right <= 1080 - safe["sides"], (name, left, right)
+        assert top >= safe["top"] and bottom <= 1920 - safe["bottom"], (name, top, bottom, fit)
+        assert abs((left + right) / 2 - 540) < 40                     # centred
+        assert (image[:, :, 3] > 128).sum() > 15_000 and image[0, 0, 3] == 0
+    assert r.render("hook", tmp_path / "x.png", hook=hook) == 1.0     # the short one, full size

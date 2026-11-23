@@ -11,7 +11,8 @@ out/
     caption.txt               deterministic caption with the credits
 
 A morning reel of the daily run may open on a question about one of its words (video.hook,
-hook_for): frames/hook.png is that question alone, laid over the first frame's room for it.
+hook_for): a screen of its own (frames/hook.png, preview/hook.png), the narrator's voice asking it,
+then the first ayah.
 """
 
 from __future__ import annotations
@@ -21,6 +22,7 @@ import re
 import shutil
 import sys
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 
 from quran_reels import __version__
@@ -91,19 +93,25 @@ def platform_hashtags(cfg: Config, passage: Passage) -> dict[str, list[str]]:
     return out
 
 
-def hook_slot(cfg: Config, slot: str) -> bool:
-    """Does a reel of this slot of the daily run open on the question of video.hook?"""
+def _hook_conf(cfg: Config | None) -> dict:
     project = getattr(cfg, "project", None) or {}
-    conf = (project.get("video") or {}).get("hook") or {}
+    return (project.get("video") or {}).get("hook") or {}
+
+
+def hook_slot(cfg: Config | None, slot: str) -> bool:
+    """Does a reel of this slot of the daily run open on the question of video.hook?"""
+    conf = _hook_conf(cfg)
     return bool(conf) and slot in (conf.get("slots") or [])
 
 
-def hook_for(cfg: Config, passage: Passage) -> dict | None:
+def hook_for(cfg: Config, passage: Passage, day: date) -> dict | None:
     """The question on a word of the reel (video.hook, owner's trial of 2026-11-23): the first
-    word explained after the first ayah, so that its answer comes later in the reel, of
-    max_words words at most if there is one; None without such a word (a single ayah) or without
-    video.hook. The texts are the config's, the word the verse's as the gloss shows it."""
-    conf = (cfg.project.get("video") or {}).get("hook") or {}
+    word explained after the first ayah, so that its answer comes later in the reel, of max_words
+    words at most if there is one; None without such a word (a single ayah) or without video.hook.
+    The texts are the config's, the word the verse's as its gloss shows it. The narrator's voice
+    asks one of `voices` (they turn with the day) and never says the word: it is written, then
+    recited (no synthetic voice on the Quran)."""
+    conf = _hook_conf(cfg)
     if not conf or not passage.segments:
         return None
     first = passage.segments[0]
@@ -112,9 +120,13 @@ def hook_for(cfg: Config, passage: Passage) -> dict | None:
         return None
     short = [g for g in later if len(words(g.word)) <= int(conf.get("max_words", 2))]
     g = (short or later)[0]
-    before, _, after = str(conf["ar"]).partition("{word}")
-    return {"word": g.word, "ref": str(g.ref), "before": before, "after": after,
-            "en": str(conf.get("en") or ""), "seconds": float(conf.get("seconds", 3))}
+    voices = [cfg.root / v for v in conf.get("voices") or []]
+    return {"word": g.word, "ref": str(g.ref), "question": str(conf.get("question") or ""),
+            "en": str(conf.get("en") or ""),
+            "voice": voices[day.toordinal() % len(voices)] if voices else None,
+            "at": float(conf.get("voice_at", 0.3)), "after": float(conf.get("voice_after", 0.5)),
+            "line": str(conf.get("voice_line") or ""),
+            "line_short": str(conf.get("voice_line_short") or conf.get("voice_line") or "")}
 
 
 def _recitation(cfg: Config) -> str:
@@ -156,10 +168,11 @@ def surah_line(passage: Passage) -> str:
     return f"سورة {passage.surah_name_ar} · Surah {passage.surah_name_en} ({passage.reference})"
 
 
-def caption(cfg: Config, passage: Passage, limit: int = CAPTION_LIMIT) -> str:
+def caption(cfg: Config, passage: Passage, limit: int = CAPTION_LIMIT, voice: str = "") -> str:
     """Reference, Arabic and translation of each ayah, credits, handle.
 
     Too long for Instagram: the Arabic goes first, then the translation. Credits always stay.
+    voice: the line that says a synthetic voice speaks in the reel (video.hook), after the credits.
     """
     c = cfg.content
     head = [surah_line(passage), ""]
@@ -169,6 +182,7 @@ def caption(cfg: Config, passage: Passage, limit: int = CAPTION_LIMIT) -> str:
         _recitation(cfg),
         f"Translation: {c['translation']['label']}",
         f"Word meanings: {c['glosses']['label']}",
+        *([voice] if voice else []),
         "",
         cfg.video["handle"],
     ]
@@ -204,23 +218,25 @@ def _reference(passage: Passage, label: bool = True) -> str:
 
 
 def social_caption(cfg: Config, passage: Passage, limit: int = CAPTION_LIMIT,
-                   verses: bool = True) -> str:
+                   verses: bool = True, voice: str = "") -> str:
     """Instagram's and TikTok's caption, without hashtags (owner, 2026-11-15: shorter, the Arabic
     kept): series and reference, the Arabic of each ayah (a verse is looked up by its words, and
     both apps search captions), the credits on one line, the handle. No translation: it is in the
     video, as the credits are. Over `limit`: without the Arabic, as Facebook's. `verses` False:
-    never the Arabic (Instagram since 2026-11-21, `platforms.instagram.caption_verses`)."""
+    never the Arabic (Instagram since 2026-11-21, `platforms.instagram.caption_verses`). voice: the
+    line that says a synthetic voice speaks in the reel (video.hook), after the credits."""
     arabic = [passage.basmala.text] if passage.basmala else []
     arabic += [f"{a.text} ﴿{arabic_digits(a.ref.ayah)}﴾" for a in passage.ayahs]
     for body in ("\n".join(arabic) if verses else "", ""):
-        blocks = [_reference(passage), body, " · ".join(_credits(cfg, passage)), cfg.video["handle"]]
+        blocks = [_reference(passage), body, " · ".join(_credits(cfg, passage)), voice,
+                  cfg.video["handle"]]
         text = "\n\n".join(b for b in blocks if b) + "\n"
         if len(text) <= limit:
             break
     return text
 
 
-def facebook_caption(cfg: Config, passage: Passage, tags: list[str]) -> str:
+def facebook_caption(cfg: Config, passage: Passage, tags: list[str], voice: str = "") -> str:
     """Facebook's short caption, hashtags included, at most platforms.facebook.
     max_caption_chars (400: Facebook's quality checklist asks for 10 to 400 characters, and
     flagged the full caption, 2026-11-09). "" when that limit is not set: Facebook then gets
@@ -230,7 +246,8 @@ def facebook_caption(cfg: Config, passage: Passage, tags: list[str]) -> str:
     platforms.facebook.max_hashtags hashtags. Neither the Arabic text nor the translation (the
     owner's choice, 2026-11-09): the ayahs, their translation and the credits are in the video.
     Too long: hashtags go from the end (they are in priority order); the credits always stay.
-    The word meanings are credited when the reel shows some.
+    The word meanings are credited when the reel shows some; voice: the line that says a synthetic
+    voice speaks in the reel (video.hook), kept with the credits.
     """
     conf = (cfg.project.get("platforms") or {}).get("facebook") or {}
     limit = int(conf.get("max_caption_chars") or 0)
@@ -241,8 +258,8 @@ def facebook_caption(cfg: Config, passage: Passage, tags: list[str]) -> str:
     credits = _credits(cfg, passage)
 
     def text(n_tags: int, handle: bool = True, label: bool = True) -> str:
-        blocks = [_reference(passage, label), " · ".join(credits), cfg.video["handle"] if handle else "",
-                  " ".join(tags[:n_tags])]
+        blocks = [_reference(passage, label), " · ".join(credits), voice,
+                  cfg.video["handle"] if handle else "", " ".join(tags[:n_tags])]
         return "\n\n".join(b for b in blocks if b)
 
     for n in range(len(tags), -1, -1):
@@ -343,8 +360,7 @@ def _warn(msg: str) -> None:
 
 
 def _long_ayah(fr: FrameRenderer, src: Sources, passage: Passage, a: Ayah, samples: int,
-               stem: Path, first: bool, hook: dict | None = None
-               ) -> list[tuple[Path, dict, int]] | None:
+               stem: Path, first: bool) -> list[tuple[Path, dict, int]] | None:
     """A long ayah on 2 to MAX_PARTS screens, each readable (render/screens.py): [(png,
     context, samples)], or None when no split reads better than the whole."""
     tokens = words(a.text)
@@ -359,7 +375,7 @@ def _long_ayah(fr: FrameRenderer, src: Sources, passage: Passage, a: Ayah, sampl
         out, fits = [], []
         for i, part in enumerate(parts):
             ctx = part_context(passage, a, part.first, part.end, part.translation,
-                               first=first and i == 0, hook=hook)
+                               first=first and i == 0)
             png = stem.with_name(f"{stem.name}-{i + 1}.png")
             fits.append(fr.render("content", png, **ctx))
             out.append((png, ctx, part.start))
@@ -382,14 +398,15 @@ def _long_ayah(fr: FrameRenderer, src: Sources, passage: Passage, a: Ayah, sampl
 def render_passage(cfg: Config, key: str, label_ar: str = "", label_en: str = "",
                    series_tags: tuple[str, ...] = (), background: str | None = None,
                    glosses: dict | None = None, variants: bool = True,
-                   hook: bool = False) -> RenderResult:
+                   hook_day: date | None = None) -> RenderResult:
     """label_ar / label_en: the series the passage belongs to, on the first frame and caption;
     series_tags: its hashtags; background: an id of config/backgrounds.yaml imposed by the
     owner (on-demand reels), otherwise chosen from what the passage says; glosses: the word
     meanings chosen by the owner (passage.build), otherwise the usual rules; variants: also the
     MP4 of each platform signed with its own name (signatures), the same frames and sound;
-    hook: open on the question of video.hook (hook_for), laid over the first frame for its
-    first seconds (the daily run's slots of hook_slot; its YouTube version is rendered without)."""
+    hook_day: open on the question of video.hook (hook_for), on a screen of its own before the
+    first ayah, its voice the one of that day (the daily run's slots of hook_slot; their YouTube
+    version is rendered without)."""
     src = Sources.from_config(cfg)
     passage = build(cfg, key, src, glosses)
     passage.label_ar, passage.label_en = label_ar, label_en
@@ -412,7 +429,27 @@ def render_passage(cfg: Config, key: str, label_ar: str = "", label_en: str = ""
         a.seconds = n / video.SAMPLE_RATE
         samples.append(n)
         wavs.append(wav)
-    timeline = video.build_timeline(samples, fps=v["fps"], lead=float(v.get("lead_seconds", 0.4)),
+    # The question's screen (video.hook) comes first, its voice in the lead of the first ayah.
+    asked = hook_for(cfg, passage, hook_day) if hook_day else None
+    lead = float(v.get("lead_seconds", 0.4))
+    intro = None
+    if asked:
+        if not asked["voice"] or not asked["voice"].is_file():
+            raise SystemExit(f"video.hook: no voice file ({asked['voice']})")
+        said = audio_dir / "hook-voice.wav"
+        n_said = video.decode(asked["voice"], audio_dir / "hook-raw.wav")
+        target = (v.get("loudness") or {}).get("lufs")
+        if target is not None:
+            video.level(audio_dir / "hook-raw.wav", said, float(target))
+        else:
+            shutil.copyfile(audio_dir / "hook-raw.wav", said)
+        at = round(asked["at"] * video.SAMPLE_RATE)
+        spf = video.SAMPLE_RATE // v["fps"]
+        n_intro = at + n_said + round(asked["after"] * video.SAMPLE_RATE)
+        n_intro = -(-n_intro // spf) * spf                      # whole video frames
+        intro = {"samples": n_intro, "at": at, "wav": said}
+        lead += n_intro / video.SAMPLE_RATE
+    timeline = video.build_timeline(samples, fps=v["fps"], lead=lead,
                                     tail=float(v.get("tail_seconds", 1.2)))
     p = cfg.content["passage"]
     whole = passage.start == 1 and passage.end == src.quran.chapters[passage.surah]["verses_count"]
@@ -423,8 +460,6 @@ def render_passage(cfg: Config, key: str, label_ar: str = "", label_en: str = ""
               f"{p['min_seconds']}–{p['max_seconds']} s (rendered anyway)")
 
     frames, screens, shown = [], [], {}
-    asked = hook_for(cfg, passage) if hook else None
-    first_ctx: dict | None = None      # the first screen's page: the question is laid over it
     signed = signatures(cfg) if variants else {}
     with FrameRenderer(cfg) as fr:
         static = frames_dir / "static.png"
@@ -433,22 +468,22 @@ def render_passage(cfg: Config, key: str, label_ar: str = "", label_en: str = ""
         for platform, sig in signed.items():
             statics[platform] = frames_dir / f"static.{platform}.png"
             fr.render("static", statics[platform], handle=sig)
+        if intro:
+            intro["png"] = frames_dir / "hook.png"
+            fr.render("hook", intro["png"], hook=asked)
+            fr.render("hookpreview", work / "preview" / "hook.png", hook=asked)
         for a, n in zip(passage.segments, samples, strict=True):
             first = a is passage.segments[0]
-            ctx = ayah_context(passage, a, basmala=a is passage.basmala, first=first,
-                               hook=asked)
+            ctx = ayah_context(passage, a, basmala=a is passage.basmala, first=first)
             png = frames_dir / f"{name(a)}.png"
             fit = fr.render("content", png, **ctx)
             if fit < screens_mod.MIN_FIT and a is not passage.basmala:
-                parts = _long_ayah(fr, src, passage, a, n, frames_dir / name(a), first, asked)
+                parts = _long_ayah(fr, src, passage, a, n, frames_dir / name(a), first)
                 if parts:
                     at = 0
                     for i, (png_i, ctx_i, n_i) in enumerate(parts):
-                        # The first screen's preview shows its question, as its first seconds do.
                         fr.render("preview", work / "preview" / f"{name(a)}-{i + 1}.png",
-                                  **ctx_i, hook_shown=not frames)
-                        if not frames:
-                            first_ctx = ctx_i
+                                  **ctx_i)
                         frames.append(png_i)
                         screens.append(n_i)
                         shown.setdefault(str(a.ref), []).append({
@@ -458,63 +493,55 @@ def render_passage(cfg: Config, key: str, label_ar: str = "", label_en: str = ""
                         at += n_i
                     continue
                 _warn(f"{name(a)}: text scaled to {fit:.0%} to fit the safe area")
-            fr.render("preview", work / "preview" / f"{name(a)}.png", **ctx,
-                      hook_shown=not frames)
-            if not frames:
-                first_ctx = ctx
+            fr.render("preview", work / "preview" / f"{name(a)}.png", **ctx)
             frames.append(png)
             screens.append(n)
-        hook_png = None
-        if asked and first_ctx is not None:
-            hook_png = frames_dir / "hook.png"
-            fr.render("hook", hook_png, **first_ctx, hook_shown=True)
     if len(screens) != len(samples):
-        timeline = video.build_timeline(samples, fps=v["fps"],
-                                        lead=float(v.get("lead_seconds", 0.4)),
+        timeline = video.build_timeline(samples, fps=v["fps"], lead=lead,
                                         tail=float(v.get("tail_seconds", 1.2)), screens=screens)
 
     bg_path, bg_info = backgrounds.pick(cfg, passage, force=background)
     if zoom := backgrounds.push_in(cfg, bg_info, timeline.seconds):
         bg_info["push_in"] = zoom
-    audio = video.write_audio(wavs, timeline, audio_dir / "passage.wav")
+    audio = video.write_audio(wavs, timeline, audio_dir / "passage.wav",
+                              intro=(intro["wav"], intro["at"]) if intro else None)
     audio, levelled = level_audio(cfg, audio, passage.key)    # every version below plays it
     out = cfg.out / f"{passage.slug}.mp4"
-    overlay = None
-    if hook_png:
-        held = min(round(asked["seconds"] * v["fps"]), timeline.frame_counts()[0])
-        overlay = (hook_png, held)
-        asked["shown_seconds"] = round(held / v["fps"], 2)
     for platform in [None, *signed]:
         video.compose(bg_path, statics[platform] if platform else static, frames, timeline,
                       audio, work / f"{platform}.mp4" if platform else out, width=v["width"],
                       height=v["height"], fade=float(v.get("fade_seconds", 0.25)), zoom=zoom,
-                      overlay=overlay)
+                      intro=(intro["png"], intro["samples"] // (video.SAMPLE_RATE // v["fps"]))
+                      if intro else None)
 
     tags = hashtags(cfg, passage)
     record = manifest(cfg, src, passage, timeline, bg_info, shown, levelled)
-    if overlay:                 # the question: its texts, its word and where the answer comes
-        record["hook"] = {"text": asked["before"] + asked["word"] + asked["after"],
-                          "en": asked["en"], "word": asked["word"], "answer": asked["ref"],
-                          "seconds": asked["shown_seconds"]}
+    voice = ""
+    if intro:                   # the question: its texts, its word, its voice, where the answer is
+        record["hook"] = {"word": asked["word"], "question": asked["question"], "en": asked["en"],
+                          "answer": asked["ref"], "voice": asked["voice"].name,
+                          "seconds": round(intro["samples"] / video.SAMPLE_RATE, 3)}
+        voice = asked["line"]
     if by_platform := platform_hashtags(cfg, passage):     # publish.load_reel: Reel.for_platform
         record["platform_hashtags"] = by_platform
     room = CAPTION_LIMIT - len(" ".join(tags)) - 2       # all of them, even on Instagram
     # What Facebook gets, and Instagram and TikTok (publish.load_reel); caption.txt keeps it all
     # (YouTube, by hand).
-    record["captions"] = {"social": social_caption(cfg, passage, room)}
+    record["captions"] = {"social": social_caption(cfg, passage, room, voice=voice)}
     # Instagram without the verses (the owner, 2026-11-21: « Instagram coupe parfois la couverture à cause
     # des mots dans les versets »); TikTok keeps them.
     insta = (cfg.project.get("platforms") or {}).get("instagram") or {}
     if insta.get("caption_verses") is False:
-        record["captions"]["instagram"] = social_caption(cfg, passage, room, verses=False)
-    if short := facebook_caption(cfg, passage, tags):
+        record["captions"]["instagram"] = social_caption(cfg, passage, room, verses=False,
+                                                         voice=voice)
+    if short := facebook_caption(cfg, passage, tags, voice=asked["line_short"] if intro else ""):
         record["captions"]["facebook"] = short
     if signed:                  # publish.load_reel: their MP4 and caption
         record["variants"] = {p: {"video": f"{p}.mp4", "signature": sig,
                                   "instead_of": v["handle"]} for p, sig in signed.items()}
     (work / "manifest.json").write_text(json.dumps(record, ensure_ascii=False, indent=2),
                                         encoding="utf-8")
-    reel_text = Reel(passage, out, caption(cfg, passage, room), hashtags=tags).text()
+    reel_text = Reel(passage, out, caption(cfg, passage, room, voice=voice), hashtags=tags).text()
     (work / "caption.txt").write_text(reel_text, encoding="utf-8")
     shutil.rmtree(audio_dir)
     return RenderResult(passage=passage, video=out, workdir=work, seconds=timeline.seconds)

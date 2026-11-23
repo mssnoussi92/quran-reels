@@ -280,10 +280,13 @@ pas au même public selon la plateforme.
   les dix premiers. Ni la vidéo, ni la légende, ni le lieu ne changent le public : sans doute la région attachée au compte.
   Ce public aime (78 j'aime pour 673 vues sur 101:1-11) mais part au bout de 3 s (2,9 à 3,6 s en moyenne).
 
-**L'essai** (choix du propriétaire, 2026-11-23 : « question du mot + hashtags arabes ») : pendant les 3 premières secondes
-des reels du matin, une question sur un mot du reel, en arabe et en anglais (`video.hook` de project.yaml, docs/rendu.md) :
-le premier mot expliqué après le premier verset, dont la réponse arrive dans le reel ; la récitation commence comme avant.
-Facebook, Instagram et TikTok ; **YouTube sans** (sa version est refaite sans la question) : il sert de témoin. Hashtags
+**L'essai** (choix du propriétaire, 2026-11-23 : « question du mot + hashtags arabes », puis, sur la maquette, « comme
+dans la bande-annonce : le mot avec la narration dans un écran séparé, ensuite la récitation », trois phrases de voix
+validées, une requête) : les reels du matin s'ouvrent sur un écran à part d'environ 3 s, le mot en grand, « تعرف معناها؟ »
+et la ligne anglaise, la voix du narrateur qui pose la question sans dire le mot, puis le premier verset en fondu
+(`video.hook` de project.yaml, docs/rendu.md) ; le mot est le premier expliqué après le premier verset, sa réponse arrive
+dans le reel ; la récitation commence donc environ 3 s plus tard, et les légendes disent la voix de synthèse.
+Facebook, Instagram et TikTok ; **YouTube sans** (sa version est refaite sans l'écran) : il sert de témoin. Hashtags
 arabes en premier sur Instagram et TikTok (`platforms.<nom>.hashtags: arabic_first`). Mesure : les trois lignes de
 `trials` (config/insights.yaml).
 

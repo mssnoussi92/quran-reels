@@ -557,7 +557,8 @@ def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
             try:
                 video = render_passage(pcfg, p.item.key, p.item.label_ar, p.item.label_en,
                                        p.item.series.hashtags,
-                                       **({"hook": True} if hook_slot(cfg, p.slot.name) else {})
+                                       **({"hook_day": p.day} if hook_slot(cfg, p.slot.name)
+                                          else {})
                                        ).video
                 break
             except CutError as e:

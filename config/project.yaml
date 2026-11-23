@@ -184,21 +184,32 @@ video:
   loudness:
     lufs: -16                         # integrated loudness of the whole reel
     limit: 0.8                        # limiter ceiling, share of full scale: −1.9 dBFS
-  # The question on a word of the reel, over its first frame (owner's trial, 2026-11-23,
-  # docs/insights.md « La question du mot »): the channel's trailer, which opens on « «أبابيل»…
-  # تعرف معناها؟ », had 8 shares and 6 saves on Instagram in 10 h, where no other post had more
-  # than 1 and 3 at 48 h. The word is the first one explained after the first ayah (its answer
-  # comes later in the reel), of `max_words` words at most if there is one; no such word (a
-  # single ayah): no question. Shown `seconds` at most, never past the first screen; the
-  # recitation starts as before. Only the reels of `slots`, rendered by the daily run, and not on
-  # the platforms whose `hook` is false (YouTube, the control). The texts are fixed, the word comes
-  # from the verse: nothing is generated. Absent: no question.
+  # The question on a word of the reel (owner's trial, 2026-11-23, docs/insights.md « La question
+  # du mot »), as the channel's trailer opens (« «أبابيل»… تعرف معناها؟ »: 8 shares and 6 saves on
+  # Instagram in 10 h, where no other post had more than 1 and 3 at 48 h): a screen of its own
+  # before the first ayah, the word large, `question` and `en` under it, growing as it comes; the
+  # narrator's voice (quran-themes-demo, voice D, take D-trial-reel-hook: one request, the three
+  # lines validated by the owner on 2026-11-23) asks one of `voices`, turning with the day, and
+  # never says the word: it is written, then recited (no synthetic voice on the Quran). Then the
+  # first ayah fades in. The word is the first one explained after the first ayah (its answer
+  # comes later in the reel), of `max_words` words at most if there is one; none (a single
+  # ayah): no question. Only the reels of `slots`, rendered by the daily run, and not on the
+  # platforms whose `hook` is false (YouTube, the control). The captions of these reels say the
+  # voice is synthetic (`voice_line`; Facebook, 400 characters: `voice_line_short`), as those of
+  # the theme videos. Absent: no question.
   hook:
     slots: [morning]
-    seconds: 3
     max_words: 2
-    ar: "«{word}»… تعرف معناها؟"
+    question: "تعرف معناها؟"
     en: "Do you know what this word means?"
+    voices:                           # « الكلمة دي… تعرف معناها؟ », « تعرف معنى الكلمة دي؟ », « الكلمة دي… معناها إيه؟ »
+      - assets/hook/voice-1.flac
+      - assets/hook/voice-2.flac
+      - assets/hook/voice-3.flac
+    voice_at: 0.35                    # seconds of the screen before the voice
+    voice_after: 0.55                 # and after it, before the first ayah's screen
+    voice_line: "🎙️ صوت مولَّد بالذكاء الاصطناعي · AI-generated voice"
+    voice_line_short: "🎙️ صوت بالذكاء الاصطناعي · AI voice"
 
 platforms:
   # A platform that did not get the reel at all (Instagram refusing the upload, TikTok's upload

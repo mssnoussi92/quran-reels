@@ -433,9 +433,11 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
 ## Rendu (détails : docs/rendu.md)
 
 - **La question du mot** (essai choisi par le propriétaire le 2026-11-23, à partir du 24 ; docs/insights.md) : les reels
-  du matin s'ouvrent, 3 secondes, sur « «<mot>»… تعرف معناها؟ » et « Do you know what this word means? » (le premier
-  mot expliqué après le premier verset ; `video.hook`), sur Facebook, Instagram et TikTok ; **YouTube sans** (témoin :
-  sa version est refaite sans la question, vérifiée par Meta). Né des captures du 2026-11-22 : sur Instagram la langue
+  du matin s'ouvrent, comme la bande-annonce, sur un écran à part d'environ 3 s : le mot en grand, « تعرف معناها؟ » et
+  « Do you know what this word means? », la voix du narrateur qui pose la question **sans jamais dire le mot** (trois
+  phrases validées par lui, une requête, `assets/hook/`, qui tournent avec le jour), puis le premier verset (le premier
+  mot expliqué après le premier verset ; `video.hook`) ; légendes avec la ligne de la voix IA ; sur Facebook, Instagram et
+  TikTok ; **YouTube sans** (témoin : sa version est refaite sans l'écran, vérifiée par Meta). Né des captures du 2026-11-22 : sur Instagram la langue
   parlée décide du public (la récitation va en Iran, en Turquie, en Inde ; la bande-annonce, ouverte sur «أبابيل»… تعرف
   معناها؟, aux pays arabes, 8 partages en 10 h) ; sur TikTok la région du compte (Europe), quoi qu'on fasse.
 - Template `render/templates/reel.html.j2` (maquette validée `docs/mockup/apercu-reel-93-2.png`),
