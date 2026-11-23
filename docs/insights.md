@@ -290,13 +290,24 @@ Facebook, Instagram et TikTok ; **YouTube sans** (sa version est refaite sans l'
 arabes en premier sur Instagram et TikTok (`platforms.<nom>.hashtags: arabic_first`). Mesure : les trois lignes de
 `trials` (config/insights.yaml).
 
+**Et sur TikTok, une semaine de légende tout en arabe** (idée du propriétaire, 2026-11-23 : « tester si les pays de
+l'audience changent » ; son choix : « dès mardi, en même temps » que l'écran du mot) : du 24 au 30 novembre, la légende
+TikTok des reels est en arabe seulement (la sourate et sa référence, les versets, les crédits en arabe, la ligne de la
+voix en arabe, seulement des hashtags arabes : `platforms.tiktok.arabic_only`, `render.arabic_caption`), puis on revient
+à l'arabe d'abord. Avis de la session, donné avant : les pays ne changeront sans doute pas (la bande-annonce avait déjà
+voix, question et légende arabes et le lieu « Cairo »), et les deux changements du même jour ne se sépareront pas ; mais
+l'essai ne coûte rien et répond net. Mesure : l'onglet « Spectateurs → Emplacements » de 2 ou 3 reels de la semaine,
+contre 101:1-11 (Royaume-Uni 47 %).
+
 **À la revue du 29 novembre** (premier regard, 5 ou 6 reels) puis **du 6 décembre** (la semaine entière) :
 
 - Instagram : partages et enregistrements à 48 h, contre les reels d'avant ; et les **pays** sur 2 ou 3 reels (captures
   « Audience ») : la question écrite suffit-elle à Instagram pour les montrer aux pays arabes ? Le même jour, le compte des
   reels Instagram sous 10 vues (légende sans versets, ci-dessus) : les deux changements se recouvrent sur Instagram à
   partir du 24 ; ils ne mesurent pas la même chose (montrés ou non ; à qui et avec quels partages).
-- TikTok : la durée moyenne regardée et les vues complètes (captures), contre 2,9 à 3,6 s.
+- TikTok : la durée moyenne regardée et les vues complètes (captures), contre 2,9 à 3,6 s ; et les pays de la semaine
+  de la légende en arabe (captures « Spectateurs ») : si les pays arabes y entrent, la garder ; sinon, le contenu ne
+  choisit pas le public de TikTok, et on adapte TikTok au public européen qu'il donne.
 - Facebook contre YouTube (sans la question) : les vues à 48 h des deux, pour ne pas prendre une semaine creuse pour un
   effet.
 - **La question à poser au propriétaire** (choix) : garder la question, la changer (la taille, le mot choisi), ou revenir

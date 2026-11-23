@@ -132,6 +132,15 @@ trials:                    # « Essais en cours »; with `platforms`, a before /
     platforms: [tiktok]
     kinds: [Reels]
     metric: avg_watch
+  - what: "Légende TikTok tout en arabe (une semaine)"
+    since: 2026-11-24
+    days: 7
+    where: "TikTok, les reels du 24 au 30 novembre (platforms.tiktok.arabic_only)"
+    judge: "les pays des spectateurs (captures « Spectateurs → Emplacements » de 2 ou 3 reels) contre le Royaume-Uni
+      à 47 % de 101:1-11 ; l'écran du mot part le même jour (choix du propriétaire) : la voix arabe seule n'avait pas
+      changé les pays de la bande-annonce"
+    platforms: [tiktok]
+    kinds: [Reels]
 
 missing:                   # « Données manquantes »: what the page lacks and how it comes; `look`
                            # finds the last manual entry that brought it (none: not done yet)

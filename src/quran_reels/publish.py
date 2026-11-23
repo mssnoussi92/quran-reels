@@ -135,7 +135,8 @@ def load_reel(video: Path) -> Reel:
     for name, v in (manifest.get("variants") or {}).items():
         mp4 = work / v["video"]
         if mp4.is_file():           # missing (an older artifact): the platform gets the main one
-            own = social if name in SOCIAL and social else text
+            # Its own caption when the render wrote one (Arabic only: render.arabic_caption).
+            own = captions.get(name) or (social if name in SOCIAL and social else text)
             variants[name] = (mp4, with_signature(own, v["instead_of"], v["signature"]))
     return Reel(passage=passage, video=video, caption=text, hashtags=list(tags),
                 cover=work / "preview" / f"{surah:03d}{int(cover['ref'].split(':')[1]):03d}.png",

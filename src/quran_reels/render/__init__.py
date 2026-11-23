@@ -93,6 +93,48 @@ def platform_hashtags(cfg: Config, passage: Passage) -> dict[str, list[str]]:
     return out
 
 
+def _day(value: object) -> date | None:
+    if value in (None, ""):
+        return None
+    return value if isinstance(value, date) else date.fromisoformat(str(value))
+
+
+def arabic_platforms(cfg: Config | None, day: date) -> list[str]:
+    """The platforms whose caption is in Arabic only on `day` (platforms.<name>.arabic_only:
+    {from, until}; the owner's TikTok trial of 24 to 30 November 2026)."""
+    project = getattr(cfg, "project", None) or {}
+    out = []
+    for name, conf in (project.get("platforms") or {}).items():
+        period = conf.get("arabic_only") if isinstance(conf, dict) else None
+        if isinstance(period, dict):
+            start, end = _day(period.get("from")), _day(period.get("until"))
+            if (start is None or day >= start) and (end is None or day <= end):
+                out.append(name)
+    return out
+
+
+def arabic_caption(cfg: Config, passage: Passage, limit: int = CAPTION_LIMIT, voice: str = "") -> str:
+    """A caption in Arabic only, without hashtags (the owner's TikTok trial, 2026-11-23): the
+    series, the surah and its reference, the Arabic of each ayah, the credits in Arabic (the
+    translation keeps its name: the English on screen is Sahih International's), the voice line,
+    the handle. Over `limit`: without the ayahs."""
+    c = cfg.content
+    head = [passage.label_ar] if passage.label_ar else []
+    head.append(f"سورة {passage.surah_name_ar} ({passage.reference})")
+    r = c["reciter"]
+    credits = [f"تلاوة: {r.get('label_ar') or r['label']}", f"الترجمة: {c['translation']['label']}"]
+    if any(a.glosses for a in passage.ayahs):
+        credits.append(f"معاني الكلمات: {c['glosses']['label']}")
+    arabic = [passage.basmala.text] if passage.basmala else []
+    arabic += [f"{a.text} ﴿{arabic_digits(a.ref.ayah)}﴾" for a in passage.ayahs]
+    for body in ("\n".join(arabic), ""):
+        blocks = ["\n".join(head), body, " · ".join(credits), voice, cfg.video["handle"]]
+        text = "\n\n".join(b for b in blocks if b) + "\n"
+        if len(text) <= limit:
+            break
+    return text
+
+
 def _hook_conf(cfg: Config | None) -> dict:
     project = getattr(cfg, "project", None) or {}
     return (project.get("video") or {}).get("hook") or {}
@@ -104,10 +146,8 @@ def hook_slot(cfg: Config | None, slot: str, day: date | None = None) -> bool:
     conf = _hook_conf(cfg)
     if not conf or slot not in (conf.get("slots") or []):
         return False
-    start = conf.get("from")
-    if start and day is not None:
-        return day >= (start if isinstance(start, date) else date.fromisoformat(str(start)))
-    return True
+    start = _day(conf.get("from"))
+    return start is None or day is None or day >= start
 
 
 def hook_for(cfg: Config, passage: Passage, day: date) -> dict | None:
@@ -132,6 +172,7 @@ def hook_for(cfg: Config, passage: Passage, day: date) -> dict | None:
             "voice": voices[day.toordinal() % len(voices)] if voices else None,
             "at": float(conf.get("voice_at", 0.3)), "after": float(conf.get("voice_after", 0.5)),
             "line": str(conf.get("voice_line") or ""),
+            "line_ar": str(conf.get("voice_line_ar") or ""),
             "line_short": str(conf.get("voice_line_short") or conf.get("voice_line") or "")}
 
 
@@ -404,7 +445,7 @@ def _long_ayah(fr: FrameRenderer, src: Sources, passage: Passage, a: Ayah, sampl
 def render_passage(cfg: Config, key: str, label_ar: str = "", label_en: str = "",
                    series_tags: tuple[str, ...] = (), background: str | None = None,
                    glosses: dict | None = None, variants: bool = True,
-                   hook_day: date | None = None) -> RenderResult:
+                   hook_day: date | None = None, arabic_only: tuple[str, ...] = ()) -> RenderResult:
     """label_ar / label_en: the series the passage belongs to, on the first frame and caption;
     series_tags: its hashtags; background: an id of config/backgrounds.yaml imposed by the
     owner (on-demand reels), otherwise chosen from what the passage says; glosses: the word
@@ -412,7 +453,8 @@ def render_passage(cfg: Config, key: str, label_ar: str = "", label_en: str = ""
     MP4 of each platform signed with its own name (signatures), the same frames and sound;
     hook_day: open on the question of video.hook (hook_for), on a screen of its own before the
     first ayah, its voice the one of that day (the daily run's slots of hook_slot; their YouTube
-    version is rendered without)."""
+    version is rendered without); arabic_only: the platforms whose caption is in Arabic only
+    (arabic_platforms: captions.<name> and platform_hashtags.<name> of the manifest)."""
     src = Sources.from_config(cfg)
     passage = build(cfg, key, src, glosses)
     passage.label_ar, passage.label_en = label_ar, label_en
@@ -528,7 +570,10 @@ def render_passage(cfg: Config, key: str, label_ar: str = "", label_en: str = ""
                           "answer": asked["ref"], "voice": asked["voice"].name,
                           "seconds": round(intro["samples"] / video.SAMPLE_RATE, 3)}
         voice = asked["line"]
-    if by_platform := platform_hashtags(cfg, passage):     # publish.load_reel: Reel.for_platform
+    by_platform = platform_hashtags(cfg, passage)
+    for name in arabic_only:            # their own caption and hashtags: Arabic only
+        by_platform[name] = [t for t in arabic_first(cfg, passage) if _ARABIC.search(t)]
+    if by_platform:                     # publish.load_reel: Reel.for_platform
         record["platform_hashtags"] = by_platform
     room = CAPTION_LIMIT - len(" ".join(tags)) - 2       # all of them, even on Instagram
     # What Facebook gets, and Instagram and TikTok (publish.load_reel); caption.txt keeps it all
@@ -540,6 +585,10 @@ def render_passage(cfg: Config, key: str, label_ar: str = "", label_en: str = ""
     if insta.get("caption_verses") is False:
         record["captions"]["instagram"] = social_caption(cfg, passage, room, verses=False,
                                                          voice=voice)
+    for name in arabic_only:
+        record["captions"][name] = arabic_caption(
+            cfg, passage, CAPTION_LIMIT - len(" ".join(by_platform[name])) - 2,
+            voice=asked["line_ar"] if intro else "")
     if short := facebook_caption(cfg, passage, tags, voice=asked["line_short"] if intro else ""):
         record["captions"]["facebook"] = short
     if signed:                  # publish.load_reel: their MP4 and caption
