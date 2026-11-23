@@ -184,6 +184,21 @@ video:
   loudness:
     lufs: -16                         # integrated loudness of the whole reel
     limit: 0.8                        # limiter ceiling, share of full scale: −1.9 dBFS
+  # The question on a word of the reel, over its first frame (owner's trial, 2026-11-23,
+  # docs/insights.md « La question du mot »): the channel's trailer, which opens on « «أبابيل»…
+  # تعرف معناها؟ », had 8 shares and 6 saves on Instagram in 10 h, where no other post had more
+  # than 1 and 3 at 48 h. The word is the first one explained after the first ayah (its answer
+  # comes later in the reel), of `max_words` words at most if there is one; no such word (a
+  # single ayah): no question. Shown `seconds` at most, never past the first screen; the
+  # recitation starts as before. Only the reels of `slots`, rendered by the daily run, and not on
+  # the platforms whose `hook` is false (YouTube, the control). The texts are fixed, the word comes
+  # from the verse: nothing is generated. Absent: no question.
+  hook:
+    slots: [morning]
+    seconds: 3
+    max_words: 2
+    ar: "«{word}»… تعرف معناها؟"
+    en: "Do you know what this word means?"
 
 platforms:
   # A platform that did not get the reel at all (Instagram refusing the upload, TikTok's upload
@@ -202,12 +217,17 @@ platforms:
   # quality checklist asks for 10 to 400 characters (6:17 flagged, 2026-11-09). Neither Arabic
   # nor translation (owner's choice); too long: hashtags from the end. Unset: the full caption.
   facebook:  { enabled: true,  mode: auto, max_hashtags: 8, max_caption_chars: 400 }
+  # `hashtags: arabic_first` (owner's trial, 2026-11-23, with video.hook): the Arabic hashtags
+  # first among the 5 kept (render.hashtags_for), « #القرآن_الكريم #سورة_… #جزء_عم #QuranWordsDaily
+  # #Quran » instead of « #QuranWordsDaily #Quran #JuzAmma #Surah… #سورة_… ».
   instagram: { enabled: true,  mode: auto, max_hashtags: 5,    # Instagram's cap since 12/2025
-               caption_verses: false }   # owner, 2026-11-21: its caption without the Arabic of the ayahs (TikTok keeps it)
+               caption_verses: false,    # owner, 2026-11-21: its caption without the Arabic of the ayahs (TikTok keeps it)
+               hashtags: arabic_first }
   tiktok:
     enabled: true                     # tiktok-auth saved TIKTOK_REFRESH_TOKEN (2026-11-04)
     mode: draft                       # inbox upload, posted by hand from the TikTok app
     max_hashtags: 5                   # TikTok accepts 5 (seen by the owner, 2026-11-05)
+    hashtags: arabic_first            # owner's trial, 2026-11-23 (see instagram)
     # Its own signature (render.signatures): on TikTok, @quran_words_daily is someone else's
     # empty account (2026-11-09), so TikTok gets the reel with this name on every frame and at
     # the end of its caption; the other platforms keep video.handle.
@@ -216,6 +236,11 @@ platforms:
   youtube:
     enabled: false                   # not one of publish.py's platforms: see `upload` below
     mode: manual                     # on demand and theme videos: uploaded by hand
+    # Without the question of video.hook (owner's trial, 2026-11-23): YouTube, where the reels
+    # already reach Arabic speakers (85 % of the views in the median), is the control. A reel
+    # with the question gets its YouTube version rendered again without it, even by its own
+    # reciter, and that file goes through Meta's check (rule 6), as any YouTube version.
+    hook: false
     # The calendar's Short uploaded by the daily run itself (owner's choice, 2026-11-21: YouTube
     # no longer locks the API's uploads as private since 2026-11-02, Data API revision history;
     # 100 uploads a day). Only once the owner has signed in for it (YOUTUBE_UPLOAD_REFRESH_TOKEN:

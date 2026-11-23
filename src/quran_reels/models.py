@@ -136,19 +136,26 @@ class Reel:
     instagram: str = ""              # Instagram's own when it differs (no verses, 2026-11-21)
     # platforms signed with their own name (render.signatures): {"tiktok": (mp4, caption)}
     variants: dict[str, tuple[Path, str]] = field(default_factory=dict)
+    # platforms with their hashtags in their own order (render.platform_hashtags: the Arabic
+    # first on Instagram and TikTok, owner's trial of 2026-11-23): {"instagram": [...]}
+    platform_hashtags: dict[str, list[str]] = field(default_factory=dict)
 
     def for_platform(self, platform: str) -> Reel:
         """The reel a platform gets: its own MP4 and caption when it has a variant (TikTok,
         signed with its own name); Instagram and TikTok their short caption (`social`), Instagram
-        its own when the render made one (`instagram`: without the verses, 2026-11-21)."""
-        if platform in self.variants:
-            video, caption = self.variants[platform]
-            return replace(self, video=video, caption=caption, variants={}, social="")
-        if platform == "instagram" and self.instagram:
-            return replace(self, caption=self.instagram, variants={}, social="", instagram="")
-        if platform in SOCIAL and self.social:
-            return replace(self, caption=self.social, variants={}, social="")
-        return self
+        its own when the render made one (`instagram`: without the verses, 2026-11-21); its own
+        order of hashtags when it has one (platform_hashtags)."""
+        reel = self
+        if tags := self.platform_hashtags.get(platform):
+            reel = replace(self, hashtags=list(tags), platform_hashtags={})
+        if platform in reel.variants:
+            video, caption = reel.variants[platform]
+            return replace(reel, video=video, caption=caption, variants={}, social="")
+        if platform == "instagram" and reel.instagram:
+            return replace(reel, caption=reel.instagram, variants={}, social="", instagram="")
+        if platform in SOCIAL and reel.social:
+            return replace(reel, caption=reel.social, variants={}, social="")
+        return reel
 
     def text(self, max_hashtags: int | None = None) -> str:
         """The caption with the first max_hashtags hashtags (all if None) on a last line."""

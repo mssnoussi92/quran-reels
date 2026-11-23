@@ -177,7 +177,8 @@ def _youtube(item: dict) -> list[str]:
     where = (f"[ce MP4]({files['youtube_mp4']}), récitée par {y['label']}"
              if files.get("youtube_mp4") else
              f"`{y['video']}`, récitée par {y['label']}, dans l'artefact « reel » du run")
-    reason = (f"sur YouTube, toujours {y['label']}" if y.get("always") else
+    reason = ("sur YouTube, sans la question du début : l'essai la laisse de côté" if y.get("plain")
+              else f"sur YouTube, toujours {y['label']}" if y.get("always") else
               f"{y['instead_of']} y est revendiqué par Content ID")
     return [*note, "", f"**YouTube : pas cette vidéo** ({reason}) mais {where}. Sa légende :",
             "", "```text", y["caption"].strip(), "```"]

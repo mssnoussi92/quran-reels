@@ -34,6 +34,9 @@ def main(argv: list[str] | None = None) -> int:
 
     render = sub.add_parser("render", help="build the MP4 for a passage or a short surah")
     render.add_argument("passage", help="e.g. 2:1-5, or 93 for a whole surah that fits")
+    render.add_argument("--hook", action="store_true",
+                        help="open on the question of video.hook, as a morning reel of the run")
+    render.add_argument("--reciter", help="this reciter instead of the rotation's choice")
 
     passages = sub.add_parser("passages", help="split a surah into passages of about a minute")
     passages.add_argument("surah", type=int)
@@ -403,7 +406,13 @@ def main(argv: list[str] | None = None) -> int:
         from quran_reels.selector.plan import resolve
 
         key = resolve(cfg, args.passage)
-        print(render_passage(_reciter_for(cfg, key), key).video)
+        if args.reciter:
+            from quran_reels.reciters import with_reciter
+
+            rcfg = with_reciter(cfg, args.reciter)
+        else:
+            rcfg = _reciter_for(cfg, key)
+        print(render_passage(rcfg, key, hook=args.hook).video)
         return 0
 
     if args.command == "meta-check":

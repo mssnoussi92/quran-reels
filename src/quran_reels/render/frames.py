@@ -27,11 +27,13 @@ def base_context(cfg: Config) -> dict[str, Any]:
 
 
 def ayah_context(passage: Passage, ayah: Ayah, basmala: bool = False,
-                 first: bool = False) -> dict[str, Any]:
+                 first: bool = False, hook: dict | None = None) -> dict[str, Any]:
     """basmala: the opening frame, surah name only, no reference or ayah number.
-    first: the video's first frame, which also names the series (passage.label_ar)."""
+    first: the video's first frame, which also names the series (passage.label_ar) and keeps
+    the room of the question on a word (hook: render.hook_for), shown by the layer « hook »."""
     highlighted = {p for g in ayah.glosses for p in g.positions}
     return {
+        "hook": hook if first else None,
         "series": passage.label_ar if first else "",
         "surah_name_ar": f"سورة {passage.surah_name_ar}",
         "ref": "" if basmala else str(ayah.ref),
@@ -43,10 +45,11 @@ def ayah_context(passage: Passage, ayah: Ayah, basmala: bool = False,
 
 
 def part_context(passage: Passage, ayah: Ayah, first_token: int, end_token: int,
-                 translation: str, first: bool = False) -> dict[str, Any]:
+                 translation: str, first: bool = False, hook: dict | None = None
+                 ) -> dict[str, Any]:
     """One screen of a long ayah (render/screens.py): its words, their translation, the glosses
     of its words; the ayah number on the last screen only."""
-    ctx = ayah_context(passage, ayah, first=first)
+    ctx = ayah_context(passage, ayah, first=first, hook=hook)
     ctx["tokens"] = ctx["tokens"][first_token:end_token]
     if end_token < len(words(ayah.text)):
         ctx["ayah_number"] = ""

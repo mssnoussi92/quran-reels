@@ -87,3 +87,30 @@ def test_a_text_too_long_is_scaled_down_and_stays_inside(renderer, tmp_path):
     _, top, _, bottom = drawn_box(image)
     assert top >= safe["top"] and bottom <= 1920 - safe["bottom"], (top, bottom, fit)
 
+
+
+def test_the_question_lands_in_the_room_the_first_frame_keeps(renderer, tmp_path):
+    """video.hook: the first frame keeps the question's room, empty; the layer « hook » draws the
+    question alone, in that room, between the safe margins; the rest of the page stays where it
+    was (the verse does not move when the question fades)."""
+    cfg, r = renderer
+    passage = Passage(93, 1, 11, "الضحى", "Ad-Duhaa")
+    basmala = Ayah(ref=AyahRef(1, 1), text=BASMALA, translation=TRANSLATION)
+    hook = {"before": "«", "word": "سَجَىٰ", "after": "»… تعرف معناها؟",
+            "en": "Do you know what this word means?"}
+    ctx = ayah_context(passage, basmala, basmala=True, first=True, hook=hook)
+    plain, asked = tmp_path / "plain.png", tmp_path / "hook.png"
+    fit = r.render("content", plain, **ctx)
+    assert r.render("hook", asked, **ctx, hook_shown=True) == fit      # the same page
+    page, question = pixels(plain), pixels(asked)
+    safe = cfg.video["safe_area"]
+    left, top, right, bottom = drawn_box(question)
+    assert left >= safe["sides"] and right <= 1080 - safe["sides"], (left, right)
+    assert top >= safe["top"], top
+    drawn = page[:, :, 3] > 128
+    assert not drawn[top:bottom + 1, left:right + 1].any()          # its room, left empty
+    assert drawn.sum() > 20_000 and drawn_box(page)[1] > bottom      # the text, under it
+    # Not asked on another frame: the same frame without it has no room kept.
+    again = tmp_path / "again.png"
+    r.render("content", again, **ayah_context(passage, basmala, basmala=True, first=True))
+    assert drawn_box(pixels(again))[1] < drawn_box(page)[1]

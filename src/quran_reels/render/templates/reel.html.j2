@@ -8,6 +8,9 @@
   layer:
     static   scrim + handle + credits, constant for the whole video
     content  one per ayah (reference, ayah, translation, glosses), faded in and out
+    hook     the question of the first frame alone (video.hook), laid over it for its first
+             seconds: the same page as that frame's content, everything else invisible, so it
+             lands in the room the content keeps for it
     preview  both, on a gradient standing in for the video (mockups only)
 
   Variables:
@@ -24,6 +27,8 @@
     handle           "@quran_words_daily"  page signature, on every frame
     safe             {top, bottom, sides}
     highlight        "#f6c86b"
+    hook             {before, word, after, en} on the first frame (video.hook), else absent
+    hook_shown       the question visible (layers hook and preview); else its room only
 
   Text that does not fit between the safe margins is scaled down (--k) by the script below;
   window.__fit holds the final factor.
@@ -66,6 +71,21 @@
   .ayah .hl { color: {{ highlight }}; }
   .ayah .num { font-size: calc(72px * var(--k)); opacity: .9; }
 
+  /* The question on a word of the reel (video.hook): its room is kept on the first frame, the
+     question itself is the layer « hook », laid over it for its first seconds. */
+  .hook { direction: rtl; background: rgba(10,14,35,.62); border: 2px solid rgba(246,200,107,.55);
+      border-radius: 30px; padding: calc(14px * var(--k)) 44px calc(20px * var(--k));
+      margin-bottom: calc(-12px * var(--k)); max-width: 100%; }
+  .hook .q { font-family: "Amiri"; font-weight: 700; font-size: calc(68px * var(--k));
+      line-height: 1.45; text-wrap: balance; }
+  .hook .w { font-family: "AmiriQuran"; font-weight: 400; color: {{ highlight }};
+      font-size: calc(80px * var(--k)); }
+  .hook .en { font-family: "Lora"; font-style: italic; font-size: calc(36px * var(--k));
+      opacity: .9; direction: ltr; margin-top: calc(2px * var(--k)); }
+  {% if layer == "hook" %}
+  .stack > :not(.hook) { visibility: hidden; }
+  {% endif %}
+
   .tr { font-family: "Lora"; font-style: italic; font-size: calc(46px * var(--k)); line-height: 1.45;
       max-width: 860px; text-wrap: balance; text-shadow: 0 2px 16px rgba(0,0,0,.6); }
 
@@ -93,9 +113,13 @@
   {% if layer in ("static", "preview") %}
   <div class="scrim"></div>
   {% endif %}
-  {% if layer in ("content", "preview") %}
+  {% if layer in ("content", "preview", "hook") %}
   <div class="content">
     <div class="stack">
+      {% if hook %}<div class="hook"{% if not hook_shown %} style="visibility: hidden"{% endif %}>
+        <div class="q">{{ hook.before }}<span class="w">{{ hook.word }}</span>{{ hook.after }}</div>
+        {% if hook.en %}<div class="en">{{ hook.en }}</div>{% endif %}
+      </div>{% endif %}
       {% if series %}<div class="series">{{ series }}</div>{% endif %}
       <div class="ref">{{ surah_name_ar }}{% if ref %} <span>· {{ ref }}</span>{% endif %}</div>
       <div class="ayah">

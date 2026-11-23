@@ -181,9 +181,11 @@ def push_in_filter(zoom: float, frames: int) -> str:
 
 def compose(background: Path, static: Path, frames: list[Path], timeline: Timeline,
             audio: Path, dest: Path, width: int, height: int, fade: float = 0.25,
-            crf: int = 19, zoom: float = 0.0) -> Path:
+            crf: int = 19, zoom: float = 0.0, overlay: tuple[Path, int] | None = None) -> Path:
     """Background (looped) + static layer + one faded layer per ayah + audio → MP4.
-    zoom > 0: the background grows by that much over the reel (push_in_filter)."""
+    zoom > 0: the background grows by that much over the reel (push_in_filter).
+    overlay: (png, frames), a layer laid over the first `frames` frames, faded in with the first
+    screen and out at its end (the question of video.hook); never past the first screen."""
     fps, total = timeline.fps, timeline.total_frames
     counts = timeline.frame_counts()
     cmd = ["ffmpeg", "-v", "error", "-y",
@@ -192,6 +194,8 @@ def compose(background: Path, static: Path, frames: list[Path], timeline: Timeli
     for f in frames:
         cmd += ["-loop", "1", "-framerate", str(fps), "-i", str(f)]
     cmd += ["-i", str(audio)]
+    if overlay:
+        cmd += ["-loop", "1", "-framerate", str(fps), "-i", str(overlay[0])]
 
     push = f"{push_in_filter(zoom, total)}," if zoom > 0 else ""
     graph = [
@@ -211,7 +215,18 @@ def compose(background: Path, static: Path, frames: list[Path], timeline: Timeli
         )
     labels = "".join(f"[t{i}]" for i in range(len(counts)))
     graph.append(f"{labels}concat=n={len(counts)}:v=1:a=0[text]")
-    graph.append("[base][text]overlay=0:0:format=auto,format=yuv420p[v]")
+    if overlay:
+        n = max(1, min(int(overlay[1]), counts[0]))
+        d = n / fps
+        f_in, f_out = min(fade, counts[0] / fps / 4), min(fade, d / 4)
+        graph.append(
+            f"[{len(frames) + 3}:v]format=rgba,trim=end_frame={n},setpts=PTS-STARTPTS,"
+            f"fade=t=in:st=0:d={f_in:.3f}:alpha=1,"
+            f"fade=t=out:st={d - f_out:.3f}:d={f_out:.3f}:alpha=1[hook]")
+        graph.append("[base][text]overlay=0:0:format=auto[shown]")
+        graph.append("[shown][hook]overlay=0:0:format=auto:eof_action=pass,format=yuv420p[v]")
+    else:
+        graph.append("[base][text]overlay=0:0:format=auto,format=yuv420p[v]")
 
     cmd += ["-filter_complex", ";".join(graph),
             "-map", "[v]", "-map", f"{len(frames) + 2}:a",

@@ -319,6 +319,8 @@ def render_facts(video: Path) -> dict:
         facts["background"] = bg["id"]
     if isinstance(manifest.get("seconds"), (int, float)):
         facts["seconds"] = round(float(manifest["seconds"]), 1)
+    if isinstance(manifest.get("hook"), dict) and manifest["hook"].get("word"):
+        facts["hook"] = manifest["hook"]["word"]      # the question it opened on (video.hook)
     return facts
 
 
@@ -371,27 +373,33 @@ def again(cfg: Config, state: State, state_path: Path, p: Pending, video: Path,
 
 
 def youtube_version(cfg: Config, p: Pending, reciter: str | None,
-                    claimed: set[str]) -> dict | None:
+                    claimed: set[str], hooked: bool = False) -> dict | None:
     """The reel again for YouTube when it does not take `reciter` (reciters.other_for): by
     its own reciter (platforms.youtube.reciter, `always` in the answer), or else, when its
     Content ID claims `reciter` (a Short over 1 min with a claim is blocked worldwide), by a
     ready reciter it does not claim; in out/youtube/. None when the same video goes to
     YouTube. `reciter` None in the answer: nothing for YouTube (`error`: why), the reel of
-    the day must not go there. Never fails the run."""
+    the day must not go there. Never fails the run.
+    hooked: the reel opens on the question of video.hook, which YouTube does not take
+    (platforms.youtube.hook: false, the trial's control): rendered again without it, by the same
+    reciter when YouTube takes him (`plain` in the answer)."""
     from quran_reels import reciters as rec
     from quran_reels.render import render_passage
 
     if cfg is None or not reciter:
         return None
     yt = (cfg.project.get("platforms") or {}).get("youtube") or {}
-    if yt.get("mode") != "manual" or rec.allowed_on(cfg, "youtube", reciter):
+    own = rec.allowed_on(cfg, "youtube", reciter)
+    plain = own and hooked and yt.get("hook") is False
+    if yt.get("mode") != "manual" or (own and not plain):
         return None
     names = cfg.content.get("reciters") or {}
     fixed = rec.fixed_on(cfg, "youtube")
     rule = {"always": True, "wanted": (names.get(fixed) or {}).get("label", fixed)} \
         if fixed else {}
     try:
-        opt = rec.other_for(cfg, "youtube", p.item.key, reciter, claimed)
+        opt = rec.Option(reciter, 0.0) if plain else \
+            rec.other_for(cfg, "youtube", p.item.key, reciter, claimed)
         if opt.seconds is None:
             print(f"warning: {p.item.key}: no YouTube version ({opt.name or 'no reciter'}: "
                   f"{opt.why})", file=sys.stderr)
@@ -402,12 +410,13 @@ def youtube_version(cfg: Config, p: Pending, reciter: str | None,
                                p.item.series.hashtags, variants=False).video
         caption = publish_mod.load_reel(video).text(publish_mod.max_hashtags(cfg, "youtube"))
         print(f"{p.item.key}: YouTube version by {other} ("
-              + ("always there" if fixed else f"{reciter} is claimed there")
+              + ("without the question of the reel" if plain else
+                 "always there" if fixed else f"{reciter} is claimed there")
               + f"): out/{YOUTUBE_DIR}/{video.name}")
         return {"reciter": other, "video": f"{YOUTUBE_DIR}/{video.name}", "caption": caption,
                 "label": (names.get(other) or {}).get("label", other),
                 "instead_of": (names.get(reciter) or {}).get("label", reciter),
-                **({"always": True} if fixed else {})}
+                **({"always": True} if fixed else {}), **({"plain": True} if plain else {})}
     except (Exception, SystemExit) as e:     # noqa: BLE001  (the reel is out already)
         print(f"warning: YouTube version of {p.item.key}: {type(e).__name__}: {e}",
               file=sys.stderr)
@@ -493,7 +502,7 @@ def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
              log: dict, now: datetime, sleep: Callable[[float], None] = time.sleep) -> int:
     from quran_reels import reciters as rec
     from quran_reels.gh_secrets import token_expiry
-    from quran_reels.render import render_passage
+    from quran_reels.render import hook_slot, render_passage
     from quran_reels.sources.surah_audio import CutError
 
     order = {s.name: i for i, s in enumerate(sorted(sched.slots, key=lambda s: s.at))}
@@ -547,7 +556,9 @@ def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
                 pcfg = rec.with_reciter(dcfg, reciter)
             try:
                 video = render_passage(pcfg, p.item.key, p.item.label_ar, p.item.label_en,
-                                       p.item.series.hashtags).video
+                                       p.item.series.hashtags,
+                                       **({"hook": True} if hook_slot(cfg, p.slot.name) else {})
+                                       ).video
                 break
             except CutError as e:
                 # A basmala checked by recognition that the recording itself contradicts
@@ -568,7 +579,8 @@ def _publish(cfg: Config, sched: Schedule, series: dict[str, Series], state: Sta
         failed |= any(r.status in (PublishStatus.FAILED, PublishStatus.BLOCKED,
                                    PublishStatus.REMOVED) for r in results)
         caption = copy_text(cfg, video)
-        youtube = youtube_version(dcfg, p, reciter, rec.claimed_reciters(state))
+        youtube = youtube_version(dcfg, p, reciter, rec.claimed_reciters(state),
+                                  hooked=bool(render_facts(video).get("hook")))
         if not dry_run and youtube:
             # With a reciter: the video for YouTube. Without: none (`error`), not this reel;
             # never written over the version an earlier run of the slot made.
