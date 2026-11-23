@@ -183,6 +183,52 @@
      "rights_after": null
     }
    }
+  },
+  "2026-11-23": {
+   "label": "Quiz 9 : «إني ذاهب إلى ربي»",
+   "videos": {
+    "facebook": "ma3ak/short-9",
+    "instagram": "ma3ak/short-9"
+   },
+   "at": "2026-11-23T16:52:10+00:00",
+   "results": {
+    "facebook": {
+     "platform": "facebook",
+     "status": "published",
+     "remote_id": "987668027292417",
+     "url": "https://www.facebook.com/reel/987668027292417/",
+     "error": null,
+     "rights": {
+      "platform": "facebook",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 0.1304455669999811,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    },
+    "instagram": {
+     "platform": "instagram",
+     "status": "published",
+     "remote_id": "18102270359536058",
+     "url": "https://www.instagram.com/reel/DgF2xCNgSYb/",
+     "error": null,
+     "rights": {
+      "platform": "instagram",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 31.60121630399999,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    }
+   }
   }
  }
 }
