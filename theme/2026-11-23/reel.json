@@ -1,0 +1,46 @@
+{
+ "kind": "theme",
+ "id": "theme/2026-11-23",
+ "created": "2026-11-23T16:51:37+00:00",
+ "key": "theme:2026-11-23",
+ "day": "2026-11-23",
+ "time": "18:00",
+ "title": "Dhul-Qarnayn: 3 tests of power · ذو القرنين: ٣ اختبارات للقوة",
+ "passage": "Dhul-Qarnayn : le film",
+ "label": "Dhul-Qarnayn: 3 tests of power · ذو القرنين: ٣ اختبارات للقوة",
+ "results": [
+  {
+   "name": "Facebook",
+   "url": "https://www.facebook.com/reel/1147023474431186/",
+   "label": "publié"
+  },
+  {
+   "name": "TikTok",
+   "url": null,
+   "label": "brouillon, non publié"
+  },
+  {
+   "name": "YouTube",
+   "url": "https://www.youtube.com/watch?v=R4LGH8IIyeI",
+   "label": "publié"
+  }
+ ],
+ "tiktok": "ذو القرنين: ٣ اختبارات للقوة\nDhul-Qarnayn: 3 tests of power\n\nتعمل إيه لما تقدر على حد؟\nWhat do you do when you have power over someone?\n\n🎙️ صوت مولَّد بالذكاء الاصطناعي · AI-generated voice\n\n#القرآن_الكريم #ذو_القرنين #Quran #سورة_الكهف\n",
+ "video": {
+  "tiktok": "https://github.com/mssnoussi92/quran-themes-demo/releases/download/page-qarnayn-9x16/qarnayn-film-9x16-tiktok.mp4"
+ },
+ "youtube": {
+  "title": "قصة ذو القرنين: 3 اختبارات للقوة · The story of Dhul-Qarnayn: 3 tests of power",
+  "description": "مصير قوم كاملين بكلمة منه، فلوس اتعرضت عليه، وسد محدش قدر يعدّيه: راجل واحد… وتلات اختبارات للقوة في سورة الكهف. تعمل إيه لما تقدر على حد، تاخد إيه من اللي محتاجك، وتقول إيه لما تنجح؟\n\nThe fate of a whole people at his word, money offered to him, a barrier no one could pass: one man, three tests of power in Surat al-Kahf. What do you do when you have power over someone, what do you take from those who need you, and what do you say when you succeed?\n\nChapters:\n0:00 تلات اختبارات · Three tests\n0:14 مين ذو القرنين؟ · Who was Dhul-Qarnayn?\n0:52 مصير قوم بكلمة منه · The fate of a people at his word\n2:48 مطلع الشمس · The rising of the sun\n3:26 عرضوا عليه فلوس… ورفض · They offered him money, he refused\n5:14 ده رحمة من ربي · This is a mercy from my Lord\n6:56 إن شاء الله · If God wills\n\nصوت الراوي مولَّد بالذكاء الاصطناعي · AI-generated voice (Gemini TTS, Egyptian Arabic)\n\n@quran_words_daily",
+  "credits": "Quoted:\n• Surah Al-Kahf (18:83-98) · Recitation: Tawfiq As-Sayegh · Translation: Saheeh International · https://quran.com/18/83-98\n• Jami' at-Tirmidhi 3153 · Al-Albani: Sahih · Reading: Yusuf ibn Nuh Ahmad · https://sunnah.com/tirmidhi:3153\n• Surah Al-Kahf (18:23-24) · Recitation: Tawfiq As-Sayegh · Translation: Saheeh International · https://quran.com/18/23-24\n\nFootage: Pixabay (josefgadermaier, AttilaPergel, FlickrVideos, TeeFarm) · Ambience: BigSoundBank (Joseph Sardin)",
+  "hashtags": "#القرآن_الكريم #ذو_القرنين #Quran #سورة_الكهف",
+  "file": "https://github.com/mssnoussi92/quran-themes-demo/releases/download/page-qarnayn/qarnayn-film-16x9.mp4",
+  "thumbnail": "https://github.com/mssnoussi92/quran-themes-demo/releases/download/page-qarnayn/qarnayn-film-thumbnail-barrier.jpg",
+  "url": "https://www.youtube.com/watch?v=R4LGH8IIyeI"
+ },
+ "match": [
+  "theme:qarnayn/film",
+  "theme:qarnayn-9x16/film"
+ ],
+ "notes": []
+}
