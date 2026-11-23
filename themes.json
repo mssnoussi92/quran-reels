@@ -243,6 +243,72 @@
      "rights_after": null
     }
    }
+  },
+  "2026-11-23": {
+   "label": "Dhul-Qarnayn : le film",
+   "videos": {
+    "facebook": "qarnayn-9x16/film",
+    "tiktok": "qarnayn-9x16/film",
+    "youtube": "qarnayn/film",
+    "instagram": "quiz/short-1"
+   },
+   "at": "2026-11-23T16:41:12+00:00",
+   "results": {
+    "facebook": {
+     "platform": "facebook",
+     "status": "published",
+     "remote_id": "1147023474431186",
+     "url": "https://www.facebook.com/reel/1147023474431186/",
+     "error": null,
+     "rights": {
+      "platform": "facebook",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 0.073131257,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    },
+    "tiktok": {
+     "platform": "tiktok",
+     "status": "draft",
+     "remote_id": "v_inbox_file~v2.7711409173900183574",
+     "url": null,
+     "error": null,
+     "rights": null,
+     "rights_after": null
+    },
+    "youtube": {
+     "platform": "youtube",
+     "status": "published",
+     "remote_id": "R4LGH8IIyeI",
+     "url": "https://www.youtube.com/watch?v=R4LGH8IIyeI",
+     "error": null,
+     "rights": null,
+     "rights_after": null
+    },
+    "instagram": {
+     "platform": "instagram",
+     "status": "published",
+     "remote_id": "17912755239571073",
+     "url": "https://www.instagram.com/reel/DgF2W9dlEt9/",
+     "error": null,
+     "rights": {
+      "platform": "instagram",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 31.732383267000046,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    }
+   }
   }
  }
 }
