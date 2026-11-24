@@ -1,0 +1,50 @@
+{
+ "kind": "theme",
+ "id": "theme/2026-11-24",
+ "created": "2026-11-24T16:46:46+00:00",
+ "key": "theme:2026-11-24",
+ "day": "2026-11-24",
+ "time": "18:00",
+ "title": "The fate of a whole people… at his word · مصير قوم كاملين… بكلمة منه!",
+ "passage": "Dhul-Qarnayn, short 1 : le couchant",
+ "label": "The fate of a whole people… at his word · مصير قوم كاملين… بكلمة منه!",
+ "results": [
+  {
+   "name": "Facebook",
+   "url": "https://www.facebook.com/reel/1209350478327210/",
+   "label": "publié"
+  },
+  {
+   "name": "Instagram",
+   "url": "https://www.instagram.com/reel/DgIaSuXCr44/",
+   "label": "publié"
+  },
+  {
+   "name": "TikTok",
+   "url": null,
+   "label": "brouillon, non publié"
+  },
+  {
+   "name": "YouTube",
+   "url": "https://youtube.com/shorts/l7U4yAUjbk4",
+   "label": "publié"
+  }
+ ],
+ "tiktok": "مصير قوم كاملين… بكلمة منه!\nThe fate of a whole people… at his word\n\nاتخيّر: يعاقبهم ولا يحسن ليهم. القوة أمانة… مش رخصة.\nThe choice was left to him: punish them, or treat them well. Power is a trust, not a license.\n\n🎙️ صوت مولَّد بالذكاء الاصطناعي · AI-generated voice\n\n#العدل #القرآن_الكريم #ذو_القرنين #Quran #قصص_القرآن\n",
+ "video": {
+  "tiktok": "https://github.com/mssnoussi92/quran-themes-demo/releases/download/page-qarnayn/qarnayn-short-1-west-tiktok.mp4"
+ },
+ "youtube": {
+  "title": "مصير قوم كاملين… بكلمة منه! · The fate of a whole people… at his word",
+  "description": "ذو القرنين وصل لمغرب الشمس ولقى هناك قوم… واتخيّر: يعاقبهم ولا يحسن ليهم. وإجابته كانت العدل: كل واحد باللي عمله. القوة أمانة… مش رخصة.\n\nDhul-Qarnayn reached the setting of the sun and found a people there, and the choice was left to him: punish them, or treat them well. His answer is justice: each one according to what he did. Power is a trust, not a license.\n\nذو القرنين · الجزء ١ من ٣ · Dhul-Qarnayn · part 1/3\n\nصوت الراوي مولَّد بالذكاء الاصطناعي · AI-generated voice (Gemini TTS, Egyptian Arabic)\n\n@quran_words_daily",
+  "credits": "Quoted:\n• Surah Al-Kahf (18:86-88) · Recitation: Tawfiq As-Sayegh · Translation: Saheeh International · https://quran.com/18/86-88\n\nFootage: Pixabay (josefgadermaier) · Ambience: BigSoundBank (Joseph Sardin)",
+  "hashtags": "#العدل #القرآن_الكريم #ذو_القرنين #Quran #قصص_القرآن",
+  "file": "https://github.com/mssnoussi92/quran-themes-demo/releases/download/page-qarnayn/qarnayn-short-1-west-cut.mp4",
+  "thumbnail": "https://github.com/mssnoussi92/quran-themes-demo/releases/download/page-qarnayn/qarnayn-short-1-west-cover.jpg",
+  "url": "https://youtube.com/shorts/l7U4yAUjbk4"
+ },
+ "match": [
+  "theme:qarnayn/short-1"
+ ],
+ "notes": []
+}
