@@ -229,6 +229,52 @@
      "rights_after": null
     }
    }
+  },
+  "2026-11-24": {
+   "label": "Quiz 10 : «وأبًّا»",
+   "videos": {
+    "facebook": "ma3ak/short-10",
+    "instagram": "ma3ak/short-10"
+   },
+   "at": "2026-11-24T16:47:26+00:00",
+   "results": {
+    "facebook": {
+     "platform": "facebook",
+     "status": "published",
+     "remote_id": "28816270594721578",
+     "url": "https://www.facebook.com/reel/28816270594721578/",
+     "error": null,
+     "rights": {
+      "platform": "facebook",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 0.1292421519999607,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    },
+    "instagram": {
+     "platform": "instagram",
+     "status": "published",
+     "remote_id": "18651240013058407",
+     "url": "https://www.instagram.com/reel/DgIbByRAVrO/",
+     "error": null,
+     "rights": {
+      "platform": "instagram",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 31.41195725600005,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    }
+   }
   }
  }
 }
