@@ -309,6 +309,77 @@
      "rights_after": null
     }
    }
+  },
+  "2026-11-24": {
+   "label": "Dhul-Qarnayn, short 1 : le couchant",
+   "videos": {
+    "facebook": "qarnayn/short-1",
+    "instagram": "qarnayn/short-1",
+    "tiktok": "qarnayn/short-1",
+    "youtube": "qarnayn/short-1"
+   },
+   "at": "2026-11-24T16:41:04+00:00",
+   "cut": {
+    "facebook": "qarnayn-short-1-west-cut.mp4",
+    "instagram": "qarnayn-short-1-west-cut.mp4",
+    "youtube": "qarnayn-short-1-west-cut.mp4"
+   },
+   "results": {
+    "facebook": {
+     "platform": "facebook",
+     "status": "published",
+     "remote_id": "1209350478327210",
+     "url": "https://www.facebook.com/reel/1209350478327210/",
+     "error": null,
+     "rights": {
+      "platform": "facebook",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 0.12955444900001112,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    },
+    "instagram": {
+     "platform": "instagram",
+     "status": "published",
+     "remote_id": "18085622762393445",
+     "url": "https://www.instagram.com/reel/DgIaSuXCr44/",
+     "error": null,
+     "rights": {
+      "platform": "instagram",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 32.00172797100001,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    },
+    "tiktok": {
+     "platform": "tiktok",
+     "status": "draft",
+     "remote_id": "v_inbox_file~v2.7711779893612349462",
+     "url": null,
+     "error": null,
+     "rights": null,
+     "rights_after": null
+    },
+    "youtube": {
+     "platform": "youtube",
+     "status": "published",
+     "remote_id": "l7U4yAUjbk4",
+     "url": "https://youtube.com/shorts/l7U4yAUjbk4",
+     "error": null,
+     "rights": null,
+     "rights_after": null
+    }
+   }
   }
  }
 }
