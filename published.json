@@ -17,7 +17,8 @@
     "juz-amma/103:1-3",
     "juz-amma/102:1-8",
     "juz-amma/101:1-11",
-    "juz-amma/100:1-11"
+    "juz-amma/100:1-11",
+    "juz-amma/99:1-8"
    ]
   },
   "themes": {
@@ -864,6 +865,49 @@
    "youtube": {
     "reciter": "sayegh",
     "video": "youtube/100_001-011.mp4"
+   }
+  },
+  "2026-11-24/morning": {
+   "queue": "reading",
+   "item": "juz-amma/99:1-8",
+   "passage": "99:1-8",
+   "results": {
+    "facebook": {
+     "status": "published",
+     "id": "1677594073730883",
+     "url": "https://www.facebook.com/reel/1677594073730883/",
+     "error": null,
+     "at": "2026-11-24T06:24:41+00:00"
+    },
+    "instagram": {
+     "status": "published",
+     "id": "18113181613923101",
+     "url": "https://www.instagram.com/reel/DgHTSAMFS_N/",
+     "error": null,
+     "at": "2026-11-24T06:24:41+00:00"
+    },
+    "tiktok": {
+     "status": "draft",
+     "id": "v_inbox_file~v2.7711619202158954518",
+     "url": null,
+     "error": null,
+     "at": "2026-11-24T06:24:41+00:00"
+    },
+    "youtube": {
+     "status": "published",
+     "id": "2ZTghWCkvow",
+     "url": "https://youtube.com/shorts/2ZTghWCkvow",
+     "error": null,
+     "at": "2026-11-24T06:32:14+00:00"
+    }
+   },
+   "reciter": "fares_abbad",
+   "background": "night",
+   "seconds": 46.4,
+   "hook": "أَثْقَالَهَا",
+   "youtube": {
+    "reciter": "sayegh",
+    "video": "youtube/099_001-008.mp4"
    }
   }
  },
