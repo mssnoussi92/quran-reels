@@ -18,7 +18,8 @@
     "juz-amma/102:1-8",
     "juz-amma/101:1-11",
     "juz-amma/100:1-11",
-    "juz-amma/99:1-8"
+    "juz-amma/99:1-8",
+    "juz-amma/98:1-5"
    ]
   },
   "themes": {
@@ -908,6 +909,49 @@
    "youtube": {
     "reciter": "sayegh",
     "video": "youtube/099_001-008.mp4"
+   }
+  },
+  "2026-11-25/morning": {
+   "queue": "reading",
+   "item": "juz-amma/98:1-5",
+   "passage": "98:1-5",
+   "results": {
+    "facebook": {
+     "status": "published",
+     "id": "29352074384449212",
+     "url": "https://www.facebook.com/reel/29352074384449212/",
+     "error": null,
+     "at": "2026-11-25T06:23:29+00:00"
+    },
+    "instagram": {
+     "status": "published",
+     "id": "17932195554181977",
+     "url": "https://www.instagram.com/reel/DgJ37jNp_Z1/",
+     "error": null,
+     "at": "2026-11-25T06:23:29+00:00"
+    },
+    "tiktok": {
+     "status": "draft",
+     "id": "v_inbox_file~v2.7711990327275456514",
+     "url": null,
+     "error": null,
+     "at": "2026-11-25T06:23:29+00:00"
+    },
+    "youtube": {
+     "status": "blocked",
+     "id": null,
+     "url": null,
+     "error": "droits (Meta) : facebook : aucune correspondance ; instagram : instagram container 17898684543503710, 17898685380503710, 17898685881503710: still processing after 240 s — pas mise sur YouTube",
+     "at": "2026-11-25T06:39:07+00:00"
+    }
+   },
+   "reciter": "sayegh",
+   "background": "dawn",
+   "seconds": 53.7,
+   "hook": "صُحُفًا",
+   "youtube": {
+    "reciter": "sayegh",
+    "video": "youtube/098_001-005.mp4"
    }
   }
  },
