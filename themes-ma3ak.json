@@ -275,6 +275,52 @@
      "rights_after": null
     }
    }
+  },
+  "2026-11-25": {
+   "label": "Quiz 11 : «واستعينوا بالصبر والصلاة»",
+   "videos": {
+    "facebook": "ma3ak/short-11",
+    "instagram": "ma3ak/short-11"
+   },
+   "at": "2026-11-25T16:49:56+00:00",
+   "results": {
+    "facebook": {
+     "platform": "facebook",
+     "status": "published",
+     "remote_id": "1667770361418631",
+     "url": "https://www.facebook.com/reel/1667770361418631/",
+     "error": null,
+     "rights": {
+      "platform": "facebook",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 0.11325770299998794,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    },
+    "instagram": {
+     "platform": "instagram",
+     "status": "published",
+     "remote_id": "18132444337868070",
+     "url": "https://www.instagram.com/reel/DgLADNeBqme/",
+     "error": null,
+     "rights": {
+      "platform": "instagram",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 32.44185641300004,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    }
+   }
   }
  }
 }
