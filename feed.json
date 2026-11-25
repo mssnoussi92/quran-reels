@@ -1,7 +1,58 @@
 {
- "updated": "2026-11-25T06:39:14+00:00",
+ "updated": "2026-11-25T16:49:16+00:00",
  "days": 14,
  "entries": [
+  {
+   "id": "theme/2026-11-25",
+   "kind": "theme",
+   "key": "theme:2026-11-25",
+   "day": "2026-11-25",
+   "time": "18:00",
+   "created": "2026-11-25T16:49:14+00:00",
+   "title": "They offered him money… he refused · عرضوا عليه فلوس… ورفض!",
+   "passage": "Dhul-Qarnayn, short 2 : l'argent refusé",
+   "label": "They offered him money… he refused · عرضوا عليه فلوس… ورفض!",
+   "reciter": "",
+   "results": [
+    {
+     "name": "Facebook",
+     "url": "https://www.facebook.com/reel/1820639179245155/",
+     "label": "publié"
+    },
+    {
+     "name": "Instagram",
+     "url": "https://www.instagram.com/reel/DgK_VGcBTGq/",
+     "label": "publié"
+    },
+    {
+     "name": "TikTok",
+     "url": null,
+     "label": "brouillon, non publié"
+    },
+    {
+     "name": "YouTube",
+     "url": "https://youtube.com/shorts/xhGOrAO-Cjo",
+     "label": "publié"
+    }
+   ],
+   "tiktok": "عرضوا عليه فلوس… ورفض!\nThey offered him money… he refused\n\nرفض الفلوس: اللي ربنا إداهولي أحسن.\nHe refused the money: what my Lord has given me is better.\n\n🎙️ صوت مولَّد بالذكاء الاصطناعي · AI-generated voice\n\n#القناعة #القرآن_الكريم #ذو_القرنين #Quran #قصص_القرآن\n",
+   "video": {
+    "tiktok": "https://github.com/mssnoussi92/quran-themes-demo/releases/download/page-qarnayn/qarnayn-short-2-tribute-tiktok.mp4"
+   },
+   "youtube": {
+    "title": "عرضوا عليه فلوس… ورفض! · They offered him money… he refused",
+    "description": "قوم بين جبلين عرضوا على ذي القرنين فلوس عشان يبني لهم سد من يأجوج ومأجوج. رفض الفلوس: اللي ربنا إداهولي أحسن… وطلب منهم قوتهم، وبنى معاهم.\n\nA people living between two mountains offered Dhul-Qarnayn a tribute to build a barrier against Gog and Magog. He refused the money: what my Lord has given me is better. He asked for their hands instead, and built it with them.\n\nذو القرنين · الجزء ٢ من ٣ · Dhul-Qarnayn · part 2/3\n\nصوت الراوي مولَّد بالذكاء الاصطناعي · AI-generated voice (Gemini TTS, Egyptian Arabic)\n\n@quran_words_daily",
+    "credits": "Quoted:\n• Surah Al-Kahf (18:93-95) · Recitation: Tawfiq As-Sayegh · Translation: Saheeh International · https://quran.com/18/93-95\n\nFootage: Pixabay (AttilaPergel) · Ambience: BigSoundBank (Joseph Sardin)",
+    "hashtags": "#القناعة #القرآن_الكريم #ذو_القرنين #Quran #قصص_القرآن",
+    "file": "https://github.com/mssnoussi92/quran-themes-demo/releases/download/page-qarnayn/qarnayn-short-2-tribute-cut.mp4",
+    "thumbnail": "https://github.com/mssnoussi92/quran-themes-demo/releases/download/page-qarnayn/qarnayn-short-2-tribute-cover.jpg",
+    "url": "https://youtube.com/shorts/xhGOrAO-Cjo"
+   },
+   "notes": [],
+   "match": [
+    "theme:qarnayn/short-2"
+   ]
+  },
   {
    "id": "daily/2026-11-25-morning",
    "kind": "daily",
