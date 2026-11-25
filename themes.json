@@ -380,6 +380,77 @@
      "rights_after": null
     }
    }
+  },
+  "2026-11-25": {
+   "label": "Dhul-Qarnayn, short 2 : l'argent refusé",
+   "videos": {
+    "facebook": "qarnayn/short-2",
+    "instagram": "qarnayn/short-2",
+    "tiktok": "qarnayn/short-2",
+    "youtube": "qarnayn/short-2"
+   },
+   "at": "2026-11-25T16:42:58+00:00",
+   "cut": {
+    "facebook": "qarnayn-short-2-tribute-cut.mp4",
+    "instagram": "qarnayn-short-2-tribute-cut.mp4",
+    "youtube": "qarnayn-short-2-tribute-cut.mp4"
+   },
+   "results": {
+    "facebook": {
+     "platform": "facebook",
+     "status": "published",
+     "remote_id": "1820639179245155",
+     "url": "https://www.facebook.com/reel/1820639179245155/",
+     "error": null,
+     "rights": {
+      "platform": "facebook",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 0.11329525999997259,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    },
+    "instagram": {
+     "platform": "instagram",
+     "status": "published",
+     "remote_id": "18110832923289193",
+     "url": "https://www.instagram.com/reel/DgK_VGcBTGq/",
+     "error": null,
+     "rights": {
+      "platform": "instagram",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 32.36888193300001,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    },
+    "tiktok": {
+     "platform": "tiktok",
+     "status": "draft",
+     "remote_id": "v_inbox_file~v2.7712151591276906518",
+     "url": null,
+     "error": null,
+     "rights": null,
+     "rights_after": null
+    },
+    "youtube": {
+     "platform": "youtube",
+     "status": "published",
+     "remote_id": "xhGOrAO-Cjo",
+     "url": "https://youtube.com/shorts/xhGOrAO-Cjo",
+     "error": null,
+     "rights": null,
+     "rights_after": null
+    }
+   }
   }
  }
 }
