@@ -3,7 +3,7 @@
  "id": "daily/2026-11-25-morning",
  "stage": "daily",
  "stage_label": "Publié par le calendrier",
- "created": "2026-11-25T06:39:13+00:00",
+ "created": "2026-11-26T09:42:15+00:00",
  "passage": "98:1-5",
  "surah": {
   "en": "Al-Bayyinah",
@@ -67,8 +67,8 @@
   },
   {
    "name": "YouTube (à la main)",
-   "url": null,
-   "label": "non publié (droits)"
+   "url": "https://youtube.com/shorts/aMjdvY1p5-0",
+   "label": "publié"
   }
  ],
  "notes": [],
