@@ -335,8 +335,11 @@ partis en version courte sur Facebook et Instagram les 24, 25 et 26 novembre (73
 
 Aussi à cette revue (décidé à celle du 22 novembre) :
 
-- **Instagram** : combien des reels publiés depuis le 22 novembre (légende sans versets) restent sous 10 vues ; s'il y en a
-  encore, l'essai de l'envoi par `video_url` part la semaine suivante (ci-dessus, « À regarder à la prochaine revue »).
+- **Instagram** : combien des reels publiés depuis le 22 novembre (légende sans versets) restent sous 10 vues. **L'envoi
+  par `video_url` est parti plus tôt, le 27** (choix du propriétaire, 2026-11-26) : le premier run des reels échouait sur
+  Instagram 5 matins sur 8 depuis le 19, les vidéos thématiques envoyées ainsi jamais. Les reels du 22 au 26 sont donc
+  envoyés comme avant et ceux à partir du 27 par `video_url` : compter les deux lots à part, et les échecs du premier run
+  après le 27.
 - **Les trois captures TikTok du 22 novembre non rattachées** le soir même (101:1-11, 35:2-2, la bande-annonce
   `trailer-9x16/film`) : publiées le jour même, elles n'avaient pas encore de publication relevée par la Page ; elles doivent
   être sous leur vidéo après le relevé de la nuit, plus sous « Captures sans vidéo reconnue ».

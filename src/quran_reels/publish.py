@@ -354,6 +354,35 @@ def tiktok_publisher() -> TikTokPublisher:
                            save_refresh=_save_refresh)
 
 
+def host_file(path: Path, name: str) -> str:
+    """A file in the public release `reels` (ondemand/files.py: 30 days): its address."""
+    from quran_reels.ondemand.files import Hosting
+    from quran_reels.ondemand.gh import GitHub
+
+    return Hosting(GitHub(), Path(".")).upload(path, name)
+
+
+def instagram_url(cfg: Config | None, video: Path) -> str:
+    """Where Instagram fetches the reel (platforms.instagram.upload: url, owner's choice of
+    2026-11-26): the file in the release `reels`, named after its content (a render made again is
+    another file). "" when Instagram gets the file sent (the default), or when the release can't
+    take it: then it is sent, as before."""
+    conf = ((getattr(cfg, "project", None) or {}).get("platforms") or {}).get("instagram") or {}
+    if conf.get("upload") != "url":
+        return ""
+    import hashlib
+
+    digest = hashlib.sha256(video.read_bytes()).hexdigest()[:10]
+    try:
+        url = host_file(video, f"instagram-{video.stem}-{digest}.mp4")
+    except Exception as e:      # noqa: BLE001  (the upload address still works, mostly)
+        print(f"warning: instagram: the reel could not be put in the release ({type(e).__name__}: "
+              f"{e}); sent to Instagram instead", file=sys.stderr)
+        return ""
+    print(f"instagram: fetched by Instagram from {url}", file=sys.stderr)
+    return url
+
+
 def publish_reel(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
                  checked: tuple[Graph, MetaEnv, TokenReport] | None = None
                  ) -> list[PublishResult]:
@@ -364,6 +393,8 @@ def publish_reel(cfg: Config, video: Path, platforms: list[str], dry_run: bool,
         print(token.summary(), file=sys.stderr)
     tiktok = tiktok_publisher() if "tiktok" in platforms else None
     reel = load_reel(video)
+    if "instagram" in platforms and token:
+        reel.video_url = instagram_url(cfg, video)
 
     publishers = meta_publishers(cfg, graph, env, platforms) if token else {}
     if tiktok:
@@ -463,8 +494,11 @@ def rights_only(cfg: Config, video: Path,
                 checked: tuple[Graph, MetaEnv, TokenReport] | None = None) -> tuple[bool, str]:
     """Meta's copyright check of a file that goes nowhere on Meta (rule 6: nothing is published
     without it): a Facebook draft, deleted, and an Instagram container, left to expire, as for an
-    on-demand request with YouTube alone. (clear, summary). Clear as a publication would be:
-    every check complete without a match, or Instagram set aside (set_aside)."""
+    on-demand request with YouTube alone. (clear, summary). Clear when Facebook's check is
+    complete without a match and Instagram's is too, or could not be made: set aside
+    (set_aside), or never made because Instagram did not process the file (owner's choice,
+    2026-11-26: on the 25th, 98:1-5 did not go to YouTube, Facebook clean, three Instagram
+    containers left IN_PROGRESS). A match anywhere still blocks."""
     from dataclasses import fields
 
     keys = {f.name for f in fields(RightsCheck)}
@@ -472,7 +506,12 @@ def rights_only(cfg: Config, video: Path,
     checks = {r.platform: RightsCheck(**{k: v for k, v in r.rights.items() if k in keys})
               for r in dry if r.rights}
     aside = set_aside(checks)
-    clear = len(checks) == len(META) and all(c.clear or n in aside for n, c in checks.items())
+    unchecked = {r.platform for r in dry if r.platform == "instagram" and not r.rights
+                 and r.status == PublishStatus.FAILED}
+    fb = checks.get("facebook")
+    clear = bool(fb and fb.clear) and all(
+        c.clear or n in aside for n, c in checks.items()) and all(
+        n in checks or n in unchecked for n in META)
     summary = " ; ".join(
         f"{r.platform} : " + ((r.rights or {}).get("summary") or r.error or r.status.value)
         for r in dry)

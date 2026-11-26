@@ -247,7 +247,13 @@ platforms:
   # #Quran » instead of « #QuranWordsDaily #Quran #JuzAmma #Surah… #سورة_… ».
   instagram: { enabled: true,  mode: auto, max_hashtags: 5,    # Instagram's cap since 12/2025
                caption_verses: false,    # owner, 2026-11-21: its caption without the Arabic of the ayahs (TikTok keeps it)
-               hashtags: arabic_first }
+               hashtags: arabic_first,
+               upload: url }
+  # Instagram fetches the reel itself from the release `reels` (`upload: url`, video_url; owner's
+  # choice, 2026-11-26), as the theme videos since 2026-11-19, which all went through at once:
+  # sent to its upload address, the reels' first run failed 5 mornings out of 8 from the 19th
+  # (ProcessingFailedError, containers left IN_PROGRESS; on the 26th, nine). Its file can't be
+  # put there (no token, GitHub down): sent as before (`file`).
   tiktok:
     enabled: true                     # tiktok-auth saved TIKTOK_REFRESH_TOKEN (2026-11-04)
     mode: draft                       # inbox upload, posted by hand from the TikTok app
