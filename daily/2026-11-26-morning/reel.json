@@ -3,7 +3,7 @@
  "id": "daily/2026-11-26-morning",
  "stage": "daily",
  "stage_label": "Publié par le calendrier",
- "created": "2026-11-26T07:15:06+00:00",
+ "created": "2026-11-26T08:59:05+00:00",
  "passage": "98:6-8",
  "surah": {
   "en": "Al-Bayyinah",
@@ -51,23 +51,8 @@
  },
  "results": [
   {
-   "name": "Facebook",
-   "url": "https://www.facebook.com/reel/1699743921701875/",
-   "label": "publié"
-  },
-  {
    "name": "Instagram",
-   "url": null,
-   "label": "échec"
-  },
-  {
-   "name": "TikTok (brouillon)",
-   "url": null,
-   "label": "brouillon, non publié"
-  },
-  {
-   "name": "YouTube (à la main)",
-   "url": "https://youtube.com/shorts/nfu-wJWBn6I",
+   "url": "https://www.instagram.com/reel/DgMueIrAvJH/",
    "label": "publié"
   }
  ],
