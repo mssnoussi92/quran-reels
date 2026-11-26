@@ -451,6 +451,77 @@
      "rights_after": null
     }
    }
+  },
+  "2026-11-26": {
+   "label": "Dhul-Qarnayn, short 3 : le barrage",
+   "videos": {
+    "facebook": "qarnayn/short-3",
+    "instagram": "qarnayn/short-3",
+    "tiktok": "qarnayn/short-3",
+    "youtube": "qarnayn/short-3"
+   },
+   "at": "2026-11-26T16:40:57+00:00",
+   "cut": {
+    "facebook": "qarnayn-short-3-barrier-cut.mp4",
+    "instagram": "qarnayn-short-3-barrier-cut.mp4",
+    "youtube": "qarnayn-short-3-barrier-cut.mp4"
+   },
+   "results": {
+    "facebook": {
+     "platform": "facebook",
+     "status": "published",
+     "remote_id": "1681822340262974",
+     "url": "https://www.facebook.com/reel/1681822340262974/",
+     "error": null,
+     "rights": {
+      "platform": "facebook",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 0.12122125100000858,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    },
+    "instagram": {
+     "platform": "instagram",
+     "status": "published",
+     "remote_id": "18198923245393968",
+     "url": "https://www.instagram.com/reel/DgNj2U4Ktam/",
+     "error": null,
+     "rights": {
+      "platform": "instagram",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 33.04387324099997,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    },
+    "tiktok": {
+     "platform": "tiktok",
+     "status": "draft",
+     "remote_id": "v_inbox_file~v2.7712522171599423511",
+     "url": null,
+     "error": null,
+     "rights": null,
+     "rights_after": null
+    },
+    "youtube": {
+     "platform": "youtube",
+     "status": "published",
+     "remote_id": "EbRv-YmRLZM",
+     "url": "https://youtube.com/shorts/EbRv-YmRLZM",
+     "error": null,
+     "rights": null,
+     "rights_after": null
+    }
+   }
   }
  }
 }
