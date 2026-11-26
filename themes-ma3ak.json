@@ -321,6 +321,52 @@
      "rights_after": null
     }
    }
+  },
+  "2026-11-26": {
+   "label": "Quiz 12 : «رب إني لما أنزلت إلي من خير فقير»",
+   "videos": {
+    "facebook": "ma3ak/short-12",
+    "instagram": "ma3ak/short-12"
+   },
+   "at": "2026-11-26T16:47:37+00:00",
+   "results": {
+    "facebook": {
+     "platform": "facebook",
+     "status": "published",
+     "remote_id": "1171922492007893",
+     "url": "https://www.facebook.com/reel/1171922492007893/",
+     "error": null,
+     "rights": {
+      "platform": "facebook",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 0.11124183399999765,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    },
+    "instagram": {
+     "platform": "instagram",
+     "status": "published",
+     "remote_id": "17942108844402378",
+     "url": "https://www.instagram.com/reel/DgNkoLThl8N/",
+     "error": null,
+     "rights": {
+      "platform": "instagram",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 32.09883961700001,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    }
+   }
   }
  }
 }
