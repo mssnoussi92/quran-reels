@@ -119,6 +119,45 @@ def pending(sched: Schedule, series: dict[str, Series], state: State, now: datet
         queue, item = got
         mark_done(sim, queue, item)
         out.append(Pending(day, slot, queue, item, list(platforms), retry=False))
+    if "youtube" in platforms:
+        out += youtube_catch_up(sched, series, state, now, {(p.day, p.slot.name) for p in out})
+    return out
+
+
+CATCH_UP_DAYS = 2
+
+
+def youtube_held_by_instagram(y: dict) -> bool:
+    """A YouTube version kept back only because Instagram did not process it for Meta's check,
+    Facebook's being clean (2026-11-25, 98:1-5: three containers IN_PROGRESS): the rule of
+    2026-11-26 lets it go (publish.rights_only). A match is never this."""
+    error = y.get("error") or ""
+    return y.get("status") == PublishStatus.BLOCKED.value and error.startswith("droits (Meta)") \
+        and "facebook : aucune correspondance" in error and "contenu protégé" not in error
+
+
+def youtube_catch_up(sched: Schedule, series: dict[str, Series], state: State, now: datetime,
+                     due: set) -> list[Pending]:
+    """The slots of the last CATCH_UP_DAYS days, out of their window, whose YouTube version was
+    held back by Instagram alone (youtube_held_by_instagram): YouTube again, alone (owner's
+    choice, 2026-11-26: « remettre 98:1-5 »). Never a slot claimed or published by hand."""
+    today = now.astimezone(sched.tz).date()
+    slots = {s.name: s for s in sched.slots}
+    out = []
+    for key, record in sorted((state.data.get("slots") or {}).items()):
+        day_text, _, name = key.partition("/")
+        try:
+            day = date.fromisoformat(day_text)
+        except ValueError:
+            continue
+        if not today - timedelta(days=CATCH_UP_DAYS) <= day <= today or (day, name) in due \
+                or name not in slots or record.get("claimed") or record.get("by_hand"):
+            continue
+        if youtube_held_by_instagram((record.get("results") or {}).get("youtube") or {}):
+            item = item_by_id(sched, series, record["queue"], record["item"])
+            print(f"{key}: its YouTube version was held back by Instagram alone, Facebook clean: "
+                  "YouTube again", file=sys.stderr)
+            out.append(Pending(day, slots[name], record["queue"], item, ["youtube"], retry=True))
     return out
 
 
@@ -129,7 +168,7 @@ def youtube_settled(record: dict) -> bool:
     if "youtube" in record and (record.get("youtube") or {}).get("reciter") is None:
         return True
     y = record["results"].get("youtube")
-    if not y:
+    if not y or youtube_held_by_instagram(y):
         return False
     return y.get("status") != PublishStatus.FAILED.value or bool(y.get("id"))
 

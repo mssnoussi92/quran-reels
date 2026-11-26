@@ -141,6 +141,13 @@ trials:                    # « Essais en cours »; with `platforms`, a before /
       changé les pays de la bande-annonce"
     platforms: [tiktok]
     kinds: [Reels]
+  - what: "Reels envoyés à Instagram par video_url (la release reels)"
+    since: 2026-11-27
+    where: "Instagram, les reels du calendrier (platforms.instagram.upload: url)"
+    judge: "les échecs d'envoi du premier run (5 matins sur 8 du 19 au 26) ; les reels presque pas montrés (moins de dix vues) ; leurs vues à 48 h
+      (l'écran du mot et les hashtags arabes partent le 24 : avant / après sur Instagram, avec prudence)"
+    platforms: [instagram]
+    kinds: [Reels]
 
 missing:                   # « Données manquantes »: what the page lacks and how it comes; `look`
                            # finds the last manual entry that brought it (none: not done yet)

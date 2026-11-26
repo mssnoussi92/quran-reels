@@ -150,6 +150,15 @@ le Word of the day a échoué deux fois avant le nouveau jeton) et 90 jours apr�
   `Reel.for_platform`) ; un reel rendu avant reçoit la légende entière.
 - Résultats : `out/<passage>/publish.json` et résumé sur la page de l'exécution GitHub.
 
+- **Instagram va chercher le reel lui-même depuis le 2026-11-27** (choix du propriétaire, 2026-11-26 ;
+  `platforms.instagram.upload: url`, `publish.instagram_url`) : le MP4 est mis dans la release publique `reels`
+  (`instagram-<passage>-<empreinte>.mp4`, gardé 30 jours), et le conteneur reçoit son adresse (`video_url`), comme
+  pour les vidéos thématiques depuis le 2026-11-19, qui sont toutes passées du premier coup. Envoyé à l'adresse
+  d'envoi d'Instagram (`upload_type: resumable`), le premier run des reels a échoué 5 matins sur 8 à partir du 19
+  (`ProcessingFailedError`, conteneurs restés `IN_PROGRESS` : neuf le 26). Si le fichier ne peut pas être mis dans
+  la release (pas de jeton, GitHub en panne), il est envoyé comme avant. La vérification Meta de la version
+  YouTube passe par le même chemin.
+
 ### Vérification des droits avant publication (`publishers/rights.py`)
 
 Meta compare chaque vidéo à son catalogue Rights Manager. On lit sa réponse **avant** de
@@ -481,6 +490,14 @@ vidéo. Même projet, même client, même page ; depuis le téléphone, une fois
 
 Le jeton se perd comme l'autre (mot de passe Google changé, accès retiré) : le run le dit (« connexion YouTube
 perdue »), le Short du jour reste à mettre à la main, refaire les étapes 1 et 2.
+
+**La vérification Meta de la version YouTube** (règle 6) : un brouillon Facebook et un conteneur Instagram, jamais
+publiés. Depuis le 2026-11-26 (choix du propriétaire), elle est propre quand Facebook n'a rien trouvé et qu'Instagram
+n'a rien trouvé non plus, ou n'a pas pu vérifier : laissé de côté comme pour le reel, ou fichier jamais traité
+(`publish.rights_only`). Le 25, Facebook propre et trois conteneurs Instagram restés `IN_PROGRESS` avaient gardé
+98:1-5 hors de YouTube. Une correspondance, où que ce soit, bloque toujours. **Une version gardée ainsi** dans les
+2 derniers jours repart au run suivant, YouTube seul (`daily.youtube_catch_up`) : c'est ainsi que 98:1-5 a été
+remis.
 
 ### Playlists (choix du propriétaire, 2026-11-21)
 

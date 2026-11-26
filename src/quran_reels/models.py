@@ -136,6 +136,8 @@ class Reel:
     instagram: str = ""              # Instagram's own when it differs (no verses, 2026-11-21)
     # platforms signed with their own name (render.signatures): {"tiktok": (mp4, caption)}
     variants: dict[str, tuple[Path, str]] = field(default_factory=dict)
+    # its public address for Instagram to fetch (platforms.instagram.upload: url), else empty
+    video_url: str = ""
     # platforms with their hashtags in their own order (render.platform_hashtags: the Arabic
     # first on Instagram and TikTok, owner's trial of 2026-11-23): {"instagram": [...]}
     platform_hashtags: dict[str, list[str]] = field(default_factory=dict)

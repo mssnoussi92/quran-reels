@@ -134,6 +134,9 @@ jobs:
           NOW: ${{ inputs.now }}
           WITHOUT: ${{ inputs.without }}
           PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}    # an approved Pixabay clip, first use
+          # The reel for Instagram, put in the release `reels` for Instagram to fetch
+          # (platforms.instagram.upload: url, 2026-11-26): this repository's own token.
+          GH_TOKEN: ${{ github.token }}
         run: |
           set --                # the scheduler gives no input: every platform
           if [ -n "$WITHOUT" ] && [ "$WITHOUT" != "none" ]; then set -- --without "$WITHOUT"; fi
