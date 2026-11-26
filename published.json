@@ -19,7 +19,8 @@
     "juz-amma/101:1-11",
     "juz-amma/100:1-11",
     "juz-amma/99:1-8",
-    "juz-amma/98:1-5"
+    "juz-amma/98:1-5",
+    "juz-amma/98:6-8"
    ]
   },
   "themes": {
@@ -952,6 +953,49 @@
    "youtube": {
     "reciter": "sayegh",
     "video": "youtube/098_001-005.mp4"
+   }
+  },
+  "2026-11-26/morning": {
+   "queue": "reading",
+   "item": "juz-amma/98:6-8",
+   "passage": "98:6-8",
+   "results": {
+    "facebook": {
+     "status": "published",
+     "id": "1699743921701875",
+     "url": "https://www.facebook.com/reel/1699743921701875/",
+     "error": null,
+     "at": "2026-11-26T06:35:33+00:00"
+    },
+    "instagram": {
+     "status": "failed",
+     "id": null,
+     "url": null,
+     "error": "instagram container 17898894696503710, 17898895044503710, 17898895587503710: still processing after 240 s",
+     "at": "2026-11-26T06:52:27+00:00"
+    },
+    "tiktok": {
+     "status": "draft",
+     "id": "v_inbox_file~v2.7712364320134400022",
+     "url": null,
+     "error": null,
+     "at": "2026-11-26T06:35:33+00:00"
+    },
+    "youtube": {
+     "status": "published",
+     "id": "nfu-wJWBn6I",
+     "url": "https://youtube.com/shorts/nfu-wJWBn6I",
+     "error": null,
+     "at": "2026-11-26T07:14:58+00:00"
+    }
+   },
+   "reciter": "minshawi",
+   "background": "pb-forest-river",
+   "seconds": 77.9,
+   "hook": "ٱلْبَرِيَّةِ",
+   "youtube": {
+    "reciter": "sayegh",
+    "video": "youtube/098_006-008.mp4"
    }
   }
  },
