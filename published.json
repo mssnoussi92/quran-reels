@@ -939,11 +939,11 @@
      "at": "2026-11-25T06:23:29+00:00"
     },
     "youtube": {
-     "status": "blocked",
-     "id": null,
-     "url": null,
-     "error": "droits (Meta) : facebook : aucune correspondance ; instagram : instagram container 17898684543503710, 17898685380503710, 17898685881503710: still processing after 240 s — pas mise sur YouTube",
-     "at": "2026-11-25T06:39:07+00:00"
+     "status": "published",
+     "id": "aMjdvY1p5-0",
+     "url": "https://youtube.com/shorts/aMjdvY1p5-0",
+     "error": null,
+     "at": "2026-11-26T09:42:06+00:00"
     }
    },
    "reciter": "sayegh",
