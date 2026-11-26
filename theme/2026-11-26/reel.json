@@ -1,0 +1,50 @@
+{
+ "kind": "theme",
+ "id": "theme/2026-11-26",
+ "created": "2026-11-26T16:46:58+00:00",
+ "key": "theme:2026-11-26",
+ "day": "2026-11-26",
+ "time": "18:00",
+ "title": "He built the barrier… and said: not from me · بنى السد… وقال: مش مني!",
+ "passage": "Dhul-Qarnayn, short 3 : le barrage",
+ "label": "He built the barrier… and said: not from me · بنى السد… وقال: مش مني!",
+ "results": [
+  {
+   "name": "Facebook",
+   "url": "https://www.facebook.com/reel/1681822340262974/",
+   "label": "publié"
+  },
+  {
+   "name": "Instagram",
+   "url": "https://www.instagram.com/reel/DgNj2U4Ktam/",
+   "label": "publié"
+  },
+  {
+   "name": "TikTok",
+   "url": null,
+   "label": "brouillon, non publié"
+  },
+  {
+   "name": "YouTube",
+   "url": "https://youtube.com/shorts/EbRv-YmRLZM",
+   "label": "publié"
+  }
+ ],
+ "tiktok": "بنى السد… وقال: مش مني!\nHe built the barrier… and said: not from me\n\nولما خلص، ذو القرنين قال: ده رحمة من ربي.\nAnd when it stood, Dhul-Qarnayn said: this is a mercy from my Lord.\n\n🎙️ صوت مولَّد بالذكاء الاصطناعي · AI-generated voice\n\n#يأجوج_ومأجوج #القرآن_الكريم #ذو_القرنين #Quran #قصص_القرآن\n",
+ "video": {
+  "tiktok": "https://github.com/mssnoussi92/quran-themes-demo/releases/download/page-qarnayn/qarnayn-short-3-barrier-tiktok.mp4"
+ },
+ "youtube": {
+  "title": "بنى السد… وقال: مش مني! · He built the barrier… and said: not from me",
+  "description": "قطع حديد بين جبلين، ونار، ونحاس دايب: سد محدش قدر يطلع عليه ولا يخرمه. ولما خلص، ذو القرنين قال: ده رحمة من ربي. النجاح رحمة… ومفيش حاجة دايمة غير ربنا.\n\nBlocks of iron between two mountains, fire, molten copper: a barrier no one could climb or pierce. And when it stood, Dhul-Qarnayn said: this is a mercy from my Lord. Success is a mercy, and nothing lasts but God.\n\nذو القرنين · الجزء ٣ من ٣ · Dhul-Qarnayn · part 3/3\n\nصوت الراوي مولَّد بالذكاء الاصطناعي · AI-generated voice (Gemini TTS, Egyptian Arabic)\n\n@quran_words_daily",
+  "credits": "Quoted:\n• Surah Al-Kahf (18:96-98) · Recitation: Tawfiq As-Sayegh · Translation: Saheeh International · https://quran.com/18/96-98\n\nFootage: Pixabay (FlickrVideos) · Ambience: BigSoundBank (Joseph Sardin)",
+  "hashtags": "#يأجوج_ومأجوج #القرآن_الكريم #ذو_القرنين #Quran #قصص_القرآن",
+  "file": "https://github.com/mssnoussi92/quran-themes-demo/releases/download/page-qarnayn/qarnayn-short-3-barrier-cut.mp4",
+  "thumbnail": "https://github.com/mssnoussi92/quran-themes-demo/releases/download/page-qarnayn/qarnayn-short-3-barrier-cover.jpg",
+  "url": "https://youtube.com/shorts/EbRv-YmRLZM"
+ },
+ "match": [
+  "theme:qarnayn/short-3"
+ ],
+ "notes": []
+}
