@@ -522,6 +522,72 @@
      "rights_after": null
     }
    }
+  },
+  "2026-11-27": {
+   "label": "« آية وحكايتها » 2 : الضحى",
+   "videos": {
+    "facebook": "ayah/short-2",
+    "instagram": "ayah/short-2",
+    "tiktok": "ayah/short-2",
+    "youtube": "ayah/short-2"
+   },
+   "at": "2026-11-27T11:41:14+00:00",
+   "results": {
+    "facebook": {
+     "platform": "facebook",
+     "status": "published",
+     "remote_id": "4426367764174531",
+     "url": "https://www.facebook.com/reel/4426367764174531/",
+     "error": null,
+     "rights": {
+      "platform": "facebook",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 0.22273472599999877,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    },
+    "instagram": {
+     "platform": "instagram",
+     "status": "published",
+     "remote_id": "17869703301679576",
+     "url": "https://www.instagram.com/reel/DgPmcGkqbXG/",
+     "error": null,
+     "rights": {
+      "platform": "instagram",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 31.84797501099996,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    },
+    "tiktok": {
+     "platform": "tiktok",
+     "status": "draft",
+     "remote_id": "v_inbox_file~v2.7712816195732670466",
+     "url": null,
+     "error": null,
+     "rights": null,
+     "rights_after": null
+    },
+    "youtube": {
+     "platform": "youtube",
+     "status": "published",
+     "remote_id": "xTnhF-CsHy0",
+     "url": "https://youtube.com/shorts/xTnhF-CsHy0",
+     "error": null,
+     "rights": null,
+     "rights_after": null
+    }
+   }
   }
  }
 }
