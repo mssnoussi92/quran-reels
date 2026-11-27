@@ -80,3 +80,40 @@ def test_each_screen_plays_its_own_image(tmp_path, monkeypatch):
     assert len({png for png, _, _ in out}) == len(out)
     assert [png.read_text() for png, _, _ in out] == [ctx["translation"] for _, ctx, _ in out]
     assert sum(n for _, _, n in out) == samples
+
+
+# 18:19 (Uthmani, Quran.com) and Sahih International, as rendered: no pause mark in its last 23 words
+CAVE = 'وَكَذَٰلِكَ بَعَثْنَـٰهُمْ لِيَتَسَآءَلُوا۟ بَيْنَهُمْ ۚ قَالَ قَآئِلٌ مِّنْهُمْ كَمْ لَبِثْتُمْ ۖ قَالُوا۟ لَبِثْنَا يَوْمًا أَوْ بَعْضَ يَوْمٍ ۚ قَالُوا۟ رَبُّكُمْ أَعْلَمُ بِمَا لَبِثْتُمْ فَٱبْعَثُوٓا۟ أَحَدَكُم بِوَرِقِكُمْ هَـٰذِهِۦٓ إِلَى ٱلْمَدِينَةِ فَلْيَنظُرْ أَيُّهَآ أَزْكَىٰ طَعَامًا فَلْيَأْتِكُم بِرِزْقٍ مِّنْهُ وَلْيَتَلَطَّفْ وَلَا يُشْعِرَنَّ بِكُمْ أَحَدًا'
+CAVE_EN = 'And similarly, We awakened them that they might question one another. Said a speaker from among them, "How long have you remained [here]?" They said, "We have remained a day or part of a day." They said, "Your Lord is most knowing of how long you remained. So send one of you with this silver coin of yours to the city and let him look to which is the best of food and bring you provision from it and let him be cautious. And let no one be aware of you.'
+
+
+def test_each_sentence_stays_on_the_screen_of_its_words():
+    """18:19 on 2026-11-27: «They said, "Your Lord is most knowing…» came one screen before
+    قَالُوا۟ رَبُّكُمْ, and «وَلَا» was left on a screen apart from «يُشْعِرَنَّ بِكُمْ أَحَدًا»."""
+    tokens = CAVE.split()
+    for k in (3, 4, 5):
+        parts = plan(tokens, CAVE_EN, k, 47.0)
+        for p in parts:
+            words = tokens[p.first:p.end]
+            if "رَبُّكُمْ" in words:
+                assert "Your Lord is most knowing" in p.translation
+            if "يُشْعِرَنَّ" in words:
+                assert "وَلَا" in words and "let no one be aware" in p.translation
+        assert " ".join(p.translation for p in parts) == CAVE_EN
+
+
+def test_a_screen_without_a_pause_mark_left_starts_at_a_clause():
+    """No mark after يَوْمٍ ۚ: the screens start at a word opening a clause (و, ف), never
+    inside one (وَلَا | يُشْعِرَنَّ)."""
+    tokens = CAVE.split()
+    for k in (4, 5):
+        for p in plan(tokens, CAVE_EN, k, 47.0)[1:]:
+            assert tokens[p.first - 1] in "ۖۗۘۙۚۛۜ" or tokens[p.first][0] in "وف"
+
+
+def test_the_translation_is_never_cut_inside_brackets():
+    from quran_reels.render.screens import translation_clauses
+
+    clauses = [c for c, _ in translation_clauses("and not expose their adornment [i.e., beauty] "
+                                                  "except to their husbands, their fathers.")]
+    assert all(c.count("[") == c.count("]") for c in clauses)
