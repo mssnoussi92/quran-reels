@@ -367,6 +367,52 @@
      "rights_after": null
     }
    }
+  },
+  "2026-11-27": {
+   "label": "Quiz 13 : «اليمّ»",
+   "videos": {
+    "facebook": "ma3ak/short-13",
+    "instagram": "ma3ak/short-13"
+   },
+   "at": "2026-11-27T16:43:32+00:00",
+   "results": {
+    "facebook": {
+     "platform": "facebook",
+     "status": "published",
+     "remote_id": "1784222743710097",
+     "url": "https://www.facebook.com/reel/1784222743710097/",
+     "error": null,
+     "rights": {
+      "platform": "facebook",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 0.18434283900000992,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    },
+    "instagram": {
+     "platform": "instagram",
+     "status": "published",
+     "remote_id": "18121059301998574",
+     "url": "https://www.instagram.com/reel/DgQI6pmNhPW/",
+     "error": null,
+     "rights": {
+      "platform": "instagram",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 33.374613606,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    }
+   }
   }
  }
 }
