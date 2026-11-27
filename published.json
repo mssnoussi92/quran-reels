@@ -46,7 +46,8 @@
    "done": [
     "al-kahf/18:11-14",
     "al-kahf/18:15-16",
-    "al-kahf/18:17-18"
+    "al-kahf/18:17-18",
+    "al-kahf/18:19-20"
    ]
   }
  },
@@ -996,6 +997,49 @@
    "youtube": {
     "reciter": "sayegh",
     "video": "youtube/098_006-008.mp4"
+   }
+  },
+  "2026-11-27/morning": {
+   "queue": "kahf",
+   "item": "al-kahf/18:19-20",
+   "passage": "18:19-20",
+   "results": {
+    "facebook": {
+     "status": "published",
+     "id": "28422446494027556",
+     "url": "https://www.facebook.com/reel/28422446494027556/",
+     "error": null,
+     "at": "2026-11-27T06:23:33+00:00"
+    },
+    "instagram": {
+     "status": "published",
+     "id": "18090457121532317",
+     "url": "https://www.instagram.com/reel/DgPBEwupl3T/",
+     "error": null,
+     "at": "2026-11-27T06:23:33+00:00"
+    },
+    "tiktok": {
+     "status": "draft",
+     "id": "v_inbox_file~v2.7712731927170713622",
+     "url": null,
+     "error": null,
+     "at": "2026-11-27T06:23:33+00:00"
+    },
+    "youtube": {
+     "status": "published",
+     "id": "JEhTa2--NAM",
+     "url": "https://youtube.com/shorts/JEhTa2--NAM",
+     "error": null,
+     "at": "2026-11-27T06:28:13+00:00"
+    }
+   },
+   "reciter": "budair",
+   "background": "dawn",
+   "seconds": 54.7,
+   "hook": "يَظْهَرُوا۟",
+   "youtube": {
+    "reciter": "sayegh",
+    "video": "youtube/018_019-020.mp4"
    }
   }
  },
