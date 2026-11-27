@@ -1,5 +1,8 @@
 """A long ayah on several screens: cuts at pause marks and sentence ends, timed by its words."""
 
+from types import SimpleNamespace
+
+from quran_reels import render
 from quran_reels.render import video
 from quran_reels.render.screens import plan, translation_pieces
 
@@ -57,3 +60,23 @@ def test_screens_split_the_ayah_frames_only():
                              screens=[48000, 60000, 36000])
     assert len(t.frame_counts()) == 3 and sum(t.frame_counts()) == t.total_frames
     assert [round(s, 2) for s in t.starts()] == [0.4, 1.4]  # the ayahs' starts are unchanged
+
+
+def test_each_screen_plays_its_own_image(tmp_path, monkeypatch):
+    """No split reads at 70 %: every try is drawn and the first stays the best. A later try must
+    not overwrite its images (18:19 on 2026-11-27: the 5-screen images on the 4-screen times)."""
+    class Renderer:
+        def render(self, layer, dest, **ctx):
+            dest.write_text(ctx["translation"])
+            return 0.6                                  # every try alike: the first one is kept
+
+    monkeypatch.setattr(render, "part_context",
+                        lambda passage, a, start, end, translation, **kw: {"translation": translation})
+    ayah = SimpleNamespace(text=KURSI, translation=KURSI_EN, ref=SimpleNamespace(surah=2, ayah=255))
+    samples = 38 * video.SAMPLE_RATE
+    out = render._long_ayah(Renderer(), SimpleNamespace(audio=None), None, ayah, samples,
+                            tmp_path / "002_255", first=False)
+    assert len(out) == 2                                # the 2-screen try, drawn first
+    assert len({png for png, _, _ in out}) == len(out)
+    assert [png.read_text() for png, _, _ in out] == [ctx["translation"] for _, ctx, _ in out]
+    assert sum(n for _, _, n in out) == samples

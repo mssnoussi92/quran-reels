@@ -423,7 +423,9 @@ def _long_ayah(fr: FrameRenderer, src: Sources, passage: Passage, a: Ayah, sampl
         for i, part in enumerate(parts):
             ctx = part_context(passage, a, part.first, part.end, part.translation,
                                first=first and i == 0)
-            png = stem.with_name(f"{stem.name}-{i + 1}.png")
+            # Each try its own files: a later try must not overwrite the best one's images
+            # (18:19 on 2026-11-27: the 5-screen images played on the 4-screen times).
+            png = stem.with_name(f"{stem.name}-{k}.{i + 1}.png")
             fits.append(fr.render("content", png, **ctx))
             out.append((png, ctx, part.start))
         if best is None or min(fits) > best[0]:
