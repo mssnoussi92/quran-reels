@@ -318,6 +318,13 @@ def by_id(cfg: Config, bg_id: str) -> Background:
     raise SystemExit(f"background {bg_id!r} is not in config/backgrounds.yaml")
 
 
+def scene_size(cfg: Config) -> dict[str, int]:
+    """A generated scene drawn in the video's orientation, at half its size (scaled up by
+    video.compose, as for the reels): 540×960 for a reel, 960×540 for a long 16:9 video."""
+    v = cfg.video
+    return {"width": 960, "height": 540} if v["width"] > v["height"] else {}
+
+
 def pick(cfg: Config, passage: Passage, http: Http | None = None,
          force: str | None = None) -> tuple[Path, dict[str, Any]]:
     """Background file for a passage, and what the manifest records about it.
@@ -330,8 +337,9 @@ def pick(cfg: Config, passage: Passage, http: Http | None = None,
                                   "source": "generated"}
     bg, theme, scores = chosen
     from quran_reels.sources import scenes
+    size = scene_size(cfg)
     if bg.scene:
-        path = scenes.render(cfg, bg.scene)
+        path = scenes.render(cfg, bg.scene, **size)
     else:
         try:
             path = clip(cfg, bg, http)
@@ -342,7 +350,7 @@ def pick(cfg: Config, passage: Passage, http: Http | None = None,
             print(f"warning: background {bg.id} unavailable ({type(e).__name__}: {e}); "
                   f"using the generated scene {fallback.id}", file=sys.stderr)
             bg, theme = fallback, f"{theme or 'default'} (fallback)"
-            path = scenes.render(cfg, bg.scene)
+            path = scenes.render(cfg, bg.scene, **size)
     info = {"id": bg.id, "source": bg.source, "theme": theme or "default",
             "scores": dict(scores)}
     for key in ("page", "author", "pixabay_id"):

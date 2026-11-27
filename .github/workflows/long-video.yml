@@ -1,0 +1,150 @@
+name: long-video
+
+# A whole surah as one long 16:9 video on YouTube, every word meaning of the Muyassar on it (owner's
+# request, 2026-11-27: Surah Al-Kahf first; src/quran_reels/longvideo.py, config/long.yaml).
+#
+#   render   no secret, outside the `accounts` group (it takes the better part of an hour):
+#            the reciter's split of the whole surah checked by speech recognition, as `prepare`
+#            does for the week (saved to the state branch), then the video and its thumbnail.
+#   publish  in the `accounts` group: Meta's copyright check of the same sound in pieces of 10 min
+#            (rule 6: anything but clear, nothing goes up), then YouTube, once (long.json on the
+#            state branch; a video of the same title among the channel's latest is not sent again).
+#
+# By hand only, by the owner. dry_run (the default): the render and Meta's check, nothing uploaded,
+# nothing recorded.
+on:
+  workflow_dispatch:
+    inputs:
+      surah:
+        description: "Surah number (18: Al-Kahf)"
+        required: true
+        default: "18"
+      dry_run:
+        description: "Render and Meta's check only, nothing uploaded"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write          # the state branch (splits, long.json); the release `reels` (Instagram's copy)
+
+env:
+  PIP_CONSTRAINT: ${{ github.workspace }}/constraints.txt
+
+jobs:
+  render:
+    if: github.actor == github.repository_owner
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    env:
+      QURAN_REELS_SPLITS: state-branch/splits
+      QURAN_REELS_RECITER: sayegh          # YouTube's reciter (platforms.youtube.reciter)
+      SURAH: ${{ inputs.surah }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install (speech recognition on CPU, ffmpeg, Chromium)
+        run: |
+          pip install -q torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -q -e ".[asr]" imageio-ffmpeg==0.8.1
+          mkdir -p ~/bin
+          ln -sf "$(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')" ~/bin/ffmpeg
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+          python -m playwright install chromium
+          python -c "from playwright.sync_api import sync_playwright as p; pw = p().start(); pw.chromium.launch().close(); pw.stop()" \
+            || python -m playwright install --with-deps chromium
+      - name: Load the state branch
+        run: |
+          git fetch --depth=1 origin state:state
+          git worktree add state-branch state
+      - uses: actions/cache/restore@v6     # recordings and the recognition model of `prepare`
+        with:
+          path: |
+            .cache
+            ~/.cache/huggingface
+          key: long-${{ github.run_id }}
+          restore-keys: |
+            long-
+            prepare-
+      - name: Split and check the whole surah
+        run: quran-reels split "$SURAH"
+      - name: Save the splits
+        if: always()
+        working-directory: state-branch
+        env:
+          SAVE_STATE_LEVEL: warning
+        run: bash "$GITHUB_WORKSPACE/.github/scripts/save-state.sh" "Découpes (vidéo longue)" splits
+      - name: Render
+        run: quran-reels long render "$SURAH"
+      - uses: actions/cache/save@v6
+        if: always()
+        continue-on-error: true
+        with:
+          path: |
+            .cache
+            ~/.cache/huggingface
+          key: long-${{ github.run_id }}
+      - name: Keep the video
+        uses: actions/upload-artifact@v7
+        with:
+          name: long
+          path: |
+            out/long/*.mp4
+            out/long/*/manifest.json
+            out/long/*/caption.txt
+            out/long/*/thumbnail.jpg
+            out/long/*/preview/*.png
+          retention-days: 14
+
+  publish:
+    needs: render
+    if: github.actor == github.repository_owner
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    concurrency:
+      group: accounts      # never two runs posting at the same time (reels, images, themes)
+      cancel-in-progress: false
+    env:
+      SURAH: ${{ inputs.surah }}
+      QURAN_REELS_RECITER: sayegh
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: |
+          pip install -q -e . imageio-ffmpeg==0.8.1
+          mkdir -p ~/bin
+          ln -sf "$(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')" ~/bin/ffmpeg
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+      - uses: actions/download-artifact@v7
+        with:
+          name: long
+          path: out/long
+      - name: Load the state branch
+        run: |
+          git fetch --depth=1 origin state:state
+          git worktree add state-branch state
+      - name: Meta's check, then YouTube
+        env:                   # secrets for this step only
+          META_PAGE_ID: ${{ secrets.META_PAGE_ID }}
+          META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_UPLOAD_REFRESH_TOKEN: ${{ secrets.YOUTUBE_UPLOAD_REFRESH_TOKEN }}
+          GH_TOKEN: ${{ github.token }}     # Instagram fetches its copy from the release `reels`
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          video=$(ls out/long/*.mp4 | head -1)
+          if [ "$DRY_RUN" = "true" ]; then
+            quran-reels long publish "$SURAH" --video "$video" --state state-branch/long.json --dry-run
+          else
+            quran-reels long publish "$SURAH" --video "$video" --state state-branch/long.json
+          fi
+      - name: Save what was uploaded
+        if: always() && inputs.dry_run == false
+        working-directory: state-branch
+        run: bash "$GITHUB_WORKSPACE/.github/scripts/save-state.sh" "Vidéo longue" long.json

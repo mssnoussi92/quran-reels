@@ -25,7 +25,8 @@ vec3 scene(vec2 uv, float t) {
     col += (stars(p, t, 42., .33, 0.) + .7 * stars(p, t, 85., .22, 17.)) * starMask;
 
   // Waxing crescent, its lit side towards the set sun (lower right).
-  vec2 mc = vec2(.73 * aspect, .835);
+  // Landscape (a long 16:9 video): above the gap between its two columns of text, not behind them.
+  vec2 mc = aspect > 1. ? vec2(.39 * aspect, .9) : vec2(.73 * aspect, .835);
   float r = .03;
   float dm = length(p - mc);
   float disc = smoothstep(r + aa, r - aa, dm);

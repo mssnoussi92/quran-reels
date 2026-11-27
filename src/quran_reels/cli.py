@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import pathlib
 import sys
 
 from quran_reels import config
@@ -37,6 +38,20 @@ def main(argv: list[str] | None = None) -> int:
     render.add_argument("--hook", action="store_true",
                         help="open on the question of video.hook, as a morning reel of the run")
     render.add_argument("--reciter", help="this reciter instead of the rotation's choice")
+
+    lg = sub.add_parser("long", help="a whole surah as one long 16:9 video for YouTube")
+    lg_sub = lg.add_subparsers(dest="long_command", required=True)
+    for name, text in (("render", "render it: out/long/<slug>.mp4 and its thumbnail"),
+                       ("publish", "render it, Meta's check, upload it once to YouTube")):
+        p_ = lg_sub.add_parser(name, help=text)
+        p_.add_argument("surah", type=int)
+        p_.add_argument("--reciter", help="instead of platforms.youtube.reciter")
+        if name == "publish":
+            p_.add_argument("--state", type=pathlib.Path, default=pathlib.Path("long.json"),
+                            help="what was uploaded (state branch: long.json)")
+            p_.add_argument("--video", type=pathlib.Path, help="an MP4 rendered by `long render`")
+            p_.add_argument("--dry-run", action="store_true",
+                            help="Meta's check only, nothing uploaded")
 
     passages = sub.add_parser("passages", help="split a surah into passages of about a minute")
     passages.add_argument("surah", type=int)
@@ -400,6 +415,16 @@ def main(argv: list[str] | None = None) -> int:
         if failed:
             print(f"not ready: {', '.join(failed)}", file=sys.stderr)
         return 1 if failed else 0
+
+    if args.command == "long":
+        from quran_reels import longvideo
+
+        if args.long_command == "render":
+            result = longvideo.render(cfg, args.surah, args.reciter)
+            print(result.video)
+            return 0
+        return longvideo.publish(cfg, args.surah, args.state, dry_run=args.dry_run,
+                                 reciter=args.reciter, video=args.video)
 
     if args.command == "render":
         from datetime import datetime
