@@ -1,0 +1,50 @@
+{
+ "kind": "theme",
+ "id": "theme/2026-11-27",
+ "created": "2026-11-27T11:47:45+00:00",
+ "key": "theme:2026-11-27",
+ "day": "2026-11-27",
+ "time": "13:00",
+ "title": "She told him: you've been left… and the answer came down · قالتله: سابك… فنزل الرد",
+ "passage": "« آية وحكايتها » 2 : الضحى",
+ "label": "She told him: you've been left… and the answer came down · قالتله: سابك… فنزل الرد",
+ "results": [
+  {
+   "name": "Facebook",
+   "url": "https://www.facebook.com/reel/4426367764174531/",
+   "label": "publié"
+  },
+  {
+   "name": "Instagram",
+   "url": "https://www.instagram.com/reel/DgPmcGkqbXG/",
+   "label": "publié"
+  },
+  {
+   "name": "TikTok",
+   "url": null,
+   "label": "brouillon, non publié"
+  },
+  {
+   "name": "YouTube",
+   "url": "https://youtube.com/shorts/xTnhF-CsHy0",
+   "label": "publié"
+  }
+ ],
+ "tiktok": "قالتله: سابك… فنزل الرد\nShe told him: you've been left… and the answer came down\n\nواحدة قالت للنبي ﷺ: اللي بيجيلك سابك. والرد ما جاش منه: نزلت سورة.\nA woman told the Prophet ﷺ: the one who comes to you has left you. The answer did not come from him: a surah came down.\n\n🎙️ صوت مولَّد بالذكاء الاصطناعي · AI-generated voice\n\n#سورة_الضحى #القرآن_الكريم #آية_وحكايتها #Quran #جبر_الخواطر\n",
+ "video": {
+  "tiktok": "https://github.com/mssnoussi92/quran-themes-demo/releases/download/page-ayah/ayah-short-2-duha-tiktok.mp4"
+ },
+ "youtube": {
+  "title": "قالتله: سابك… فنزل الرد · She told him: you've been left… and the answer came down",
+  "description": "النبي ﷺ كان تعبان ليلتين تلاتة… فجت واحدة تشمت وتقوله: اللي بيجيلك سابك. والرد ما جاش منه: نزلت سورة. اتأخر عليك… بس ما سابكش.\n\nThe Prophet ﷺ had been ill for two or three nights when a woman came to gloat: the one who comes to you has left you. The answer did not come from him: a surah came down. Late does not mean left.\n\nآية وحكايتها · ٢ · A Verse and Its Story · 2\n\nصوت الراوي مولَّد بالذكاء الاصطناعي · AI-generated voice (Gemini TTS, Egyptian Arabic)\n\n@quran_words_daily",
+  "credits": "Quoted:\n• Sahih al-Bukhari 4950 (told in the narration's own words) · https://sunnah.com/bukhari:4950\n• Surah Ad-Duhaa (93:1-5) · Recitation: Tawfiq As-Sayegh · Translation: Saheeh International · https://quran.com/93/1-5\n• Meaning after Al-Tafsir al-Muyassar (93:3) · https://quran.com/93:3/tafsirs/ar-tafsir-muyassar\n• Meaning after Al-Tafsir al-Muyassar (93:4) · https://quran.com/93:4/tafsirs/ar-tafsir-muyassar\n• Surah Ad-Duhaa (93:6-8) · Recitation: Tawfiq As-Sayegh · Translation: Saheeh International · https://quran.com/93/6-8\n• Meaning after Al-Tafsir al-Muyassar (93:6) · https://quran.com/93:6/tafsirs/ar-tafsir-muyassar\n• Meaning after Al-Tafsir al-Muyassar (93:7) · https://quran.com/93:7/tafsirs/ar-tafsir-muyassar\n• Meaning after Tafsir as-Sa'di (93:8) · https://quran.com/93:8/tafsirs/ar-tafseer-al-saddi\n\nFootage: Pixabay (bellergy) · Ambience: BigSoundBank (Joseph Sardin)",
+  "hashtags": "#سورة_الضحى #القرآن_الكريم #آية_وحكايتها #Quran #جبر_الخواطر",
+  "file": "https://github.com/mssnoussi92/quran-themes-demo/releases/download/page-ayah/ayah-short-2-duha.mp4",
+  "thumbnail": "https://github.com/mssnoussi92/quran-themes-demo/releases/download/page-ayah/ayah-short-2-duha-cover.jpg",
+  "url": "https://youtube.com/shorts/xTnhF-CsHy0"
+ },
+ "match": [
+  "theme:ayah/short-2"
+ ],
+ "notes": []
+}
