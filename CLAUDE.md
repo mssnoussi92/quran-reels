@@ -414,7 +414,7 @@ minutage. Le cache se remplit à la demande : `render` télécharge ce qui manqu
   attente aurait été annulée de même, sans job donc sans alerte).
   Les workflows sont donc lancés par des **tâches planifiées Claude** (choix du propriétaire,
   2026-11-05) qui réveillent la session « Quran Words Daily – planificateur » (Sonnet, dépôt
-  attaché, outils GitHub) : `prepare.yml` 02:41 Paris, `daily.yml` 07:12 Paris et le dimanche 17:40, `themes.yml` 17:40 Paris du lundi au samedi, 12:40 à partir du 2026-11-27 (les deux heures pendant le changement) (tâche
+  attaché, outils GitHub) : `prepare.yml` 02:41 Paris, `daily.yml` 07:12 Paris et le dimanche 17:40, `themes.yml` 12:40 Paris du lundi au samedi depuis le 2026-11-27 (17:40 avant ; le premier run de 13:00 a tout publié, le passage de 17:40 est retiré le même jour) (tâche
   créée le 2026-11-15 après les essais à blanc ; rien n'est dû avant le 2026-11-19), `themes.yml` avec `page: ma3ak` 17:42 chaque jour
   (la page test ; les tâches d'une même session passent l'une après l'autre : la Page d'abord ; heures du 2026-11-19, avant 19:12 et 18:41)
   (`CRON_TZ=Europe/Paris`), `images.yml` 11:36 UTC ; chacune lance le workflow sur `main`,
