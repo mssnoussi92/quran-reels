@@ -59,3 +59,14 @@ def test_parse_entry_introduced_by_waqawluhu():
 def test_parse_drops_separator_colon():
     [e] = parse_entries("و(الإلُّ) : العهدُ ويقال: القرابة", AyahRef(9, 8), ED)
     assert (e.lemma, e.text) == ("الإلُّ", "العهدُ ويقال: القرابة")
+
+
+def test_a_hair_space_inside_a_quoted_word_does_not_split_it():
+    """tafsir.app writes « وَكَذَ ٰلِكَ » with a hair space before the dagger alif (18:19)."""
+    from quran_reels.arabic import quoted_words
+    from quran_reels.models import AyahRef
+    from quran_reels.sources.tafsir_app import parse_entries
+
+    raw = "(وَكَذَ ٰ⁠لِكَ): وكما أنَمْناهم."
+    [entry] = parse_entries(raw, AyahRef(18, 19), "e")
+    assert len(quoted_words(entry.lemma)) == 1

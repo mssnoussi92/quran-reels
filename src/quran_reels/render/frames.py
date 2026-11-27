@@ -63,7 +63,8 @@ class FrameRenderer:
         self.cfg = cfg
         self.env = Environment(loader=FileSystemLoader(TEMPLATES),
                                autoescape=select_autoescape(["html", "j2"]))
-        self.template = self.env.get_template("reel.html.j2")
+        # A reel, or a whole surah in 16:9 (longvideo.py: video.template of its configuration).
+        self.template = self.env.get_template(cfg.video.get("template", "reel.html.j2"))
 
     def __enter__(self) -> Self:
         from playwright.sync_api import sync_playwright

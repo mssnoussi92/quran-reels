@@ -1,0 +1,34 @@
+# A whole surah as one long video on YouTube (16:9), with every word meaning of the Muyassar
+# (owner's request, 2026-11-27: « tout sourat Kahf en 16:9 avec le maximum du tafsir sur les
+# mots possible », first Surah Al-Kahf). src/quran_reels/longvideo.py, workflow long-video:
+# rendered, Meta's check on pieces of the same sound (rule 6; a Facebook reel takes 15 min at
+# most), then uploaded once (state long.json, and a video of the same title on the channel is
+# not uploaded again). The reciter is YouTube's (platforms.youtube.reciter); the surah opens with
+# the basmala, as the qurra' recite a whole surah (the calendar's days without it are about the
+# daily reels; not for At-Tawbah).
+video:
+  width: 1920
+  height: 1080
+  safe_area: { top: 60, bottom: 110, sides: 80 }
+  template: long.html.j2
+glosses:
+  max_per_ayah: 12                  # all of them: 7 at most in Al-Kahf (258 in 98 ayahs)
+  max_chars: 400
+background: night                   # a generated scene, drawn in 16:9 (a clip is filmed upright)
+check_seconds: 600                  # Meta's check: the sound in pieces of 10 min at most
+upload:
+  privacy: public
+  made_for_kids: false
+  synthetic_media: false
+  language: ar
+# Chapters of the description (YouTube: from 0:00, 10 s at least each): {surah: [[ayah, ar, en]]}
+chapters:
+  18:
+    - [1, "بداية السورة", "The opening"]
+    - [9, "أصحاب الكهف", "The People of the Cave"]
+    - [27, "", ""]
+    - [32, "صاحب الجنتين", "The owner of the two gardens"]
+    - [45, "", ""]
+    - [60, "موسى والخضر", "Musa and al-Khidr"]
+    - [83, "ذو القرنين", "Dhul-Qarnayn"]
+    - [99, "خاتمة السورة", "The closing"]
