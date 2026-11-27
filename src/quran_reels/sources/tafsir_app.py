@@ -46,7 +46,9 @@ def parse_entries(raw: str, ref: AyahRef, edition: str) -> list[GlossEntry]:
             continue
         if m := _ENTRY.match(line):
             rest = m["rest"].strip().removeprefix(":").strip()    # «(الإلُّ) : العهدُ»
-            entries.append(((m["a"] or m["b"]).strip(), [rest]))
+            # A hair space inside a quoted word, before a dagger alif (« وَكَذَ ٰلِكَ », 18:19):
+            # one word, as in the ayah, or the meaning is left out.
+            entries.append(((m["a"] or m["b"]).strip().replace("\u200a", ""), [rest]))
         elif entries:
             entries[-1][1].append(line)
     return [
