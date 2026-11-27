@@ -107,3 +107,12 @@ def test_the_question_has_a_screen_of_its_own_between_the_safe_margins(renderer,
         assert abs((left + right) / 2 - 540) < 40                     # centred
         assert (image[:, :, 3] > 128).sum() > 15_000 and image[0, 0, 3] == 0
     assert r.render("hook", tmp_path / "x.png", hook=hook) == 1.0     # the short one, full size
+
+
+def test_the_sign_of_salawat_is_drawn_by_a_font_of_the_project(renderer, tmp_path):
+    """Lora has no ﷺ: it showed as a box in 18:1 of the long Al-Kahf (2026-11-27). Amiri draws it."""
+    _, r, _, _ = frame(renderer, tmp_path, name="salawat",
+                       translation="upon His Servant [Muḥammad (ﷺ)] the Book")
+    faces = r._page.evaluate("() => [...document.fonts].filter(f => f.status === 'loaded')"
+                             ".map(f => f.family.replaceAll('\"', ''))")
+    assert "Salawat" in faces, faces          # loaded only for a text that has the sign

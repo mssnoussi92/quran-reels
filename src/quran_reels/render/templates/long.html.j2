@@ -21,6 +21,9 @@
   @font-face { font-family: "Amiri"; src: url("{{ fonts_dir }}/Amiri-Regular.ttf"); font-weight: 400; }
   @font-face { font-family: "Amiri"; src: url("{{ fonts_dir }}/Amiri-Bold.ttf"); font-weight: 700; }
   @font-face { font-family: "Lora"; src: url("{{ fonts_dir }}/Lora.ttf"); }
+  /* ﷺ, which Lora lacks (a box in its place: 18:1 of the long Al-Kahf, 2026-11-27): Amiri's, for
+     that one sign only; every other letter Lora lacks falls back as before. */
+  @font-face { font-family: "Salawat"; src: url("{{ fonts_dir }}/Amiri-Regular.ttf"); unicode-range: U+FDFA; }
 
   :root { --k: 1; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -41,13 +44,13 @@
   .side { flex: 0 0 640px; }
 
   .ref { font-family: "Amiri"; font-weight: 700; font-size: calc(34px * var(--k)); opacity: .85; }
-  .ref span { font-family: "Lora"; font-size: calc(26px * var(--k)); opacity: .8;
+  .ref span { font-family: "Lora", "Salawat"; font-size: calc(26px * var(--k)); opacity: .8;
       margin-inline-start: 12px; }
   .ayah { font-family: "AmiriQuran"; font-size: calc(68px * var(--k)); line-height: 1.95;
       text-wrap: balance; text-shadow: 0 4px 30px rgba(0,0,0,.6); }
   .ayah .hl { color: {{ highlight }}; }
   .ayah .num { font-size: calc(46px * var(--k)); opacity: .9; }
-  .tr { direction: ltr; font-family: "Lora"; font-style: italic; font-size: calc(32px * var(--k));
+  .tr { direction: ltr; font-family: "Lora", "Salawat"; font-style: italic; font-size: calc(32px * var(--k));
       line-height: 1.45; max-width: 1100px; text-wrap: balance; text-shadow: 0 2px 16px rgba(0,0,0,.65); }
 
   .gloss { background: rgba(10,14,35,.62); border: 1px solid rgba(246,200,107,.35);
@@ -62,7 +65,7 @@
       margin-top: calc(10px * var(--k)); }
 
   .footer { position: absolute; bottom: {{ safe.bottom - 70 }}px; left: 0; right: 0;
-      text-align: center; font-family: "Lora"; }
+      text-align: center; font-family: "Lora", "Salawat"; }
   .handle { font-size: 30px; font-weight: 600; letter-spacing: .03em; color: {{ highlight }};
       text-shadow: 0 1px 3px rgba(0,0,0,.8), 0 2px 14px rgba(0,0,0,.7); }
   .credit { font-size: 22px; color: rgba(255,255,255,.8); margin-top: 4px;
@@ -76,7 +79,7 @@
       direction: rtl; color: #fff; text-shadow: 0 8px 50px rgba(0,0,0,.75); }
   .thumb .s { font-family: "Amiri"; font-weight: 700; font-size: 92px; direction: rtl;
       color: {{ highlight }}; text-shadow: 0 4px 30px rgba(0,0,0,.75); }
-  .thumb .e { font-family: "Lora"; font-size: 54px; font-weight: 600;
+  .thumb .e { font-family: "Lora", "Salawat"; font-size: 54px; font-weight: 600;
       text-shadow: 0 3px 20px rgba(0,0,0,.8); }
   .thumb .r { font-family: "Amiri"; font-size: 52px; direction: rtl; opacity: .92;
       text-shadow: 0 3px 20px rgba(0,0,0,.8); }
