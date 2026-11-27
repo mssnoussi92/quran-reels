@@ -11,7 +11,8 @@ name: long-video
 #            state branch; a video of the same title among the channel's latest is not sent again).
 #
 # By hand only, by the owner. dry_run (the default): the render and Meta's check, nothing uploaded,
-# nothing recorded.
+# nothing recorded. from_run: publish the video an earlier run rendered (after a look at it), with
+# Meta's check made again on that very file.
 on:
   workflow_dispatch:
     inputs:
@@ -23,16 +24,21 @@ on:
         description: "Render and Meta's check only, nothing uploaded"
         type: boolean
         default: true
+      from_run:
+        description: "The video rendered by this earlier run of long-video (its id): no new render"
+        required: false
+        default: ""
 
 permissions:
   contents: write          # the state branch (splits, long.json); the release `reels` (Instagram's copy)
+  actions: read            # from_run: the artifact of an earlier run
 
 env:
   PIP_CONSTRAINT: ${{ github.workspace }}/constraints.txt
 
 jobs:
   render:
-    if: github.actor == github.repository_owner
+    if: github.actor == github.repository_owner && inputs.from_run == ''
     runs-on: ubuntu-24.04
     timeout-minutes: 150
     env:
@@ -99,7 +105,9 @@ jobs:
 
   publish:
     needs: render
-    if: github.actor == github.repository_owner
+    if: >-
+      always() && github.actor == github.repository_owner &&
+      (needs.render.result == 'success' || (needs.render.result == 'skipped' && inputs.from_run != ''))
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     concurrency:
@@ -123,6 +131,8 @@ jobs:
         with:
           name: long
           path: out/long
+          run-id: ${{ inputs.from_run || github.run_id }}
+          github-token: ${{ github.token }}
       - name: Load the state branch
         run: |
           git fetch --depth=1 origin state:state
