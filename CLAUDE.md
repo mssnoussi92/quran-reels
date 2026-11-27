@@ -598,6 +598,12 @@ suivre) à moins de 14 jours de l'échéance, soit à partir du 2027-01-30.
       de la version YouTube de 29:60) : 115 basmalas auditées, 4 de Tawfiq refaites (29 ; 6, 40,
       78 : isti'adha), version YouTube de 29:60 refaite et écoutée en entier par la
       reconnaissance · [ ] premier run `prepare` et premier run `daily` avec ces contrôles
+- [x] **Première vidéo longue** (2026-11-27, `long-video`) : Al-Kahf entière par Tawfiq As-Sayegh, 29:04,
+      258 sens du Muyassar, basmala au début ; droits de Meta propres sur ses 3 morceaux (Facebook et
+      Instagram), publique avec chapitres et miniature : https://www.youtube.com/watch?v=MSgc53c2684 ;
+      « ﷺ » de la traduction dessiné par Amiri depuis ce rendu (Lora n'a pas ce signe : un carré dans
+      les reels avant, PR #127) · [ ] rangée dans une playlist (à la main : `playlists` ne lit pas
+      `long.json`)
 - [x] Publication à la demande (docs/on-demand.md, `on-demand.yml`) : [x] dry run sur la branche (#34, 2026-11-06 : aperçu, `/essai`, droits Meta propres, MP4 1080p et textes YouTube ; refus #35 et découpe non nette #34)
       · [x] première demande approuvée par le propriétaire depuis son téléphone (#39,
       2026-11-06 : 101:1-11, Omar Hisham, YouTube seul ; aperçu refait après la correction des
