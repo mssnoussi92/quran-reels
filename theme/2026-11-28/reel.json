@@ -1,0 +1,50 @@
+{
+ "kind": "theme",
+ "id": "theme/2026-11-28",
+ "created": "2026-11-28T11:47:25+00:00",
+ "key": "theme:2026-11-28",
+ "day": "2026-11-28",
+ "time": "13:00",
+ "title": "Even Einstein got this wrong · حتى أينشتاين غلط فيها",
+ "passage": "« سنريهم آياتنا » 2 : le cosmos",
+ "label": "Even Einstein got this wrong · حتى أينشتاين غلط فيها",
+ "results": [
+  {
+   "name": "Facebook",
+   "url": "https://www.facebook.com/reel/2363242284436545/",
+   "label": "publié"
+  },
+  {
+   "name": "Instagram",
+   "url": "https://www.instagram.com/reel/DgSLLXlBuxf/",
+   "label": "publié"
+  },
+  {
+   "name": "TikTok",
+   "url": null,
+   "label": "brouillon, non publié"
+  },
+  {
+   "name": "YouTube",
+   "url": "https://youtube.com/shorts/M0OXqSSC4Vo",
+   "label": "publié"
+  }
+ ],
+ "tiktok": "حتى أينشتاين غلط فيها\nEven Einstein got this wrong\n\nطب آية نزلت من ١٤٠٠ سنة قالت إيه عن السما؟\nWhat does a verse revealed fourteen centuries ago say about the sky?\n\n🎙️ صوت مولَّد بالذكاء الاصطناعي · AI-generated voice\n\n#الكون #القرآن_الكريم #سنريهم_آياتنا #Quran #سورة_الذاريات\n",
+ "video": {
+  "tiktok": "https://github.com/mssnoussi92/quran-themes-demo/releases/download/page-signs/signs-short-2-universe-tiktok.mp4"
+ },
+ "youtube": {
+  "title": "حتى أينشتاين غلط فيها · Even Einstein got this wrong",
+  "description": "أكتر من ألفين سنة وأذكى العقول متأكدة إن الكون ثابت، وحتى أينشتاين سنة ١٩١٧ عدّل معادلاته عشان يفضل ثابت. وسنة ١٩٢٩ هابل شاف المجرات بتبعد. طب آية نزلت من ١٤٠٠ سنة قالت إيه عن السما؟\n\nFor more than two thousand years the greatest minds were sure the universe never changes; in 1917 even Einstein adjusted his equations to keep it still. In 1929, Hubble saw the galaxies moving away. What does a verse revealed fourteen centuries ago say about the sky?\n\nسنريهم آياتنا · ٢ · We Will Show Them Our Signs · 2\n\nصوت الراوي مولَّد بالذكاء الاصطناعي · AI-generated voice (Gemini TTS, Egyptian Arabic)\n\n@quran_words_daily",
+  "credits": "Quoted:\n• Albert Einstein, Kosmologische Betrachtungen zur allgemeinen Relativitätstheorie, Sitzungsberichte der Preußischen Akademie der Wissenschaften, 1917 · https://en.wikipedia.org/wiki/Einstein%27s_static_universe\n• Aristote, Du ciel (De caelo), livre I, traduction J. L. Stocks, MIT Classics, -350 · https://classics.mit.edu/Aristotle/heavens.2.ii.html\n• Ptolémée, Almageste, Alexandrie, vers 150, 150 · https://en.wikipedia.org/wiki/Almagest\n• Edwin Hubble, A Relation between Distance and Radial Velocity among Extra-Galactic Nebulae, Proceedings of the National Academy of Sciences 15: 168-173, 1929 · https://ui.adsabs.harvard.edu/abs/1929PNAS...15..168H/abstract\n• Surah Adh-Dhariyat (51:47-49) · Recitation: Tawfiq As-Sayegh · Translation: Saheeh International · https://quran.com/51/47-49\n• Meaning after Al-Tafsir al-Muyassar (51:47) · https://quran.com/51:47/tafsirs/ar-tafsir-muyassar\n• Surah Fussilat (41:53) · Recitation: Tawfiq As-Sayegh · Translation: Saheeh International · https://quran.com/41/53\n• Meaning after Tafsir as-Sa'di (51:47) · https://quran.com/51:47/tafsirs/ar-tafseer-al-saddi\n\nImages: NASA, ESA, S. Beckwith (STScI), HUDF Team (CC BY 4.0), NASA, ESA, CSA, STScI (CC BY 4.0) · Ambience: BigSoundBank (Joseph Sardin)",
+  "hashtags": "#الكون #القرآن_الكريم #سنريهم_آياتنا #Quran #سورة_الذاريات",
+  "file": "https://github.com/mssnoussi92/quran-themes-demo/releases/download/page-signs/signs-short-2-universe.mp4",
+  "thumbnail": "https://github.com/mssnoussi92/quran-themes-demo/releases/download/page-signs/signs-short-2-universe-cover.jpg",
+  "url": "https://youtube.com/shorts/M0OXqSSC4Vo"
+ },
+ "match": [
+  "theme:signs/short-2"
+ ],
+ "notes": []
+}
