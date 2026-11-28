@@ -588,6 +588,72 @@
      "rights_after": null
     }
    }
+  },
+  "2026-11-28": {
+   "label": "« سنريهم آياتنا » 2 : le cosmos",
+   "videos": {
+    "facebook": "signs/short-2",
+    "instagram": "signs/short-2",
+    "tiktok": "signs/short-2",
+    "youtube": "signs/short-2"
+   },
+   "at": "2026-11-28T11:41:04+00:00",
+   "results": {
+    "facebook": {
+     "platform": "facebook",
+     "status": "published",
+     "remote_id": "2363242284436545",
+     "url": "https://www.facebook.com/reel/2363242284436545/",
+     "error": null,
+     "rights": {
+      "platform": "facebook",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 0.12362125599997853,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    },
+    "instagram": {
+     "platform": "instagram",
+     "status": "published",
+     "remote_id": "17964587334249064",
+     "url": "https://www.instagram.com/reel/DgSLLXlBuxf/",
+     "error": null,
+     "rights": {
+      "platform": "instagram",
+      "status": "complete",
+      "matches_found": false,
+      "matches": [],
+      "detail": "",
+      "seconds": 31.761516975000006,
+      "clear": true,
+      "summary": "aucune correspondance"
+     },
+     "rights_after": null
+    },
+    "tiktok": {
+     "platform": "tiktok",
+     "status": "draft",
+     "remote_id": "v_inbox_file~v2.7713187127382575106",
+     "url": null,
+     "error": null,
+     "rights": null,
+     "rights_after": null
+    },
+    "youtube": {
+     "platform": "youtube",
+     "status": "published",
+     "remote_id": "M0OXqSSC4Vo",
+     "url": "https://youtube.com/shorts/M0OXqSSC4Vo",
+     "error": null,
+     "rights": null,
+     "rights_after": null
+    }
+   }
   }
  }
 }
