@@ -1,7 +1,58 @@
 {
- "updated": "2026-11-27T11:47:46+00:00",
+ "updated": "2026-11-28T06:22:12+00:00",
  "days": 14,
  "entries": [
+  {
+   "id": "daily/2026-11-28-morning",
+   "kind": "daily",
+   "key": "2026-11-28/morning",
+   "day": "2026-11-28",
+   "time": "07:30",
+   "created": "2026-11-28T06:22:12+00:00",
+   "title": "97:1-5 · Surah Al-Qadr · سورة القدر",
+   "passage": "97:1-5",
+   "label": "",
+   "reciter": "Tawfiq As-Sayegh",
+   "results": [
+    {
+     "name": "Facebook",
+     "url": "https://www.facebook.com/reel/1829802838230679/",
+     "label": "publié"
+    },
+    {
+     "name": "Instagram",
+     "url": "https://www.instagram.com/reel/DgRl2FAzbnL/",
+     "label": "publié"
+    },
+    {
+     "name": "TikTok (brouillon)",
+     "url": null,
+     "label": "brouillon, non publié"
+    },
+    {
+     "name": "YouTube (à la main)",
+     "url": "https://youtube.com/shorts/n7HbmAcPD2w",
+     "label": "publié"
+    }
+   ],
+   "tiktok": "سورة القدر (97:1-5)\n\nإِنَّآ أَنزَلْنَـٰهُ فِى لَيْلَةِ ٱلْقَدْرِ ﴿١﴾\nوَمَآ أَدْرَىٰكَ مَا لَيْلَةُ ٱلْقَدْرِ ﴿٢﴾\nلَيْلَةُ ٱلْقَدْرِ خَيْرٌ مِّنْ أَلْفِ شَهْرٍ ﴿٣﴾\nتَنَزَّلُ ٱلْمَلَـٰٓئِكَةُ وَٱلرُّوحُ فِيهَا بِإِذْنِ رَبِّهِم مِّن كُلِّ أَمْرٍ ﴿٤﴾\nسَلَـٰمٌ هِىَ حَتَّىٰ مَطْلَعِ ٱلْفَجْرِ ﴿٥﴾\n\nتلاوة: فارس عباد · الترجمة: Sahih International · معاني الكلمات: التفسير الميسر، مجمع الملك فهد\n\n🎙️ صوت مولَّد بالذكاء الاصطناعي\n\n@quran.words.daily\n\n#القرآن_الكريم #سورة_القدر #جزء_عم #فارس_عباد #تفسير_القرآن\n",
+   "video": {
+    "full": "https://github.com/mssnoussi92/quran-reels/releases/download/reels/2026-11-28-morning-097_001-005.mp4",
+    "youtube": "https://github.com/mssnoussi92/quran-reels/releases/download/reels/2026-11-28-morning-097_001-005-youtube.mp4"
+   },
+   "youtube": {
+    "title": "سورة القدر · Surah Al-Qadr (97:1-5)",
+    "description": "سورة القدر · Surah Al-Qadr (97:1-5)\n\nإِنَّآ أَنزَلْنَـٰهُ فِى لَيْلَةِ ٱلْقَدْرِ ﴿١﴾\n1. Indeed, We sent it [i.e., the Qur’ān] down during the Night of Decree.\n\nوَمَآ أَدْرَىٰكَ مَا لَيْلَةُ ٱلْقَدْرِ ﴿٢﴾\n2. And what can make you know what is the Night of Decree?\n\nلَيْلَةُ ٱلْقَدْرِ خَيْرٌ مِّنْ أَلْفِ شَهْرٍ ﴿٣﴾\n3. The Night of Decree is better than a thousand months.\n\nتَنَزَّلُ ٱلْمَلَـٰٓئِكَةُ وَٱلرُّوحُ فِيهَا بِإِذْنِ رَبِّهِم مِّن كُلِّ أَمْرٍ ﴿٤﴾\n4. The angels and the Spirit [i.e., Gabriel] descend therein by permission of their Lord for every matter.\n\nسَلَـٰمٌ هِىَ حَتَّىٰ مَطْلَعِ ٱلْفَجْرِ ﴿٥﴾\n5. Peace it is until the emergence of dawn.\n\nRecitation: Tawfiq As-Sayegh\nTranslation: Sahih International\nWord meanings: التفسير الميسر، مجمع الملك فهد\n\n@quran_words_daily\n",
+    "credits": "",
+    "hashtags": "#QuranWordsDaily #Quran #JuzAmma #SurahAlQadr #سورة_القدر #القرآن_الكريم #جزء_عم #TawfiqAsSayegh #توفيق_الصايغ #تفسير_القرآن #التفسير_الميسر",
+    "file": "https://github.com/mssnoussi92/quran-reels/releases/download/reels/2026-11-28-morning-097_001-005-youtube.mp4",
+    "thumbnail": ""
+   },
+   "notes": [],
+   "match": [
+    "slot:2026-11-28/morning"
+   ]
+  },
   {
    "id": "theme/2026-11-27",
    "kind": "theme",
@@ -1131,42 +1182,6 @@
    "notes": [],
    "match": [
     "slot:2026-11-14/morning"
-   ]
-  },
-  {
-   "id": "daily/2026-11-13-evening",
-   "kind": "daily",
-   "key": "2026-11-13/evening",
-   "day": "2026-11-13",
-   "time": "19:30",
-   "created": "2026-11-13T21:21:38+00:00",
-   "title": "18:15-16 · Surah Al-Kahf · سورة الكهف",
-   "passage": "18:15-16",
-   "label": "",
-   "reciter": "Tawfiq As-Sayegh",
-   "results": [
-    {
-     "name": "Instagram",
-     "url": "https://www.instagram.com/reel/DfslHXAjdkR/",
-     "label": "publié"
-    }
-   ],
-   "tiktok": "Surah Al-Kahf on Friday · سورة الكهف يوم الجمعة · 2/36\nSurah Al-Kahf (18:15-16) · سورة الكهف\n\nبِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ\n\nهَـٰٓؤُلَآءِ قَوْمُنَا ٱتَّخَذُوا۟ مِن دُونِهِۦٓ ءَالِهَةً ۖ لَّوْلَا يَأْتُونَ عَلَيْهِم بِسُلْطَـٰنٍۭ بَيِّنٍ ۖ فَمَنْ أَظْلَمُ مِمَّنِ ٱفْتَرَىٰ عَلَى ٱللَّهِ كَذِبًا ﴿١٥﴾\n15. These, our people, have taken besides Him deities. Why do they not bring for [worship of] them a clear evidence? And who is more unjust than one who invents about Allāh a lie?\"\n\nوَإِذِ ٱعْتَزَلْتُمُوهُمْ وَمَا يَعْبُدُونَ إِلَّا ٱللَّهَ فَأْوُۥٓا۟ إِلَى ٱلْكَهْفِ يَنشُرْ لَكُمْ رَبُّكُم مِّن رَّحْمَتِهِۦ وَيُهَيِّئْ لَكُم مِّنْ أَمْرِكُم مِّرْفَقًا ﴿١٦﴾\n16. [The youths said to one another], \"And when you have withdrawn from them and that which they worship other than Allāh, retreat to the cave. Your Lord will spread out for you of His mercy and will prepare for you from your affair facility.\"\n\nRecitation: Tawfiq As-Sayegh\nTranslation: Sahih International\nWord meanings: التفسير الميسر، مجمع الملك فهد\n\n@quran_words_daily\n\n#QuranWordsDaily #Quran #Jumuah #SurahAlKahf #سورة_الكهف\n",
-   "video": {
-    "full": "https://github.com/mssnoussi92/quran-reels/releases/download/reels/2026-11-13-evening-018_015-016.mp4",
-    "youtube": "https://github.com/mssnoussi92/quran-reels/releases/download/reels/2026-11-13-evening-018_015-016-youtube.mp4"
-   },
-   "youtube": {
-    "title": "Surah Al-Kahf on Friday · سورة الكهف يوم الجمعة · 2/36 · Surah Al-Kahf (18:15-16) · سورة الكهف",
-    "description": "Surah Al-Kahf on Friday · سورة الكهف يوم الجمعة · 2/36\nSurah Al-Kahf (18:15-16) · سورة الكهف\n\nبِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ\n\nهَـٰٓؤُلَآءِ قَوْمُنَا ٱتَّخَذُوا۟ مِن دُونِهِۦٓ ءَالِهَةً ۖ لَّوْلَا يَأْتُونَ عَلَيْهِم بِسُلْطَـٰنٍۭ بَيِّنٍ ۖ فَمَنْ أَظْلَمُ مِمَّنِ ٱفْتَرَىٰ عَلَى ٱللَّهِ كَذِبًا ﴿١٥﴾\n15. These, our people, have taken besides Him deities. Why do they not bring for [worship of] them a clear evidence? And who is more unjust than one who invents about Allāh a lie?\"\n\nوَإِذِ ٱعْتَزَلْتُمُوهُمْ وَمَا يَعْبُدُونَ إِلَّا ٱللَّهَ فَأْوُۥٓا۟ إِلَى ٱلْكَهْفِ يَنشُرْ لَكُمْ رَبُّكُم مِّن رَّحْمَتِهِۦ وَيُهَيِّئْ لَكُم مِّنْ أَمْرِكُم مِّرْفَقًا ﴿١٦﴾\n16. [The youths said to one another], \"And when you have withdrawn from them and that which they worship other than Allāh, retreat to the cave. Your Lord will spread out for you of His mercy and will prepare for you from your affair facility.\"\n\nRecitation: Tawfiq As-Sayegh\nTranslation: Sahih International\nWord meanings: التفسير الميسر، مجمع الملك فهد\n\n@quran_words_daily\n",
-    "credits": "",
-    "hashtags": "#QuranWordsDaily #Quran #Jumuah #SurahAlKahf #سورة_الكهف #القرآن_الكريم #يوم_الجمعة #TawfiqAsSayegh #توفيق_الصايغ #تفسير_القرآن #التفسير_الميسر",
-    "file": "https://github.com/mssnoussi92/quran-reels/releases/download/reels/2026-11-13-evening-018_015-016-youtube.mp4",
-    "thumbnail": ""
-   },
-   "notes": [],
-   "match": [
-    "slot:2026-11-13/evening"
    ]
   }
  ]
